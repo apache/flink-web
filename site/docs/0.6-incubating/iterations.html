@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Apache Flink (incubating): Iterations</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/bootstrap-lumen-custom.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="/css/custom.css">
+    <link rel="css/codetabs.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="js/codetabs.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://flink.incubator.apache.org">Apache Flink</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="navbar-collapse-1">
+      <ul class="nav navbar-nav">
+
+        <li>
+          <a href="index.html" class="">Documentation</a>
+        </li>
+
+        <li>
+          <a href="api/java/index.html">Javadoc</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div style="padding-top:70px" class="container">
+
+      <div class="row">
+        <div class="col-md-3">
+          <ul>
+    <li>Quickstart
+        <ul>
+            <li><a href="setup_quickstart.html">Install</a></li>
+            <li><a href="run_example_quickstart.html">Run Example</a></li>
+            <li><a href="java_api_quickstart.html">Java API</a></li>
+            <li><a href="scala_api_quickstart.html">Scala API</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+        </ul>
+    </li>
+
+    <li>Setup &amp; Configuration
+        <ul>
+            <li><a href="building.html">Build Instructions</a></li>
+            <li><a href="local_setup.html">Local Setup</a></li>
+            <li><a href="cluster_setup.html">Cluster Setup</a></li>
+            <li><a href="yarn_setup.html">YARN Setup</a></li>
+            <li><a href="config.html">Configuration</a></li>
+        </ul>
+    </li>
+
+    <li>Programming Guides
+        <ul>
+            <li><a href="java_api_guide.html">Java API</a></li>
+            <li><a href="java_api_transformations.html">Java API Transformations</a></li>
+            <li><a href="scala_api_guide.html">Scala API</a></li>
+            <li><a href="iterations.html">Iterations</a></li>
+            <li><a href="spargel_guide.html">Spargel Graph API</a></li>
+        </ul>
+    </li>
+
+    <li>Examples
+        <ul>
+            <li><a href="java_api_examples.html">Java API</a></li>
+            <li><a href="scala_api_examples.html">Scala API</a></li>
+            <li><a href="example_connectors.html">Connecting to other systems</a></li>
+        </ul>
+    </li>
+
+    <li>Execution
+        <ul>
+            <li><a href="local_execution.html">Local/Debugging</a></li>
+            <li><a href="cluster_execution.html">Cluster</a></li>
+            <li><a href="cli.html">Command-Line Interface</a></li>
+            <li><a href="web_client.html">Web Interface</a></li>
+        </ul>
+    </li>
+
+    <li>Internals
+        <ul>
+            <li><a href="internal_overview.html">Overview</a></li>
+            <li><a href="internal_general_arch.html">General Architecture</a></li>
+            <li><a href="internal_add_operator.html">How-to: Adding a new Operator</a></li>
+        </ul>
+    </li>
+</ul>
+        </div>  
+        <div class="col-md-9">
+          <h1>Iterations</h1>
+
+          <p>Iterative algorithms occur in many domains of data analysis, such as <em>machine learning</em> or <em>graph analysis</em>. Such algorithms are crucial in order to realize the promise of Big Data to extract meaningful information out of your data. With increasing interest to run these kinds of algorithms on very large data sets, there is a need to execute iterations in a massively parallel fashion.</p>
+
+<p>Flink programs implement iterative algorithms by defining a <strong>step function</strong> and embedding it into a special iteration operator. There are two  variants of this operator: <strong>Iterate</strong> and <strong>Delta Iterate</strong>. Both operators repeatedly invoke the step function on the current iteration state until a certain termination condition is reached.</p>
+
+<p>Here, we provide background on both operator variants and outline their usage. The <a href="java_api_guide.html">programming guides</a> explain how to implement the operators in both <a href="scala_api_guide.html">Scala</a> and <a href="java_api_guide.html#iterations">Java</a>. We also provide a <strong>vertex-centric graph processing API</strong> called <a href="spargel_guide.html">Spargel</a>.</p>
+
+<p>The following table provides an overview of both operators:</p>
+
+<table class="table table-striped table-hover table-bordered">
+    <thead>
+        <th></th>
+        <th class="text-center">Iterate</th>
+        <th class="text-center">Delta Iterate</th>
+    </thead>
+    <tr>
+        <td class="text-center" width="20%"><strong>Iteration Input</strong></td>
+        <td class="text-center" width="40%"><strong>Partial Solution</strong></td>
+        <td class="text-center" width="40%"><strong>Workset</strong> and <strong>Solution Set</strong></td>
+    </tr>
+    <tr>
+        <td class="text-center"><strong>Step Function</strong></td>
+        <td colspan="2" class="text-center">Arbitrary Data Flows</td>
+    </tr>
+    <tr>
+        <td class="text-center"><strong>State Update</strong></td>
+        <td class="text-center">Next <strong>partial solution</strong></td>
+        <td>
+            <ul>
+                <li>Next workset</li>
+                <li><strong>Changes to solution set</strong></li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td class="text-center"><strong>Iteration Result</strong></td>
+        <td class="text-center">Last partial solution</td>
+        <td class="text-center">Solution set state after last iteration</td>
+    </tr>
+    <tr>
+        <td class="text-center"><strong>Termination</strong></td>
+        <td>
+            <ul>
+                <li><strong>Maximum number of iterations</strong> (default)</li>
+                <li>Custom aggregator convergence</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li><strong>Maximum number of iterations or empty workset</strong> (default)</li>
+                <li>Custom aggregator convergence</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+<section id="iterate">
+Iterate Operator
+----------------
+
+The **iterate operator** covers the *simple form of iterations*: in each iteration, the **step function** consumes the **entire input** (the *result of the previous iteration*, or the *initial data set*), and computes the **next version of the partial solution** (e.g. `map`, `reduce`, `join`, etc.).
+
+<p class="text-center">
+    <img alt="Iterate Operator" width="60%" src="img/iterations_iterate_operator.png" />
+</p>
+
+  1. **Iteration Input**: Initial input for the *first iteration* from a *data source* or *previous operators*.
+  2. **Step Function**: The step function will be executed in each iteration. It is an arbitrary data flow consisting of operators like `map`, `reduce`, `join`, etc. and depends on your specific task at hand.
+  3. **Next Partial Solution**: In each iteration, the output of the step function will be fed back into the *next iteration*.
+  4. **Iteration Result**: Output of the *last iteration* is written to a *data sink* or used as input to the *following operators*.
+
+There are multiple options to specify **termination conditions** for an iteration:
+
+  - **Maximum number of iterations**: Without any further conditions, the iteration will be executed this many times.
+  - **Custom aggregator convergence**: Iterations allow to specify *custom aggregators* and *convergence criteria* like sum aggregate the number of emitted records (aggregator) and terminate if this number is zero (convergence criterion).
+
+You can also think about the iterate operator in pseudo-code:
+
+```java
+IterationState state = getInitialState();
+
+while (!terminationCriterion()) {
+    state = step(state);
+}
+
+setFinalState(state);
+```
+
+<div class="panel panel-default">
+    <div class="panel-body">
+    See the <strong><a href="scala_api_guide.html">Scala</a> and <a href="java_api_guide.html#iterations">Java</a> programming guides</strong> for details and code examples.</div>
+</div>
+
+### Example: Incrementing Numbers
+
+In the following example, we **iteratively incremenet a set numbers**:
+
+<p class="text-center">
+    <img alt="Iterate Operator Example" width="60%" src="img/iterations_iterate_operator_example.png" />
+</p>
+
+  1. **Iteration Input**: The inital input is read from a data source and consists of five single-field records (integers `1` to `5`).
+  2. **Step function**: The step function is a single `map` operator, which increments the integer field from `i` to `i+1`. It will be applied to every record of the input.
+  3. **Next Partial Solution**: The output of the step function will be the output of the map operator, i.e. records with incremented integers.
+  4. **Iteration Result**: After ten iterations, the initial numbers will have been incremented ten times, resulting in integers `11` to `15`.
+
+```
+// 1st           2nd                       10th
+map(1) -> 2      map(2) -> 3      ...      map(10) -> 11
+map(2) -> 3      map(3) -> 4      ...      map(11) -> 12
+map(3) -> 4      map(4) -> 5      ...      map(12) -> 13
+map(4) -> 5      map(5) -> 6      ...      map(13) -> 14
+map(5) -> 6      map(6) -> 7      ...      map(14) -> 15
+```
+
+Note that **1**, **2**, and **4** can be arbitrary data flows.
+</section>
+
+<section id="delta_iterate">
+Delta Iterate Operator
+----------------------
+
+The **delta iterate operator** covers the case of **incremental iterations**. Incremental iterations **selectively modify elements** of their **solution solution** and evolve the solution rather than fully recompute it.
+
+Where applicable, this leads to **more efficient algorithms**, because not every element in the solution set changes in each iteration. This allows to **focus on the hot parts** of the solution and leave the **cold parts untouched**. Frequently, the majority of the solution cools down comparatively fast and the later iterations operate only on a small subset of the data.
+
+<p class="text-center">
+    <img alt="Delta Iterate Operator" width="60%" src="img/iterations_delta_iterate_operator.png" />
+</p>
+
+  1. **Iteration Input**: The initial workset and solution set are read from *data sources* or *previous operators* as input to the first iteration.
+  2. **Step Function**: The step function will be executed in each iteration. It is an arbitrary data flow consisting of operators like `map`, `reduce`, `join`, etc. and depends on your specific task at hand.
+  3. **Next Workset/Update Solution Set**: The *next workset* drives the iterative computation and will be fed back into the *next iteration*. Furthermore, the solution set will be updated and implicitly forwarded (it is not required to be rebuild). Both data sets can be updated by different operators of the step function.
+  4. **Iteration Result**: After the *last iteration*, the *solution set* is written to a *data sink* or used as input to the *following operators*.
+
+The default **termination condition** for delta iterations is specified by the **empty workset convergence criterion** and a **maximum number of iterations**. The iteration will terminate when a produced *next workset* is empty or when the maximum number of iterations is reached. It is also possible to specify a **custom aggregator** and **convergence criterion**.
+
+You can also think about the iterate operator in pseudo-code:
+
+```java
+IterationState workset = getInitialState();
+IterationState solution = getInitialSolution();
+
+while (!terminationCriterion()) {
+    (delta, workset) = step(workset, solution);
+
+    solution.update(delta)
+}
+
+setFinalState(solution);
+```
+
+<div class="panel panel-default">
+    <div class="panel-body">
+    See the <strong><a href="scala_api_guide.html">Scala</a> and <a href="java_api_guide.html#iterations">Java</a> programming guides</strong> for details and code examples.</div>
+</div>
+
+### Example: Propagate Minimum in Graph
+
+In the following example, every vertex has an **ID** and a **coloring**. Each vertex will propagete its vertex ID to neighboring vertices. The **goal** is to *assign the minimum ID to every vertex in a subgraph*. If a received ID is smaller then the current one, it changes to the color of the vertex with the received ID. One application of this can be found in *community analysis* or *connected components* computation.
+
+<p class="text-center">
+    <img alt="Delta Iterate Operator Example" width="100%" src="img/iterations_delta_iterate_operator_example.png" />
+</p>
+
+The **intial input** is set as **both workset and solution set.** In the above figure, the colors visualize the **evolution of the solution set**. With each iteration, the color of the minimum ID is spreading in the respective subgraph. At the same time, the amount of work (exchanged and compared vertex IDs) decreases with each iteration. This corresponds to the **decreasing size of the workset**, which goes from all seven vertices to zero after three iterations, at which time the iteration terminates. The **important observation** is that *the lower subgraph converges before the upper half* does and the delta iteration is able to capture this with the workset abstraction.
+
+In the upper subgraph **ID 1** (*orange*) is the **minimum ID**. In the **first iteration**, it will get propagated to vertex 2, which will subsequently change its color to orange. Vertices 3 and 4 will receive **ID 2** (in *yellow*) as their current minimum ID and change to yellow. Because the color of *vertex 1* didn't change in the first iteration, it can be skipped it in the next workset.
+
+In the lower subgraph **ID 5** (*cyan*) is the **minimum ID**. All vertices of the lower subgraph will receive it in the first iteration. Again, we can skip the unchanged vertices (*vertex 5*) for the next workset.
+
+In the **2nd iteration**, the workset size has already decreased from seven to five elements (vertices 2, 3, 4, 6, and 7). These are part of the iteration and further propagate their current minimum IDs. After this iteration, the lower subgraph has already converged (**cold part** of the graph), as it has no elements in the workset, whereas the upper half needs a further iteration (**hot part** of the graph) for the two remaining workset elements (vertices 3 and 4).
+
+The iteration **terminates**, when the workset is empty after the **3rd iteration**.
+</section>
+
+<section id="supersteps">
+Superstep Synchronization
+-------------------------
+
+We referred to each execution of the step function of an iteration operator as *a single iteration*. In parallel setups, **multiple instances of the step function are evaluated in parallel** on different partitions of the iteration state. In many settings, one evaluation of the step function on all parallel instances forms a so called **superstep**, which is also the granularity of synchronization. Therefore, *all* parallel tasks of an iteration need to complete the superstep, before a next superstep will be initialized. **Termination criteria** will also be evaluated at superstep barriers.
+
+<p class="text-center">
+    <img alt="Supersteps" width="50%" src="img/iterations_supersteps.png" />
+</p>
+</section>
+
+
+          <div style="padding-top:30px" id="disqus_thread"></div>
+      
+            <script type="text/javascript">
+                /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+                /* * * DON'T EDIT BELOW THIS LINE * * */
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+            <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+          </div>
+        </div>
+
+        <div class="footer">
+          
+          <p><hr class="divider"></p>
+
+<p><small>Apache Flink is an effort undergoing incubation at The Apache Software
+Foundation (ASF), sponsored by the Apache Incubator PMC. Incubation is
+required of all newly accepted projects until a further review indicates that
+the infrastructure, communications, and decision making process have
+stabilized in a manner consistent with other successful ASF projects. While
+incubation status is not necessarily a reflection of the completeness or
+stability of the code, it does indicate that the project has yet to be fully
+endorsed by the ASF.</small></p>
+
+<p><a href="http://incubator.apache.org/"><img src="/img/apache-incubator-logo.png" alt="Incubator Logo"></a></p>
+
+<p class="text-center"><a href="/privacy-policy.html">Privacy Policy<a></p>
+
+        </div>
+      </div>
+    </div>
+
+    
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-52545728-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Apache Flink (incubating): Flink Stream Processing API</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/bootstrap-lumen-custom.css">
+    <link rel="stylesheet" href="css/syntax.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link href="css/main/main.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/codetabs.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-1 af-mobile-nav-bar">
+	<a href="index.html" title="Home">
+	  <img class="hidden-xs hidden-sm img-responsive"
+	       src="img/logo.png" alt="Apache Flink Logo">
+	</a>	
+	<div class="row visible-xs">
+	  <div class="col-xs-3">
+	    <a href="index.html" title="Home">  
+	      <img class="hidden-x hidden-sm img-responsive"
+		   src="img/logo.png" alt="Apache Flink Logo">
+	    </a>	
+	  </div>
+	  <div class="col-xs-5"></div>
+	  <div class="col-xs-4">
+	    <div class="af-mobile-btn">
+	      <span class="glyphicon glyphicon-plus"></span>
+	    </div>
+	  </div>
+	</div>
+      </div>
+      <!-- Navigation -->
+      <div class="col-md-11">
+	<div class="collapse navbar-collapse" id="navbar-collapse-1">
+	  <ul class="nav navbar-nav">
+
+	    <li>
+	      <a href="index.html" class="">Documentation</a>
+	    </li>
+
+	    <li>
+	      <a href="api/java/index.html">Javadoc</a>
+	    </li>
+
+	    <li>
+	      <a href="api/scala/index.html#org.apache.flink.api.scala.package">Scaladoc</a>
+	    </li>
+
+	  </ul>
+	</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+    <div style="padding-top:120px" class="container">
+
+      <div class="row">
+        <div class="col-md-3">
+          <ul>
+  <li><a href="faq.html">FAQ</a></li>
+  <li>Quickstart
+    <ul>
+      <li><a href="setup_quickstart.html">Setup</a></li>
+      <li><a href="run_example_quickstart.html">Run Example</a></li>
+      <li><a href="java_api_quickstart.html">Java API</a></li>
+      <li><a href="scala_api_quickstart.html">Scala API</a></li>
+    </ul>
+  </li>
+
+  <li>Setup &amp; Configuration
+    <ul>
+      <li><a href="local_setup.html">Local Setup</a></li>
+      <li><a href="building.html">Build Flink</a></li>
+      <li><a href="cluster_setup.html">Cluster Setup</a></li>
+      <li><a href="yarn_setup.html">YARN Setup</a></li>
+      <li><a href="config.html">Configuration</a></li>
+    </ul>
+  </li>
+
+  <li>Programming Guides
+    <ul>
+      <li><a href="programming_guide.html">Programming Guide</a></li>
+      <li><a href="dataset_transformations.html">DataSet Transformations</a></li>
+      <li><a href="java8_programming_guide.html">Java 8 Programming Guide</a></li>
+      <li><a href="streaming_guide.html">Streaming Guide</a></li>
+      <li><a href="iterations.html">Iterations</a></li>
+      <li><a href="spargel_guide.html">Spargel Graph API</a></li>
+      <li><a href="hadoop_compatibility.html">Hadoop Compatibility</a></li>
+    </ul>
+  </li>
+
+  <li>Examples
+    <ul>
+      <li><a href="examples.html">Bundled Examples</a></li>
+      <li><a href="example_connectors.html">Connecting to other systems</a></li>
+    </ul>
+  </li>
+
+  <li>Execution
+    <ul>
+      <li><a href="local_execution.html">Local/Debugging</a></li>
+      <li><a href="cluster_execution.html">Cluster</a></li>
+      <li><a href="cli.html">Command-Line Interface</a></li>
+      <li><a href="web_client.html">Web Interface</a></li>
+    </ul>
+  </li>
+
+  <li>Internals
+    <ul>
+      <li><a href="internal_overview.html">Overview</a></li>
+    </ul>
+  </li>
+</ul>
+
+        </div>  
+        <div class="col-md-9">
+          <h1>Flink Stream Processing API</h1>
+	  
+          <ul id="markdown-toc">
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#flink-streaming-api">Flink Streaming API</a></li>
+  <li><a href="#example-program">Example Program</a></li>
+  <li><a href="#program-skeleton">Program Skeleton</a></li>
+  <li><a href="#basics">Basics</a>    <ul>
+      <li><a href="#datastream">DataStream</a></li>
+      <li><a href="#partitioning">Partitioning</a></li>
+      <li><a href="#sources">Sources</a></li>
+      <li><a href="#sinks">Sinks</a></li>
+    </ul>
+  </li>
+  <li><a href="#operations">Operations</a>    <ul>
+      <li><a href="#basic-operators">Basic operators</a></li>
+      <li><a href="#grouped-operators">Grouped operators</a></li>
+      <li><a href="#aggregations">Aggregations</a></li>
+      <li><a href="#windowbatch-operators">Window/Batch operators</a></li>
+      <li><a href="#co-operators">Co operators</a></li>
+      <li><a href="#output-splitting">Output splitting</a></li>
+      <li><a href="#iterations">Iterations</a></li>
+      <li><a href="#rich-functions">Rich functions</a></li>
+    </ul>
+  </li>
+  <li><a href="#operator-settings">Operator Settings</a>    <ul>
+      <li><a href="#parallelism">Parallelism</a></li>
+      <li><a href="#buffer-timeout">Buffer timeout</a></li>
+      <li><a href="#mutability">Mutability</a></li>
+    </ul>
+  </li>
+  <li><a href="#stream-connectors">Stream connectors</a>    <ul>
+      <li><a href="#apache-kafka">Apache Kafka</a></li>
+      <li><a href="#apache-flume">Apache Flume</a></li>
+      <li><a href="#rabbitmq">RabbitMQ</a></li>
+      <li><a href="#twitter-streaming-api">Twitter Streaming API</a></li>
+      <li><a href="#docker-containers-for-connectors">Docker containers for connectors</a></li>
+    </ul>
+  </li>
+</ul>
+
+<p><a href="#top"></a></p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Flink Streaming is an extension of the core Flink API for high-throughput, low-latency data stream processing. The system can connect to and process data streams from many data sources like Flume, Twitter, ZeroMQ and also from any user defined data source. Data streams can be transformed and modified using high-level functions similar to the ones provided by the batch processing API. Flink Streaming provides native support for iterative stream processing. The processed data can be pushed to different output types.</p>
+
+<h2 id="flink-streaming-api">Flink Streaming API</h2>
+
+<p>The Streaming API is part of the <em>addons</em> Maven project. All relevant classes are located in the <em>org.apache.flink.streaming</em> package.</p>
+
+<p>Add the following dependency to your <code>pom.xml</code> to use the Flink Streaming.</p>
+
+<div class="highlight"><pre><code class="language-xml"><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>flink-streaming-core<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>0.7.0-incubating<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></div>
+
+<p>Create a data stream flow with our Java API as described below. In order to create your own Flink Streaming program, we encourage you to start with the <a href="#program-skeleton">skeleton</a> and gradually add your own <a href="#operations">operations</a>. The remaining sections act as references for additional operations and advanced features.</p>
+
+<h2 id="example-program">Example Program</h2>
+
+<p>The following program is a complete, working example of streaming WordCount. You can copy &amp; paste the code to run it locally.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">StreamingWordCount</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">createLocalEnvironment</span><span class="o">();</span>
+        
+        <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">env</span>
+                <span class="o">.</span><span class="na">fromElements</span><span class="o">(</span><span class="s">&quot;Who&#39;s there?&quot;</span><span class="o">,</span>
+            <span class="s">&quot;I think I hear them. Stand, ho! Who&#39;s there?&quot;</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="nf">Splitter</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+        
+        <span class="n">dataStream</span><span class="o">.</span><span class="na">print</span><span class="o">();</span>
+        
+        <span class="n">env</span><span class="o">.</span><span class="na">execute</span><span class="o">();</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Splitter</span> <span class="kd">implements</span> <span class="n">FlatMapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap</span><span class="o">(</span><span class="n">String</span> <span class="n">sentence</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="nl">word:</span> <span class="n">sentence</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span> <span class="o">{</span>
+                <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;(</span><span class="n">word</span><span class="o">,</span> <span class="mi">1</span><span class="o">));</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    
+<span class="o">}</span></code></pre></div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="program-skeleton">Program Skeleton</h2>
+
+<p>As presented in the <a href="#example-program">example</a>, a Flink Streaming program looks almost identical to a regular Flink program. Each stream processing program consists of the following parts:</p>
+
+<ol>
+  <li>Creating a <code>StreamExecutionEnvironment</code>,</li>
+  <li>Connecting to data stream sources,</li>
+  <li>Specifying transformations on the data streams,</li>
+  <li>Specifying output for the processed data,</li>
+  <li>Executing the program.</li>
+</ol>
+
+<p>As these steps are basically the same as in the core API we will only note the important differences.
+For stream processing jobs, the user needs to obtain a <code>StreamExecutionEnvironment</code> in contrast with the batch API where one would need an <code>ExecutionEnvironment</code>. The process otherwise is essentially the same:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">createLocalEnvironment</span><span class="o">(</span><span class="n">params</span><span class="err">…</span><span class="o">)</span>
+<span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">createRemoteEnvironment</span><span class="o">(</span><span class="n">params</span><span class="err">…</span><span class="o">)</span></code></pre></div>
+
+<p>For connecting to data streams the <code>StreamExecutionEnvironment</code> has many different methods, from basic file sources to completely general user defined data sources. We will go into details in the <a href="#basics">basics</a> section.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">env</span><span class="o">.</span><span class="na">readTextFile</span><span class="o">(</span><span class="n">filePath</span><span class="o">)</span></code></pre></div>
+
+<p>After defining the data stream sources, the user can specify transformations on the data streams to create a new data stream. Different data streams can be also combined together for joint transformations which are being showcased in the <a href="#operations">operations</a> section.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="nf">Mapper</span><span class="o">()).</span><span class="na">reduce</span><span class="o">(</span><span class="k">new</span> <span class="nf">Reducer</span><span class="o">())</span></code></pre></div>
+
+<p>The processed data can be pushed to different outputs called sinks. The user can define their own sinks or use any predefined filesystem or database sink.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">writeAsCsv</span><span class="o">(</span><span class="n">path</span><span class="o">)</span></code></pre></div>
+
+<p>Once the complete program is specified <code>execute()</code> needs to be called on the <code>StreamExecutionEnvironment</code>. This will either execute on the local machine or submit the program for execution on a cluster, depending on the chosen execution environment.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">env</span><span class="o">.</span><span class="na">execute</span><span class="o">()</span></code></pre></div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="basics">Basics</h2>
+
+<h3 id="datastream">DataStream</h3>
+
+<p>The <code>DataStream</code> is the basic abstraction provided by the Flink Streaming API. It represents a continuous stream of data of a certain type from either a data source or a transformed data stream. Operations will be applied on individual data points or windows of the <code>DataStream</code> based on the type of the operation. For example the map operator transforms each data point individually while window or batch aggregations work on an interval of data points at the same time.</p>
+
+<p>The operations may return different <code>DataStream</code> types allowing more elaborate transformations, for example the <code>groupBy()</code> method returns a <code>GroupedDataStream</code> which can be used for group operations.</p>
+
+<h3 id="partitioning">Partitioning</h3>
+
+<p>Partitioning controls how individual data points are distributed among the parallel instances of the transformation operators. By default <em>Forward</em> partitioning is used. There are several partitioning types supported in Flink Streaming:</p>
+
+<ul>
+  <li><em>Forward</em>: Forward partitioning directs the output data to the next operator on the same machine (if possible) avoiding expensive network I/O. This is the default partitioner.
+Usage: <code>dataStream.forward()</code></li>
+  <li><em>Shuffle</em>: Shuffle partitioning randomly partitions the output data stream to the next operator using uniform distribution.
+Usage: <code>dataStream.shuffle()</code></li>
+  <li><em>Distribute</em>: Distribute partitioning directs the output data stream to the next operator in a round-robin fashion, achieving a balanced distribution.
+Usage: <code>dataStream.distribute()</code></li>
+  <li><em>Field</em>: Field partitioning partitions the output data stream based on the hash code of a selected key field. Data points with the same key are directed to the same operator instance.
+Usage: <code>dataStream.partitionBy(keyposition)</code></li>
+  <li><em>Broadcast</em>: Broadcast partitioning sends the output data stream to all parallel instances of the next operator.
+Usage: <code>dataStream.broadcast()</code></li>
+  <li><em>Global</em>: All data points end up at the same operator instance. To achieve this use the parallelism setting of the corresponding operator.
+Usage: <code>operator.setParallelism(1)</code></li>
+</ul>
+
+<h3 id="sources">Sources</h3>
+
+<p>The user can connect to data streams by the different implemenations of <code>DataStreamSource</code> using methods provided in <code>StreamExecutionEnvironment</code>. There are several predefined ones similar to the ones provided by the batch API like:</p>
+
+<ul>
+  <li><code>env.genereateSequence(from, to)</code></li>
+  <li><code>env.fromElements(elements…)</code></li>
+  <li><code>env.fromCollection(collection)</code></li>
+  <li><code>env.readTextFile(filepath)</code></li>
+</ul>
+
+<p>These can be used to easily test and debug streaming programs. There are also some streaming specific sources for example <code>env.readTextStream(filepath)</code> which iterates over the same file infinitely providing yet another nice testing tool.
+There are implemented connectors for a number of the most popular message queue services, please refer to the section on <a href="#stream-connectors">connectors</a> for more detail.
+Besides the pre-defined solutions the user can implement their own source by implementing the <code>SourceFunction</code> interface and using the <code>env.addSource(sourceFunction)</code> method of the <code>StreamExecutionEnvironment</code>.</p>
+
+<h3 id="sinks">Sinks</h3>
+
+<p><code>DataStreamSink</code> represents the different outputs of a Flink Streaming program. There are several pre-defined implementations <code>DataStreamSink</code> available right away:</p>
+
+<ul>
+  <li><code>dataStream.print()</code> – Writes the DataStream to the standard output, practical for testing purposes</li>
+  <li><code>dataStream.writeAsText(parameters)</code> – Writes the DataStream to a text file</li>
+  <li><code>dataStream.writeAsCsv(parameters)</code> – Writes the DataStream to CSV format</li>
+</ul>
+
+<p>The user can also implement arbitrary sink functionality by implementing the <code>SinkFunction</code> interface and using it with <code>dataStream.addSink(sinkFunction)</code>.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="operations">Operations</h2>
+
+<p>Operations represent transformations on the <code>DataStream</code>. The user can chain and combine multiple operators on the data stream to produce the desired processing steps. Most of the operators work very similar to the core Flink API allowing developers to reason about <code>DataStream</code> the same way as they would about <code>DataSet</code>. At the same time there are operators that exploit the streaming nature of the data to allow advanced functionality.</p>
+
+<h3 id="basic-operators">Basic operators</h3>
+
+<p>Basic operators can be seen as functions that transform each data element in the data stream.</p>
+
+<h4 id="map">Map</h4>
+<p>The Map transformation applies a user-defined <code>MapFunction</code> on each element of a <code>DataStream</code>. It implements a one-to-one mapping, that is, exactly one element must be returned by the function.
+A map operator that doubles the values of the input stream:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">map</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">value</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="flatmap">FlatMap</h4>
+<p>The FlatMap transformation applies a user-defined <code>FlatMapFunction</code> on each element of a <code>DataStream</code>. This variant of a map function can return arbitrary many result elements (including none) for each input element.
+A flatmap operator that splits sentences to words:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="n">FlatMapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="k">for</span><span class="o">(</span><span class="n">String</span> <span class="nl">word:</span> <span class="n">value</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)){</span>
+                    <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">word</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="filter">Filter</h4>
+<p>The Filter transformation applies a user-defined <code>FilterFunction</code> on each element of a <code>DataStream</code> and retains only those elements for which the function returns true.
+A filter that filters out zero values:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="k">new</span> <span class="n">FilterFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span> 
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">filter</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">value</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="reduce">Reduce</h4>
+<p>The Reduce transformation applies a user-defined <code>ReduceFunction</code> to all elements of a <code>DataStream</code>. The <code>ReduceFunction</code> subsequently combines pairs of elements into one element and outputs the current reduced value as a <code>DataStream</code>.
+A reducer that sums up the incoming stream:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">reduce</span><span class="o">(</span><span class="k">new</span> <span class="n">ReduceFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value1</span><span class="o">,</span> <span class="n">Integer</span> <span class="n">value2</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">value1</span><span class="o">+</span><span class="n">value2</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="merge">Merge</h4>
+<p>Merges two or more <code>DataStream</code> instances creating a new DataStream containing all the elements from all the streams.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">merge</span><span class="o">(</span><span class="n">otherStream1</span><span class="o">,</span> <span class="n">otherStream2</span><span class="err">…</span><span class="o">)</span></code></pre></div>
+
+<h3 id="grouped-operators">Grouped operators</h3>
+
+<p>Some transformations require that the <code>DataStream</code> is grouped on some key value. The user can create a <code>GroupedDataStream</code> by calling the <code>groupBy(keyPosition)</code> method of a non-grouped <code>DataStream</code>. The user can apply different reduce transformations on the obtained <code>GroupedDataStream</code>:</p>
+
+<h4 id="reduce-on-groupeddatastream">Reduce on GroupedDataStream</h4>
+<p>When the reduce operator is applied on a grouped data stream, the user-defined <code>ReduceFunction</code> will combine subsequent pairs of elements having the same key value. The combined results are sent to the output stream.</p>
+
+<h3 id="aggregations">Aggregations</h3>
+
+<p>The Flink Streaming API supports different types of aggregation operators similarly to the core API. For grouped data streams the aggregations work in a grouped fashion.</p>
+
+<p>Types of aggregations: <code>sum(fieldPosition)</code>, <code>min(fieldPosition)</code>, <code>max(fieldPosition)</code>, <code>minBy(fieldPosition, first)</code>, <code>maxBy(fieldPosition, first)</code></p>
+
+<p>With <code>sum</code>, <code>min</code>, and <code>max</code> for every incoming tuple the selected field is replaced with the current aggregated value. If the aggregations are used without defining field position, position <code>0</code> is used as default. </p>
+
+<p>With <code>minBy</code> and <code>maxBy</code> the output of the operator is the element with the current minimal or maximal value at the given fieldposition. If more components share the minimum or maximum value, the user can decide if the operator should return the first or last element. This can be set by the <code>first</code> boolean parameter.</p>
+
+<h3 id="windowbatch-operators">Window/Batch operators</h3>
+
+<p>Window and batch operators allow the user to execute function on slices or windows of the DataStream in a sliding fashion. If the stepsize for the slide is not defined then the window/batchsize is used as stepsize by default. The user can also use user defined timestamps for calculating time windows.</p>
+
+<p>When applied to grouped data streams the data stream is batched/windowed for different key values separately. </p>
+
+<p>For example a <code>dataStream.groupBy(0).batch(100, 10)</code> produces batches of the last 100 elements for each key value with 10 record step size.</p>
+
+<h4 id="reduce-on-windowedbatched-data-streams">Reduce on windowed/batched data streams</h4>
+<p>The transformation calls a user-defined <code>ReduceFunction</code> on records received in the batch or during the predefined time window. The window is shifted after each reduce call. The user can also use the different streaming aggregations.</p>
+
+<p>A window reduce that sums the elements in the last minute with 10 seconds slide interval:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="mi">60000</span><span class="o">,</span> <span class="mi">10000</span><span class="o">).</span><span class="na">sum</span><span class="o">();</span></code></pre></div>
+
+<h4 id="reducegroup-on-windowedbatched-data-streams">ReduceGroup on windowed/batched data streams</h4>
+<p>The transformation calls a <code>GroupReduceFunction</code> for each data batch or data window. The batch/window slides by the predefined number of elements/time after each call.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">batch</span><span class="o">(</span><span class="mi">1000</span><span class="o">,</span> <span class="mi">100</span><span class="o">).</span><span class="na">reduceGroup</span><span class="o">(</span><span class="n">reducer</span><span class="o">);</span></code></pre></div>
+
+<h3 id="co-operators">Co operators</h3>
+
+<p>Co operators allow the users to jointly transform two <code>DataStreams</code> of different types providing a simple way to jointly manipulate a shared state. It is designed to support joint stream transformations where merging is not appropriate due to different data types or the in cases when user needs explicit track of the datas origin.
+Co operators can be applied to <code>ConnectedDataStreams</code> which represent two <code>DataStreams</code> of possibly different types. A <code>ConnectedDataStream</code> can be created by calling the <code>connect(otherDataStream)</code> method of a <code>DataStream</code>. Please note that the two connected <code>DataStreams</code> can also be merged data streams.</p>
+
+<h4 id="map-on-connecteddatastream">Map on ConnectedDataStream</h4>
+<p>Applies a CoMap transformation on two separate DataStreams, mapping them to a common output type. The transformation calls a <code>CoMapFunction.map1()</code> for each element of the first input and <code>CoMapFunction.map2()</code> for each element of the second input. Each CoMapFunction call returns exactly one element.
+A CoMap operator that outputs true if an Integer value is received and false if a String value is received:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">dataStream1</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream2</span> <span class="o">=</span> <span class="o">...</span>
+        
+<span class="n">dataStream1</span><span class="o">.</span><span class="na">connect</span><span class="o">(</span><span class="n">dataStream2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">CoMapFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;()</span> <span class="o">{</span>
+            
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="n">Boolean</span> <span class="nf">map1</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="o">}</span>
+            
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="n">Boolean</span> <span class="nf">map2</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="flatmap-on-connecteddatastream">FlatMap on ConnectedDataStream</h4>
+<p>The FlatMap operator for the <code>ConnectedDataStream</code> works similarly to CoMap, but instead of returning exactly one element after each map call the user can output arbitrarily many values using the Collector interface. </p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">dataStream1</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream2</span> <span class="o">=</span> <span class="o">...</span>
+        
+<span class="n">dataStream1</span><span class="o">.</span><span class="na">connect</span><span class="o">(</span><span class="n">dataStream2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="n">CoFlatMapFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;()</span> <span class="o">{</span>
+
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap1</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Boolean</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="nd">@Override</span>
+            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap2</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Boolean</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">})</span></code></pre></div>
+
+<h4 id="winddowreducegroup-on-connecteddatastream">winddowReduceGroup on ConnectedDataStream</h4>
+<p>The windowReduceGroup operator applies a user defined <code>CoGroupFunction</code> to time aligned windows of the two data streams and return zero or more elements of an arbitrary type. The user can define the window and slide intervals and can also implement custom timestamps to be used for calculating windows.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">dataStream1</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream2</span> <span class="o">=</span> <span class="o">...</span>
+
+<span class="n">dataStream1</span><span class="o">.</span><span class="na">connect</span><span class="o">(</span><span class="n">dataStream2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">windowReduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="n">CoGroupFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">coGroup</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">first</span><span class="o">,</span> <span class="n">Iterable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">second</span><span class="o">,</span>
+            <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+            <span class="c1">//Do something here</span>
+
+        <span class="o">}</span>
+    <span class="o">},</span> <span class="mi">10000</span><span class="o">,</span> <span class="mi">5000</span><span class="o">);</span></code></pre></div>
+
+<h4 id="reduce-on-connecteddatastream">Reduce on ConnectedDataStream</h4>
+<p>The Reduce operator for the <code>ConnectedDataStream</code> applies a simple reduce transformation on the joined data streams and then maps the reduced elements to a common output type.</p>
+
+<h3 id="output-splitting">Output splitting</h3>
+
+<p>Most data stream operators support directed outputs, meaning that different data elements are received by only given outputs. The outputs are referenced by their name given at the point of receiving:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">SplitDataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">split</span> <span class="o">=</span> <span class="n">someDataStream</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="n">outputSelector</span><span class="o">);</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">even</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="s">&quot;even&quot;</span><span class="o">);</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">odd</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="na">select</span><span class="o">(</span><span class="s">&quot;odd&quot;</span><span class="o">);</span></code></pre></div>
+
+<p>Data streams only receive the elements directed to selected output names. These outputs are directed by implementing a selector function (extending <code>OutputSelector</code>):</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kt">void</span> <span class="nf">select</span><span class="o">(</span><span class="n">OUT</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collection</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">outputs</span><span class="o">);</span></code></pre></div>
+
+<p>The data is sent to all the outputs added to the collection outputs (referenced by their name). This way the direction of the outputs can be determined by the value of the data sent. For example:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kt">void</span> <span class="nf">select</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collection</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">outputs</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">value</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">&quot;even&quot;</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">&quot;odd&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This output selection allows data streams to listen to multiple outputs, and data points to be sent to multiple outputs. A value is sent to all the outputs specified in the <code>OutputSelector</code> and a data stream will receive a value if it has selected any of the outputs the value is sent to. The stream will receive the data at most once.
+It is common that a stream listens to all the outputs, so <code>split.selectAll()</code> is provided as an alias for explicitly selecting all output names.</p>
+
+<h3 id="iterations">Iterations</h3>
+<p>The Flink Streaming API supports implementing iterative stream processing dataflows similarly to the core Flink API. Iterative streaming programs also implement a step function and embed it into an <code>IterativeDataStream</code>.
+Unlike in the core API the user does not define the maximum number of iterations, but at the tail of each iteration the output is both streamed forward to the next operator and also streamed back to the iteration head. The user controls the output of the iteration tail using <a href="#output-splitting">output splitting</a>.
+To start an iterative part of the program the user defines the iteration starting point:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">IterativeDataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">iteration</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="na">iterate</span><span class="o">();</span></code></pre></div>
+<p>The operator applied on the iteration starting point is the head of the iteration, where data is fed back from the iteration tail.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">head</span> <span class="o">=</span> <span class="n">iteration</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="nf">IterationHead</span><span class="o">());</span></code></pre></div>
+
+<p>To close an iteration and define the iteration tail, the user calls <code>.closeWith(tail)</code> method of the <code>IterativeDataStream</code>:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="nf">IterationTail</span><span class="o">());</span>
+<span class="n">iteration</span><span class="o">.</span><span class="na">closeWith</span><span class="o">(</span><span class="n">tail</span><span class="o">);</span></code></pre></div>
+<p>Or to use with output splitting:
+~~~java
+SplitDataStream<integer> tail = head.map(new IterationTail()).split(outputSelector);
+iteration.closeWith(tail.select("iterate"));
+~~~ </integer></p>
+
+<p>Because iterative streaming programs do not have a set number of iteratons for each data element, the streaming program has no information on the end of its input. From this it follows that iterative streaming programs run until the user manually stops the program. While this is acceptable under normal circumstances a method is provided to allow iterative programs to shut down automatically if no input received by the iteration head for a predefined number of milliseconds.
+To use this function the user needs to call, the <code>iteration.setMaxWaitTime(millis)</code> to control the max wait time. </p>
+
+<h3 id="rich-functions">Rich functions</h3>
+<p>The usage of rich functions are essentially the same as in the core Flink API. All transformations that take as argument a user-defined function can instead take a rich function as argument:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">dataStream</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">RichMapFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">map</span><span class="o">(</span><span class="n">Integer</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span> <span class="o">}</span>
+<span class="o">});</span></code></pre></div>
+
+<p>Rich functions provide, in addition to the user-defined function (<code>map()</code>, <code>reduce()</code>, etc), the <code>open()</code> and <code>close()</code> methods for initialization and finalization. (In contrast to the core API, the streaming API currently does not support the  <code>getRuntimeContext()</code> and <code>setRuntimeContext()</code> methods.)</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="operator-settings">Operator Settings</h2>
+
+<h3 id="parallelism">Parallelism</h3>
+
+<p>Setting parallelism for operators works exactly the same way as in the core Flink API. The user can control the number of parallel instances created for each operator by calling the <code>operator.setParallelism(dop)</code> method.</p>
+
+<h3 id="buffer-timeout">Buffer timeout</h3>
+
+<p>By default data points are not transferred on the network one-by-one, which would cause unnecessary network traffic, but are buffered in the output buffers. The size of the output buffers can be set in the Flink config files. While this method is good for optimizing throughput, it can cause latency issues when the incoming stream is not fast enough.
+To tackle this issue the user can call <code>env.setBufferTimeout(timeoutMillis)</code> on the execution environment (or on individual operators) to set a maximum wait time for the buffers to fill up. After this time the buffers are flushed automatically even if they are not full. Usage:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">LocalStreamEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">createLocalEnvironment</span><span class="o">();</span>
+<span class="n">env</span><span class="o">.</span><span class="na">setBufferTimeout</span><span class="o">(</span><span class="n">timeoutMillis</span><span class="o">);</span>
+
+<span class="n">env</span><span class="o">.</span><span class="na">genereateSequence</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">10</span><span class="o">).</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyMapper</span><span class="o">()).</span><span class="na">setBufferTimeout</span><span class="o">(</span><span class="n">timeoutMillis</span><span class="o">);</span></code></pre></div>
+
+<h3 id="mutability">Mutability</h3>
+
+<p>Most operators allow setting mutability for reading input data. If the operator is set mutable then the variable used to store input data for operators will be reused in a mutable fashion to avoid excessive object creation. By default, all operators are set to immutable.
+Usage:
+~~~java
+operator.setMutability(isMutable)
+~~~</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="stream-connectors">Stream connectors</h2>
+
+<p>Connectors provide an interface for accessing data from various third party sources (message queues). Currently four connectors are natively supported, namely <a href="https://kafka.apache.org/">Apache Kafka</a>,  <a href="http://www.rabbitmq.com/">RabbitMQ</a>, <a href="https://flume.apache.org/index.html">Apache Flume</a> and <a href="https://dev.twitter.com/docs/streaming-apis">Twitter Streaming API</a>.</p>
+
+<p>Typically the connector packages consist of an abstract source and sink (with the exception of Twitter where only a source is provided). The burden of the user is to implement a subclass of these abstract classes specifying a serializer and a deserializer function. </p>
+
+<p>To run an application using one of these connectors usually additional third party components are required to be installed and launched, e.g. the servers for the message queues. Further instructions for these can be found in the corresponding subsections. <a href="#docker-containers-for-connectors">Docker containers</a> are also provided encapsulating these services to aid users getting started with connectors.</p>
+
+<h3 id="apache-kafka">Apache Kafka</h3>
+
+<p>This connector provides access to data streams from <a href="https://kafka.apache.org/">Apache Kafka</a>.</p>
+
+<h4 id="installing-apache-kafka">Installing Apache Kafka</h4>
+<ul>
+  <li>Follow the instructions from <a href="https://kafka.apache.org/documentation.html#quickstart">Kafka’s quickstart</a> to download the code and launch a server (launching a Zookeeper and a Kafka server is required every time before starting the application).</li>
+  <li>On 32 bit computers <a href="http://stackoverflow.com/questions/22325364/unrecognized-vm-option-usecompressedoops-when-running-kafka-from-my-ubuntu-in">this</a> problem may occur. </li>
+  <li>If the Kafka zookeeper and server are running on a remote machine then in the config/server.properties file the advertised.host.name must be set to the machine’s IP address.</li>
+</ul>
+
+<h4 id="kafka-source">Kafka Source</h4>
+<p>An abstract class providing an interface for receiving data from Kafka. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class,</li>
+  <li>Write a deserializer function which processes the data coming from Kafka,</li>
+  <li>Stop the source manually when necessary with one of the close functions.</li>
+</ul>
+
+<p>The implemented class must extend <code>KafkaSource</code>, for example: <code>KafkaSource&lt;String&gt;</code>.</p>
+
+<h5 id="constructor">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="nf">MyKafkaSource</span><span class="o">(</span><span class="n">String</span> <span class="n">zkQuorum</span><span class="o">,</span> <span class="n">String</span> <span class="n">groupId</span><span class="o">,</span> <span class="n">String</span> <span class="n">topicId</span><span class="o">,</span> <span class="kt">int</span> <span class="n">numThreads</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">zkQuorum</span><span class="o">,</span> <span class="n">groupId</span><span class="o">,</span> <span class="n">topicId</span><span class="o">,</span> <span class="n">numThreads</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="deserializer">Deserializer</h5>
+<p>An example of an implementation of a deserializer:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="n">String</span> <span class="nf">deserialize</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">s</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">String</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+    <span class="k">if</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">)){</span>
+        <span class="n">closeWithoutSend</span><span class="o">();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">String</span><span class="o">(</span><span class="n">s</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The source closes when it receives the String <code>"q"</code>.</p>
+
+<h6 id="closea-namekafkasourceclosea">Close<a name="kafka_source_close"></a></h6>
+<p>Two types of close functions are available, namely <code>closeWithoutSend()</code> and <code>sendAndClose()</code>. The former closes the connection immediately and no further data will be sent, while the latter closes the connection only when the next message is sent after this call.</p>
+
+<p>In the example provided <code>closeWithoutSend()</code> is used because here the String <code>"q"</code> is meta-message indicating the end of the stream and there is no need to forward it. </p>
+
+<h4 id="kafka-sink">Kafka Sink</h4>
+<p>An abstract class providing an interface for sending data to Kafka. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class,</li>
+  <li>Write a serializer function to send data in the desired form to Kafka,</li>
+  <li>Stop the sink manually when necessary with one of the close functions.</li>
+</ul>
+
+<p>The implemented class must extend <code>KafkaSink</code>, for example <code>KafkaSink&lt;String, String&gt;</code>.</p>
+
+<h5 id="constructor-1">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="nf">MyKafkaSink</span><span class="o">(</span><span class="n">String</span> <span class="n">topicId</span><span class="o">,</span> <span class="n">String</span> <span class="n">brokerAddr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">topicId</span><span class="o">,</span> <span class="n">brokerAddr</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="serializer">Serializer</h5>
+<p>An example of an implementation of a serializer:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="n">String</span> <span class="nf">serialize</span><span class="o">(</span><span class="n">String</span> <span class="n">tuple</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span><span class="o">(</span><span class="n">tuple</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">)){</span>
+        <span class="n">sendAndClose</span><span class="o">();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">tuple</span><span class="o">;</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="close">Close</h5>
+<p>The API provided is the <a href="#kafka_source_close">same</a> as the one for <code>KafkaSource</code>.</p>
+
+<h4 id="building-a-topology">Building A Topology</h4>
+<p>To use a Kafka connector as a source in Flink call the <code>addSource()</code> function with a new instance of the class which extends <code>KafkaSource</code> as parameter:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">stream1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span>
+    <span class="nf">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyKafkaSource</span><span class="o">(</span><span class="s">&quot;localhost:2181&quot;</span><span class="o">,</span> <span class="s">&quot;group&quot;</span><span class="o">,</span> <span class="s">&quot;test&quot;</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span> <span class="n">SOURCE_PARALELISM</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">print</span><span class="o">();</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyKafkaSource()</code> constructor in order:</p>
+
+<ol>
+  <li>The hostname</li>
+  <li>The group name</li>
+  <li>The topic name</li>
+  <li>The parallelism</li>
+</ol>
+
+<p>Similarly to use a Kafka connector as a sink in Flink call the <code>addSink()</code> function with a new instance of the class which extends <code>KafkaSink</code>:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">stream2</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">MySource</span><span class="o">())</span>
+    <span class="o">.</span><span class="na">addSink</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyKafkaSink</span><span class="o">(</span><span class="s">&quot;test&quot;</span><span class="o">,</span> <span class="s">&quot;localhost:9092&quot;</span><span class="o">));</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyKafkaSink()</code> constructor in order:</p>
+
+<ol>
+  <li>The topic name</li>
+  <li>The hostname</li>
+</ol>
+
+<p>More about Kafka can be found <a href="https://kafka.apache.org/documentation.html">here</a>.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h3 id="apache-flume">Apache Flume</h3>
+
+<p>This connector provides access to datastreams from <a href="http://flume.apache.org/">Apache Flume</a>.</p>
+
+<h4 id="installing-apache-flume">Installing Apache Flume</h4>
+<p><a href="http://flume.apache.org/download.html">Download</a> Apache Flume. A configuration file is required for starting agents in Flume. A configuration file for running the example can be found <a href="#config_file">here</a>. </p>
+
+<h4 id="flume-source">Flume Source</h4>
+<p>An abstract class providing an interface for receiving data from Flume. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class,</li>
+  <li>Write a deserializer function which processes the data coming from Flume,</li>
+  <li>Stop the source manually when necessary with one of the close functions.</li>
+</ul>
+
+<p>The implemented class must extend <code>FlumeSource</code> for example: <code>FlumeSource&lt;String&gt;</code></p>
+
+<h5 id="constructor-2">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">MyFlumeSource</span><span class="o">(</span><span class="n">String</span> <span class="n">host</span><span class="o">,</span> <span class="kt">int</span> <span class="n">port</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">host</span><span class="o">,</span> <span class="n">port</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="deserializer-1">Deserializer</h5>
+<p>An example of an implementation of a deserializer:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="n">String</span> <span class="nf">deserialize</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">s</span> <span class="o">=</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span> <span class="n">SerializationUtils</span><span class="o">.</span><span class="na">deserialize</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+    <span class="n">String</span> <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">closeWithoutSend</span><span class="o">();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">;</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The source closes when it receives the String <code>"q"</code>.</p>
+
+<h5 id="closea-nameflumesourceclosea">Close<a name="flume_source_close"></a></h5>
+<p>Two types of close functions are available, namely <code>closeWithoutSend()</code> and <code>sendAndClose()</code>.The former closes the connection immediately and no further data will be sent, while the latter closes the connection only when the next message is sent after this call.</p>
+
+<p>In the example <code>closeWithoutSend()</code> is used because here the String <code>"q"</code> is meta-message indicating the end of the stream and there is no need to forward it. </p>
+
+<h4 id="flume-sink">Flume Sink</h4>
+<p>An abstract class providing an interface for sending data to Flume. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class,</li>
+  <li>Write a serializer function to send data in the desired form to Flume,</li>
+  <li>Stop the sink manually when necessary with one of the close functions.</li>
+</ul>
+
+<p>The implemented class must extend <code>FlumeSink</code>, for example <code>FlumeSink&lt;String, String&gt;</code>.</p>
+
+<h5 id="constructor-3">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="nf">MyFlumeSink</span><span class="o">(</span><span class="n">String</span> <span class="n">host</span><span class="o">,</span> <span class="kt">int</span> <span class="n">port</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">host</span><span class="o">,</span> <span class="n">port</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="serializer-1">Serializer</h5>
+<p>An example of an implementation of a serializer.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">serialize</span><span class="o">(</span><span class="n">String</span> <span class="n">tuple</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">tuple</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">sendAndClose</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Error while closing Flume connection with &quot;</span> <span class="o">+</span> <span class="n">port</span> <span class="o">+</span> <span class="s">&quot; at &quot;</span>
+                <span class="o">+</span> <span class="n">host</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">SerializationUtils</span><span class="o">.</span><span class="na">serialize</span><span class="o">(</span><span class="n">tuple</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="close-1">Close</h5>
+<p>The API provided is the <a href="#flume_source_close">same</a> as the one for <code>FlumeSource</code>.</p>
+
+<h4 id="building-a-topology-1">Building A Topology</h4>
+<p>To use a Flume connector as a source in Flink call the <code>addSource()</code> function with a new instance of the class which extends <code>FlumeSource</code> as parameter:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream1</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyFlumeSource</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">41414</span><span class="o">))</span>
+    <span class="o">.</span><span class="na">print</span><span class="o">();</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyFlumeSource()</code> constructor in order:</p>
+
+<ol>
+  <li>The hostname</li>
+  <li>The port number</li>
+</ol>
+
+<p>Similarly to use a Flume connector as a sink in Flink call the <code>addSink()</code> function with a new instance of the class which extends <code>FlumeSink</code></p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream2</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">fromElements</span><span class="o">(</span><span class="s">&quot;one&quot;</span><span class="o">,</span> <span class="s">&quot;two&quot;</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">,</span> <span class="s">&quot;four&quot;</span><span class="o">,</span> <span class="s">&quot;five&quot;</span><span class="o">,</span> <span class="s">&quot;q&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">addSink</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyFlumeSink</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">42424</span><span class="o">));</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyFlumeSink()</code> constructor in order:</p>
+
+<ol>
+  <li>The hostname</li>
+  <li>The port number</li>
+</ol>
+
+<h5 id="configuration-filea-nameconfigfilea">Configuration file<a name="config_file"></a></h5>
+<p>An example of a configuration file:</p>
+
+<div class="highlight"><pre><code>a1.channels = c1
+a1.sources = r1
+a1.sinks = k1
+
+a1.channels.c1.type = memory
+
+a1.sources.r1.channels = c1
+a1.sources.r1.type = avro
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 42424
+
+a1.sinks.k1.channel = c1
+a1.sinks.k1.type = avro
+a1.sinks.k1.hostname = localhost
+a1.sinks.k1.port = 41414
+</code></pre></div>
+
+<p>To run the <code>FlumeTopology</code> example the previous configuration file must located in the Flume directory and named example.conf and the agent can be started with the following command:</p>
+
+<div class="highlight"><pre><code>bin/flume-ng agent --conf conf --conf-file example.conf --name a1 -Dflume.root.logger=INFO,console
+</code></pre></div>
+
+<p>If the agent is not started before the application starts a <code>FlumeSink</code> then the sink will retry to build the connection for 90 seconds, if unsuccessful it throws a <code>RuntimeException</code>.</p>
+
+<p>More on Flume can be found <a href="http://flume.apache.org">here</a>.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h3 id="rabbitmq">RabbitMQ</h3>
+
+<p>This connector provides access to datastreams from <a href="http://www.rabbitmq.com/">RabbitMQ</a>.</p>
+
+<h5 id="installing-rabbitmq">Installing RabbitMQ</h5>
+<p>Follow the instructions from the <a href="http://www.rabbitmq.com/download.html">RabbitMQ download page</a>. After the installation the server automatically starts and the application connecting to RabbitMQ can be launched.</p>
+
+<h4 id="rabbitmq-source">RabbitMQ Source</h4>
+<p>An abstract class providing an interface for receiving data from RabbitMQ. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class,</li>
+  <li>Write a deserializer function which processes the data coming from RabbitMQ,</li>
+  <li>Stop the source manually when necessary with one of the close functions.</li>
+</ul>
+
+<p>The implemented class must extend <code>RabbitMQSource</code> for example: <code>RabbitMQSource&lt;String&gt;</code></p>
+
+<h5 id="constructor-4">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="nf">MyRMQSource</span><span class="o">(</span><span class="n">String</span> <span class="n">HOST_NAME</span><span class="o">,</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">HOST_NAME</span><span class="o">,</span> <span class="n">QUEUE_NAME</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="deserializer-2">Deserializer</h5>
+<p>An example of an implemetation of a deserializer:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="n">String</span> <span class="nf">deserialize</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">s</span> <span class="o">=</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span> <span class="n">SerializationUtils</span><span class="o">.</span><span class="na">deserialize</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+    <span class="n">String</span> <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">closeWithoutSend</span><span class="o">();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">;</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The source closes when it receives the String <code>"q"</code>.</p>
+
+<h5 id="closea-namermqsourceclosea">Close<a name="rmq_source_close"></a></h5>
+<p>Two types of close functions are available, namely <code>closeWithoutSend()</code> and <code>sendAndClose()</code>. The former closes the connection immediately and no further data will be sent, while the latter closes the connection only when the next message is sent after this call.</p>
+
+<p>Closes the connection only when the next message is sent after this call.</p>
+
+<p>In the example <code>closeWithoutSend()</code> is used because here the String <code>"q"</code> is meta-message indicating the end of the stream and there is no need to forward it. </p>
+
+<h4 id="rabbitmq-sink">RabbitMQ Sink</h4>
+<p>An abstract class providing an interface for sending data to RabbitMQ. By implementing the user must:</p>
+
+<ul>
+  <li>Write a constructor calling the constructor of the abstract class</li>
+  <li>Write a serializer function to send data in the desired form to RabbitMQ</li>
+  <li>Stop the sink manually when necessary with one of the close functions</li>
+</ul>
+
+<p>The implemented class must extend <code>RabbitMQSink</code> for example: <code>RabbitMQSink&lt;String, String&gt;</code></p>
+
+<h5 id="constructor-5">Constructor</h5>
+<p>An example of an implementation of a constructor:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="kd">public</span> <span class="nf">MyRMQSink</span><span class="o">(</span><span class="n">String</span> <span class="n">HOST_NAME</span><span class="o">,</span> <span class="n">String</span> <span class="n">QUEUE_NAME</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">HOST_NAME</span><span class="o">,</span> <span class="n">QUEUE_NAME</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="serializer-2">Serializer</h5>
+<p>An example of an implementation of a serializer.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">serialize</span><span class="o">(</span><span class="n">Tuple</span> <span class="n">tuple</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">t</span><span class="o">.</span><span class="na">getField</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;q&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">sendAndClose</span><span class="o">();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">SerializationUtils</span><span class="o">.</span><span class="na">serialize</span><span class="o">(</span><span class="n">tuple</span><span class="o">.</span><span class="na">f0</span><span class="o">);</span>
+<span class="o">}</span></code></pre></div>
+
+<h5 id="close-2">Close</h5>
+<p>The API provided is the <a href="#rmq_source_close">same</a> as the one for <code>RabbitMQSource</code>.</p>
+
+<h4 id="building-a-topology-2">Building A Topology</h4>
+<p>To use a RabbitMQ connector as a source in Flink call the <code>addSource()</code> function with a new instance of the class which extends <code>RabbitMQSource</code> as parameter:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream1</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyRMQSource</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="s">&quot;hello&quot;</span><span class="o">))</span>
+    <span class="o">.</span><span class="na">print</span><span class="o">();</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyRabbitMQSource()</code> constructor in order:</p>
+
+<ol>
+  <li>The hostname</li>
+  <li>The queue name</li>
+</ol>
+
+<p>Similarly to use a RabbitMQ connector as a sink in Flink call the <code>addSink()</code> function with a new instance of the class which extends <code>RabbitMQSink</code></p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">dataStream2</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">fromElements</span><span class="o">(</span><span class="s">&quot;one&quot;</span><span class="o">,</span> <span class="s">&quot;two&quot;</span><span class="o">,</span> <span class="s">&quot;three&quot;</span><span class="o">,</span> <span class="s">&quot;four&quot;</span><span class="o">,</span> <span class="s">&quot;five&quot;</span><span class="o">,</span> <span class="s">&quot;q&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">addSink</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyRMQSink</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="s">&quot;hello&quot;</span><span class="o">));</span></code></pre></div>
+
+<p>The followings have to be provided for the <code>MyRabbitMQSink()</code> constructor in order:</p>
+
+<ol>
+  <li>The hostname</li>
+  <li>The queue name</li>
+</ol>
+
+<p>More about RabbitMQ can be found <a href="http://www.rabbitmq.com/">here</a>.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h3 id="twitter-streaming-api">Twitter Streaming API</h3>
+
+<p>Twitter Streaming API provides opportunity to connect to the stream of tweets made available by Twitter. Flink Streaming comes with a built-in <code>TwitterSource</code> class for establishing a connection to this stream.</p>
+
+<h4 id="authentication">Authentication</h4>
+<p>In order to connect to Twitter stream the user has to register their program and acquire the necessary information for the authentication. The process is described below.</p>
+
+<h4 id="acquiring-the-authentication-information">Acquiring the authentication information</h4>
+<p>First of all, a Twitter account is needed. Sign up for free at <a href="https://twitter.com/signup">twitter.com/signup</a> or sign in at Twitter’s <a href="https://apps.twitter.com/">Application Management</a> and register the application by clicking on the “Create New App” button. Fill out a form about your program and accept the Terms and Conditions. 
+After selecting the application you the API key and API secret (called <code>consumerKey</code> and <code>sonsumerSecret</code> in <code>TwitterSource</code> respectively) is located on the “API Keys” tab. The necessary access token data (<code>token</code> and <code>secret</code>) can be acquired here. 
+Remember to keep these pieces of information a secret and do not push them to public repositories.</p>
+
+<h4 id="accessing-the-authentication-information">Accessing the authentication information</h4>
+<p>Create a properties file and pass its path in the constructor of <code>TwitterSource</code>. The content of the file should be similar to this:</p>
+
+<div class="highlight"><pre><code class="language-batch">#properties file <span class="k">for</span> my app
+secret<span class="o">=</span>***
+consumerSecret<span class="o">=</span>***
+token<span class="o">=</span>***-***
+consumerKey<span class="o">=</span>***</code></pre></div>
+
+<h4 id="constructors">Constructors</h4>
+<p>The <code>TwitterSource</code> class has two constructors.</p>
+
+<ol>
+  <li><code>public TwitterSource(String authPath, int numberOfTweets);</code> 
+to emit finite number of tweets</li>
+  <li><code>public TwitterSource(String authPath);</code> 
+for streaming</li>
+</ol>
+
+<p>Both constructors expect a <code>String authPath</code> argument determining the location of the properties file containing the authentication information. In the first case, <code>numberOfTweets</code> determine how many tweet the source emits. </p>
+
+<h4 id="usage">Usage</h4>
+<p>In constract to other connecters the <code>TwitterSource</code> depends on no additional services. For example the following code should run gracefully:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">streamSource</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">AddSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">TwitterSource</span><span class="o">(</span><span class="s">&quot;/PATH/TO/myFile.properties&quot;</span><span class="o">));</span></code></pre></div>
+
+<p>The <code>TwitterSource</code> emits strings containing a JSON code. 
+To retrieve information from the JSON code you can add a FlatMap or a Map function handling JSON code. For example use an implementation <code>JSONParseFlatMap</code> abstract class among the examples. <code>JSONParseFlatMap</code> is an extension of the <code>FlatMapFunction</code> and has a</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">String</span> <span class="nf">getField</span><span class="o">(</span><span class="n">String</span> <span class="n">jsonText</span><span class="o">,</span> <span class="n">String</span> <span class="n">field</span><span class="o">);</span></code></pre></div>
+
+<p>function which can be use to acquire the value of a given field. </p>
+
+<p>There are two basic types of tweets. The usual tweets contain information such as date and time of creation, id, user, language and many more details. The other type is the delete information.</p>
+
+<h4 id="example">Example</h4>
+<p><code>TwitterLocal</code> is an example how to use <code>TwitterSource</code>. It implements a language frequency counter program. </p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h3 id="docker-containers-for-connectors">Docker containers for connectors</h3>
+
+<p>A Docker container is provided with all the required configurations for test running the connectors of Apache Flink. The servers for the message queues will be running on the docker container while the example topology can be run on the user’s computer. The only exception is Flume, more can be read about this issue in the <a href="#flume">Flume section</a>. </p>
+
+<h4 id="installing-docker">Installing Docker</h4>
+<p>The official Docker installation guide can be found <a href="https://docs.docker.com/installation/">here</a>.
+After installing Docker an image can be pulled for each connector. Containers can be started from these images where all the required configurations are set.</p>
+
+<h4 id="creating-a-jar-with-all-the-dependencies">Creating a jar with all the dependencies</h4>
+<p>For the easiest set up create a jar with all the dependencies of the <em>flink-streaming-connectors</em> project.</p>
+
+<div class="highlight"><pre><code class="language-batch"><span class="k">cd</span> <span class="n">/PATH/TO/GIT/incubator-flink/flink-addons/flink-streaming-connectors</span>
+mvn assembly:assembly
+~~~batch
+
+This creates an assembly jar under *flink-streaming-connectors<span class="n">/target*.</span> 
+
+#### RabbitMQ
+Pull the image:
+
+~~~batch
+sudo docker pull flinkstreaming<span class="n">/flink-connectors-rabbitmq</span></code></pre></div>
+
+<p>To run the container type:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo docker run -p <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span><span class="nl">:5672:5672</span> -t -i flinkstreaming<span class="n">/flink-connectors-rabbitmq</span></code></pre></div>
+
+<p>Now a terminal started running from the image with all the necessary configurations to test run the RabbitMQ connector. The -p flag binds the localhost’s and the Docker container’s ports so RabbitMQ can communicate with the application through these.</p>
+
+<p>To start the RabbitMQ server:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo <span class="n">/etc/init.d/rabbitmq-server</span> start</code></pre></div>
+
+<p>To launch the example on the host computer execute:</p>
+
+<div class="highlight"><pre><code class="language-batch">java -cp <span class="n">/PATH/TO/JAR-WITH-DEPENDENCIES</span> org.apache.flink.streaming.connectors.rabbitmq.RMQTopology \
+<span class="p">&gt;</span> <span class="n">log</span>.txt <span class="m">2</span><span class="p">&gt;</span> <span class="n">errorlog</span>.txt</code></pre></div>
+
+<p>In the example there are two connectors. One that sends messages to RabbitMQ and one that receives messages from the same queue. In the logger messages the arriving messages can be observed in the following format:</p>
+
+<div class="highlight"><pre><code>&lt;DATE&gt; INFO rabbitmq.RMQTopology: String: &lt;one&gt; arrived from RMQ 
+&lt;DATE&gt; INFO rabbitmq.RMQTopology: String: &lt;two&gt; arrived from RMQ
+&lt;DATE&gt; INFO rabbitmq.RMQTopology: String: &lt;three&gt; arrived from RMQ
+&lt;DATE&gt; INFO rabbitmq.RMQTopology: String: &lt;four&gt; arrived from RMQ
+&lt;DATE&gt; INFO rabbitmq.RMQTopology: String: &lt;five&gt; arrived from RMQ
+</code></pre></div>
+
+<h4 id="apache-kafka-1">Apache Kafka</h4>
+
+<p>Pull the image:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo docker pull flinkstreaming<span class="n">/flink-connectors-kafka</span></code></pre></div>
+
+<p>To run the container type:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo docker run -p <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span><span class="nl">:2181:2181</span> -p <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span><span class="nl">:9092:9092</span> -t -i \
+flinkstreaming<span class="n">/flink-connectors-kafka</span></code></pre></div>
+
+<p>Now a terminal started running from the image with all the necessary configurations to test run the Kafka connector. The -p flag binds the localhost’s and the Docker container’s ports so Kafka can communicate with the application through these.
+First start a zookeeper in the background:</p>
+
+<div class="highlight"><pre><code class="language-batch"><span class="n">/kafka_2.9.2-0.8.1.1/bin/zookeeper-server-start.sh</span> <span class="n">/kafka_2.9.2-0.8.1.1/config/zookeeper.properties</span> \
+<span class="p">&gt;</span> <span class="n">zookeeperlog</span>.txt &amp;</code></pre></div>
+
+<p>Then start the kafka server in the background:</p>
+
+<div class="highlight"><pre><code class="language-batch"><span class="n">/kafka_2.9.2-0.8.1.1/bin/kafka-server-start.sh</span> <span class="n">/kafka_2.9.2-0.8.1.1/config/server.properties</span> \
+ <span class="p">&gt;</span> <span class="n">serverlog</span>.txt <span class="m">2</span><span class="p">&gt;</span> <span class="n">servererr</span>.txt &amp;</code></pre></div>
+
+<p>To launch the example on the host computer execute:</p>
+
+<div class="highlight"><pre><code class="language-batch">java -cp <span class="n">/PATH/TO/JAR-WITH-DEPENDENCIES</span> org.apache.flink.streaming.connectors.kafka.KafkaTopology \
+<span class="p">&gt;</span> <span class="n">log</span>.txt <span class="m">2</span><span class="p">&gt;</span> <span class="n">errorlog</span>.txt</code></pre></div>
+
+<p>In the example there are two connectors. One that sends messages to Kafka and one that receives messages from the same queue. In the logger messages the arriving messages can be observed in the following format:</p>
+
+<div class="highlight"><pre><code>&lt;DATE&gt; INFO kafka.KafkaTopology: String: (0) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (1) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (2) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (3) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (4) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (5) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (6) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (7) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (8) arrived from Kafka
+&lt;DATE&gt; INFO kafka.KafkaTopology: String: (9) arrived from Kafka
+</code></pre></div>
+
+<h4 id="apache-flume-1">Apache Flume</h4>
+
+<p>At the moment remote access for Flume connectors does not work. This example is only runnable on the same machine where the Flume server is. In this case both will be in the Docker container.</p>
+
+<p>Pull the image:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo docker pull flinkstreaming<span class="n">/flink-connectors-flume</span></code></pre></div>
+
+<p>To run the container type:</p>
+
+<div class="highlight"><pre><code class="language-batch">sudo docker run -t -i flinkstreaming<span class="n">/flink-connectors-flume</span></code></pre></div>
+
+<p>Now a terminal started running from the image with all the necessary configurations to test run the Flume connector. The -p flag binds the localhost’s and the Docker container’s ports so flume can communicate with the application through these.</p>
+
+<p>To have the latest version of Flink type:
+~~~batch
+cd /git/incubator-flink/
+git pull
+~~~</p>
+
+<p>Then build the code with:</p>
+
+<div class="highlight"><pre><code class="language-batch"><span class="k">cd</span> <span class="n">/git/incubator-flink/flink-addons/flink-streaming/flink-streaming-connectors/</span>
+mvn install -DskipTests</code></pre></div>
+
+<p>First start the server in the background:</p>
+
+<div class="highlight"><pre><code class="language-batch"><span class="n">/apache-flume-1.5.0-bin/bin/flume-ng</span> agent \
+--conf conf --conf-file <span class="n">/apache-flume-1.5.0-bin/example.conf</span> --name a<span class="m">1</span> \
+-Dflume.root.logger<span class="o">=</span>INFO<span class="p">,</span>console &gt; <span class="n">/flumelog.txt</span> <span class="m">2</span>&gt; <span class="n">/flumeerr.txt</span> &amp;</code></pre></div>
+
+<p>Then press enter and launch the example with:</p>
+
+<div class="highlight"><pre><code class="language-batch">java -cp <span class="n">/PATH/TO/JAR-WITH-DEPENDENCIES</span> org.apache.flink.streaming.connectors.flume.FlumeTopology</code></pre></div>
+
+<p>In the example there are to connectors. One that sends messages to Flume and one that receives messages from the same queue. In the logger messages the arriving messages can be observed in the following format:</p>
+
+<div class="highlight"><pre><code>&lt;DATE&gt; INFO flume.FlumeTopology: String: &lt;one&gt; arrived from Flume
+&lt;DATE&gt; INFO flume.FlumeTopology: String: &lt;two&gt; arrived from Flume
+&lt;DATE&gt; INFO flume.FlumeTopology: String: &lt;three&gt; arrived from Flume
+&lt;DATE&gt; INFO flume.FlumeTopology: String: &lt;four&gt; arrived from Flume
+&lt;DATE&gt; INFO flume.FlumeTopology: String: &lt;five&gt; arrived from Flume
+</code></pre></div>
+
+<p><a href="#top">Back to top</a></p>
+
+	  
+        <!-- Disqus Area -->
+          <div style="padding-top:30px" id="disqus_thread"></div>
+      
+            <script type="text/javascript">
+                /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+                /* * * DON'T EDIT BELOW THIS LINE * * */
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          </div>
+        </div>
+
+        <div class="footer">
+          
+          <hr class="divider" />
+
+<p><small>Apache Flink is an effort undergoing incubation at The Apache Software
+Foundation (ASF), sponsored by the Apache Incubator PMC. Incubation is
+required of all newly accepted projects until a further review indicates that
+the infrastructure, communications, and decision making process have
+stabilized in a manner consistent with other successful ASF projects. While
+incubation status is not necessarily a reflection of the completeness or
+stability of the code, it does indicate that the project has yet to be fully
+endorsed by the ASF.</small></p>
+
+<p><a href="http://incubator.apache.org/"><img src="/img/apache-incubator-logo.png" alt="Incubator Logo" /></a></p>
+
+<p class="text-center"><a href="privacy-policy.html">Privacy Policy<a>
+</a></a></p>
+
+        </div>
+      </div>
+    </div>
+
+    
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-52545728-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+  </body>
+</html>

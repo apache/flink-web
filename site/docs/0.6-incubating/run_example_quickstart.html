@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Apache Flink (incubating): Quick Start: Run K-Means Example</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/bootstrap-lumen-custom.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="/css/custom.css">
+    <link rel="css/codetabs.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="js/codetabs.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://flink.incubator.apache.org">Apache Flink</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="navbar-collapse-1">
+      <ul class="nav navbar-nav">
+
+        <li>
+          <a href="index.html" class="">Documentation</a>
+        </li>
+
+        <li>
+          <a href="api/java/index.html">Javadoc</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div style="padding-top:70px" class="container">
+
+      <div class="row">
+        <div class="col-md-3">
+          <ul>
+    <li>Quickstart
+        <ul>
+            <li><a href="setup_quickstart.html">Install</a></li>
+            <li><a href="run_example_quickstart.html">Run Example</a></li>
+            <li><a href="java_api_quickstart.html">Java API</a></li>
+            <li><a href="scala_api_quickstart.html">Scala API</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+        </ul>
+    </li>
+
+    <li>Setup &amp; Configuration
+        <ul>
+            <li><a href="building.html">Build Instructions</a></li>
+            <li><a href="local_setup.html">Local Setup</a></li>
+            <li><a href="cluster_setup.html">Cluster Setup</a></li>
+            <li><a href="yarn_setup.html">YARN Setup</a></li>
+            <li><a href="config.html">Configuration</a></li>
+        </ul>
+    </li>
+
+    <li>Programming Guides
+        <ul>
+            <li><a href="java_api_guide.html">Java API</a></li>
+            <li><a href="java_api_transformations.html">Java API Transformations</a></li>
+            <li><a href="scala_api_guide.html">Scala API</a></li>
+            <li><a href="iterations.html">Iterations</a></li>
+            <li><a href="spargel_guide.html">Spargel Graph API</a></li>
+        </ul>
+    </li>
+
+    <li>Examples
+        <ul>
+            <li><a href="java_api_examples.html">Java API</a></li>
+            <li><a href="scala_api_examples.html">Scala API</a></li>
+            <li><a href="example_connectors.html">Connecting to other systems</a></li>
+        </ul>
+    </li>
+
+    <li>Execution
+        <ul>
+            <li><a href="local_execution.html">Local/Debugging</a></li>
+            <li><a href="cluster_execution.html">Cluster</a></li>
+            <li><a href="cli.html">Command-Line Interface</a></li>
+            <li><a href="web_client.html">Web Interface</a></li>
+        </ul>
+    </li>
+
+    <li>Internals
+        <ul>
+            <li><a href="internal_overview.html">Overview</a></li>
+            <li><a href="internal_general_arch.html">General Architecture</a></li>
+            <li><a href="internal_add_operator.html">How-to: Adding a new Operator</a></li>
+        </ul>
+    </li>
+</ul>
+        </div>  
+        <div class="col-md-9">
+          <h1>Quick Start: Run K-Means Example</h1>
+
+          <p>This guide will demonstrate Flink&#39;s features by example. You will see how you can leverage Flink&#39;s Iteration-feature to find clusters in a dataset using <a href="http://en.wikipedia.org/wiki/K-means_clustering">K-Means clustering</a>. 
+On the way, you will see the compiler, the status interface and the result of the algorithm.</p>
+
+<h1 id="generate-input-data">Generate Input Data</h1>
+
+<p>Flink contains a data generator for K-Means.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"> <span class="c"># pick a mirror from: http://www.apache.org/dyn/closer.cgi/incubator/flink/flink-0.6.1-incubating/flink-0.6.1-incubating-bin-hadoop1.tgz</span>
+ <span class="c"># for example</span>
+wget http://mirror.lwnetwork.org.uk/APACHE/incubator/flink/flink-0.6-incubating-bin-hadoop1.tgz
+tar xzf flink-*.tgz 
+<span class="nb">cd </span>flink-*
+mkdir kmeans
+<span class="nb">cd </span>kmeans
+ <span class="c"># Run data generator</span>
+java -cp  ../examples/flink-java-examples-0.6.1-incubating-KMeans.jar org.apache.flink.example.java.clustering.util.KMeansDataGenerator <span class="m">500</span> <span class="m">10</span> 0.08
+cp /tmp/points .
+cp /tmp/centers .
+</code></pre></div>
+<p>The generator has the following arguments:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">KMeansDataGenerator &lt;numberOfDataPoints&gt; &lt;numberOfClusterCenters&gt; [&lt;relative stddev&gt;] [&lt;centroid range&gt;] [&lt;seed&gt;]
+</code></pre></div>
+<p>The <em>relative standard deviation</em> is an interesting tuning parameter: it determines the closeness of the points to the centers.</p>
+
+<p>The <code>kmeans/</code> directory should now contain two files: <code>centers</code> and <code>points</code>.</p>
+
+<h1 id="review-input-data">Review Input Data</h1>
+
+<p>Use the <code>plotPoints.py</code> tool to review the result of the data generator. <a href="quickstart/plotPoints.py">Download Python Script</a></p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">python plotPoints.py points points input
+</code></pre></div>
+<p>Note: You might have to install <a href="http://matplotlib.org/">matplotlib</a> (<code>python-matplotlib</code> package on Ubuntu) to use the Python script.</p>
+
+<p>You can review the input data stored in the <code>input-plot.pdf</code>, for example with Evince (<code>evince input-plot.pdf</code>).</p>
+
+<p>The following overview presents the impact of the different standard deviations on the input data.</p>
+
+<table><thead>
+<tr>
+<th style="text-align: center">relative stddev = 0.03</th>
+<th style="text-align: center">relative stddev = 0.08</th>
+<th style="text-align: center">relative stddev = 0.15</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: center"><img src="img/quickstart-example/kmeans003.png" alt="example1" style="width: 275px;"/></td>
+<td style="text-align: center"><img src="img/quickstart-example/kmeans008.png" alt="example2" style="width: 275px;"/></td>
+<td style="text-align: center"><img src="img/quickstart-example/kmeans015.png" alt="example3" style="width: 275px;"/></td>
+</tr>
+</tbody></table>
+
+<h1 id="run-clustering">Run Clustering</h1>
+
+<p>We are using the generated input data to run the clustering using a Flink job.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"> <span class="c"># go to the Flink-root directory</span>
+<span class="nb">cd </span>flink
+ <span class="c"># start Flink (use ./bin/start-cluster.sh if you&#39;re on a cluster)</span>
+./bin/start-local.sh
+ <span class="c"># Start Flink web client</span>
+./bin/start-webclient.sh
+</code></pre></div>
+<h1 id="review-flink-compiler">Review Flink Compiler</h1>
+
+<p>The Flink webclient allows to submit Flink programs using a graphical user interface.</p>
+
+<div class="row" style="padding-top:15px">
+    <div class="col-md-6">
+        <a data-lightbox="compiler" href="img/quickstart-example/run-webclient.png" data-lightbox="example-1"><img class="img-responsive" src="img/quickstart-example/run-webclient.png" /></a>
+    </div>
+    <div class="col-md-6">
+        1. <a href="http://localhost:8080/launch.html">Open webclient on localhost:8080</a> <br>
+        2. Upload the file. 
+            
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">examples/flink-java-examples-0.6.1-incubating-KMeans.jar</code></pre></div>
+ </br>
+        3. Select it in the left box to see how the operators in the plan are connected to each other. <br>
+        4. Enter the arguments in the lower left box:
+            
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">file://&lt;pathToGenerated&gt;points file://&lt;pathToGenerated&gt;centers file://&lt;pathToGenerated&gt;result 10</code></pre></div>
+
+            For example:
+            
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">file:///tmp/flink/kmeans/points file:///tmp/flink/kmeans/centers file:///tmp/flink/kmeans/result 20</code></pre></div>
+
+    </div>
+</div>
+
+<p><hr></p>
+
+<div class="row" style="padding-top:15px">
+    <div class="col-md-6">
+        <a data-lightbox="compiler" href="img/quickstart-example/compiler-webclient-new.png" data-lightbox="example-1"><img class="img-responsive" src="img/quickstart-example/compiler-webclient-new.png" /></a>
+    </div>
+
+    <div class="col-md-6">
+        1. Press the <b>RunJob</b> to see the optimzer plan. <br>
+        2. Inspect the operators and see the properties (input sizes, cost estimation) determined by the optimizer.
+    </div>
+</div>
+
+<p><hr></p>
+
+<div class="row" style="padding-top:15px">
+    <div class="col-md-6">
+        <a data-lightbox="compiler" href="img/quickstart-example/jobmanager-running-new.png" data-lightbox="example-1"><img class="img-responsive" src="img/quickstart-example/jobmanager-running-new.png" /></a>
+    </div>
+    <div class="col-md-6">
+        1. Press the <b>Continue</b> button to start executing the job. <br>
+        2. <a href="http://localhost:8080/launch.html">Open Flink's monitoring interface</a> to see the job's progress.<br>
+        3. Once the job has finished, you can analyize the runtime of the individual operators.
+    </div>
+</div>
+
+<h1 id="analyze-the-result">Analyze the Result</h1>
+
+<p>Use the <a href="quickstart/plotPoints.py">Python Script</a> again to visualize the result</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">python plotPoints.py result result result-pdf
+</code></pre></div>
+<p>The following three pictures show the results for the sample input above. Play around with the parameters (number of iterations, number of clusters) to see how they affect the result.</p>
+
+<table><thead>
+<tr>
+<th style="text-align: center">relative stddev = 0.03</th>
+<th style="text-align: center">relative stddev = 0.08</th>
+<th style="text-align: center">relative stddev = 0.15</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: center"><img src="img/quickstart-example/result003.png" alt="example1" style="width: 275px;"/></td>
+<td style="text-align: center"><img src="img/quickstart-example/result008.png" alt="example2" style="width: 275px;"/></td>
+<td style="text-align: center"><img src="img/quickstart-example/result015.png" alt="example3" style="width: 275px;"/></td>
+</tr>
+</tbody></table>
+
+
+          <div style="padding-top:30px" id="disqus_thread"></div>
+      
+            <script type="text/javascript">
+                /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+                /* * * DON'T EDIT BELOW THIS LINE * * */
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+            <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+          </div>
+        </div>
+
+        <div class="footer">
+          
+          <p><hr class="divider"></p>
+
+<p><small>Apache Flink is an effort undergoing incubation at The Apache Software
+Foundation (ASF), sponsored by the Apache Incubator PMC. Incubation is
+required of all newly accepted projects until a further review indicates that
+the infrastructure, communications, and decision making process have
+stabilized in a manner consistent with other successful ASF projects. While
+incubation status is not necessarily a reflection of the completeness or
+stability of the code, it does indicate that the project has yet to be fully
+endorsed by the ASF.</small></p>
+
+<p><a href="http://incubator.apache.org/"><img src="/img/apache-incubator-logo.png" alt="Incubator Logo"></a></p>
+
+<p class="text-center"><a href="/privacy-policy.html">Privacy Policy<a></p>
+
+        </div>
+      </div>
+    </div>
+
+    
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-52545728-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+  </body>
+</html>

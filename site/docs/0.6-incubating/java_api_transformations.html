@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Apache Flink (incubating): Java API Transformations</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/bootstrap-lumen-custom.css">
+    <link rel="stylesheet" href="/css/syntax.css">
+    <link rel="/css/custom.css">
+    <link rel="css/codetabs.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="js/codetabs.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="http://flink.incubator.apache.org">Apache Flink</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="navbar-collapse-1">
+      <ul class="nav navbar-nav">
+
+        <li>
+          <a href="index.html" class="">Documentation</a>
+        </li>
+
+        <li>
+          <a href="api/java/index.html">Javadoc</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div style="padding-top:70px" class="container">
+
+      <div class="row">
+        <div class="col-md-3">
+          <ul>
+    <li>Quickstart
+        <ul>
+            <li><a href="setup_quickstart.html">Install</a></li>
+            <li><a href="run_example_quickstart.html">Run Example</a></li>
+            <li><a href="java_api_quickstart.html">Java API</a></li>
+            <li><a href="scala_api_quickstart.html">Scala API</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+        </ul>
+    </li>
+
+    <li>Setup &amp; Configuration
+        <ul>
+            <li><a href="building.html">Build Instructions</a></li>
+            <li><a href="local_setup.html">Local Setup</a></li>
+            <li><a href="cluster_setup.html">Cluster Setup</a></li>
+            <li><a href="yarn_setup.html">YARN Setup</a></li>
+            <li><a href="config.html">Configuration</a></li>
+        </ul>
+    </li>
+
+    <li>Programming Guides
+        <ul>
+            <li><a href="java_api_guide.html">Java API</a></li>
+            <li><a href="java_api_transformations.html">Java API Transformations</a></li>
+            <li><a href="scala_api_guide.html">Scala API</a></li>
+            <li><a href="iterations.html">Iterations</a></li>
+            <li><a href="spargel_guide.html">Spargel Graph API</a></li>
+        </ul>
+    </li>
+
+    <li>Examples
+        <ul>
+            <li><a href="java_api_examples.html">Java API</a></li>
+            <li><a href="scala_api_examples.html">Scala API</a></li>
+            <li><a href="example_connectors.html">Connecting to other systems</a></li>
+        </ul>
+    </li>
+
+    <li>Execution
+        <ul>
+            <li><a href="local_execution.html">Local/Debugging</a></li>
+            <li><a href="cluster_execution.html">Cluster</a></li>
+            <li><a href="cli.html">Command-Line Interface</a></li>
+            <li><a href="web_client.html">Web Interface</a></li>
+        </ul>
+    </li>
+
+    <li>Internals
+        <ul>
+            <li><a href="internal_overview.html">Overview</a></li>
+            <li><a href="internal_general_arch.html">General Architecture</a></li>
+            <li><a href="internal_add_operator.html">How-to: Adding a new Operator</a></li>
+        </ul>
+    </li>
+</ul>
+        </div>  
+        <div class="col-md-9">
+          <h1>Java API Transformations</h1>
+
+          <p><section id="top"></p>
+
+<h2 id="dataset-transformations">DataSet Transformations</h2>
+
+<p>This document gives a deep-dive into the available transformations on DataSets. For a general introduction to the
+Flink Java API, please refer to the <a href="java_api_guide.html">API guide</a></p>
+
+<h3 id="map">Map</h3>
+
+<p>The Map transformation applies a user-defined <code>MapFunction</code> on each element of a DataSet.
+It implements a one-to-one mapping, that is, exactly one element must be returned by
+the function.</p>
+
+<p>The following code transforms a <code>DataSet</code> of Integer pairs into a <code>DataSet</code> of Integers:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// MapFunction that adds two integer values</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">IntAdder</span> <span class="kd">implements</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">map</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">in</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">in</span><span class="o">.</span><span class="na">f0</span> <span class="o">+</span> <span class="n">in</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">intPairs</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">intSums</span> <span class="o">=</span> <span class="n">intPairs</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="nf">IntAdder</span><span class="o">());</span>
+</code></pre></div>
+<h3 id="flatmap">FlatMap</h3>
+
+<p>The FlatMap transformation applies a user-defined <code>FlatMapFunction</code> on each element of a <code>DataSet</code>.
+This variant of a map function can return arbitrary many result elements (including none) for each input element.</p>
+
+<p>The following code transforms a <code>DataSet</code> of text lines into a <code>DataSet</code> of words:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// FlatMapFunction that tokenizes a String by whitespace characters and emits all String tokens.</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Tokenizer</span> <span class="kd">implements</span> <span class="n">FlatMapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">token</span> <span class="o">:</span> <span class="n">value</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;\\W&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">token</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">textLines</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">words</span> <span class="o">=</span> <span class="n">textLines</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="nf">Tokenizer</span><span class="o">());</span>
+</code></pre></div>
+<h3 id="filter">Filter</h3>
+
+<p>The Filter transformation applies a user-defined <code>FilterFunction</code> on each element of a <code>DataSet</code> and retains only those elements for which the function returns <code>true</code>.</p>
+
+<p>The following code removes all Integers smaller than zero from a <code>DataSet</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// FilterFunction that filters out all Integers smaller than zero.</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">NaturalNumberFilter</span> <span class="kd">implements</span> <span class="n">FilterFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">filter</span><span class="o">(</span><span class="n">Integer</span> <span class="n">number</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">number</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">intNumbers</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">naturalNumbers</span> <span class="o">=</span> <span class="n">intNumbers</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="k">new</span> <span class="nf">NaturalNumberFilter</span><span class="o">());</span>
+</code></pre></div>
+<h3 id="project-(tuple-datasets-only)">Project (Tuple DataSets only)</h3>
+
+<p>The Project transformation removes or moves <code>Tuple</code> fields of a <code>Tuple</code> <code>DataSet</code>.
+The <code>project(int...)</code> method selects <code>Tuple</code> fields that should be retained by their index and defines their order in the output <code>Tuple</code>.
+The <code>types(Class&lt;?&gt; ...)</code>method must give the types of the output <code>Tuple</code> fields.</p>
+
+<p>Projections do not require the definition of a user function.</p>
+
+<p>The following code shows different ways to apply a Project transformation on a <code>DataSet</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">in</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="c1">// converts Tuple3&lt;Integer, Double, String&gt; into Tuple2&lt;String, Integer&gt;</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">out</span> <span class="o">=</span> <span class="n">in</span><span class="o">.</span><span class="na">project</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span><span class="mi">0</span><span class="o">).</span><span class="na">types</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</code></pre></div>
+<h3 id="transformations-on-grouped-dataset">Transformations on grouped DataSet</h3>
+
+<p>The reduce operations can operate on grouped data sets. Specifying the key to
+be used for grouping can be done in two ways:</p>
+
+<ul>
+<li>a <code>KeySelector</code> function or</li>
+<li>one or more field position keys (<code>Tuple</code> <code>DataSet</code> only).</li>
+</ul>
+
+<p>Please look at the reduce examples to see how the grouping keys are specified.</p>
+
+<h3 id="reduce-on-grouped-dataset">Reduce on grouped DataSet</h3>
+
+<p>A Reduce transformation that is applied on a grouped <code>DataSet</code> reduces each group to a single element using a user-defined <code>ReduceFunction</code>.
+For each group of input elements, a <code>ReduceFunction</code> successively combines pairs of elements into one element until only a single element for each group remains.</p>
+
+<h4 id="reduce-on-dataset-grouped-by-keyselector-function">Reduce on DataSet grouped by KeySelector Function</h4>
+
+<p>A <code>KeySelector</code> function extracts a key value from each element of a <code>DataSet</code>. The extracted key value is used to group the <code>DataSet</code>.
+The following code shows how to group a POJO <code>DataSet</code> using a <code>KeySelector</code> function and to reduce it with a <code>ReduceFunction</code>.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// some ordinary POJO</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">WC</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="n">word</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="n">count</span><span class="o">;</span>
+  <span class="c1">// [...]</span>
+<span class="o">}</span>
+
+<span class="c1">// ReduceFunction that sums Integer attributes of a POJO</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">WordCounter</span> <span class="kd">implements</span> <span class="n">ReduceFunction</span><span class="o">&lt;</span><span class="n">WC</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">WC</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">WC</span> <span class="n">in1</span><span class="o">,</span> <span class="n">WC</span> <span class="n">in2</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">WC</span><span class="o">(</span><span class="n">in1</span><span class="o">.</span><span class="na">word</span><span class="o">,</span> <span class="n">in1</span><span class="o">.</span><span class="na">count</span> <span class="o">+</span> <span class="n">in2</span><span class="o">.</span><span class="na">count</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">WC</span><span class="o">&gt;</span> <span class="n">words</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">WC</span><span class="o">&gt;</span> <span class="n">wordCounts</span> <span class="o">=</span> <span class="n">words</span>
+                         <span class="c1">// DataSet grouping with inline-defined KeySelector function</span>
+                         <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span>
+                           <span class="k">new</span> <span class="n">KeySelector</span><span class="o">&lt;</span><span class="n">WC</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                             <span class="kd">public</span> <span class="n">String</span> <span class="nf">getKey</span><span class="o">(</span><span class="n">WC</span> <span class="n">wc</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">wc</span><span class="o">.</span><span class="na">word</span><span class="o">;</span> <span class="o">}</span>
+                           <span class="o">})</span>
+                         <span class="c1">// apply ReduceFunction on grouped DataSet</span>
+                         <span class="o">.</span><span class="na">reduce</span><span class="o">(</span><span class="k">new</span> <span class="nf">WordCounter</span><span class="o">());</span>
+</code></pre></div>
+<h4 id="reduce-on-dataset-grouped-by-field-position-keys-(tuple-datasets-only)">Reduce on DataSet grouped by Field Position Keys (Tuple DataSets only)</h4>
+
+<p>Field position keys specify one or more fields of a <code>Tuple</code> <code>DataSet</code> that are used as grouping keys.
+The following code shows how to use field position keys and apply a <code>ReduceFunction</code>.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">tuples</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">reducedTuples</span> <span class="o">=</span>
+                                         <span class="n">tuples</span>
+                                         <span class="c1">// group DataSet on first and second field of Tuple</span>
+                                         <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="mi">1</span><span class="o">)</span>
+                                         <span class="c1">// apply ReduceFunction on grouped DataSet</span>
+                                         <span class="o">.</span><span class="na">reduce</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyTupleReducer</span><span class="o">());</span>
+</code></pre></div>
+<h3 id="groupreduce-on-grouped-dataset">GroupReduce on grouped DataSet</h3>
+
+<p>A GroupReduce transformation that is applied on a grouped <code>DataSet</code> calls a user-defined <code>GroupReduceFunction</code> for each group. The difference
+between this and <code>Reduce</code> is that the user defined function gets the whole group at once.
+The function is invoked with an Iterable over all elements of a group and can return an arbitrary number of result elements using the collector.</p>
+
+<h4 id="groupreduce-on-dataset-grouped-by-field-position-keys-(tuple-datasets-only)">GroupReduce on DataSet grouped by Field Position Keys (Tuple DataSets only)</h4>
+
+<p>The following code shows how duplicate strings can be removed from a <code>DataSet</code> grouped by Integer.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DistinctReduce</span>
+         <span class="kd">implements</span> <span class="n">GroupReduceFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">in</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="n">Set</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">uniqStrings</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+    <span class="n">Integer</span> <span class="n">key</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="c1">// add all strings of the group to the set</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="n">t</span> <span class="o">:</span> <span class="n">in</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="na">f0</span><span class="o">;</span>
+      <span class="n">uniqStrings</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">t</span><span class="o">.</span><span class="na">f1</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="c1">// emit all unique strings.</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">s</span> <span class="o">:</span> <span class="n">uniqStrings</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;(</span><span class="n">key</span><span class="o">,</span> <span class="n">s</span><span class="o">));</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">input</span>
+                           <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>            <span class="c1">// group DataSet by the first tuple field</span>
+                           <span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">DistinctReduce</span><span class="o">());</span>  <span class="c1">// apply GroupReduceFunction</span>
+</code></pre></div>
+<h4 id="groupreduce-on-dataset-grouped-by-keyselector-function">GroupReduce on DataSet grouped by KeySelector Function</h4>
+
+<p>Works analogous to <code>KeySelector</code> functions in Reduce transformations.</p>
+
+<h4 id="groupreduce-on-sorted-groups-(tuple-datasets-only)">GroupReduce on sorted groups (Tuple DataSets only)</h4>
+
+<p>A <code>GroupReduceFunction</code> accesses the elements of a group using an Iterable. Optionally, the Iterable can hand out the elements of a group in a specified order. In many cases this can help to reduce the complexity of a user-defined <code>GroupReduceFunction</code> and improve its efficiency.
+Right now, this feature is only available for DataSets of Tuples.</p>
+
+<p>The following code shows another example how to remove duplicate Strings in a <code>DataSet</code> grouped by an Integer and sorted by String.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// GroupReduceFunction that removes consecutive identical elements</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">DistinctReduce</span>
+         <span class="kd">implements</span> <span class="n">GroupReduceFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">in</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Integer</span> <span class="n">key</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">comp</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="n">t</span> <span class="o">:</span> <span class="n">in</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="na">f0</span><span class="o">;</span>
+      <span class="n">String</span> <span class="n">next</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span>
+
+      <span class="c1">// check if strings are different</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">com</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="o">!</span><span class="n">next</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">comp</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;(</span><span class="n">key</span><span class="o">,</span> <span class="n">next</span><span class="o">));</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">next</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">input</span>
+                         <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>                         <span class="c1">// group DataSet by first field</span>
+                         <span class="o">.</span><span class="na">sortGroup</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">Order</span><span class="o">.</span><span class="na">ASCENDING</span><span class="o">)</span>      <span class="c1">// sort groups on second tuple field</span>
+                         <span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">DistinctReduce</span><span class="o">());</span>
+</code></pre></div>
+<p><strong>Note:</strong> A GroupSort often comes for free if the grouping is established using a sort-based execution strategy of an operator before the reduce operation.</p>
+
+<h4 id="combinable-groupreducefunctions">Combinable GroupReduceFunctions</h4>
+
+<p>In contrast to a <code>ReduceFunction</code>, a <code>GroupReduceFunction</code> is not
+necessarily combinable. In order to make a <code>GroupReduceFunction</code>
+combinable, you need to use the <code>RichGroupReduceFunction</code> variant,
+implement (override) the <code>combine()</code> method, and annotate the
+<code>GroupReduceFunction</code> with the <code>@Combinable</code> annotation as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// Combinable GroupReduceFunction that computes two sums.</span>
+<span class="c1">// Note that we use the RichGroupReduceFunction because it defines the combine method</span>
+<span class="nd">@Combinable</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyCombinableGroupReducer</span>
+         <span class="kd">extends</span> <span class="n">RichGroupReduceFunction</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;,</span>
+                                     <span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">in</span><span class="o">,</span>
+                     <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="n">String</span> <span class="n">key</span> <span class="o">=</span> <span class="kc">null</span>
+    <span class="kt">int</span> <span class="n">intSum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+    <span class="kt">double</span> <span class="n">doubleSum</span> <span class="o">=</span> <span class="mf">0.0</span><span class="o">;</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">curr</span> <span class="o">:</span> <span class="n">in</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">curr</span><span class="o">.</span><span class="na">f0</span><span class="o">;</span>
+      <span class="n">intSum</span> <span class="o">+=</span> <span class="n">curr</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span>
+      <span class="n">doubleSum</span> <span class="o">+=</span> <span class="n">curr</span><span class="o">.</span><span class="na">f2</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="c1">// emit a tuple with both sums</span>
+    <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;(</span><span class="n">key</span><span class="o">,</span> <span class="n">intSum</span><span class="o">,</span> <span class="n">doubleSum</span><span class="o">));</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">combine</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">in</span><span class="o">,</span>
+                      <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">))</span> <span class="o">{</span>
+    <span class="c1">// in some cases combine() calls can simply be forwarded to reduce().</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">reduce</span><span class="o">(</span><span class="n">in</span><span class="o">,</span> <span class="n">out</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3 id="aggregate-on-grouped-tuple-dataset">Aggregate on grouped Tuple DataSet</h3>
+
+<p>There are some common aggregation operations that are frequently used. The Aggregate transformation provides the following build-in aggregation functions:</p>
+
+<ul>
+<li>Sum,</li>
+<li>Min, and</li>
+<li>Max.</li>
+</ul>
+
+<p>The Aggregate transformation can only be applied on a <code>Tuple</code> <code>DataSet</code> and supports only field positions keys for grouping.</p>
+
+<p>The following code shows how to apply an Aggregation transformation on a <code>DataSet</code> grouped by field position keys:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">input</span>
+                                   <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>        <span class="c1">// group DataSet on second field</span>
+                                   <span class="o">.</span><span class="na">aggregate</span><span class="o">(</span><span class="n">SUM</span><span class="o">,</span> <span class="mi">0</span><span class="o">)</span> <span class="c1">// compute sum of the first field</span>
+                                   <span class="o">.</span><span class="na">and</span><span class="o">(</span><span class="n">MIN</span><span class="o">,</span> <span class="mi">2</span><span class="o">);</span>      <span class="c1">// compute minimum of the third field</span>
+</code></pre></div>
+<p>To apply multiple aggregations on a DataSet it is necessary to use the <code>.and()</code> function after the first aggregate, that means <code>.aggregate(SUM, 0).and(MIN, 2)</code> produces the sum of field 0 and the minimum of field 2 of the original DataSet. 
+In contrast to that <code>.aggregate(SUM, 0).aggregate(MIN, 2)</code> will apply an aggregation on an aggregation. In the given example it would produce the minimum of field 2 after calculating the sum of field 0 grouped by field 1.</p>
+
+<p><strong>Note:</strong> The set of aggregation functions will be extended in the future.</p>
+
+<h3 id="reduce-on-full-dataset">Reduce on full DataSet</h3>
+
+<p>The Reduce transformation applies a user-defined <code>ReduceFunction</code> to all elements of a <code>DataSet</code>.
+The <code>ReduceFunction</code> subsequently combines pairs of elements into one element until only a single element remains.</p>
+
+<p>The following code shows how to sum all elements of an Integer <code>DataSet</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// ReduceFunction that sums Integers</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">IntSummer</span> <span class="kd">implements</span> <span class="n">ReduceFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Integer</span> <span class="n">num1</span><span class="o">,</span> <span class="n">Integer</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">intNumbers</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">intNumbers</span><span class="o">.</span><span class="na">reduce</span><span class="o">(</span><span class="k">new</span> <span class="nf">IntSummer</span><span class="o">());</span>
+</code></pre></div>
+<p>Reducing a full <code>DataSet</code> using the Reduce transformation implies that the final Reduce operation cannot be done in parallel. However, a <code>ReduceFunction</code> is automatically combinable such that a Reduce transformation does not limit scalability for most use cases.</p>
+
+<h3 id="groupreduce-on-full-dataset">GroupReduce on full DataSet</h3>
+
+<p>The GroupReduce transformation applies a user-defined <code>GroupReduceFunction</code> on all elements of a <code>DataSet</code>.
+A <code>GroupReduceFunction</code> can iterate over all elements of <code>DataSet</code> and return an arbitrary number of result elements.</p>
+
+<p>The following example shows how to apply a GroupReduce transformation on a full <code>DataSet</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="c1">// apply a (preferably combinable) GroupReduceFunction to a DataSet</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyGroupReducer</span><span class="o">());</span>
+</code></pre></div>
+<p><strong>Note:</strong> A GroupReduce transformation on a full <code>DataSet</code> cannot be done in parallel if the <code>GroupReduceFunction</code> is not combinable. Therefore, this can be a very compute intensive operation. See the paragraph on &quot;Combineable <code>GroupReduceFunction</code>s&quot; above to learn how to implement a combinable <code>GroupReduceFunction</code>.</p>
+
+<h3 id="aggregate-on-full-tuple-dataset">Aggregate on full Tuple DataSet</h3>
+
+<p>There are some common aggregation operations that are frequently used. The Aggregate transformation provides the following build-in aggregation functions:</p>
+
+<ul>
+<li>Sum,</li>
+<li>Min, and</li>
+<li>Max.</li>
+</ul>
+
+<p>The Aggregate transformation can only be applied on a <code>Tuple</code> <code>DataSet</code>.</p>
+
+<p>The following code shows how to apply an Aggregation transformation on a full <code>DataSet</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">input</span>
+                                     <span class="o">.</span><span class="na">aggregate</span><span class="o">(</span><span class="n">SUM</span><span class="o">,</span> <span class="mi">0</span><span class="o">)</span>    <span class="c1">// compute sum of the first field</span>
+                                     <span class="o">.</span><span class="na">and</span><span class="o">(</span><span class="n">MIN</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>    <span class="c1">// compute minimum of the second field</span>
+</code></pre></div>
+<p><strong>Note:</strong> Extending the set of supported aggregation functions is on our roadmap.</p>
+
+<h3 id="join">Join</h3>
+
+<p>The Join transformation joins two <code>DataSet</code>s into one <code>DataSet</code>. The elements of both <code>DataSet</code>s are joined on one or more keys which can be specified using</p>
+
+<ul>
+<li>a <code>KeySelector</code> function or</li>
+<li>one or more field position keys (<code>Tuple</code> <code>DataSet</code> only).</li>
+</ul>
+
+<p>There are a few different ways to perform a Join transformation which are shown in the following.</p>
+
+<h4 id="default-join-(join-into-tuple2)">Default Join (Join into Tuple2)</h4>
+
+<p>The default Join transformation produces a new <code>Tuple</code><code>DataSet</code> with two fields. Each tuple holds a joined element of the first input <code>DataSet</code> in the first tuple field and a matching element of the second input <code>DataSet</code> in the second field.</p>
+
+<p>The following code shows a default Join transformation using field position keys:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">input2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="c1">// result dataset is typed as Tuple2</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;&gt;</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">input1</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                           <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>       <span class="c1">// key of the first input</span>
+                           <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>    <span class="c1">// key of the second input</span>
+</code></pre></div>
+<h4 id="join-with-joinfunction">Join with JoinFunction</h4>
+
+<p>A Join transformation can also call a user-defined <code>JoinFunction</code> to process joining tuples.
+A <code>JoinFunction</code> receives one element of the first input <code>DataSet</code> and one element of the second input <code>DataSet</code> and returns exactly one element.</p>
+
+<p>The following code performs a join of <code>DataSet</code> with custom java objects and a <code>Tuple</code> <code>DataSet</code> using <code>KeySelector</code> functions and shows how to call a user-defined <code>JoinFunction</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// some POJO</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Rating</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="n">category</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="n">points</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="c1">// Join function that joins a custom POJO with a Tuple</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PointWeighter</span>
+         <span class="kd">implements</span> <span class="n">JoinFunction</span><span class="o">&lt;</span><span class="n">Rating</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="nf">join</span><span class="o">(</span><span class="n">Rating</span> <span class="n">rating</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">weight</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// multiply the points and rating and construct a new output tuple</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;(</span><span class="n">rating</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">rating</span><span class="o">.</span><span class="na">points</span> <span class="o">*</span> <span class="n">weight</span><span class="o">.</span><span class="na">f1</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Rating</span><span class="o">&gt;</span> <span class="n">ratings</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">weights</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span>
+            <span class="n">weightedRatings</span> <span class="o">=</span>
+            <span class="n">ratings</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">weights</span><span class="o">)</span>
+
+                   <span class="c1">// key of the first input</span>
+                   <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="k">new</span> <span class="n">KeySelection</span><span class="o">&lt;</span><span class="n">Rating</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                            <span class="kd">public</span> <span class="n">String</span> <span class="nf">getKey</span><span class="o">(</span><span class="n">Rating</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="na">category</span><span class="o">;</span> <span class="o">}</span>
+                          <span class="o">})</span>
+
+                   <span class="c1">// key of the second input</span>
+                   <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="k">new</span> <span class="n">KeySelection</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                              <span class="kd">public</span> <span class="n">String</span> <span class="nf">getKey</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span> <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="na">f0</span><span class="o">;</span> <span class="o">}</span>
+                            <span class="o">})</span>
+
+                   <span class="c1">// applying the JoinFunction on joining pairs</span>
+                   <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="nf">PointWeighter</span><span class="o">());</span>
+</code></pre></div>
+<h4 id="join-with-flatjoinfunction">Join with FlatJoinFunction</h4>
+
+<p>Analogous to Map and FlatMap, a FlatJoin function behaves in the same
+way as a JoinFunction, but instead of returning one element, it can
+return (collect), zero, one, or more elements.</p>
+
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">PointWeighter</span>
+         <span class="kd">implements</span> <span class="n">FlatJoinFunction</span><span class="o">&lt;</span><span class="n">Rating</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">join</span><span class="o">(</span><span class="n">Rating</span> <span class="n">rating</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">weight</span><span class="o">,</span>
+      <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">weight</span><span class="o">.</span><span class="na">f1</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;(</span><span class="n">rating</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">rating</span><span class="o">.</span><span class="na">points</span> <span class="o">*</span> <span class="n">weight</span><span class="o">.</span><span class="na">f1</span><span class="o">));</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span>
+            <span class="n">weightedRatings</span> <span class="o">=</span>
+            <span class="n">ratings</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">weights</span><span class="o">)</span> <span class="c1">// [...]</span></code></pre></div>
+
+<h4 id="join-with-projection">Join with Projection</h4>
+
+<p>A Join transformation can construct result tuples using a projection as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Byte</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">input2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">,</span> <span class="n">Byte</span><span class="o">&gt;</span>
+            <span class="n">result</span> <span class="o">=</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="c1">// key definition on first DataSet using a field position key</span>
+                  <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                  <span class="c1">// key definition of second DataSet using a field position key</span>
+                  <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                  <span class="c1">// select and reorder fields of matching tuples</span>
+                  <span class="o">.</span><span class="na">projectFirst</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="mi">2</span><span class="o">).</span><span class="na">projectSecond</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">projectFirst</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">types</span><span class="o">(</span><span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Double</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Byte</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</code></pre></div>
+<p><code>projectFirst(int...)</code> and <code>projectSecond(int...)</code> select the fields of the first and second joined input that should be assembled into an output <code>Tuple</code>. The order of indexes defines the order of fields in the output tuple.
+The join projection works also for non-<code>Tuple</code> <code>DataSet</code>s. In this case, <code>projectFirst()</code> or <code>projectSecond()</code> must be called without arguments to add a joined element to the output <code>Tuple</code>.</p>
+
+<h4 id="join-with-dataset-size-hint">Join with DataSet Size Hint</h4>
+
+<p>In order to guide the optimizer to pick the right execution strategy, you can hint the size of a <code>DataSet</code> to join as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;&gt;</span>
+            <span class="n">result1</span> <span class="o">=</span>
+            <span class="c1">// hint that the second DataSet is very small</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">joinWithTiny</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;&gt;</span>
+            <span class="n">result2</span> <span class="o">=</span>
+            <span class="c1">// hint that the second DataSet is very large</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">joinWithHuge</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</code></pre></div>
+<h3 id="cross">Cross</h3>
+
+<p>The Cross transformation combines two <code>DataSet</code>s into one <code>DataSet</code>. It builds all pairwise combinations of the elements of both input <code>DataSet</code>s, i.e., it builds a Cartesian product.
+The Cross transformation either calls a user-defined <code>CrossFunction</code> on each pair of elements or applies a projection. Both modes are shown in the following.</p>
+
+<p><strong>Note:</strong> Cross is potentially a <em>very</em> compute-intensive operation which can challenge even large compute clusters!</p>
+
+<h4 id="cross-with-user-defined-function">Cross with User-Defined Function</h4>
+
+<p>A Cross transformation can call a user-defined <code>CrossFunction</code>. A <code>CrossFunction</code> receives one element of the first input and one element of the second input and returns exactly one result element.</p>
+
+<p>The following code shows how to apply a Cross transformation on two <code>DataSet</code>s using a <code>CrossFunction</code>:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Coord</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="n">x</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="n">y</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="c1">// CrossFunction computes the Euclidean distance between two Coord objects.</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">EuclideanDistComputer</span>
+         <span class="kd">implements</span> <span class="n">CrossFunction</span><span class="o">&lt;</span><span class="n">Coord</span><span class="o">,</span> <span class="n">Coord</span><span class="o">,</span> <span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="nf">cross</span><span class="o">(</span><span class="n">Coord</span> <span class="n">c1</span><span class="o">,</span> <span class="n">Coord</span> <span class="n">c2</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// compute Euclidean distance of coordinates</span>
+    <span class="kt">double</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">sqrt</span><span class="o">(</span><span class="n">pow</span><span class="o">(</span><span class="n">c1</span><span class="o">.</span><span class="na">x</span> <span class="o">-</span> <span class="n">c2</span><span class="o">.</span><span class="na">x</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span> <span class="o">+</span> <span class="n">pow</span><span class="o">(</span><span class="n">c1</span><span class="o">.</span><span class="na">y</span> <span class="o">-</span> <span class="n">c2</span><span class="o">.</span><span class="na">y</span><span class="o">,</span> <span class="mi">2</span><span class="o">));</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;(</span><span class="n">c1</span><span class="o">.</span><span class="na">id</span><span class="o">,</span> <span class="n">c2</span><span class="o">.</span><span class="na">id</span><span class="o">,</span> <span class="n">dist</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Coord</span><span class="o">&gt;</span> <span class="n">coords1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Coord</span><span class="o">&gt;</span> <span class="n">coords2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span>
+            <span class="n">distances</span> <span class="o">=</span>
+            <span class="n">coords1</span><span class="o">.</span><span class="na">cross</span><span class="o">(</span><span class="n">coords2</span><span class="o">)</span>
+                   <span class="c1">// apply CrossFunction</span>
+                   <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="nf">EuclideanDistComputer</span><span class="o">());</span>
+</code></pre></div>
+<h4 id="cross-with-projection">Cross with Projection</h4>
+
+<p>A Cross transformation can also construct result tuples using a projection as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Byte</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">input2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Byte</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span>
+            <span class="n">result</span> <span class="o">=</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">cross</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="c1">// select and reorder fields of matching tuples</span>
+                  <span class="o">.</span><span class="na">projectSecond</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="na">projectFirst</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">0</span><span class="o">).</span><span class="na">projectSecond</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+                  <span class="o">.</span><span class="na">types</span><span class="o">(</span><span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Byte</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Double</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</code></pre></div>
+<p>The field selection in a Cross projection works the same way as in the projection of Join results.</p>
+
+<h4 id="cross-with-dataset-size-hint">Cross with DataSet Size Hint</h4>
+
+<p>In order to guide the optimizer to pick the right execution strategy, you can hint the size of a <code>DataSet</code> to cross as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">input2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span>
+            <span class="n">udfResult</span> <span class="o">=</span>
+                  <span class="c1">// hint that the second DataSet is very small</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">crossWithTiny</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="c1">// apply any Cross function (or projection)</span>
+                  <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyCrosser</span><span class="o">());</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span>
+            <span class="n">projectResult</span> <span class="o">=</span>
+                  <span class="c1">// hint that the second DataSet is very large</span>
+            <span class="n">input1</span><span class="o">.</span><span class="na">crossWithHuge</span><span class="o">(</span><span class="n">input2</span><span class="o">)</span>
+                  <span class="c1">// apply a projection (or any Cross function)</span>
+                  <span class="o">.</span><span class="na">projectFirst</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="mi">1</span><span class="o">).</span><span class="na">projectSecond</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">types</span><span class="o">(</span><span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="cogroup">CoGroup</h3>
+
+<p>The CoGroup transformation jointly processes groups of two <code>DataSet</code>s. Both <code>DataSet</code>s are grouped on a defined key and groups of both <code>DataSet</code>s that share the same key are handed together to a user-defined <code>CoGroupFunction</code>. If for a specific key only one <code>DataSet</code> has a group, the <code>CoGroupFunction</code> is called with this group and an empty group.
+A <code>CoGroupFunction</code> can separately iterate over the elements of both groups and return an arbitrary number of result elements.</p>
+
+<p>Similar to Reduce, GroupReduce, and Join, keys can be defined using</p>
+
+<ul>
+<li>a <code>KeySelector</code> function or</li>
+<li>one or more field position keys (<code>Tuple</code> <code>DataSet</code> only).</li>
+</ul>
+
+<h4 id="cogroup-on-datasets-grouped-by-field-position-keys-(tuple-datasets-only)">CoGroup on DataSets grouped by Field Position Keys (Tuple DataSets only)</h4>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// Some CoGroupFunction definition</span>
+<span class="kd">class</span> <span class="nc">MyCoGrouper</span>
+         <span class="kd">implements</span> <span class="n">CoGroupFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">coGroup</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">iVals</span><span class="o">,</span>
+                      <span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">dVals</span><span class="o">,</span>
+                      <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="n">Set</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">ints</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;();</span>
+
+    <span class="c1">// add all Integer values in group to set</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">val</span> <span class="o">:</span> <span class="n">iVale</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">ints</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">val</span><span class="o">.</span><span class="na">f1</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="c1">// multiply each Double value with each unique Integer values of group</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">val</span> <span class="o">:</span> <span class="n">dVals</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">Integer</span> <span class="n">i</span> <span class="o">:</span> <span class="n">ints</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">val</span><span class="o">.</span><span class="na">f1</span> <span class="o">*</span> <span class="n">i</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">iVals</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">dVals</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">output</span> <span class="o">=</span> <span class="n">iVals</span><span class="o">.</span><span class="na">coGroup</span><span class="o">(</span><span class="n">dVals</span><span class="o">)</span>
+                         <span class="c1">// group first DataSet on first tuple field</span>
+                         <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                         <span class="c1">// group second DataSet on first tuple field</span>
+                         <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+                         <span class="c1">// apply CoGroup function on each pair of groups</span>
+                         <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="nf">MyCoGrouper</span><span class="o">());</span>
+</code></pre></div>
+<h4 id="cogroup-on-datasets-grouped-by-key-selector-function">CoGroup on DataSets grouped by Key Selector Function</h4>
+
+<p>Works analogous to key selector functions in Join transformations.</p>
+
+<h3 id="union">Union</h3>
+
+<p>Produces the union of two <code>DataSet</code>s, which have to be of the same type. A union of more than two <code>DataSet</code>s can be implemented with multiple union calls, as shown here:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">vals1</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">vals2</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">vals3</span> <span class="o">=</span> <span class="c1">// [...]</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">unioned</span> <span class="o">=</span> <span class="n">vals1</span><span class="o">.</span><span class="na">union</span><span class="o">(</span><span class="n">vals2</span><span class="o">)</span>
+                    <span class="o">.</span><span class="na">union</span><span class="o">(</span><span class="n">vals3</span><span class="o">);</span>
+</code></pre></div>
+<p><a href="#top">Back to top</a></p>
+
+
+          <div style="padding-top:30px" id="disqus_thread"></div>
+      
+            <script type="text/javascript">
+                /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+                /* * * DON'T EDIT BELOW THIS LINE * * */
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+            <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+          </div>
+        </div>
+
+        <div class="footer">
+          
+          <p><hr class="divider"></p>
+
+<p><small>Apache Flink is an effort undergoing incubation at The Apache Software
+Foundation (ASF), sponsored by the Apache Incubator PMC. Incubation is
+required of all newly accepted projects until a further review indicates that
+the infrastructure, communications, and decision making process have
+stabilized in a manner consistent with other successful ASF projects. While
+incubation status is not necessarily a reflection of the completeness or
+stability of the code, it does indicate that the project has yet to be fully
+endorsed by the ASF.</small></p>
+
+<p><a href="http://incubator.apache.org/"><img src="/img/apache-incubator-logo.png" alt="Incubator Logo"></a></p>
+
+<p class="text-center"><a href="/privacy-policy.html">Privacy Policy<a></p>
+
+        </div>
+      </div>
+    </div>
+
+    
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-52545728-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+  </body>
+</html>
