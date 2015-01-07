@@ -131,6 +131,98 @@
 		<div class="col-md-8">
 			
 			<article>
+				<h2><a href="/news/2014/01/28/querying_mongodb.html">Accessing Data Stored in MongoDB with Stratosphere</a></h2>
+				<p class="meta">28 Jan 2014</p>
+				
+				<div><p>We recently merged a <a href="https://github.com/stratosphere/stratosphere/pull/437">pull request</a> that allows you to use any existing Hadoop <a href="http://developer.yahoo.com/hadoop/tutorial/module5.html#inputformat">InputFormat</a> with Stratosphere. So you can now (in the <code>0.5-SNAPSHOT</code> and upwards versions) define a Hadoop-based data source:</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">HadoopDataSource</span> <span class="n">source</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">HadoopDataSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">TextInputFormat</span><span class="o">(),</span> <span class="k">new</span> <span class="nf">JobConf</span><span class="o">(),</span> <span class="s">&quot;Input Lines&quot;</span><span class="o">);</span>
+<span class="n">TextInputFormat</span><span class="o">.</span><span class="na">addInputPath</span><span class="o">(</span><span class="n">source</span><span class="o">.</span><span class="na">getJobConf</span><span class="o">(),</span> <span class="k">new</span> <span class="nf">Path</span><span class="o">(</span><span class="n">dataInput</span><span class="o">));</span>
+</code></pre></div>
+<p>We describe in the following article how to access data stored in <a href="http://www.mongodb.org/">MongoDB</a> with Stratosphere. This allows users to join data from multiple sources (e.g. MonogDB and HDFS) or perform machine learning with the documents stored in MongoDB.</p>
+
+<p>The approach here is to use the <code>MongoInputFormat</code> that was developed for Apache Hadoop but now also runs with Stratosphere.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">JobConf</span> <span class="n">conf</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">JobConf</span><span class="o">();</span>
+<span class="n">conf</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="s">&quot;mongo.input.uri&quot;</span><span class="o">,</span><span class="s">&quot;mongodb://localhost:27017/enron_mail.messages&quot;</span><span class="o">);</span>
+<span class="n">HadoopDataSource</span> <span class="n">src</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">HadoopDataSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">MongoInputFormat</span><span class="o">(),</span> <span class="n">conf</span><span class="o">,</span> <span class="s">&quot;Read from Mongodb&quot;</span><span class="o">,</span> <span class="k">new</span> <span class="nf">WritableWrapperConverter</span><span class="o">());</span>
+</code></pre></div>
+<h3 id="example-program">Example Program</h3>
+
+<p>The example program reads data from the <a href="http://www.cs.cmu.edu/%7Eenron/">enron dataset</a> that contains about 500k internal e-mails. The data is stored in MongoDB and the Stratosphere program counts the number of e-mails per day.</p>
+
+<p>The complete code of this sample program is available on <a href="https://github.com/stratosphere/stratosphere-mongodb-example">GitHub</a>.</p>
+
+<h4 id="prepare-mongodb-and-the-data">Prepare MongoDB and the Data</h4>
+
+<ul>
+<li>Install MongoDB</li>
+<li>Download the enron dataset from <a href="http://mongodb-enron-email.s3-website-us-east-1.amazonaws.com/">their website</a>.</li>
+<li>Unpack and load it</li>
+</ul>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"> bunzip2 enron_mongo.tar.bz2
+ tar xvf enron_mongo.tar
+ mongorestore dump/enron_mail/messages.bson
+</code></pre></div>
+<p>We used <a href="http://robomongo.org/">Robomongo</a> to visually examine the dataset stored in MongoDB.</p>
+
+<p><img src="/img/blog/robomongo.png" style="width:90%;margin:15px"></p>
+
+<h4 id="build-mongoinputformat">Build <code>MongoInputFormat</code></h4>
+
+<p>MongoDB offers an InputFormat for Hadoop on their <a href="https://github.com/mongodb/mongo-hadoop">GitHub page</a>. The code is not available in any Maven repository, so we have to build the jar file on our own.</p>
+
+<ul>
+<li>Check out the repository</li>
+</ul>
+<div class="highlight"><pre><code class="language-text" data-lang="text">git clone https://github.com/mongodb/mongo-hadoop.git
+cd mongo-hadoop
+</code></pre></div>
+<ul>
+<li>Set the appropriate Hadoop version in the <code>build.sbt</code>, we used <code>1.1</code>.</li>
+</ul>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">hadoopRelease in ThisBuild :<span class="o">=</span> <span class="s2">&quot;1.1&quot;</span>
+</code></pre></div>
+<ul>
+<li>Build the input format</li>
+</ul>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./sbt package
+</code></pre></div>
+<p>The jar-file is now located in <code>core/target</code>.</p>
+
+<h4 id="the-stratosphere-program">The Stratosphere Program</h4>
+
+<p>Now we have everything prepared to run the Stratosphere program. I only ran it on my local computer, out of Eclipse. To do that, check out the code ...</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">git clone https://github.com/stratosphere/stratosphere-mongodb-example.git
+</code></pre></div>
+<p>... and import it as a Maven project into your Eclipse. You have to manually add the previously built mongo-hadoop jar-file as a dependency.
+You can now press the &quot;Run&quot; button and see how Stratosphere executes the little program. It was running for about 8 seconds on the 1.5 GB dataset.</p>
+
+<p>The result (located in <code>/tmp/enronCountByDay</code>) now looks like this.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">11,Fri Sep 26 10:00:00 CEST 1997
+154,Tue Jun 29 10:56:00 CEST 1999
+292,Tue Aug 10 12:11:00 CEST 1999
+185,Thu Aug 12 18:35:00 CEST 1999
+26,Fri Mar 19 12:33:00 CET 1999
+</code></pre></div>
+<p>There is one thing left I want to point out here. MongoDB represents objects stored in the database as JSON-documents. Since Stratosphere&#39;s standard types do not support JSON documents, I was using the <code>WritableWrapper</code> here. This wrapper allows to use any Hadoop datatype with Stratosphere.</p>
+
+<p>The following code example shows how the JSON-documents are accessed in Stratosphere.</p>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">map</span><span class="o">(</span><span class="n">Record</span> <span class="n">record</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Record</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="n">Writable</span> <span class="n">valWr</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="na">getField</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">WritableWrapper</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">value</span><span class="o">();</span>
+    <span class="n">BSONWritable</span> <span class="n">value</span> <span class="o">=</span> <span class="o">(</span><span class="n">BSONWritable</span><span class="o">)</span> <span class="n">valWr</span><span class="o">;</span>
+    <span class="n">Object</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="na">getDoc</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;headers&quot;</span><span class="o">);</span>
+    <span class="n">BasicDBObject</span> <span class="n">headerOb</span> <span class="o">=</span> <span class="o">(</span><span class="n">BasicDBObject</span><span class="o">)</span> <span class="n">headers</span><span class="o">;</span>
+    <span class="n">String</span> <span class="n">date</span> <span class="o">=</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span> <span class="n">headerOb</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;Date&quot;</span><span class="o">);</span>
+    <span class="c1">// further date processing</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>Please use the comments if you have questions or if you want to showcase your own MongoDB-Stratosphere integration.
+<br><br>
+<small>Written by Robert Metzger (<a href="https://twitter.com/rmetzger_">@rmetzger_</a>).</small></p>
+</div>
+				<a href="/news/2014/01/28/querying_mongodb.html#disqus_thread">Accessing Data Stored in MongoDB with Stratosphere</a>
+			</article>
+			
+			<article>
 				<h2><a href="/news/2014/01/26/optimizer_plan_visualization_tool.html">Optimizer Plan Visualization Tool</a></h2>
 				<p class="meta">26 Jan 2014</p>
 				
@@ -446,24 +538,6 @@ Analyzing big data sets as they occur in modern business and science application
 
 </div>
 				<a href="/news/2012/11/12/btw2013demo.html#disqus_thread">Stratosphere Demo Paper Accepted for BTW 2013</a>
-			</article>
-			
-			<article>
-				<h2><a href="/news/2012/10/15/icde2013.html">Stratosphere Demo Accepted for ICDE 2013</a></h2>
-				<p class="meta">15 Oct 2012</p>
-				
-				<div> <p>Our demo submission<br />
-<strong><cite>"Peeking into the Optimization of Data Flow Programs with MapReduce-style UDFs"</cite></strong><br />
-has been accepted for ICDE 2013 in Brisbane, Australia.<br />
-The demo illustrates the contributions of our VLDB 2012 paper <cite>"Opening the Black Boxes in Data Flow Optimization"</cite> <a href="/assets/papers/optimizationOfDataFlowsWithUDFs_13.pdf">[PDF]</a> and <a href="/assets/papers/optimizationOfDataFlowsWithUDFs_poster_13.pdf">[Poster PDF]</a>.</p>
-<p>Visit our poster, enjoy the demo, and talk to us if you are going to attend ICDE 2013.</p>
-<p><strong>Abstract:</strong><br />
-Data flows are a popular abstraction to define data-intensive processing tasks. In order to support a wide range of use cases, many data processing systems feature MapReduce-style user-defined functions (UDFs). In contrast to UDFs as known from relational DBMS, MapReduce-style UDFs have less strict templates. These templates do not alone provide all the information needed to decide whether they can be reordered with relational operators and other UDFs. However, it is well-known that reordering operators such as filters, joins, and aggregations can yield runtime improvements by orders of magnitude.<br />
-We demonstrate an optimizer for data flows that is able to reorder operators with MapReduce-style UDFs written in an imperative language. Our approach leverages static code analysis to extract information from UDFs which is used to reason about the reorderbility of UDF operators. This information is sufficient to enumerate a large fraction of the search space covered by conventional RDBMS optimizers including filter and aggregation push-down, bushy join orders, and choice of physical execution strategies based on interesting properties.<br />
-We demonstrate our optimizer and a job submission client that allows users to peek step-by-step into each phase of the optimization process: the static code analysis of UDFs, the enumeration of reordered candidate data flows, the generation of physical execution plans, and their parallel execution. For the demonstration, we provide a selection of relational and non-relational data flow programs which highlight the salient features of our approach.</p>
-
-</div>
-				<a href="/news/2012/10/15/icde2013.html#disqus_thread">Stratosphere Demo Accepted for ICDE 2013</a>
 			</article>
 			
 		</div>
