@@ -15,6 +15,9 @@ This page is a collection of different material on Apache Flink, that you can us
 
 <iframe src="//www.slideshare.net/slideshow/embed_code/41762075" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
 
+<iframe src="//www.slideshare.net/slideshow/embed_code/43507764" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+
+
 ## Apache Flink Logos
 
 We provide the Apache Flink logo in different sizes and formats.
@@ -109,19 +112,3 @@ You can find more variants of the logo in <a href="img/logo/">this directory</a>
 </div>
 
 
-## Stratosphere Presentations
-
-*Please be aware that these slides are outdated*
-
-<iframe src="http://www.slideshare.net/slideshow/embed_code/34431356" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px 1px 0; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/StephanEwen/stratosphere-at-hadoop-summit-2014" title="Stratosphere at Hadoop Summit 2014" target="_blank">Stratosphere at Hadoop Summit 2014</a> </strong> from <strong><a href="http://www.slideshare.net/StephanEwen" target="_blank">Stephan Ewen</a></strong> </div>
-
-
-
-
-Big Data Beers Berlin Meetup, November 20, 2013
-<br><br>
-<iframe src="http://www.slideshare.net/slideshow/embed_code/28480607" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen></iframe>
-
-
-
-<a href="http://stratosphere.eu/project/publications/">Research Publications of the Stratosphere project</a>
