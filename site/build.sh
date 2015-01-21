@@ -80,7 +80,7 @@ function checkoutDocsForVersionInBranch() {
 function updateDocsDir() {
     echo "Clone if necessary"
     if [ ! -d "flink-src-repo" ]; then
-        git clone http://git-wip-us.apache.org/repos/asf/incubator-flink.git flink-src-repo
+        git clone http://git-wip-us.apache.org/repos/asf/flink.git flink-src-repo
     fi
     if [ ! -d "docs" ]; then
         mkdir docs
@@ -92,6 +92,7 @@ function updateDocsDir() {
 
     echo "Create docs for versions"
 #   checkoutDocsForVersionInBranch "documentation" "0.5"
+    checkoutDocsForVersionInBranch "origin/release-0.8" "0.8"
     checkoutDocsForVersionInBranch "origin/release-0.7" "0.7-incubating"
     checkoutDocsForVersionInBranch "origin/release-0.6.2" "0.6-incubating"
 }

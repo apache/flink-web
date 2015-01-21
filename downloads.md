@@ -63,7 +63,7 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 
 These dependencies include a local execution environment and thus support local testing.
 
-- **Hadoop 2**: If you want to interact with Hadoop 2, use `{{ site.FLINK_VERSION_HADOOP_2_STABLE }}` as the version.
+- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
 - **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
 
 ## Latest 
@@ -101,7 +101,7 @@ Add the **Apache Snapshot repository** to your Maven `pom.xml`:
 </repositories>
 ```
 
-You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_2_LATEST}}` for compatibility with Hadoop versions starting from 2.2.0).
+You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_1_STABLE}}` for compatibility with old Hadoop versions (1.x).
 
 ## Checkout from Source
 
@@ -115,4 +115,4 @@ mvn clean package -DskipTests
 
 Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
-If you want to build for Hadoop 2, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=2`.
+If you want to build for Hadoop 1, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=1`.
