@@ -21,18 +21,18 @@ In addition, you can find a list of ideas for projects and improvements in the [
 
 This section gives you a brief introduction in how to contribute code and documentation to Flink. We maintain both the code and the documentation in the same repository, so the process is essentially the same for both. We use [git](http://git-scm.com/) for the code and documentation version control. The documentation is located in the `docs/` subdirectory of the git repository.
 
-The Flink project accepts code contributions though the [GitHub Mirror](https://github.com/apache/incubator-flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are basically a simpler way of offering a patch, by providing a pointer to a code branch that contains the change. 
+The Flink project accepts code contributions though the [GitHub Mirror](https://github.com/apache/flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are basically a simpler way of offering a patch, by providing a pointer to a code branch that contains the change. 
 
 It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) issue.
 
 
 ### Setting up the Infrastructure and Creating a Pull Request
 
-1. The first step is to create yourself a copy of the Flink code base. We suggest to fork the [Flink GitHub Mirror Repository](https://github.com/apache/incubator-flink) into your own [GitHub](https://github.com) account. You need to register on GitHub for that, if you have no account so far.
+1. The first step is to create yourself a copy of the Flink code base. We suggest to fork the [Flink GitHub Mirror Repository](https://github.com/apache/flink) into your own [GitHub](https://github.com) account. You need to register on GitHub for that, if you have no account so far.
 
 2. Next, clone your repository fork to your local machine.
 ```
-git clone https://github.com/<your-user-name>/incubator-flink.git
+git clone https://github.com/<your-user-name>/flink.git
 ```
 
 3. It is typically helpful to switch to a *topic branch* for the changes. To create a dedicated branch based on the current master, use the following command:
@@ -40,7 +40,7 @@ git clone https://github.com/<your-user-name>/incubator-flink.git
 git checkout -b myBranch master
 ```
 
-4. Now you can create your changes, compile the code, and validate the changes. Here are some pointers on how to [build the code](https://github.com/apache/incubator-flink/#build-apache-flink).
+4. Now you can create your changes, compile the code, and validate the changes. Here are some pointers on how to [build the code](https://github.com/apache/flink/#build-apache-flink).
 In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Import Maven Project" feature. If you want to work on the scala code you will need the following plugins:
 
     Eclipse 4.x:
@@ -65,7 +65,7 @@ In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Im
 Switch to the master branch, update it to the latest revision, switch back to your topic branch, and rebase it on top of the master branch.
 ```
 git checkout master
-git pull https://github.com/apache/incubator-flink.git master
+git pull https://github.com/apache/flink.git master
 git checkout myBranch
 git rebase master
 ```
@@ -76,7 +76,7 @@ Have a look [here](https://help.github.com/articles/using-git-rebase) for more i
 ```
 git push origin myBranch
 ```
-Go the website of your repository fork (`https://github.com/<your-user-name>/incubator-flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/incubator-flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and send it.
+Go the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and send it.
 
 
 ### Verifying the Compliance of your Code
@@ -85,7 +85,7 @@ Before sending a patch or pull request, please verify that it complies with the 
 
 Please have a look at the [coding guidelines]({{ site.baseurl }}/docs/{{ site.FLINK_CURRENT_DOCUMENTATION }}/coding_guidelines.html) for a guide to the format of code and pull requests.
 
-Most important of all, verify that your changes are correct and do not break existing functionality. Run the existing tests by calling `mvn verify` in the root directory of the repository, and make sure that the tests succeed. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. Flink is pre-configured for [Travis CI](http://docs.travis-ci.com/), which can be easily enabled for your private repository fork (it uses GitHub for authentication, so you so not need an additional account). Simply add the *Travis CI* hook to your repository (*settings --> webhooks & services --> add service*) and enable tests for the "incubator-flink" repository on [Travis](https://travis-ci.org/profile).
+Most important of all, verify that your changes are correct and do not break existing functionality. Run the existing tests by calling `mvn verify` in the root directory of the repository, and make sure that the tests succeed. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. Flink is pre-configured for [Travis CI](http://docs.travis-ci.com/), which can be easily enabled for your private repository fork (it uses GitHub for authentication, so you so not need an additional account). Simply add the *Travis CI* hook to your repository (*settings --> webhooks & services --> add service*) and enable tests for the "flink" repository on [Travis](https://travis-ci.org/profile).
 
 When contributing documentation, please review the rendered HTML versions of the documents you changed. You can look at the HTML pages by using the rendering script in preview mode. 
 ```
@@ -100,7 +100,7 @@ The website of Apache Flink is hosted in a [Subversion (SVN)](https://subversion
 
 To make changes to the website, you have to checkout the source code of it first:
 ```
-svn checkout https://svn.apache.org/repos/asf/incubator/flink/
+svn checkout https://svn.apache.org/repos/asf/flink/
 cd flink
 ```
 
@@ -148,13 +148,13 @@ Finally, candidates for new committers are suggested by current committers, ment
 
 Only the infrastructure team of the ASF has administrative access to the GitHub mirror. Therefore, comitters have to push changes to the git repository at the ASF.
 
-**ASF writable git**: [https://git-wip-us.apache.org/repos/asf/incubator-flink.git](https://git-wip-us.apache.org/repos/asf/incubator-flink.git)
+**ASF writable git**: [https://git-wip-us.apache.org/repos/asf/flink.git](https://git-wip-us.apache.org/repos/asf/flink.git)
 
-**ASF read-only git**: [http://git-wip-us.apache.org/repos/asf/incubator-flink.git](http://git-wip-us.apache.org/repos/asf/incubator-flink.git)
+**ASF read-only git**: [http://git-wip-us.apache.org/repos/asf/flink.git](http://git-wip-us.apache.org/repos/asf/flink.git)
 
-**ASF git web interface**: [https://git-wip-us.apache.org/repos/asf?p=incubator-flink.git;a=summary](https://git-wip-us.apache.org/repos/asf?p=incubator-flink.git;a=summary)
+**ASF git web interface**: [https://git-wip-us.apache.org/repos/asf?p=flink.git;a=summary](https://git-wip-us.apache.org/repos/asf?p=flink.git;a=summary)
 
-**ASF svn for the website**: [https://svn.apache.org/repos/asf/incubator/flink/](https://svn.apache.org/repos/asf/incubator/flink/).
+**ASF svn for the website**: [https://svn.apache.org/repos/asf/flink/](https://svn.apache.org/repos/asf/flink/).
 
 Details on how to set the credentials for the ASF git repostiory are [linked here](https://git-wip-us.apache.org/).
 To merge pull requests from our GitHub mirror, there is a script in the source `./tools/merge_pull_request.sh.template`. Rename it to `merge_pull_request.sh` with the appropriate settings and use it for merging.
