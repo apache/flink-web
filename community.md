@@ -16,6 +16,19 @@ layout: with_toc
 	</thead>
 	<tr>
 		<td>
+			<strong>news</strong>@flink.apache.org<br>
+			<small>News and announcements from the Flink community.</small>
+		</td>
+		<td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-subscribe@flink.apache.org">Subscribe</a></td>
+		<td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-digest-subscribe@flink.apache.org">Subscribe</a></td>
+		<td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-unsubscribe@flink.apache.org">Unsubscribe</a></td>
+		<td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>Read only list</i></td>
+		<td class="text-center">
+			<a href="http://mail-archives.apache.org/mod_mbox/flink-news/">Archives</a> <br>
+		</td>
+	</tr>
+	<tr>
+		<td>
 			<strong>user</strong>@flink.apache.org<br>
 			<small>User support and questions mailing list</small>
 		</td>
