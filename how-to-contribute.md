@@ -96,7 +96,7 @@ Now, open your browser at `http://localhost:4000` and check out the pages you ch
 
 ## Contribute changes to the Website
 
-The website of Apache Flink is hosted in a [Subversion (SVN)](https://subversion.apache.org/) repository. The repository is located here: [https://svn.apache.org/repos/asf/incubator/flink/](https://svn.apache.org/repos/asf/incubator/flink/).
+The website of Apache Flink is hosted in a [Subversion (SVN)](https://subversion.apache.org/) repository. The repository is located here: [https://svn.apache.org/repos/asf/flink/](https://svn.apache.org/repos/asf/flink/).
 
 To make changes to the website, you have to checkout the source code of it first:
 ```
