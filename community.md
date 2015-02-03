@@ -87,6 +87,13 @@ We use JIRA to track all code related issues: {{ site.FLINK_ISSUES_URL }}.
 
 All issue activity is also mirrored to the issues mailing list.
 
+# IRC
+
+There is an IRC channel called #flink dedicated to Apache Flink at irc.freenode.org. 
+
+The IRC channel can be used for online discussions about Apache Flink as community, but developers should be careful 
+to move or duplicate all the official or useful discussions to the issue tracking system or dev mailing list.
+
 # Team
 
 <table class="table table-striped">
