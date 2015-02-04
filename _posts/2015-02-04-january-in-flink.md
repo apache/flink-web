@@ -26,7 +26,8 @@ The Apache Software Foundation [announced](https://blogs.apache.org/foundation/e
 ###Hadoop Summit
 
 A submitted abstract on Flink Streaming [won the community](http://2015.hadoopsummit.org/amsterdam-blog/announcing-the-community-vote-session-winners-for-the-2015-hadoop-summit-europe/) vote at “The Future of Hadoop” track.
-Meetups and talks
+
+###Meetups and talks
 
 Flink was presented at the [Paris Hadoop User Group](http://www.meetup.com/Hadoop-User-Group-France/events/219778022/), the [Bay Area Hadoop User Group](http://www.meetup.com/hadoop/events/167785202/), the [Apache Tez User Group](http://www.meetup.com/Apache-Tez-User-Group/events/219302692/), and [FOSDEM 2015](https://fosdem.org/2015/schedule/track/graph_processing/). The January [Flink meetup in Berlin](http://www.meetup.com/Apache-Flink-Meetup/events/219639984/) had talks on recent community updates and new features.
 
