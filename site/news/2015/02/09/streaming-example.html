@@ -145,12 +145,12 @@
 				    <p>This post is the first of a series of blog posts on Flink Streaming,
 the recent addition to Apache Flink that makes it possible to analyze
 continuous data sources in addition to static files. Flink Streaming
-uses the pipelined Flink engine to process data streams in real time,
+uses the pipelined Flink engine to process data streams in real time
 and offers a new API including definition of flexible windows.</p>
 
 <p>In this post, we go through an example that uses the Flink Streaming
 API to compute statistics on stock market data that arrive
-continuously, and combine the stock market data with Twitter streams.
+continuously and combine the stock market data with Twitter streams.
 See the <a href="http://flink.apache.org/docs/latest/streaming_guide.html">Streaming Programming
 Guide</a> for a
 detailed presentation of the Streaming API.</p>
@@ -164,7 +164,7 @@ between the market data streams and a Twitter stream with stock mentions.</p>
 
 <p>For running the example implementation please use the <em>0.9-SNAPSHOT</em> 
 version of Flink as a dependency. The full example code base can be 
-found <a href="https://github.com/mbalassi/flink/blob/b93015b9af968b80d8ab13be928ab0e447a4fcb5/flink-staging/flink-streaming/flink-streaming-examples/src/main/scala/org/apache/flink/streaming/scala/examples/windowing/StockPrices.scala">here</a> in Scala and <a href="https://github.com/mbalassi/flink/blob/b93015b9af968b80d8ab13be928ab0e447a4fcb5/flink-staging/flink-streaming/flink-streaming-examples/src/main/java/org/apache/flink/streaming/examples/windowing/StockPrices.java">here</a> in Java7.</p>
+found <a href="https://github.com/apache/flink/blob/master/flink-staging/flink-streaming/flink-streaming-examples/src/main/scala/org/apache/flink/streaming/scala/examples/windowing/StockPrices.scala">here</a> in Scala and <a href="https://github.com/apache/flink/blob/master/flink-staging/flink-streaming/flink-streaming-examples/src/main/java/org/apache/flink/streaming/examples/windowing/StockPrices.java">here</a> in Java7.</p>
 
 <p><a href="#top"></a></p>
 
@@ -260,7 +260,7 @@ programs. Flink, of course, has support for reading in streams from
 sources</a>
 such as Apache Kafka, Apache Flume, RabbitMQ, and others. For the sake
 of this example, the data streams are simply generated using the
-<code>generateSource</code> method:</p>
+<code>generateStock</code> method:</p>
 
 <div class="codetabs" markdown="1">
 <div data-lang="scala" markdown="1">
@@ -368,10 +368,9 @@ logic.</p>
 
 <p>We partition our stream into windows of 10 seconds and slide the
 window every 5 seconds. We compute three statistics every 5 seconds.
-The first is the minimum price of all stocks (note that we set the
-parallelism to 1 to create a global minimum). The second maximum price
-per stock, and the third is the mean stock price (using a reduce
-function). Aggregations and groupings can be
+The first is the minimum price of all stocks, the second produces
+maximum price per stock, and the third is the mean stock price 
+(using a map window function). Aggregations and groupings can be
 performed on named fields of POJOs, making the code more readable.</p>
 
 <p><img alt="Basic windowing aggregations" src="/img/blog/blog_basic_window.png" width="70%" class="img-responsive center-block"></p>
@@ -386,9 +385,9 @@ performed on named fields of POJOs, making the code more readable.</p>
   <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">)).</span><span class="n">every</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
 
 <span class="c1">//Compute some simple statistics on a rolling window</span>
-<span class="k">val</span> <span class="n">lowest</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="n">setParallelism</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lowest</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">maxByStock</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="n">maxBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">rollingMean</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="n">reduceGroup</span><span class="o">(</span><span class="n">mean</span> <span class="k">_</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">rollingMean</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">mean</span> <span class="k">_</span><span class="o">)</span>
 
 <span class="c1">//Compute the mean of a window</span>
 <span class="k">def</span> <span class="n">mean</span><span class="o">(</span><span class="n">ts</span><span class="k">:</span> <span class="kt">Iterable</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">],</span> <span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
@@ -409,21 +408,22 @@ performed on named fields of POJOs, making the code more readable.</p>
     <span class="o">.</span><span class="na">every</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">));</span>
 
 <span class="c1">//Compute some simple statistics on a rolling window</span>
-<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">lowest</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="na">setParallelism</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
-<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">maxByStock</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">maxBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">);</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">lowest</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">maxByStock</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">maxBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
 <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">rollingMean</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">MeanReduce</span><span class="o">());</span>
+    <span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">WindowMean</span><span class="o">()).</span><span class="na">flatten</span><span class="o">();</span>
 
 <span class="c1">//Compute the mean of a window</span>
-<span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">MeanReduce</span> <span class="kd">implements</span> 
-    <span class="n">GroupReduceFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">StockPrice</span><span class="o">&gt;</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">WindowMean</span> <span class="kd">implements</span> 
+    <span class="n">WindowMapFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">StockPrice</span><span class="o">&gt;</span> <span class="o">{</span>
 
     <span class="kd">private</span> <span class="n">Double</span> <span class="n">sum</span> <span class="o">=</span> <span class="mf">0.0</span><span class="o">;</span>
     <span class="kd">private</span> <span class="n">Integer</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
     <span class="kd">private</span> <span class="n">String</span> <span class="n">symbol</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>
 
     <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
         <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
 
         <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span><span class="n">s</span>
@@ -441,6 +441,12 @@ performed on named fields of POJOs, making the code more readable.</p>
 </div>
 
 <p></div></p>
+
+<p>Let us note that to print a windowed stream one has to flatten it first,
+thus getting rid of the windowing logic. For example execute 
+<code>maxByStock.flatten().print()</code> to print the stream of maximum prices of
+ the time windows by stock. For Scala <code>flatten()</code> is called implicitly
+when needed.</p>
 
 <p><a href="#top">Back to top</a></p>
 
@@ -467,7 +473,7 @@ every 30 seconds.</p>
 <span class="c1">//Use delta policy to create price change warnings</span>
 <span class="k">val</span> <span class="n">priceWarnings</span> <span class="k">=</span> <span class="n">stockStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
   <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Delta</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mf">0.05</span><span class="o">,</span> <span class="n">priceChange</span><span class="o">,</span> <span class="n">defaultPrice</span><span class="o">))</span>
-  <span class="o">.</span><span class="n">reduceGroup</span><span class="o">(</span><span class="n">sendWarning</span> <span class="k">_</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">sendWarning</span> <span class="k">_</span><span class="o">)</span>
 
 <span class="c1">//Count the number of warnings every half a minute</span>
 <span class="k">val</span> <span class="n">warningsPerStock</span> <span class="k">=</span> <span class="n">priceWarnings</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">Count</span><span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="mi">1</span><span class="o">))</span>
@@ -500,7 +506,7 @@ every 30 seconds.</p>
             <span class="k">return</span> <span class="n">Math</span><span class="o">.</span><span class="na">abs</span><span class="o">(</span><span class="n">oldDataPoint</span><span class="o">.</span><span class="na">price</span> <span class="o">-</span> <span class="n">newDataPoint</span><span class="o">.</span><span class="na">price</span><span class="o">);</span>
         <span class="o">}</span>
     <span class="o">},</span> <span class="n">DEFAULT_STOCK_PRICE</span><span class="o">))</span>
-<span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">SendWarning</span><span class="o">());</span>
+<span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">SendWarning</span><span class="o">()).</span><span class="na">flatten</span><span class="o">();</span>
 
 <span class="c1">//Count the number of warnings every half a minute</span>
 <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Count</span><span class="o">&gt;</span> <span class="n">warningsPerStock</span> <span class="o">=</span> <span class="n">priceWarnings</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Count</span><span class="o">&gt;()</span> <span class="o">{</span>
@@ -508,7 +514,7 @@ every 30 seconds.</p>
     <span class="kd">public</span> <span class="n">Count</span> <span class="nf">map</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
         <span class="k">return</span> <span class="k">new</span> <span class="nf">Count</span><span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
     <span class="o">}</span>
-<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">);</span>
+<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
 
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Count</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="o">{</span>
     <span class="kd">public</span> <span class="n">String</span> <span class="n">symbol</span><span class="o">;</span>
@@ -531,9 +537,9 @@ every 30 seconds.</p>
     <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">SendWarning</span> <span class="kd">implements</span> <span class="n">GroupReduceFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">SendWarning</span> <span class="kd">implements</span> <span class="n">MapWindowFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
     <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
         <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
 
         <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
@@ -618,7 +624,7 @@ but for the sake of this example we generate dummy tweet data.</p>
     <span class="kd">public</span> <span class="n">Count</span> <span class="nf">map</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
         <span class="k">return</span> <span class="k">new</span> <span class="nf">Count</span><span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
     <span class="o">}</span>
-<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">);</span>
+<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
 
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">TweetSource</span> <span class="kd">implements</span> <span class="n">SourceFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
     <span class="n">Random</span> <span class="n">random</span><span class="o">;</span>
@@ -672,7 +678,7 @@ these data streams are potentially infinite, we apply the join on a
   <span class="o">.</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span> <span class="o">{</span> <span class="o">(</span><span class="n">c1</span><span class="o">,</span> <span class="n">c2</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">c1</span><span class="o">.</span><span class="n">count</span><span class="o">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">count</span><span class="o">)</span> <span class="o">}</span>
 
 <span class="k">val</span> <span class="n">rollingCorrelation</span> <span class="k">=</span> <span class="n">tweetsAndWarning</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
-  <span class="o">.</span><span class="n">reduceGroup</span><span class="o">(</span><span class="n">computeCorrelation</span> <span class="k">_</span><span class="o">).</span><span class="n">setParallelism</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">computeCorrelation</span> <span class="k">_</span><span class="o">)</span>
 
 <span class="n">rollingCorrelation</span> <span class="n">print</span>
 
@@ -714,13 +720,12 @@ these data streams are potentially infinite, we apply the join on a
 <span class="c1">//Compute rolling correlation</span>
 <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">rollingCorrelation</span> <span class="o">=</span> <span class="n">tweetsAndWarning</span>
     <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">))</span>
-    <span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">CorrelationReduce</span><span class="o">())</span>
-    <span class="o">.</span><span class="na">setParallelism</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+    <span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">WindowCorrelation</span><span class="o">());</span>
 
 <span class="n">rollingCorrelation</span><span class="o">.</span><span class="na">print</span><span class="o">();</span>
 
-<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">CorrelationReduce</span>
-    <span class="kd">implements</span> <span class="n">GroupReduceFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">WindowCorrelation</span>
+    <span class="kd">implements</span> <span class="n">WindowMapFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="o">{</span>
 
     <span class="kd">private</span> <span class="n">Integer</span> <span class="n">leftSum</span><span class="o">;</span>
     <span class="kd">private</span> <span class="n">Integer</span> <span class="n">rightSum</span><span class="o">;</span>
@@ -734,7 +739,7 @@ these data streams are potentially infinite, we apply the join on a
     <span class="kd">private</span> <span class="n">Double</span> <span class="n">rightSd</span><span class="o">;</span>
 
     <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
         <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
 
         <span class="n">leftSum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
@@ -785,14 +790,10 @@ You are very welcome to try out our features for different use-cases we are look
 
 <h2 id="upcoming-for-streaming">Upcoming for streaming</h2>
 
-<p>There are several aspects of Flink Streaming that are subjects to
+<p>There are some aspects of Flink Streaming that are subjects to
 change by the next release making this application look even nicer.</p>
 
-<p>We are currently working on an update to our windowing semantics
-enabling the users to apply multiple transformations on the same
-window.</p>
-
-<p>Finally, stay tuned for later blog posts on how Flink Streaming works
+<p>Stay tuned for later blog posts on how Flink Streaming works
 internally, fault tolerance, and performance measurements!</p>
 
 <p><a href="#top">Back to top</a></p>
