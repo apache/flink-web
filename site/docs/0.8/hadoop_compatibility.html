@@ -162,7 +162,8 @@ under the License.
   <li><a href="#complete-hadoop-wordcount-example">Complete Hadoop WordCount Example</a></li>
 </ul>
 
-<p>Flink is compatible with many Apache Hadoop’s MapReduce interfaces and allows to reuse a lot of code that was implemented for Hadoop MapReduce.</p>
+<p>Flink is compatible with Apache Hadoop MapReduce interfaces and therefore allows
+reusing code that was implemented for Hadoop MapReduce.</p>
 
 <p>You can:</p>
 
@@ -179,69 +180,87 @@ under the License.
 
 <h3 id="project-configuration">Project Configuration</h3>
 
-<p>The Hadoop Compatibility Layer is part of the <code>flink-addons</code> Maven module. All relevant classes are located in the <code>org.apache.flink.hadoopcompatibility</code> package. It includes separate packages and classes for the Hadoop <code>mapred</code> and <code>mapreduce</code> APIs.</p>
+<p>Support for Haddop input/output formats is part of the <code>flink-java</code> and
+<code>flink-scala</code> Maven modules that are always required when writing Flink jobs.
+The code is located in <code>org.apache.flink.api.java.hadoop</code> and
+<code>org.apache.flink.api.scala.hadoop</code> in an additional sub-package for the
+<code>mapred</code> and <code>mapreduce</code> API.</p>
 
-<p>Add the following dependency to your <code>pom.xml</code> to use the Hadoop Compatibility Layer.</p>
+<p>Support for Hadoop Mappers and Reducers is contained in the <code>flink-staging</code>
+Maven module.
+This code resides in the <code>org.apache.flink.hadoopcompatibility</code>
+package.</p>
+
+<p>Add the following dependency to your <code>pom.xml</code> if you want to reuse Mappers
+and Reducers.</p>
 
 <div class="highlight"><pre><code class="language-xml"><span class="nt">&lt;dependency&gt;</span>
 	<span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
 	<span class="nt">&lt;artifactId&gt;</span>flink-hadoop-compatibility<span class="nt">&lt;/artifactId&gt;</span>
-	<span class="nt">&lt;version&gt;</span>0.8.0<span class="nt">&lt;/version&gt;</span>
+	<span class="nt">&lt;version&gt;</span>0.8.1<span class="nt">&lt;/version&gt;</span>
 <span class="nt">&lt;/dependency&gt;</span></code></pre></div>
 
 <h3 id="using-hadoop-data-types">Using Hadoop Data Types</h3>
 
-<p>Flink supports all Hadoop <code>Writable</code> and <code>WritableComparable</code> data types out-of-the-box. You do not need to include the Hadoop Compatibility dependency, if you only want to use your Hadoop data types. See the <a href="programming_guide.html#data-types">Programming Guide</a> for more details.</p>
+<p>Flink supports all Hadoop <code>Writable</code> and <code>WritableComparable</code> data types
+out-of-the-box. You do not need to include the Hadoop Compatibility dependency,
+if you only want to use your Hadoop data types. See the
+<a href="programming_guide.html#data-types">Programming Guide</a> for more details.</p>
 
 <h3 id="using-hadoop-inputformats">Using Hadoop InputFormats</h3>
 
-<p>Flink provides a compatibility wrapper for Hadoop <code>InputFormats</code>. Any class that implements <code>org.apache.hadoop.mapred.InputFormat</code> or extends <code>org.apache.hadoop.mapreduce.InputFormat</code> is supported. Thus, Flink can handle Hadoop built-in formats such as <code>TextInputFormat</code> as well as external formats such as Hive’s <code>HCatInputFormat</code>. Data read from Hadoop InputFormats is converted into a <code>DataSet&lt;Tuple2&lt;KEY,VALUE&gt;&gt;</code> where <code>KEY</code> is the key and <code>VALUE</code> is the value of the original Hadoop key-value pair.</p>
+<p>Hadoop input formats can be used to create a data source by using
+one of the methods <code>readHadoopFile</code> or <code>createHadoopInput</code> of the
+<code>ExecutionEnvironment</code>. The former is used for input formats derived
+from <code>FileInputFormat</code> while the latter has to be used for general purpose
+input formats.</p>
 
-<p>Flink’s InputFormat wrappers are </p>
-
-<ul>
-  <li><code>org.apache.flink.hadoopcompatibility.mapred.HadoopInputFormat</code> and </li>
-  <li><code>org.apache.flink.hadoopcompatibility.mapreduce.HadoopInputFormat</code></li>
-</ul>
-
-<p>and can be used as regular Flink <a href="programming_guide.html#data-sources">InputFormats</a>.</p>
+<p>The resulting <code>DataSet</code> contains 2-tuples where the first field
+is the key and the second field is the value retrieved from the Hadoop
+InputFormat.</p>
 
 <p>The following example shows how to use Hadoop’s <code>TextInputFormat</code>.</p>
 
-<div class="highlight"><pre><code class="language-java"><span class="n">ExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">ExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
-		
-<span class="c1">// Set up the Hadoop TextInputFormat.</span>
-<span class="n">Job</span> <span class="n">job</span> <span class="o">=</span> <span class="n">Job</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
-<span class="n">HadoopInputFormat</span><span class="o">&lt;</span><span class="n">LongWritable</span><span class="o">,</span> <span class="n">Text</span><span class="o">&gt;</span> <span class="n">hadoopIF</span> <span class="o">=</span> 
-  <span class="c1">// create the Flink wrapper.</span>
-  <span class="k">new</span> <span class="n">HadoopInputFormat</span><span class="o">&lt;</span><span class="n">LongWritable</span><span class="o">,</span> <span class="n">Text</span><span class="o">&gt;(</span>
-    <span class="c1">// create the Hadoop InputFormat, specify key and value type, and job.</span>
-    <span class="k">new</span> <span class="nf">TextInputFormat</span><span class="o">(),</span> <span class="n">LongWritable</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Text</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">job</span>
-  <span class="o">);</span>
-<span class="n">TextInputFormat</span><span class="o">.</span><span class="na">addInputPath</span><span class="o">(</span><span class="n">job</span><span class="o">,</span> <span class="k">new</span> <span class="nf">Path</span><span class="o">(</span><span class="n">inputPath</span><span class="o">));</span>
-		
-<span class="c1">// Read data using the Hadoop TextInputFormat.</span>
-<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">LongWritable</span><span class="o">,</span> <span class="n">Text</span><span class="o">&gt;&gt;</span> <span class="n">text</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">createInput</span><span class="o">(</span><span class="n">hadoopIF</span><span class="o">);</span>
+<div class="codetabs">
+  <div data-lang="java">
+
+    <div class="highlight"><pre><code class="language-java"><span class="n">ExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">ExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">LongWritable</span><span class="o">,</span> <span class="n">Text</span><span class="o">&gt;&gt;</span> <span class="n">input</span> <span class="o">=</span>
+    <span class="n">env</span><span class="o">.</span><span class="na">readHadoopFile</span><span class="o">(</span><span class="k">new</span> <span class="nf">TextInputFormat</span><span class="o">(),</span> <span class="n">LongWritable</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">Text</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">textPath</span><span class="o">);</span>
 
 <span class="c1">// Do something with the data.</span>
 <span class="o">[...]</span></code></pre></div>
 
+  </div>
+  <div data-lang="scala">
+
+    <div class="highlight"><pre><code class="language-scala"><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">ExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+		
+<span class="k">val</span> <span class="n">input</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[(</span><span class="kt">LongWritable</span>, <span class="kt">Text</span><span class="o">)]</span> <span class="k">=</span>
+  <span class="n">env</span><span class="o">.</span><span class="n">readHadoopFile</span><span class="o">(</span><span class="k">new</span> <span class="nc">TextInputFormat</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">LongWritable</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Text</span><span class="o">],</span> <span class="n">textPath</span><span class="o">)</span>
+
+<span class="c1">// Do something with the data.</span>
+<span class="o">[</span><span class="kt">...</span><span class="o">]</span></code></pre></div>
+
+  </div>
+
+</div>
+
 <h3 id="using-hadoop-outputformats">Using Hadoop OutputFormats</h3>
 
-<p>Flink provides a compatibility wrapper for Hadoop <code>OutputFormats</code>. Any class that implements <code>org.apache.hadoop.mapred.OutputFormat</code> or extends <code>org.apache.hadoop.mapreduce.OutputFormat</code> is supported. The OutputFormat wrapper expects its input data to be a <code>DataSet&lt;Tuple2&lt;KEY,VALUE&gt;&gt;</code> where <code>KEY</code> is the key and <code>VALUE</code> is the value of the Hadoop key-value pair that is processed by the Hadoop OutputFormat.</p>
-
-<p>Flink’s OUtputFormat wrappers are</p>
-
-<ul>
-  <li><code>org.apache.flink.hadoopcompatibility.mapred.HadoopOutputFormat</code> and </li>
-  <li><code>org.apache.flink.hadoopcompatibility.mapreduce.HadoopOutputFormat</code></li>
-</ul>
-
-<p>and can be used as regular Flink <a href="programming_guide.html#data-sinks">OutputFormats</a>.</p>
+<p>Flink provides a compatibility wrapper for Hadoop <code>OutputFormats</code>. Any class
+that implements <code>org.apache.hadoop.mapred.OutputFormat</code> or extends
+<code>org.apache.hadoop.mapreduce.OutputFormat</code> is supported.
+The OutputFormat wrapper expects its input data to be a DataSet containing
+2-tuples of key and value. These are to be processed by the Hadoop OutputFormat.</p>
 
 <p>The following example shows how to use Hadoop’s <code>TextOutputFormat</code>.</p>
 
-<div class="highlight"><pre><code class="language-java"><span class="c1">// Obtain your result to emit.</span>
+<div class="codetabs">
+  <div data-lang="java">
+
+    <div class="highlight"><pre><code class="language-java"><span class="c1">// Obtain the result we want to emit</span>
 <span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Text</span><span class="o">,</span> <span class="n">IntWritable</span><span class="o">&gt;&gt;</span> <span class="n">hadoopResult</span> <span class="o">=</span> <span class="o">[...]</span>
 		
 <span class="c1">// Set up the Hadoop TextOutputFormat.</span>
@@ -255,7 +274,26 @@ under the License.
 <span class="n">TextOutputFormat</span><span class="o">.</span><span class="na">setOutputPath</span><span class="o">(</span><span class="n">job</span><span class="o">,</span> <span class="k">new</span> <span class="nf">Path</span><span class="o">(</span><span class="n">outputPath</span><span class="o">));</span>
 		
 <span class="c1">// Emit data using the Hadoop TextOutputFormat.</span>
-<span class="n">result</span><span class="o">.</span><span class="na">output</span><span class="o">(</span><span class="n">hadoopOF</span><span class="o">);</span></code></pre></div>
+<span class="n">hadoopResult</span><span class="o">.</span><span class="na">output</span><span class="o">(</span><span class="n">hadoopOF</span><span class="o">);</span></code></pre></div>
+
+  </div>
+  <div data-lang="scala">
+
+    <div class="highlight"><pre><code class="language-scala"><span class="c1">// Obtain your result to emit.</span>
+<span class="k">val</span> <span class="n">hadoopResult</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[(</span><span class="kt">Text</span>, <span class="kt">IntWritable</span><span class="o">)]</span> <span class="k">=</span> <span class="o">[</span><span class="kt">...</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="n">hadoopOF</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HadoopOutputFormat</span><span class="o">[</span><span class="kt">Text</span>,<span class="kt">IntWritable</span><span class="o">](</span>
+  <span class="k">new</span> <span class="nc">TextOutputFormat</span><span class="o">[</span><span class="kt">Text</span>, <span class="kt">IntWritable</span><span class="o">],</span>
+  <span class="k">new</span> <span class="nc">JobConf</span><span class="o">)</span>
+
+<span class="n">hadoopOF</span><span class="o">.</span><span class="n">getJobConf</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">&quot;mapred.textoutputformat.separator&quot;</span><span class="o">,</span> <span class="s">&quot; &quot;</span><span class="o">)</span>
+<span class="nc">FileOutputFormat</span><span class="o">.</span><span class="n">setOutputPath</span><span class="o">(</span><span class="n">hadoopOF</span><span class="o">.</span><span class="n">getJobConf</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">resultPath</span><span class="o">))</span>
+
+<span class="n">hadoopResult</span><span class="o">.</span><span class="n">output</span><span class="o">(</span><span class="n">hadoopOF</span><span class="o">)</span></code></pre></div>
+
+  </div>
+
+</div>
 
 <h3 id="using-hadoop-mappers-and-reducers">Using Hadoop Mappers and Reducers</h3>
 
