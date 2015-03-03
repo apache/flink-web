@@ -18,13 +18,17 @@ This page lists old versions of Flink including their documentation.
 
 ## Flink 0.8
 
+[Jars](http://archive.apache.org/dist/flink/flink-0.8.0/)
+
 [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/)
 
 [Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/api/java)
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/api/scala/index.html)
 
-## Flink 0.7
+## Flink 0.7-incubating
+
+[Jars](http://archive.apache.org/dist/incubator/flink/flink-0.7.0-incubating/)
 
 [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/)
 
@@ -32,7 +36,7 @@ This page lists old versions of Flink including their documentation.
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/scala/index.html)
 
-## Flink 0.6.2
+## Flink 0.6.2-incubating
 
 [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.2/)
 
@@ -40,7 +44,9 @@ This page lists old versions of Flink including their documentation.
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.2/api/scala/index.html)
 
-## Flink 0.6.1
+## Flink 0.6.1-incubating
+
+[Jars](http://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/)
 
 [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/)
 
@@ -48,7 +54,9 @@ This page lists old versions of Flink including their documentation.
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/scala/index.html)
 
-## Flink 0.6
+## Flink 0.6-incubating
+
+[Jars](http://archive.apache.org/dist/incubator/flink/)
 
 [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/)
 
@@ -56,21 +64,21 @@ This page lists old versions of Flink including their documentation.
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/scala/index.html)
 
-## Flink 0.5.1
+## Stratosphere 0.5.1
 
 [Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/java)
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/scala/index.html)
 
 
-## Flink 0.5
+## Stratosphere 0.5
 
 [Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/java)
 
 [Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/scala/index.html)
 
 
-## Flink 0.4
+## Stratosphere 0.4
 
 [Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.4/api/java)
 
