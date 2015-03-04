@@ -158,6 +158,12 @@ to move or duplicate all the official or useful discussions to the issue trackin
 		<td class="text-center">PMC, Committer</td>
 		<td class="text-center">rmetzger</td>
 	</tr>
+	<tr>
+		<td class="text-center"><img src="https://avatars2.githubusercontent.com/u/837221?s=50"></td>
+		<td class="text-center">Maximilian Michels</td>
+		<td class="text-center">Committer</td>
+		<td class="text-center">mxm</td>
+	</tr>
 	</tr>
 	<tr>
 		<td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5756858?s=50"></td>
