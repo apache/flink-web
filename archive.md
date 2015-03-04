@@ -16,17 +16,17 @@ $( document ).ready(function() {
 
 This page lists old versions of Flink including their documentation.
 
-## Flink 0.8
+## Flink 0.8.0
 
 [Jars](http://archive.apache.org/dist/flink/flink-0.8.0/)
 
-[Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/)
+[Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/)
 
-[Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/api/java)
+[Java Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java)
 
-[Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/api/scala/index.html)
+[Scala Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html)
 
-## Flink 0.7-incubating
+## Flink 0.7.0-incubating
 
 [Jars](http://archive.apache.org/dist/incubator/flink/flink-0.7.0-incubating/)
 
