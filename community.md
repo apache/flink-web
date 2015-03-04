@@ -250,7 +250,7 @@ The following people were very kind to mentor the project while in incubation.
 	<tr>
 		<td class="text-center"></td>
 		<td class="text-center">Henry Saputra</td>
-		<td class="text-center">Forner PPMC, Mentor</td>
+		<td class="text-center">Former PPMC, Mentor</td>
 		<td class="text-center">hsaputra</td>
 	</tr>
 </table>
