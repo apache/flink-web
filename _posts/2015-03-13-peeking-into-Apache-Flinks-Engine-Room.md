@@ -1,12 +1,11 @@
 ---
 layout: post
-title:  'Peeking into Apache Flinks Engine Room'
+title:  "Peeking into Apache Flink's Engine Room"
 date:   2015-03-13 10:00:00
 categories: news
 ---
 
-##Peeking into Apache Flink's Engine Room
-####Join Processing in Apache Flink
+###Join Processing in Apache Flink
 
 Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system.
 
