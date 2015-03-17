@@ -80,10 +80,7 @@ before its release. Only builds that pass all tests are published here.
       <i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_LATEST }}</strong> for Hadoop 1</h4>
   </a>
   <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST }}" class="list-group-item ga-track" id="download-hadoop2-nightly">
-    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_LATEST }}</strong> for Hadoop 2</h4>
-  </a>
-  <a href="{{ site.FLINK_DOWNLOAD_URL_YARN_LATEST }}" class="list-group-item ga-track" id="download-hadoop2-yarn-nightly">
-    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_LATEST }}</strong> for YARN</h4>
+    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_LATEST }}</strong> for Hadoop 2 and YARN</h4>
   </a>
 </div>
 
