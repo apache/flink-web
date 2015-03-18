@@ -72,13 +72,13 @@ Flink features two ship strategies to establish a valid data partitioning for a 
 The Repartition-Repartition strategy partitions both inputs, R and S, on their join key attributes using the same partitioning function. Each partition is assigned to exactly one parallel join instance and all data of that partition is sent to its associated instance. This ensures that all elements that share the same join key are shipped to the same parallel instance and can be locally joined. The cost of the RR strategy is a full shuffle of both data sets over the network.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/joins-broadcast.png" style="width:90%;margin:15px">
+<img src="{{ site.baseurl }}/img/blog/joins-repartition.png" style="width:90%;margin:15px">
 </center>
 
 The Broadcast-Forward strategy sends one complete data set (R) to each parallel instance that holds a partition of the other data set (S), i.e., each parallel instance receives the full data set R. Data set S remains local and is not shipped at all. The cost of the BF strategy depends on the size of R and the number of parallel instances it is shipped to. The size of S does not matter because S is not moved. The figure below illustrates how both ship strategies work. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/joins-repartition.png" style="width:90%;margin:15px">
+<img src="{{ site.baseurl }}/img/blog/joins-broadcast.png" style="width:90%;margin:15px">
 </center>
 
 The Repartition-Repartition and Broadcast-Forward ship strategies establish suitable data distributions to execute a distributed join. Depending on the operations that are applied before the join, one or even both inputs of a join are already distributed in a suitable way across parallel instances. In this case, Flink will reuse such distributions and only ship one or no input at all.
