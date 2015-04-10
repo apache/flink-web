@@ -25,10 +25,10 @@ mvn archetype:generate								\
   -DarchetypeGroupId=org.apache.flink				\
   -DarchetypeArtifactId=flink-quickstart-scala		\
   -DarchetypeVersion=0.8.1			 				\
-  -DgroupId=org.apache.flink 						\
+  -DgroupId=org.myorg.quickstart					\
   -DartifactId=$PACKAGE								\
   -Dversion=0.1										\
-  -Dpackage=org.myorg.quickstart 						\
+  -Dpackage=org.myorg.quickstart					\
   -DinteractiveMode=false
 
 #
