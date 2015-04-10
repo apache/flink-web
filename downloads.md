@@ -42,8 +42,6 @@ Apache Flink {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
   </a>
 </div>
 
-The YARN package is not suited for installing Flink directly on a cluster. It contains the files required to deploy Flink on a Hadoop YARN cluster. 
-
 ### Maven Dependencies
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project.
