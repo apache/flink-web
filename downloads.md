@@ -37,8 +37,24 @@ Apache Flink {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
   	<p>Pick this package if you plan to use Flink with Hadoop YARN.</p>
   </a>
   <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE }}" class="list-group-item ga-track" id="download-source">
-    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_STABLE }} Source Release</strong></h4>
+    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
     <p>Review the source code or build Flink on your own, using this package</p>
+  </a>
+</div>
+
+## Preview
+
+This **milestone release** is a preview of the upcoming {{site.FLINK_VERSION_LATEST_SHORT}} release. Check out the announcement for all the details.
+
+<div class="list-group">
+  <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-bin-hadoop1.tgz" id="download-hadoop1" class="list-group-item ga-track">
+    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink 0.9.0-milestone-1</strong> for Hadoop 1</h4>
+  </a>
+  <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-bin-hadoop2.tgz" id="download-hadoop2" class="list-group-item ga-track">
+    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink 0.9.0-milestone-1</strong> for Hadoop 2 and YARN</h4>
+  </a>
+  <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-src.tgz" class="list-group-item ga-track" id="download-source">
+    <h4 class="list-group-item-heading"><i class="fa fa-download"></i> <strong>Flink 0.9.0-milestone-1</strong> Source Release</h4>
   </a>
 </div>
 
