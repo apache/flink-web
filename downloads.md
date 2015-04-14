@@ -42,6 +42,29 @@ Apache Flink {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
   </a>
 </div>
 
+
+### Maven Dependencies
+
+You can add the following dependencies to your `pom.xml` to include Apache Flink in your project.
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-java</artifactId>
+  <version>{{ site.FLINK_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-clients</artifactId>
+  <version>{{ site.FLINK_VERSION_STABLE }}</version>
+</dependency>
+```
+
+These dependencies include a local execution environment and thus support local testing.
+
+- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
+
 ## Preview
 
 This **milestone release** is a preview of the upcoming {{site.FLINK_VERSION_LATEST_SHORT}} release. Check out the announcement for all the details.
@@ -66,21 +89,21 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-java</artifactId>
-  <version>{{ site.FLINK_VERSION_STABLE }}</version>
+  <version>0.9.0-milestone-1</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients</artifactId>
-  <version>{{ site.FLINK_VERSION_STABLE }}</version>
+  <version>0.9.0-milestone-1</version>
 </dependency>
 ```
 
 These dependencies include a local execution environment and thus support local testing.
 
-- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
+- **Hadoop 1**: If you want to interact with Hadoop 1, use `0.9.0-milestone-1-hadoop1` as the version.
 - **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
 
-## Latest 
+## Latest
 
 Apache Flink `{{ site.FLINK_VERSION_LATEST }}` is our latest development version.
 
@@ -112,7 +135,7 @@ Add the **Apache Snapshot repository** to your Maven `pom.xml`:
 </repositories>
 ```
 
-You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_1_STABLE}}` for compatibility with old Hadoop versions (1.x).
+You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_1_LATEST}}` for compatibility with old Hadoop versions (1.x).
 
 ## Checkout from Source
 
