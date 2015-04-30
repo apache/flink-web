@@ -21,7 +21,7 @@ In addition, you can find a list of ideas for projects and improvements in the [
 
 This section gives you a brief introduction in how to contribute code and documentation to Flink. We maintain both the code and the documentation in the same repository, so the process is essentially the same for both. We use [git](http://git-scm.com/) for the code and documentation version control. The documentation is located in the `docs/` subdirectory of the git repository.
 
-The Flink project accepts code contributions though the [GitHub Mirror](https://github.com/apache/flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are basically a simpler way of offering a patch, by providing a pointer to a code branch that contains the change. 
+The Flink project accepts code contributions though the [GitHub Mirror](https://github.com/apache/flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are basically a simpler way of offering a patch, by providing a pointer to a code branch that contains the change.
 
 It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) issue.
 
@@ -87,7 +87,7 @@ Please have a look at the [coding guidelines]({{ site.baseurl }}/docs/{{ site.FL
 
 Most important of all, verify that your changes are correct and do not break existing functionality. Run the existing tests by calling `mvn verify` in the root directory of the repository, and make sure that the tests succeed. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. Flink is pre-configured for [Travis CI](http://docs.travis-ci.com/), which can be easily enabled for your private repository fork (it uses GitHub for authentication, so you so not need an additional account). Simply add the *Travis CI* hook to your repository (*settings --> webhooks & services --> add service*) and enable tests for the "flink" repository on [Travis](https://travis-ci.org/profile).
 
-When contributing documentation, please review the rendered HTML versions of the documents you changed. You can look at the HTML pages by using the rendering script in preview mode. 
+When contributing documentation, please review the rendered HTML versions of the documents you changed. You can look at the HTML pages by using the rendering script in preview mode.
 ```
 cd docs
 ./build_docs.sh -p
@@ -96,15 +96,15 @@ Now, open your browser at `http://localhost:4000` and check out the pages you ch
 
 ## Contribute changes to the Website
 
-The website of Apache Flink is hosted in a [Subversion (SVN)](https://subversion.apache.org/) repository. The repository is located here: [https://svn.apache.org/repos/asf/flink/](https://svn.apache.org/repos/asf/flink/).
+The website of Apache Flink is hosted in a separate Git repository. The repository is located at https://git-wip-us.apache.org/repos/asf/flink-web.git.
 
-To make changes to the website, you have to checkout the source code of it first:
+To make changes to the website, you have to checkout its source code first. The website resides in the `asf-site` branch of the repository:
 ```
-svn checkout https://svn.apache.org/repos/asf/flink/
-cd flink
+git clone -b asf-site https://git-wip-us.apache.org/repos/asf/flink-web.git
+cd flink-web
 ```
 
-The `flink` repository contains the files that we use to build the website. We use [Jekyll](http://jekyllrb.com/) to generate static HTML files for the website. 
+The `flink-web` directory contains the files that we use to build the website. We use [Jekyll](http://jekyllrb.com/) to generate static HTML files for the website.
 
 ### Files and Directories in the SVN repository
 
@@ -114,7 +114,7 @@ The files and directories in the SVN repository have the following roles:
 - the `_posts` directory contains one Markdown file for each blog post on the website. To contribute a post, just add a new file there.
 - the `_includes/` directory contains includeable files such as the navigation bar or the footer.
 - the `docs/` directory contains copies of the documentation of Flink for different releases. There is a directory inside `docs/` for each stable release and the latest SNAPSHOT version. The build script is taking care of the maintenance of this directory.
-- the `site/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website svn, push also the updates in the `site/` directory!)
+- the `content/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website svn, push also the updates in the `content/` directory!)
 - see the section below for he `build.sh` script
 
 
@@ -139,7 +139,7 @@ There is no strict protocol for becoming a committer. Candidates for new committ
 
 Being an active community member means participating on mailing list discussions, helping to answer questions, being respectful towards others, and following the meritocratic principles of community management. Since the "Apache Way" has a strong focus on the project community, this part is very important.
 
-Of course, contributing code to the project is important as well. A good way to start is contributing improvements, new features, or bugfixes. You need to show that you take responsibility for the code that you contribute, add tests/documentation, and help maintaining it. 
+Of course, contributing code to the project is important as well. A good way to start is contributing improvements, new features, or bugfixes. You need to show that you take responsibility for the code that you contribute, add tests/documentation, and help maintaining it.
 
 Finally, candidates for new committers are suggested by current committers, mentors, or PMC members, and voted upon by the PMC.
 
@@ -148,13 +148,19 @@ Finally, candidates for new committers are suggested by current committers, ment
 
 Only the infrastructure team of the ASF has administrative access to the GitHub mirror. Therefore, comitters have to push changes to the git repository at the ASF.
 
-**ASF writable git**: [https://git-wip-us.apache.org/repos/asf/flink.git](https://git-wip-us.apache.org/repos/asf/flink.git)
+#### Main source repositories
 
-**ASF read-only git**: [http://git-wip-us.apache.org/repos/asf/flink.git](http://git-wip-us.apache.org/repos/asf/flink.git)
+**ASF writable**: https://git-wip-us.apache.org/repos/asf/flink.git
 
-**ASF git web interface**: [https://git-wip-us.apache.org/repos/asf?p=flink.git;a=summary](https://git-wip-us.apache.org/repos/asf?p=flink.git;a=summary)
+**ASF read-only**: git://git.apache.org/repos/asf/flink.git
 
-**ASF svn for the website**: [https://svn.apache.org/repos/asf/flink/](https://svn.apache.org/repos/asf/flink/).
+**ASF read-only**: https://github.com/apache/flink.git
+
+#### Website repositories
+
+**ASF writable**: https://git-wip-us.apache.org/repos/asf/flink-web.git
+
+**ASF read-only**: git://git.apache.org/repos/asf/flink-web.git
 
 Details on how to set the credentials for the ASF git repostiory are [linked here](https://git-wip-us.apache.org/).
 To merge pull requests from our GitHub mirror, there is a script in the source `./tools/merge_pull_request.sh.template`. Rename it to `merge_pull_request.sh` with the appropriate settings and use it for merging.
