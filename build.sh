@@ -137,7 +137,7 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 SRC=${DIR}
-DST=${SRC}/site
+DST=${SRC}/content
 
 # default jekyll command is to just build site
 JEKYLL_CMD="build"
@@ -163,6 +163,3 @@ done
 if $HAS_JEKYLL; then
     jekyll ${JEKYLL_CMD} --source ${SRC} --destination ${DST}
 fi
-
-
-
