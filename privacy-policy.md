@@ -1,6 +1,5 @@
 ---
 title: "Privacy Policy"
-layout: simple
 ---
 
 Information about your use of this website is collected using server access

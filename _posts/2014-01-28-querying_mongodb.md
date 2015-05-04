@@ -2,6 +2,8 @@
 layout: post
 title:  "Accessing Data Stored in MongoDB with Stratosphere"
 date:   2014-01-28 9:00:00
+author: "Robert Metzger"
+author-twitter: "rmetzger_"
 categories: news
 ---
 
@@ -106,5 +108,3 @@ public void map(Record record, Collector<Record> out) throws Exception {
 ```
 
 Please use the comments if you have questions or if you want to showcase your own MongoDB-Stratosphere integration.
-<br><br>
-<small>Written by Robert Metzger ([@rmetzger_](https://twitter.com/rmetzger_)).</small>

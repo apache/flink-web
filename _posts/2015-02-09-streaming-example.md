@@ -5,7 +5,6 @@ date:   2015-02-09 12:00:00
 categories: news
 ---
 
-
 This post is the first of a series of blog posts on Flink Streaming,
 the recent addition to Apache Flink that makes it possible to analyze
 continuous data sources in addition to static files. Flink Streaming

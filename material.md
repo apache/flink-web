@@ -2,114 +2,110 @@
 title: "Material"
 ---
 
-# Material
-
-This page is a collection of different material on Apache Flink, that you can use if you're planning to present Flink somewhere.
-
-
-## Apache Flink Presentations
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/40645403" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/40646855" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/41762075" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/43507764" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/46221190" width="476" height="400" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+{% toc %}
 
 ## Apache Flink Logos
 
-We provide the Apache Flink logo in different sizes and formats.
+We provide the Apache Flink logo in different sizes and formats. You can [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB) or just pick the one you need from this page.
 
-<b>Formats</b> <br>
-Scalable: <a href="img/logo/svg/color_black.svg">color_black.svg</a> <a href="img/logo/svg/color_white.svg">color_white.svg</a> <a href="img/logo/svg/white_filled.svg">white_filled.svg</a> <a href="img/logo/svg/black_outline.svg">black_outline.svg</a><br>
-Photoshop: <a href="img/logo/psd/flink5000.psd">flink5000.psd</a> <a href="img/logo/psd/flink1000.psd">flink1000.psd</a> <a href="img/logo/psd/flink_squirrel_1000.psd">flink_squirrel_1000.psd</a> <br>
-You can find more variants of the logo in <a href="img/logo/">this directory</a> or below as PNG files.
-<div class="container">
-	<div class="row">
-		<div class="col-md-3">PNG 50px</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/50/white_50.png">
-				<img style="background-color:grey; padding:10px" src="img/logo/png/50/white_50.png" />
-				<br />white</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/50/black_50.png">
-				<img src="img/logo/png/50/black_50.png" />
-				<br />black</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/50/color_50.png">
-				<img src="img/logo/png/50/color_50.png" />
-				<br />color</a>
-		</div>
-	</div>
+### Portable Network Graphics (PNG)
 
-	<div class="row">
-		<div class="col-md-3">PNG 100px</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/100/flink_squirrel_100_white.png">
-				<img style="background-color:grey; padding:10px" src="img/logo/png/100/flink_squirrel_100_white.png" />
-				<br />white</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/100/flink_squirrel_100_black.png">
-				<img src="img/logo/png/100/flink_squirrel_100_black.png" />
-				<br />black</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/100/flink_squirrel_100_color.png">
-				<img src="img/logo/png/100/flink_squirrel_100_color.png" />
-				<br />color</a>
-		</div>
-	</div>
+<div class="row text-center">
+  <div class="col-sm-4">
+    <h4>Colored logo</h4>
 
-	<div class="row">
-		<div class="col-md-3">PNG 200px</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/200/flink_squirrel_200_white.png">
-				<img style="background-color:grey; padding:10px" src="img/logo/png/200/flink_squirrel_200_white.png" />
-				<br />white</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/200/flink_squirrel_200_black.png">
-				<img src="img/logo/png/200/flink_squirrel_200_black.png" />
-				<br />black</a>
-		</div>
-		<div class="col-md-3">
-			<a style="text-decoration:none;" href="img/logo/png/200/flink_squirrel_200_color.png">
-				<img src="img/logo/png/200/flink_squirrel_200_color.png" />
-				<br />color</a>
-		</div>
-	</div>
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_color.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
 
-	<div class="row">
-		<div class="col-md-3">PNG 500px</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/500/flink_squirrel_500_white.png">white</a>
-		</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/500/flink_squirrel_500_black.png">black</a>
-		</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/500/flink_squirrel_500_color.png">color</a>
-		</div>
-	</div>
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/color_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_color.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_color.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_1000.png)</p>
+  </div>
 
-	<div class="row">
-		<div class="col-md-3">PNG 1000px</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/1000/flink_squirrel_white_1000.png">white</a>
-		</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/1000/flink_squirrel_black_1000.png">black</a>
-		</div>
-		<div class="col-md-3">
-			<a href="img/logo/png/1000/flink_squirrel_1000.png">color</a>
-		</div>
-	</div>
+  <div class="col-sm-4">
+    <h4>White filled logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_white.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" style="background:black;" /></p>
+
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/white_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_white.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_white.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500_white.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_white_1000.png)</p>
+  </div>
+
+  <div class="col-sm-4">
+    <h4>Black outline logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_black.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
+
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/black_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_black.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_black.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500_black.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_black_1000.png)</p>
+  </div>
 </div>
 
+<div class="panel panel-default">
+  <div class="panel-body" markdown="span">
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/png) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+  </div>
+</div>
 
+### Scalable Vector Graphics (SVG)
+
+<div class="row text-center img100">
+  <div class="col-sm-4 text-center">
+    <h4>Colored logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/color_black.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+
+    <p markdown="1">Colored logo with black text ([color_black.svg]({{ site.baseurl }}/img/logo/svg/color_black.svg))</p>
+  </div>
+  <div class="col-sm-4">
+    <h4>White filled logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/white_filled.svg" alt="Apache Flink Logo" title="Apache Flink Logo" style="background:black;" /></p>
+
+    <p markdown="1">White filled logo ([white_filled.svg]({{ site.baseurl }}/img/logo/svg/white_filled.svg))</p>
+  </div>
+  <div class="col-sm-4">
+    <h4>Black outline logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/black_outline.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+
+    <p markdown="1">Black outline logo ([black_outline.svg]({{ site.baseurl }}/img/logo/svg/black_outline.svg))</p>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body" markdown="span">
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/svg) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+  </div>
+</div>
+
+### Photoshop (PSD)
+
+<div class="panel panel-default">
+  <div class="panel-body" markdown="1">
+You can download the logo in PSD format as well:
+
+- **Colored logo**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_squirrel_1000.psd).
+- **Black outline logo with text**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_1000.psd), [5000x5000]({{ site.baseurl }}/img/logo/psd/flink_5000.psd).
+
+You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/psd) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+</div>
+</div>
+
+## Slides
+
+- Till Rohrmann: **Machine Learning with Apache Flink** *(March 23th, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/machine-learning-with-apache-flink)
+- Kostas Tzoumas: **Apache Flink Overview** *(January 14th, 2015)*: [SlideShare](http://www.slideshare.net/KostasTzoumas/apache-flink-api-runtime-and-project-roadmap)
+- Kostas Tzoumas: **Flink Internals** *(November 18th, 2014)*: [SlideShare](http://www.slideshare.net/KostasTzoumas/flink-internals)
+- Till Rohrmann: **Introduction to Apache Flink** *(October 15th, 2014)*: [SlideShare](http://www.slideshare.net/tillrohrmann/introduction-to-apache-flink)
+- Stephan Ewen: **Apache Flink Overview** *(October 8th, 2014)*: [SlideShare](http://www.slideshare.net/stephanewen1/apache-flink-overview-at-stockholm-hadoop-user-group)

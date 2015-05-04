@@ -1,11 +1,10 @@
 ---
 title:  "How To Contribute"
-layout: with_toc
 ---
 
 The Flink project welcomes all sorts contributions in the form of code (improvements, features, bugfixes), documentation, tests, and community participation (discussions & questions).
 
-
+{% toc %}
 
 ## Easy Issues for Starters
 
@@ -13,9 +12,7 @@ We maintain all known issues and feature drafts in the [Flink project JIRA](http
 
 We also try to maintain a <a href="https://issues.apache.org/jira/browse/FLINK-992?jql=project%20%3D%20FLINK%20AND%20labels%20%3D%20starter%20AND%20status%20in%20(Open%2C%20Reopened)">list of simple "starter issues"</a> that we believe are good tasks for new contributors. Those tasks are meant to allow people to get into the project and become familiar with the process of contributing. Feel free to ask questions about issues that you would be interested in working on.
 
-In addition, you can find a list of ideas for projects and improvements in the [projects wiki page](https://cwiki.apache.org/confluence/display/FLINK/Project+Ideas).
-
-
+In addition, you can find a list of ideas for projects and improvements in the [projects Wiki page](https://cwiki.apache.org/confluence/display/FLINK/Project+Ideas).
 
 ## Contributing Code & Documentation
 
@@ -31,24 +28,28 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 1. The first step is to create yourself a copy of the Flink code base. We suggest to fork the [Flink GitHub Mirror Repository](https://github.com/apache/flink) into your own [GitHub](https://github.com) account. You need to register on GitHub for that, if you have no account so far.
 
 2. Next, clone your repository fork to your local machine.
-```
+  
+   ```
 git clone https://github.com/<your-user-name>/flink.git
 ```
 
 3. It is typically helpful to switch to a *topic branch* for the changes. To create a dedicated branch based on the current master, use the following command:
-```
+
+    ```
 git checkout -b myBranch master
 ```
 
 4. Now you can create your changes, compile the code, and validate the changes. Here are some pointers on how to [build the code](https://github.com/apache/flink/#build-apache-flink).
 In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Import Maven Project" feature. If you want to work on the scala code you will need the following plugins:
 
-    Eclipse 4.x:
+    **Eclipse 4.x**:
+
       * scala-ide: http://download.scala-ide.org/sdk/e38/scala210/stable/site
       * m2eclipse-scala: http://alchim31.free.fr/m2e-scala/update-site
       * build-helper-maven-plugin: https://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.15.0/N/0.15.0.201206251206/
 
-    Eclipse 3.7:
+    **Eclipse 3.7**:
+
       * scala-ide: http://download.scala-ide.org/sdk/e37/scala210/stable/site
       * m2eclipse-scala: http://alchim31.free.fr/m2e-scala/update-site
       * build-helper-maven-plugin: https://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.14.0/N/0.14.0.201109282148/
@@ -56,6 +57,7 @@ In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Im
     When you don't have the plugins your project will have build errors, you can just close the scala projects and ignore them.
 
     Import the Flink source code using Maven's Import tool:
+
       * Select "Import" from the "File"-menu.
       * Expand "Maven" node, select "Existing Maven Projects", and click "next" button
       * Select the root directory by clicking on the "Browse" button and navigate to the top folder of the cloned Flink git repository.
@@ -63,7 +65,8 @@ In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Im
 
 5. After you have finalized your contribution, verify the compliance with the contribution guidelines (see below), and commit them. To make the changes easily mergeable, please rebase them to the latest version of the main repositories master branch. Assuming you created a topic branch (step 3), you can follow this sequence of commands to do that:
 Switch to the master branch, update it to the latest revision, switch back to your topic branch, and rebase it on top of the master branch.
-```
+
+   ```
 git checkout master
 git pull https://github.com/apache/flink.git master
 git checkout myBranch

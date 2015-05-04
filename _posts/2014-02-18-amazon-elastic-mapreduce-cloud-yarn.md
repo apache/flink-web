@@ -2,6 +2,8 @@
 layout: post
 title:  'Use Stratosphere with Amazon Elastic MapReduce'
 date:   2014-02-18 19:57:18
+author: "Robert Metzger"
+author-twitter: "rmetzger_"
 categories: news
 ---
 
@@ -190,8 +192,3 @@ hadoop fs -tail /output
 {% endhighlight %}
 
 If you want to shut down the whole cluster in the cloud, use Amazon's webinterface and click on "Terminate cluster". If you just want to stop the YARN session, press CTRL+C in the terminal. The Stratosphere instances will be killed by YARN.
-
-
-<br><br>
-<small>Written by Robert Metzger ([@rmetzger_](https://twitter.com/rmetzger_)).</small>
-

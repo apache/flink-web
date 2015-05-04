@@ -2,12 +2,15 @@
 layout: post
 title:  "Peeking into Apache Flink's Engine Room"
 date:   2015-03-13 10:00:00
+author: "Fabian Hüske"
+author-twitter: "fhueske"
 categories: news
+excerpt: "Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. In this blog post, we cut through Apache Flink’s layered architecture and take a look at its internals with a focus on how it handles joins."
 ---
 
-###Join Processing in Apache Flink
+### Join Processing in Apache Flink
 
-Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system.
+Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system.
 
 In this blog post, we cut through Apache Flink’s layered architecture and take a look at its internals with a focus on how it handles joins. Specifically, I will
 
@@ -19,7 +22,7 @@ In this blog post, we cut through Apache Flink’s layered architecture and take
 
 *Disclaimer*: This blog post is exclusively about equi-joins. Whenever I say “join” in the following, I actually mean “equi-join”.
 
-###How do I join with Flink?
+### How do I join with Flink?
 
 Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce [[1]](http://research.google.com/archive/mapreduce.html) but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations [[2]](http://ci.apache.org/projects/flink/flink-docs-release-0.8/dataset_transformations.html). 
 
@@ -52,7 +55,7 @@ Flink’s APIs also allow to:
 See the documentation for more details on Flink’s join features [[3]](http://ci.apache.org/projects/flink/flink-docs-release-0.8/dataset_transformations.html#join).
 
 
-###How does Flink join my data?
+### How does Flink join my data?
 
 Flink uses techniques which are well known from parallel database systems to efficiently execute parallel joins. A join operator must establish all pairs of elements from its input data sets for which the join condition evaluates to true. In a standalone system, the most straight-forward implementation of a join is the so-called nested-loop join which builds the full Cartesian product and evaluates the join condition for each pair of elements. This strategy has quadratic complexity and does obviously not scale to large inputs.
 
@@ -63,7 +66,7 @@ In a distributed system joins are commonly processed in two steps:
 
 The distribution of data across parallel instances must ensure that each valid join pair can be locally built by exactly one instance. For both steps, there are multiple valid strategies that can be independently picked and which are favorable in different situations. In Flink terminology, the first phase is called Ship Strategy and the second phase Local Strategy. In the following I will describe Flink’s ship and local strategies to join two data sets *R* and *S*.
 
-####Ship Strategies
+#### Ship Strategies
 Flink features two ship strategies to establish a valid data partitioning for a join:
 
 * the *Repartition-Repartition* strategy (RR) and
@@ -83,7 +86,7 @@ The Broadcast-Forward strategy sends one complete data set (R) to each parallel 
 
 The Repartition-Repartition and Broadcast-Forward ship strategies establish suitable data distributions to execute a distributed join. Depending on the operations that are applied before the join, one or even both inputs of a join are already distributed in a suitable way across parallel instances. In this case, Flink will reuse such distributions and only ship one or no input at all.
 
-####Flink’s Memory Management
+#### Flink’s Memory Management
 Before delving into the details of Flink’s local join algorithms, I will briefly discuss Flink’s internal memory management. Data processing algorithms such as joining, grouping, and sorting need to hold portions of their input data in memory. While such algorithms perform best if there is enough memory available to hold all data, it is crucial to gracefully handle situations where the data size exceeds memory. Such situations are especially tricky in JVM-based systems such as Flink because the system needs to reliably recognize that it is short on memory. Failure to detect such situations can result in an `OutOfMemoryException` and kill the JVM. 
 
 Flink handles this challenge by actively managing its memory. When a worker node (TaskManager) is started, it allocates a fixed portion (70% by default) of the JVM’s heap memory that is available after initialization as 32KB byte arrays. These byte arrays are distributed as working memory to all algorithms that need to hold significant portions of data in memory. The algorithms receive their input data as Java data objects and serialize them into their working memory.
@@ -96,7 +99,7 @@ This design has several nice properties. First, the number of data objects on th
 
 This active memory management makes Flink extremely robust for processing very large data sets on limited memory resources while preserving all benefits of in-memory processing if data is small enough to fit in-memory. De/serializing data into and from memory has a certain cost overhead compared to simply holding all data elements on the JVM’s heap. However, Flink features efficient custom de/serializers which also allow to perform certain operations such as comparisons directly on serialized data without deserializing data objects from memory.
 
-####Local Strategies
+#### Local Strategies
 
 After the data has been distributed across all parallel join instances using either a Repartition-Repartition or Broadcast-Forward ship strategy, each instance runs a local join algorithm to join the elements of its local partition. Flink’s runtime features two common join strategies to perform these local joins:
 
@@ -115,13 +118,13 @@ The Hybrid-Hash-Join distinguishes its inputs as build-side and probe-side input
 <img src="{{ site.baseurl }}/img/blog/joins-hhj.png" style="width:90%;margin:15px">
 </center>
 
-###How does Flink choose join strategies?
+### How does Flink choose join strategies?
 
 Ship and local strategies do not depend on each other and can be independently chosen. Therefore, Flink can execute a join of two data sets R and S in nine different ways by combining any of the three ship strategies (RR, BF with R being broadcasted, BF with S being broadcasted) with any of the three local strategies (SM, HH with R being build-side, HH with S being build-side). Each of these strategy combinations results in different execution performance depending on the data sizes and the available amount of working memory. In case of a small data set R and a much larger data set S, broadcasting R and using it as build-side input of a Hybrid-Hash-Join is usually a good choice because the much larger data set S is not shipped and not materialized (given that the hash table completely fits into memory). If both data sets are rather large or the join is performed on many parallel instances, repartitioning both inputs is a robust choice.
 
 Flink features a cost-based optimizer which automatically chooses the execution strategies for all operators including joins. Without going into the details of cost-based optimization, this is done by computing cost estimates for execution plans with different strategies and picking the plan with the least estimated costs. Thereby, the optimizer estimates the amount of data which is shipped over the the network and written to disk. If no reliable size estimates for the input data can be obtained, the optimizer falls back to robust default choices. A key feature of the optimizer is to reason about existing data properties. For example, if the data of one input is already partitioned in a suitable way, the generated candidate plans will not repartition this input. Hence, the choice of a RR ship strategy becomes more likely. The same applies for previously sorted data and the Sort-Merge-Join strategy. Flink programs can help the optimizer to reason about existing data properties by providing semantic information about  user-defined functions [[4]](http://ci.apache.org/projects/flink/flink-docs-master/programming_guide.html#semantic-annotations). While the optimizer is a killer feature of Flink, it can happen that a user knows better than the optimizer how to execute a specific join. Similar to relational database systems, Flink offers optimizer hints to tell the optimizer which join strategies to pick [[5]](http://ci.apache.org/projects/flink/flink-docs-master/dataset_transformations.html#join-algorithm-hints).
 
-###How is Flink’s join performance?
+### How is Flink’s join performance?
 
 Alright, that sounds good, but how fast are joins in Flink? Let’s have a look. We start with a benchmark of the single-core performance of Flink’s Hybrid-Hash-Join implementation and run a Flink program that executes a Hybrid-Hash-Join with parallelism 1. We run the program on a n1-standard-2 Google Compute Engine instance (2 vCPUs, 7.5GB memory) with two locally attached SSDs. We give 4GB as working memory to the join. The join program generates 1KB records for both inputs on-the-fly, i.e., the data is not read from disk. We run 1:N (Primary-Key/Foreign-Key) joins and generate the smaller input with unique Integer join keys and the larger input with randomly chosen Integer join keys that fall into the key range of the smaller input. Hence, each tuple of the larger side joins with exactly one tuple of the smaller side. The result of the join is immediately discarded. We vary the size of the build-side input from 1 million to 12 million elements (1GB to 12GB). The probe-side input is kept constant at 64 million elements (64GB). The following chart shows the average execution time of three runs for each setup.
 
@@ -154,11 +157,11 @@ As in the single-core benchmark, we run 1:N joins, generate the data on-the-fly,
 
 As expected, the Broadcast-Forward strategy performs best for very small inputs because the large probe side is not shipped over the network and is locally joined. However, when the size of the broadcasted side grows, two problems arise. First the amount of data which is shipped increases but also each parallel instance has to process the full broadcasted data set. The performance of both Repartitioning strategies behaves similar for growing input sizes which indicates that these strategies are mainly limited by the cost of the data transfer (at max 2TB are shipped over the network and joined). Although the Sort-Merge-Join strategy shows the worst performance all shown cases, it has a right to exist because it can nicely exploit sorted input data.
 
-###I’ve got sooo much data to join, do I really need to ship it?
+### I’ve got sooo much data to join, do I really need to ship it?
 
 We have seen that off-the-shelf distributed joins work really well in Flink. But what if your data is so huge that you do not want to shuffle it across your cluster? We recently added some features to Flink for specifying semantic properties (partitioning and sorting) on input splits and co-located reading of local input files. With these tools at hand, it is possible to join pre-partitioned data sets from your local filesystem without sending a single byte over your cluster’s network. If the input data is even pre-sorted, the join can be done as a Sort-Merge-Join without sorting, i.e., the join is essentially done on-the-fly. Exploiting co-location requires a very special setup though. Data needs to be stored on the local filesystem because HDFS does not feature data co-location and might move file blocks across data nodes. That means you need to take care of many things yourself which HDFS would have done for you, including replication to avoid data loss. On the other hand, performance gains of joining co-located and pre-sorted can be quite substantial.
 
-###tl;dr: What should I remember from all of this?
+### tl;dr: What should I remember from all of this?
 
 * Flink’s fluent Scala and Java APIs make joins and other data transformations easy as cake.
 * The optimizer does the hard choices for you, but gives you control in case you know better.
