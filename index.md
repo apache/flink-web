@@ -1,10 +1,10 @@
 ---
-title: "Apache Flink"
+title: "Unified Batch and Stream Processing"
 layout: base
 ---
 
 <div class="row">
-  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for *real-time* data analysis.</p></div>
+  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for unified batch and stream processing.</p></div>
 </div>
 
 <div class="row">
@@ -27,15 +27,49 @@ You can **integrate** Flink easily with other well-known open source systems bot
 
 **Check out the [features](features.html) page to get a tour of all major Flink features.**
   </div>
-  <div class="col-sm-6 stack text-center" markdown="1">
-![Apache Flink Stack]({{ site.baseurl }}/img/flink-stack.png "Apache Flink Stack")
+  <div class="col-sm-6 stack text-center">
+    <img src="{{ site.baseurl }}/img/flink-stack-small.png" alt="Apache Flink Stack" width="385px" height="300px">
+  </div>
+</div>
+
+---
+
+<div class="frontpage-tags">
+  <div class="row">
+    <div class="col-md-4 text-center">
+       <h2><span class="glyphicon glyphicon-flash"></span> <a href="features.html#fast">Fast</a></h2>
+      <p>State-of-the art performance exploiting in-memory processing and data streaming.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <h2><span class="glyphicon glyphicon-plane"></span> <a href="features.html#reliable-and-scalable">Reliable</a></h2>
+      <p>Flink is designed to perform very well even when the cluster's memory runs out.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <h2><span class="glyphicon glyphicon-cutlery"></span> <a href="features.html#expressive">Expressive</a></h2>
+      <p>Write beautiful, type-safe code in Java and Scala. Execute it on a cluster.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 text-center">
+      <h2><span class="glyphicon glyphicon-send"></span> <a href="features.html#easy-to-use">Easy to use</a></h2>
+      <p>Few configuration parameters required. Cost-based optimizer built in.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <h2><span class="glyphicon glyphicon-sort"></span> <a href="features.html#reliable-and-scalable">Scalable</a></h2>
+      <p>Tested on clusters of 100s of machines, Google Compute Engine, and Amazon EC2.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <h2><span class="glyphicon glyphicon-refresh"></span> <a href="features.html#hadoop">Hadoop-compatible</a></h2>
+      <p>Flink runs on YARN and HDFS and has a Hadoop compatibility package.</p>
+    </div>
   </div>
 </div>
 
 ---
 
 <div class="row">
-  <div class="col-sm-5" markdown="1">
+  <div class="col-sm-6" markdown="1">
 ## Getting Started
 
 Download the **latest stable release** and run Flink on your machine, cluster, or cloud:
@@ -44,52 +78,43 @@ Download the **latest stable release** and run Flink on your machine, cluster, o
 
 The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup) for all deployment options.
 
-Start writing Flink programs by adding Flink to your **Maven dependencies**:
-
-{% highlight xml %}
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>{{ site.stable }}</version>
-</dependency>
-
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients</artifactId>
-  <version>{{ site.stable }}</version>
-</dependency>
-{% endhighlight %}
-
 The [programming guide]({{ site.docs-snapshot }}/apis) contains all information to get you started with writing and testing your Flink programs.
 
 **Check out the [documentation]({{ site.docs-snapshot }}) for the next steps.**
-  </div>
 
-  <div class="col-sm-7" markdown="1">
+  </div>
+  <div class="col-sm-6" markdown="1" style="padding-bottom:1em">
 ## Latest blog posts
 
 <ul class="list-group">
 {% for post in site.posts limit:5 %}  
       <li class="list-group-item"><span>{{ post.date | date_to_string }}</span> &raquo;
-        <a href="{{ site.baseurl }}/{{ post.url }}">{{ post.title }}</a>
+        <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
       </li>
 {% endfor %}
 </ul>
 
 **Check out [the blog](blog/) for all posts.**
+  </div>
+</div>
 
----
-
+<div class="row">
+  <div class="col-sm-6" markdown="1">
 ## Community
 
 You can post questions to the Flink [community]() on various channels. Pick the one, which suits you best:
 
-<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> **User mailing list**. Subscribe to the mailing list by sending an empty email to user-subscribe@flink.apache.org. Once the subscription is confirmed, you can send questions to user@flink.apache.org. There is also a [searchable archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com) if you want to search for existing questions.
+- <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> **User mailing list**. Subscribe to the mailing list by sending an empty email to user-subscribe@flink.apache.org. Once the subscription is confirmed, you can send questions to user@flink.apache.org.
 
-<span class="glyphicon glyphicon-search" aria-hidden="true"></span> **Stack Overflow**. Post your questions to [Stack Overflow](http://stackoverflow.com/questions/ask/?tags=flink) and tag them with [#flink](http://stackoverflow.com/questions/ask/?tags=flink). Flink committers are watching this tag and are happy to help with answers.
+- <span class="glyphicon glyphicon-search" aria-hidden="true"></span> **Stack Overflow**. Post your questions to [Stack Overflow](http://stackoverflow.com/questions/ask/?tags=flink) and tag them with [#flink](http://stackoverflow.com/questions/ask/?tags=flink).
 
-<span class="glyphicon glyphicon-comment" aria-hidden="true"></span> **IRC chat**. The IRC channel **#flink** at irc.freenode.org is dedicated to Apache Flink. Join the channel and chat with the Flink community. You can use a [web-based IRC client](http://webchat.freenode.net/?channels=flink) for this.
+- <span class="glyphicon glyphicon-comment" aria-hidden="true"></span> **IRC chat**. The IRC channel **#flink** at irc.freenode.org is dedicated to Apache Flink. Join the channel and chat with the Flink community.
 
 **Check out [the community page](community.html) for all community-related information. If you want to contribute, make sure to have a look at the [contribution guide](how-to-contribute.html).**
-</div>
+  </div>
+
+  <div class="col-sm-6 text-center">
+   <a class="twitter-timeline" href="https://twitter.com/ApacheFlink" data-widget-id="598498380973735936">Tweets by @ApacheFlink</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  </div>
 </div>

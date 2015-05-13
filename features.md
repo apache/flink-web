@@ -2,6 +2,101 @@
 title: "Features"
 ---
 
+<!-- System Overview -->
+<div class="row" style="padding: 2em 0 0 0">
+  <div class="col-sm-12">
+    <h1>System Overview</h1>
+    <p class="lead">Flink contains APIs in Java and Scala for analyzing data from batch and streaming data sources, as well as its own optimizer and distributed runtime with custom memory management.</p>
+  </div>
+</div>
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12 text-center">
+    <img src="{{ site.baseurl }}/img/assets/WhatIsFlink.png" alt="Apache Flink is Fast" style="width:100%" />
+  </div>
+</div>
+
+<!-- Fast -->
+<div class="row" style="padding: 2em 0 2em 0">
+  <div class="col-sm-6">
+    <h1 id="fast">Fast</h1>
+    <p class="lead">Flink exploits in-memory data streaming and integrates iterative processing deeply into the system runtime.</p>
+    <p class="lead">This makes the system extremely fast for data-intensive and iterative jobs.</p>
+  </div>
+  <div class="col-sm-6">
+    <img src="{{ site.baseurl }}/img/assets/pagerank.png" alt="Apache Flink is Fast" style="width:100%" />
+  </div>
+</div>
+
+<!-- Reliable and Scalable -->
+<div class="row" style="padding: 2em 0 2em 0">
+  <div class="col-sm-6 text-center">
+    <img src="{{ site.baseurl }}/img/assets/grep.png" alt="Apache Flink is Fast" style="width:100%" />
+  </div>
+  <div class="col-sm-6">
+    <h1 id="reliable-and-scalable">Reliable and Scalable</h1>
+    <p class="lead">Flink is designed to perform well when memory runs out.</p>
+    <p class="lead">Flink contains its own memory management component, serialization framework, and type inference engine.</p>
+    <p class="lead">Tested in clusters of 100s of nodes, Amazon EC2, and Google Compute Engine.</p>
+  </div>
+</div>
+
+<!-- Expressive -->
+<div class="row">
+  <div class="col-sm-12">
+    <h1 id="expressive">Expressive</h1>
+    <p class="lead">Write beautiful, type-safe, and maintainable code in Java or Scala. Execute it on a cluster. You can use native Java and Scala data types without packing them into key-value pairs, logical field addressing, and a wealth of operators.</p>
+    <h2>WordCount in Flink's Scala API</h2>
+    {% highlight scala %}
+case class Word (word: String, frequency: Int)
+
+val counts = text
+  .flatMap {line => line.split(" ").map(
+    word => Word(word,1))}
+  .groupBy("word").sum("frequency")
+    {% endhighlight %}
+    <h2>Transitive Closure</h2>
+    {% highlight scala %}
+case class Path (from: Long, to: Long)
+
+val tc = edges.iterate(10) { paths: DataSet[Path] =>
+  val next = paths
+    .join(edges).where("to").equalTo("from") {
+      (path, edge) => Path(path.from, edge.to)
+    }
+    .union(paths).distinct()
+  next
+}
+    {% endhighlight %}
+  </div>
+</div>
+
+<!-- Easy to Use -->
+<div class="row" style="padding: 2em 0 2em 0">
+  <div class="col-sm-6">
+    <h1 id="easy-to-use">Easy to Use</h1>
+    <p class="lead">Flink requires few configuration parameters. And the system's bult-in optimizer takes care of finding the best way to execute the program in any enviroment.</p>
+    <p class="lead">Run on YARN with 3 commands, in a stand-alone cluster, or locally in a debugger.</p>
+  </div>
+  <div class="col-sm-6 text-center">
+    <img src="{{ site.baseurl }}/img/assets/optimizer-visual.png" alt="Apache Flink is easy to use" style="width:100%" />
+  </div>
+</div>
+
+<!-- Compatible with Hadoop -->
+<div class="row" style="padding: 2em 0 2em 0">
+  <div class="col-sm-6 text-center">
+    <img src="{{ site.baseurl }}/img/assets/hadoop-img.png" alt="Apache Flink is compatible with Hadoop" style="width:100%" />
+  </div>
+  <div class="col-sm-6">
+    <h1 id="hadoop">Compatible with Hadoop</h1>
+    <p class="lead">Flink supports all Hadoop input and output formats and data types</p>
+    <p class="lead">You can run your legacy MapReduce operators unmodified and faster on Flink..</p>
+    <p class="lead">Flink can read data from HDFS and HBase, and runs on top of YARN.</p>
+  </div>
+</div>
+
+{% comment %}
+
 <p class="lead" markdown="span">Get an overview of **how you can use Flink** and its **design**.</p>
 
 {% toc %}
@@ -18,7 +113,7 @@ title: "Features"
 
 Programs written with the [fluent programming APIs]() or using the [domain-specific APIs and libraries]() are translated to dataflows for the Flink engine. Flink takes care of data distribution, communication, and fault tolerance.
 
-Batch programs are as a special case of streaming programs as data inside the system is streamed all the way, including **pipelined shuffles**.
+Batch programs are as a special case of streaming programs as data inside the system is streamed whereever possible, including **pipelined shuffles**.
   </div>
 </div>
 
@@ -151,3 +246,5 @@ This makes the system extremely fast for data-intensive and iterative jobs.
 
 
 ## Program Optimizer
+
+{% endcomment %}

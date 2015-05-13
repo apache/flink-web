@@ -2,22 +2,26 @@
 layout: post
 title:  "Juggling with Bits and Bytes"
 date:   2015-05-11 10:00:00
+author: "Fabian Hüske"
+author-twitter: "fhueske"
+excerpt: "<p>Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.</p>
+
+<p>In this blog post we discuss how Apache Flink manages memory, talk about its custom data de/serialization stack, and show how it operates on binary data.</p>"
 categories: news
 ---
 
-###How Apache Flink operates on binary data
+## How Apache Flink operates on binary data
 
 Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.
 
 In this blog post we discuss how Apache Flink manages memory, talk about its custom data de/serialization stack, and show how it operates on binary data.
 
-###Data Objects? Let’s put them on the heap!
+## Data Objects? Let’s put them on the heap!
 
 The most straight-forward approach to process lots of data in a JVM is to put it as objects on the heap and operate on these objects. Caching a data set as objects would be as simple as maintaining a list containing an object for each record. An in-memory sort would simply sort the list of objects.
 However, this approach has a few notable drawbacks. First of all it is not trivial to watch and control heap memory usage when a lot of objects are created and invalidated constantly. Memory overallocation instantly kills the JVM with an `OutOfMemoryError`. Another aspect is garbage collection on multi-GB JVMs which are flooded with new objects. The overhead of garbage collection in such environments can easily reach 50% and more. Finally, Java objects come with a certain space overhead depending on the JVM and platform. For data sets with many small objects this can significantly reduce the effectively usable amount of memory. Given proficient system design and careful, use-case specific system parameter tuning, heap memory usage can be more or less controlled and `OutOfMemoryErrors` avoided. However, such setups are rather fragile especially if data characteristics or the execution environment change.
 
-
-###What is Flink doing about that?
+## What is Flink doing about that?
 
 Apache Flink has its roots at a research project which aimed to combine the best technologies of MapReduce-based systems and parallel database systems. Coming from this background, Flink has always had its own way of processing data in-memory. Instead of putting lots of objects on the heap, Flink serializes objects into a fixed number of pre-allocated memory segments. Its DBMS-style sort and join algorithms operate as much as possible on this binary data to keep the de/serialization overhead at a minimum. If more data needs to be processed than can be kept in memory, Flink’s operators partially spill data to disk. In fact, a lot of Flink’s internal implementations look more like C/C++ rather than common Java. The following figure gives a high-level overview of how Flink stores data serialized in memory segments and spills to disk if necessary.
 
@@ -37,7 +41,7 @@ These properties of active memory management are very desirable in a data proces
 In the following we discuss in detail how Flink allocates memory, de/serializes objects, and operates on binary data. We will also show some performance numbers comparing processing objects on the heap and operating on binary data.
 
 
-###How does Flink allocate memory?
+## How does Flink allocate memory?
 
 A Flink worker, called TaskManager, is composed of several internal components such as an actor system for coordination with the Flink master, an IOManager that takes care of spilling data to disk and reading it back, and a MemoryManager that coordinates memory usage. In the context of this blog post, the MemoryManager is of most interest. 
 
@@ -49,7 +53,7 @@ MemorySegments are allocated once at TaskManager start-up time and are destroyed
 <img src="{{ site.baseurl }}/img/blog/memory-alloc.png" style="width:60%;margin:15px">
 </center>
 
-###How does Flink serialize objects?
+## How does Flink serialize objects?
 
 The Java ecosystem offers several libraries to convert objects into a binary representation and back. Common alternatives are standard Java serialization, [Kryo](https://github.com/EsotericSoftware/kryo), [Apache Avro](http://avro.apache.org/), [Apache Thrift](http://thrift.apache.org/), or Google’s [Protobuf](https://github.com/google/protobuf). Flink includes its own custom serialization framework in order to control the binary representation of data. This is important because operating on binary data such as comparing or even manipulating binary data requires exact knowledge of the serialization layout. Further, configuring the serialization layout with respect to operations that are performed on binary data can yield a significant performance boost. Flink’s serialization stack also leverages the fact, that the type of the objects which are going through de/serialization are exactly known before a program is executed. 
 
@@ -80,8 +84,7 @@ public class Person {
 
 Flink’s type system can be easily extended by providing custom TypeInformations, Serializers, and Comparators to improve the performance of serializing and comparing custom data types. 
 
-
-###How does Flink operate on binary data?
+## How does Flink operate on binary data?
 
 Similar to many other data processing APIs (including SQL), Flink’s APIs provide transformations to group, sort, and join data sets. These transformations operate on potentially very large data sets. Relational database systems feature very efficient algorithms for these purposes since several decades including external merge-sort, merge-join, and hybrid hash-join. Flink builds on this technology, but generalizes it to handle arbitrary objects using its custom serialization and comparison stack. In the following, we show how Flink operates with binary data by the example of Flink’s in-memory sort algorithm.
 
@@ -106,8 +109,7 @@ The sort buffer compares two elements by comparing their binary fix-length sort 
 
 The sorted data is returned by sequentially reading the pointer region of the sort buffer, skipping the sort keys and following the sorted pointers to the actual data. This data is either deserialized and returned as objects or the binary representation is copied and written to disk in case of an external merge-sort (see this [blog post on joins in Flink](http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html)).
 
-
-###Show me numbers!
+## Show me numbers!
 
 So, what does operating on binary data mean for performance? We’ll run a benchmark that sorts 10 million `Tuple2<Integer, String>` objects to find out. The values of the Integer field are sampled from a uniform distribution. The String field values have a length of 12 characters and are sampled from a long-tail distribution. The input data is provided by an iterator that returns a mutable object, i.e., the same tuple object instance is returned with different field values. Flink uses this technique when reading data from memory, network, or disk to avoid unnecessary object instantiations. The benchmarks are run in a JVM with 900 MB heap size which is approximately the required amount of memory to store and sort 10 million tuple objects on the heap without dying of an `OutOfMemoryError`. We sort the tuples on the Integer field and on the String field using three sorting methods:
 
@@ -123,70 +125,66 @@ All sort methods are implemented using a single thread. The reported times are a
 
 We see that Flink’s sort on binary data using its own serializers significantly outperforms the other two methods. Comparing to the object-on-heap method, we see that loading the data into memory is much faster. Since we actually collect the objects, there is no opportunity to reuse the object instances, but have to re-create every tuple. This is less efficient than Flink’s serializers (or Kryo serialization). On the other hand, reading objects from the heap comes for free compared to deserialization. In our benchmark, object cloning was more expensive than serialization and deserialization combined. Looking at the sorting time, we see that also sorting on the binary representation is faster than Java’s collection sort. Sorting data that was serialized using Kryo without binary sort key, is much slower than both other methods. This is due to the heavy deserialization overhead. Sorting the tuples on their String field is faster than sorting on the Integer field due to the long-tailed value distribution which significantly reduces the number of pair-wise comparisons. To get a better feeling of what is happening during sorting we monitored the executing JVM using VisualVM. The following screenshots show heap memory usage, garbage collection activity and CPU usage over the execution of 10 runs.
 
-<table>
-<tr>
-	<td>&nbsp;</td>
-	<th><center><b>Garbage Collection</b></center></td>
-	<th><center><b>Memory Usage</b></center></td>
-</tr>
-<tr>
-	<td><b>Object-on-Heap (int)</b></td>
-	<td><img src="{{ site.baseurl }}/img/blog/objHeap-int-gc.png" style="width:80%;margin:15px"></td>
-	<td><img src="{{ site.baseurl }}/img/blog/objHeap-int-mem.png" style="width:80%;margin:15px"></td>
-</tr>
-<tr>
-	<td><b>Flink-Serialized (int)</b></td>
-	<td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-gc.png" style="width:80%;margin:15px"></td>
-	<td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-mem.png" style="width:80%;margin:15px"></td>
-</tr>
-<tr>
-	<td><b>Kryo-Serialized (int)</b></td>
-	<td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-gc.png" style="width:80%;margin:15px"></td>
-	<td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-mem.png" style="width:80%;margin:15px"></td>
-</tr>
+<table width="100%">
+  <tr>
+    <th></th>
+    <th><center><b>Garbage Collection</b></center></th>
+    <th><center><b>Memory Usage</b></center></th>
+  </tr>
+  <tr>
+    <td><b>Object-on-Heap (int)</b></td>
+    <td><img src="{{ site.baseurl }}/img/blog/objHeap-int-gc.png" style="width:80%"></td>
+    <td><img src="{{ site.baseurl }}/img/blog/objHeap-int-mem.png" style="width:80%"></td>
+  </tr>
+  <tr>
+    <td><b>Flink-Serialized (int)</b></td>
+    <td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-gc.png" style="width:80%"></td>
+    <td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-mem.png" style="width:80%"></td>
+  </tr>
+  <tr>
+    <td><b>Kryo-Serialized (int)</b></td>
+    <td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-gc.png" style="width:80%"></td>
+    <td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-mem.png" style="width:80%"></td>
+  </tr>
 </table>
 
 The experiments run single-threaded on an 8-core machine, so full utilization of one core only corresponds to a 12.5% overall utilization. The screenshots show that operating on binary data significantly reduces garbage collection activity. For the object-on-heap approach, the garbage collector runs in very short intervals while filling the sort buffer and causes a lot of CPU usage even for a single processing thread (sorting itself does not trigger the garbage collector). The JVM garbage collects with multiple parallel threads, explaining the high overall CPU utilization. On the other hand, the methods that operate on serialized data rarely trigger the garbage collector and have a much lower CPU utilization. In fact the garbage collector does not run at all if the tuples are sorted on the Integer field using the flink-serialized method because no objects need to be deserialized for pair-wise comparisons. The kryo-serialized method requires slightly more garbage collection since it does not use binary sort keys and deserializes two objects for each comparison.
 
 The memory usage charts shows that the flink-serialized and kryo-serialized constantly occupy a high amount of memory (plus some objects for operation). This is due to the pre-allocation of MemorySegments. The actual memory usage is much lower, because the sort buffers are not completely filled. The following table shows the memory consumption of each method. 10 million records result in about 280 MB of binary data (object data plus pointers and sort keys) depending on the used serializer and presence and size of a binary sort key. Comparing this to the memory requirements of the object-on-heap approach we see that operating on binary data can significantly improve memory efficiency. In our benchmark more than twice as much data can be sorted in-memory if serialized into a sort buffer instead of holding it as objects on the heap.
 
-
 <table width="100%">
-<tr><td><b>Occupied Memory</b></td>
-	<td><b>Object-on-Heap</b></td>
-	<td><b>Flink-Serialized</b></td>
-	<td><b>Kryo-Serialized</b></td>
-</tr>
-<tr>
-	<td><b>Sort on Integer</b></td>
-	<td>approx. 700 MB (heap)</td>
-	<td>277 MB (sort buffer)</td>
-	<td>266 MB (sort buffer)</td>
-</tr>
-<tr>
-	<td><b>Sort on String</b></td>
-	<td>approx. 700 MB (heap)</td>
-	<td>315 MB (sort buffer)</td>
-	<td>266 MB (sort buffer)</td>
-</tr>
-</table><br>
+  <tr>
+  	<th>Occupied Memory</th>
+    <th>Object-on-Heap</th>
+    <th>Flink-Serialized</th>
+    <th>Kryo-Serialized</th>
+  </tr>
+  <tr>
+    <td><b>Sort on Integer</b></td>
+    <td>approx. 700 MB (heap)</td>
+    <td>277 MB (sort buffer)</td>
+    <td>266 MB (sort buffer)</td>
+  </tr>
+  <tr>
+    <td><b>Sort on String</b></td>
+    <td>approx. 700 MB (heap)</td>
+    <td>315 MB (sort buffer)</td>
+    <td>266 MB (sort buffer)</td>
+  </tr>
+</table>
+
+<br>
 
 To summarize, the experiments verify the previously stated benefits of operating on binary data. 
 
-
-###We’re not done yet!
+## We’re not done yet!
 
 Apache Flink features quite a bit of advanced techniques to safely and efficiently process huge amounts of data with limited memory resources. However, there are a few points that could make Flink even more efficient. The Flink community is working on moving the managed memory to off-heap memory. This will allow for smaller JVMs, lower garbage collection overhead, and also easier system configuration. With Flink’s Table API, the semantics of all operations such as aggregations and projections are known (in contrast to black-box user-defined functions). Hence we can generate code for Table API operations that directly operates on binary data. Further improvements include serialization layouts which are tailored towards the operations that are applied on the binary data and code generation for serializers and comparators. 
 
 The groundwork (and a lot more) for operating on binary data is done but there is still some room for making Flink even better and faster. If you are crazy about performance and like to juggle with lot of bits and bytes, join the Flink community! 
 
-
-###TL;DR; Give me three things to remember!
+## TL;DR; Give me three things to remember!
 
 * Flink’s active memory management avoids nasty `OutOfMemoryErrors` that kill your JVMs and reduces garbage collection overhead.
 * Flink features a highly efficient data de/serialization stack that facilitates operations on binary data and makes more data fit into memory.
 * Flink’s DBMS-style operators operate natively on binary data yielding high performance in-memory and destage gracefully to disk if necessary.
-
-
-<br>
-<small>Written by Fabian Hueske ([@fhueske](https://twitter.com/fhueske)).</small>
