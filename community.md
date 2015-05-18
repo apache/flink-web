@@ -102,6 +102,22 @@ We use JIRA to track all code related issues: [{{ site.jira }}]({{ site.jira }})
 
 All issue activity is also mirrored to the issues mailing list.
 
+## Source Code
+
+### Main source repositories
+
+- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/flink.git](https://git-wip-us.apache.org/repos/asf/flink.git)
+- **ASF read-only**: git://git.apache.org/repos/asf/flink.git
+- **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+
+Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
+
+### Website repositories
+
+- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/flink-web.git](https://git-wip-us.apache.org/repos/asf/flink-web.git)
+- **ASF read-only**: git://git.apache.org/repos/asf/flink-web.git
+- **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
+
 ## People
 
 <table class="table table-striped">
