@@ -11,8 +11,7 @@ March has been a busy month in the Flink community.
 
 A Flink runner for Google Cloud Dataflow was announced. See the blog
 posts by [data Artisans](http://data-artisans.com/dataflow.html) and
-the [Google Cloud Platform Blog]
-(http://googlecloudplatform.blogspot.de/2015/03/announcing-Google-Cloud-Dataflow-runner-for-Apache-Flink.html).
+the [Google Cloud Platform Blog](http://googlecloudplatform.blogspot.de/2015/03/announcing-Google-Cloud-Dataflow-runner-for-Apache-Flink.html).
 Google Cloud Dataflow programs can be written using and open-source
 SDK and run in multiple backends, either as a managed service inside
 Google's infrastructure, or leveraging open source runners,
@@ -75,4 +74,4 @@ programs.
 
 A new execution environment enables non-iterative Flink jobs to use
 Tez as an execution backend instead of Flink's own network stack. Learn more
-[here](http://ci.apache.org/projects/flink/flink-docs-master/flink_on_tez_guide.html).
+[here](http://ci.apache.org/projects/flink/flink-docs-master/setup/flink_on_tez.html).

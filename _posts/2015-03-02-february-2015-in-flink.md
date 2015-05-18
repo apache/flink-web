@@ -75,7 +75,7 @@ See more Gelly examples
 ### Flink Expressions
 
 The newly merged
-[flink-expressions](https://github.com/apache/flink/tree/master/flink-staging/flink-expressions)
+[flink-table](https://github.com/apache/flink/tree/master/flink-staging/flink-table)
 module is the first step in Flink’s roadmap towards logical queries
 and SQL support. Here’s a preview on how you can read two CSV file,
 assign a logical schema to, and apply transformations like filters and
