@@ -1,10 +1,10 @@
 ---
-title: "Unified Batch and Stream Processing"
+title: "Scalable Batch and Stream Data Processing"
 layout: base
 ---
 
 <div class="row">
-  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for unified batch and stream processing.</p></div>
+  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for scalable batch and stream data processing.</p></div>
 </div>
 
 <div class="row">
