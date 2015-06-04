@@ -27,7 +27,7 @@ between the market data streams and a Twitter stream with stock mentions.
 
 For running the example implementation please use the *0.9-SNAPSHOT* 
 version of Flink as a dependency. The full example code base can be 
-found [here](https://github.com/apache/flink/blob/master/flink-staging/flink-streaming/flink-streaming-examples/src/main/scala/org/apache/flink/streaming/scala/examples/windowing/StockPrices.scala) in Scala and [here](https://github.com/apache/flink/blob/master/flink-staging/flink-streaming/flink-streaming-examples/src/main/java/org/apache/flink/streaming/examples/windowing/StockPrices.java) in Java7.
+found [here](https://github.com/mbalassi/flink/blob/stockprices/flink-staging/flink-streaming/flink-streaming-examples/src/main/scala/org/apache/flink/streaming/scala/examples/windowing/StockPrices.scala) in Scala and [here](https://github.com/mbalassi/flink/blob/stockprices/flink-staging/flink-streaming/flink-streaming-examples/src/main/java/org/apache/flink/streaming/examples/windowing/StockPrices.java) in Java7.
 
 <a href="#top"></a>
 
