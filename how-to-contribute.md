@@ -109,15 +109,15 @@ cd flink-web
 
 The `flink-web` directory contains the files that we use to build the website. We use [Jekyll](http://jekyllrb.com/) to generate static HTML files for the website.
 
-### Files and Directories in the SVN repository
+### Files and Directories in the website git repository
 
-The files and directories in the SVN repository have the following roles:
+The files and directories in the website git repository have the following roles:
 - all files ending with `.md` are [Markdown](http://daringfireball.net/projects/markdown/) files. Those are the input for the HTML files.
 - regular directories (not starting with an underscore (`_`)) contain also `.md` files. The directory structure is also represented in the generated HTML files.
 - the `_posts` directory contains one Markdown file for each blog post on the website. To contribute a post, just add a new file there.
 - the `_includes/` directory contains includeable files such as the navigation bar or the footer.
 - the `docs/` directory contains copies of the documentation of Flink for different releases. There is a directory inside `docs/` for each stable release and the latest SNAPSHOT version. The build script is taking care of the maintenance of this directory.
-- the `content/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website svn, push also the updates in the `content/` directory!)
+- the `content/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
 - see the section below for he `build.sh` script
 
 
@@ -126,15 +126,6 @@ The files and directories in the SVN repository have the following roles:
 The `build.sh` script creates HTML files from the input Markdown files. Use the `-p` flag to let Jekyll serve a **p**review of the website on http://localhost:4000/.
 
 The build script also takes care of maintaining the `docs/` directory. Set the `-u` flag to **u**pdate documentation. This includes fetching the Flink git repository and copying different versions of the documentation.
-
-### Submit a patch
-
-To contribute back your changes to the main project, create a patch that you can attach to a JIRA issue.
-
-```
-svn diff > improvement.patch
-```
-Upload the `.patch` file to a JIRA issue.
 
 ## How to become a committer
 
