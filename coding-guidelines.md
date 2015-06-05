@@ -36,6 +36,7 @@ for (...) {
   If you are wondering why, recall the famous [*goto bug*](https://www.imperialviolet.org/2014/02/22/applebug.html) in Apple's SSL library.
 - **No wildcard imports**. Do not use wildcard imports in the core files. They can cause problems when adding to the code and in some cases even during refactoring. Exceptions are the Tuple classes, Tuple-related utilities, and Flink user programs, when importing operators/functions. Tests are a special case of the user programs.
 - **No unused imports**. Remove all unused imports.
+- **Use Guava Checks**. To increase homogeneity, consistently use Guava methods checkNotNull and checkArgument rather than Apache Commons Validate.
 - **No raw generic types**. Do not use raw generic types, unless strictly necessary (sometime necessary for signature matches, arrays).
 - **Supress warnings**. Add annotations to suppress warnings, if they cannot be avoided (such as "unchecked", or "serial").
 - **Comments**. Add comments to your code. What is it doing? Add JavaDocs or inherit them by not adding any comments to the methods. Do not automatically generate comments and avoid unnecessary comments like:
