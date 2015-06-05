@@ -10,7 +10,7 @@ The Flink project welcomes all sorts contributions in the form of code (improvem
 
 We maintain all known issues and feature drafts in the [Flink project JIRA](https://issues.apache.org/jira/issues/?jql=project+%3D+FLINK).
 
-We also try to maintain a <a href="https://issues.apache.org/jira/browse/FLINK-992?jql=project%20%3D%20FLINK%20AND%20labels%20%3D%20starter%20AND%20status%20in%20(Open%2C%20Reopened)">list of simple "starter issues"</a> that we believe are good tasks for new contributors. Those tasks are meant to allow people to get into the project and become familiar with the process of contributing. Feel free to ask questions about issues that you would be interested in working on.
+We also try to maintain a <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC">list of simple "starter issues"</a> that we believe are good tasks for new contributors. Those tasks are meant to allow people to get into the project and become familiar with the process of contributing. Feel free to ask questions about issues that you would be interested in working on.
 
 In addition, you can find a list of ideas for projects and improvements in the [projects Wiki page](https://cwiki.apache.org/confluence/display/FLINK/Project+Ideas).
 
