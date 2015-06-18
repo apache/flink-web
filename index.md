@@ -81,7 +81,7 @@ Download the **latest stable release** and run Flink on your machine, cluster, o
 
 The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup) for all deployment options.
 
-The [programming guide]({{ site.docs-snapshot }}/apis) contains all information to get you started with writing and testing your Flink programs.
+The [programming guide]({{ site.docs-snapshot }}/apis/programming_guide.html) contains all information to get you started with writing and testing your Flink programs.
 
 **Check out the [documentation]({{ site.docs-snapshot }}) for the next steps.**
 
