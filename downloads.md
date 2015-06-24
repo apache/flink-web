@@ -36,12 +36,6 @@ You [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-t
     <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.x.</p>
   </a>
 
-  <!-- YARN -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_YARN_STABLE }}" class="list-group-item ga-track" id="download-hadoop2-yarn">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for YARN</h4>
-    <p>Pick this package if you plan to use Flink with Hadoop YARN.</p>
-  </a>
-
   <!-- Source -->
   <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE }}" class="list-group-item ga-track" id="download-source">
     <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
