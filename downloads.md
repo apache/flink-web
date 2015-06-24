@@ -71,35 +71,11 @@ These dependencies include a local execution environment and thus support local 
 - **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
 - **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
 
-## Preview release
-
-This **milestone release** is a preview of the upcoming {{site.FLINK_VERSION_LATEST_SHORT}} release. Check out the [announcement]({{ site.baseurl }}/news/2015/04/13/release-0.9.0-milestone1.html) for all the details.
-
-- **Hadoop 1**: <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-bin-hadoop1.tgz" id="download-hadoop1-preview" class="ga-track">flink-0.9.0-milestone-1-bin-hadoop1.tgz</a>
-- **Hadoop 2 and YARN**: <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-bin-hadoop2.tgz" id="download-hadoop2-preview" class="ga-track">flink-0.9.0-milestone-1-bin-hadoop2.tgz</a>
-- **Source**. <a href="http://www.apache.org/dyn/closer.cgi/flink/flink-0.9.0-milestone-1/flink-0.9.0-milestone-1-src.tgz" class="ga-track" id="download-source-preview">flink-0.9.0-milestone-1-src.tgz</a>
-
-You can add the following dependencies to your `pom.xml` to include Apache Flink in your project.
-
-```xml
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>0.9.0-milestone-1</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients</artifactId>
-  <version>0.9.0-milestone-1</version>
-</dependency>
-```
-
-- **Hadoop 1**: If you want to interact with Hadoop 1, use `0.9.0-milestone-1-hadoop1` as the version.
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
-
 ## All releases
 
-- Flink 0.8.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html))
+- Flink 0.9.0-milestone-1 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.0-milestone-1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
+- Flink 0.8.1 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/scala/index.html))
+- Flink 0.8.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html))
 - Flink 0.7.0-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/flink-0.7.0-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/scala/index.html))
 - Flink 0.6.1-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/scala/index.html))
 - Flink 0.6-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/scala/index.html))
