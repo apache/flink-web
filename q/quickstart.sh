@@ -24,7 +24,7 @@ PACKAGE=quickstart
 mvn archetype:generate								\
   -DarchetypeGroupId=org.apache.flink				\
   -DarchetypeArtifactId=flink-quickstart-java		\
-  -DarchetypeVersion=0.8.1							\
+  -DarchetypeVersion=0.9.0							\
   -DgroupId=org.myorg.quickstart					\
   -DartifactId=$PACKAGE								\
   -Dversion=0.1										\
@@ -44,5 +44,3 @@ echo -e "\\t\\t mvn clean package"
 echo -e "\\tYou will find the runnable jar in $PACKAGE/target"
 echo -e "\\tConsult our website if you have any troubles: http://flink.apache.org/community.html#mailing-lists"
 echo -e "\\n\\n"
-
-
