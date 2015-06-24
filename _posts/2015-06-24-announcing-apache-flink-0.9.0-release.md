@@ -25,11 +25,13 @@ The fault tolerance mechanism requires data sources that can replay recent parts
 
 Flink’s new Table API offers a higher-level abstraction for interacting with structured data sources. The Table API allows users to execute logical, SQL-like queries on distributed data sets while allowing them to freely mix declarative queries with regular Flink operators. Here is an example that groups and joins two tables:
 
+```scala
 val clickCounts = clicks
   .groupBy('user).select('userId, 'url.count as 'count)
 
 val activeUsers = users.join(clickCounts)
   .where('id === 'userId && 'count > 10).select('username, 'count, ...)
+```
 
 Tables consist of logical attributes that can be selected by name rather than physical Java and Scala data types. This alleviates a lot of boilerplate code for common ETL tasks and raises the abstraction for Flink programs. Tables are available for both static and streaming data sources (DataSet and DataStream APIs).
 
