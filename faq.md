@@ -159,6 +159,29 @@ Please refer to the [download page]({{ site.baseurl }}/downloads.html#maven) and
 the {% github README.md master "build instructions" %}
 for details on how to set up Flink for different Hadoop and HDFS versions.
 
+
+### My job fails with various exceptions from the HDFS/Hadoop code. What can I do?
+
+Flink is shipping with the Hadoop 2.2 binaries by default. These binaries are used
+to connect to HDFS or YARN.
+It seems that there are some bugs in the HDFS client which cause exceptions while writing to HDFS
+(in particular under high load).
+Among the exceptions are the following:
+
+- `HDFS client trying to connect to the standby Namenode "org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.ipc.StandbyException): Operation category READ is not supported in state standby"`
+- `java.io.IOException: Bad response ERROR for block BP-1335380477-172.22.5.37-1424696786673:blk_1107843111_34301064 from datanode 172.22.5.81:50010
+  at org.apache.hadoop.hdfs.DFSOutputStream$DataStreamer$ResponseProcessor.run(DFSOutputStream.java:732)`
+
+- `Caused by: org.apache.hadoop.ipc.RemoteException(java.lang.ArrayIndexOutOfBoundsException): 0
+        at org.apache.hadoop.hdfs.server.blockmanagement.DatanodeManager.getDatanodeStorageInfos(DatanodeManager.java:478)
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.updatePipelineInternal(FSNamesystem.java:6039)
+        at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.updatePipeline(FSNamesystem.java:6002)`
+        
+If you are experiencing any of these, we recommend using a Flink build with a Hadoop version matching
+your local HDFS version.
+You can also manually build Flink against the exact Hadoop version (for example
+when using a Hadoop distribution with a custom patch level)
+
 ### In Eclipse, I get compilation errors in the Scala projects
 
 Flink uses a new feature of the Scala compiler (called "quasiquotes") that have not yet been properly
