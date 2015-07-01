@@ -30,10 +30,28 @@ You [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-t
     <p>Also pick this version if you don't plan to use Flink with Hadoop at all.</p>
   </a>
 
-  <!-- Hadoop 2 -->
+  <!-- Hadoop 2.2 -->
   <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" id="download-hadoop2" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2</h4>
-    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.x.</p>
+    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.2.0</h4>
+    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.2.0 This version also supports YARN</p>
+  </a>
+
+  <!-- Hadoop 2.4 -->
+  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" id="download-hadoop24" class="list-group-item ga-track">
+    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.4.1</h4>
+    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.4.1 This version also supports YARN</p>
+  </a>
+
+  <!-- Hadoop 2.6 -->
+  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" id="download-hadoop26" class="list-group-item ga-track">
+    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.6.0</h4>
+    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.6.0 This version also supports YARN</p>
+  </a>
+
+  <!-- Hadoop 2.7 -->
+  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" id="download-hadoop27" class="list-group-item ga-track">
+    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.7.0</h4>
+    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.7.0 This version also supports YARN</p>
   </a>
 
   <!-- Source -->
