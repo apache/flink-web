@@ -183,6 +183,12 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
     <td class="text-center">aljoscha</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/2550549?s=50"></td>
+    <td class="text-center">Andra Lungu</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">andra</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/89049?s=50"></td>
     <td class="text-center">Robert Metzger</td>
     <td class="text-center">PMC, Committer</td>
@@ -194,6 +200,11 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
     <td class="text-center">Committer</td>
     <td class="text-center">mxm</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/1941681?s=50"></td>
+    <td class="text-center">Chiwan Park</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">chiwanpark</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5756858?s=50"></td>
@@ -230,18 +241,6 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
     <td class="text-center">Daniel Warneke</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">warneke</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/2550549?s=50"></td>
-    <td class="text-center">Andra Lungu</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">andra</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/1941681?s=50"></td>
-    <td class="text-center">Chiwan Park</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">chiwanpark</td>
   </tr>
 </table>
 
