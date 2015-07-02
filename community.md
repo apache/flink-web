@@ -231,6 +231,18 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">warneke</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/2550549?s=50"></td>
+    <td class="text-center">Andra Lungu</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">andra</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/1941681?s=50"></td>
+    <td class="text-center">Chiwan Park</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">chiwanpark</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found on our [GitHub Contributors]({{ site.FLINK_GITHUB_CONTRIBUTORS_URL }}) page.
