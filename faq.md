@@ -384,14 +384,17 @@ where it stores the Flink jar and configuration file.
 
 ### What kind of fault-tolerance does Flink provide?
 
-Flink can restart failed jobs. Mid-query fault tolerance will go into the
-open source project in the next versions.
+For streaming programs, Flink has a novel approach to draw periodic snapshots of the streaming dataflow state and use those for recovery.
+This mechanism is both efficient and flexible. See the documentation on [streaming fault tolerance]({{ site.docs-snapshot }}/internals/stream_checkpointing.html) for details.
+
+For batch processing programs, Flink remembers the programs sequence of transformations and can restart failed jobs.
+
 
 ### Are Hadoop-like utilities, such as Counters and the DistributedCache supported?
 
 [Flink's Accumulators]({{ site.docs-snapshot }}/apis/programming_guide.html#accumulators--counters) work very similar like
-[Hadoop's counters, but are more powerful.
+Hadoop's counters, but are more powerful.
 
-Flink has a {% github /flink-core/src/main/java/org/apache/flink/api/common/cache/DistributedCache.java "Distributed Cache" %} that is deeply integrated with the APIs. Please refer to the {% github /flink-java/src/main/java/org/apache/flink/api/java/ExecutionEnvironment.java#L561 "JavaDocs" %} for details on how to use it.
+Flink has a [Distributed Cache](https://github.com/apache/flink/tree/master/flink-core/src/main/java/org/apache/flink/api/common/cache/DistributedCache.java) that is deeply integrated with the APIs. Please refer to the [JavaDocs](https://github.com/apache/flink/tree/master/flink-java/src/main/java/org/apache/flink/api/java/ExecutionEnvironment.java#L831) for details on how to use it.
 
 In order to make data sets available on all tasks, we encourage you to use [Broadcast Variables]({{ site.docs-snapshot }}/apis/programming_guide.html#broadcast-variables) instead. They are more efficient and easier to use than the distributed cache.
