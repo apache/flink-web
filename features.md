@@ -1,250 +1,301 @@
 ---
 title: "Features"
+layout: features
 ---
 
-<!-- System Overview -->
-<div class="row" style="padding: 2em 0 0 0">
+
+<!-- --------------------------------------------- -->
+<!--                Streaming
+<!-- --------------------------------------------- -->
+
+----
+
+<div class="row" style="padding: 0 0 0 0">
+  <div class="col-sm-12" style="text-align: center;">
+    <h1><b>Streaming</b></h1>
+  </div>
+</div>
+
+----
+
+<!-- High Performance -->
+<div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
-    <h1>System Overview</h1>
-    <p class="lead">Flink contains APIs in Java and Scala for analyzing data from batch and streaming data sources, as well as its own optimizer and distributed runtime with custom memory management.</p>
+    <h1 id="performance"><i>High Performance</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <p class="lead">Flink's data streaming runtime achieves high throughput rates and low latencies with little configuration.</p>
   </div>
 </div>
 <div class="row" style="padding: 0 0 2em 0">
-  <div class="col-sm-12 text-center">
-    <img src="{{ site.baseurl }}/img/assets/WhatIsFlink.png" alt="Apache Flink is Fast" style="width:100%" />
+  <div class="col-sm-12 img-column">
+    <img src="{{ site.baseurl }}/img/features/streaming_performance.png" alt="Performance of data streaming applications" style="width:75%" />
   </div>
 </div>
 
-<!-- Fast -->
-<div class="row" style="padding: 2em 0 2em 0">
-  <div class="col-sm-6">
-    <h1 id="fast">Fast</h1>
-    <p class="lead">Flink exploits in-memory data streaming and integrates iterative processing deeply into the system runtime.</p>
-    <p class="lead">This makes the system extremely fast for data-intensive and iterative jobs.</p>
-  </div>
-  <div class="col-sm-6">
-    <img src="{{ site.baseurl }}/img/assets/pagerank.png" alt="Apache Flink is Fast" style="width:100%" />
-  </div>
-</div>
+----
 
-<!-- Reliable and Scalable -->
-<div class="row" style="padding: 2em 0 2em 0">
-  <div class="col-sm-6 text-center">
-    <img src="{{ site.baseurl }}/img/assets/grep.png" alt="Apache Flink is Fast" style="width:100%" />
-  </div>
-  <div class="col-sm-6">
-    <h1 id="reliable-and-scalable">Reliable and Scalable</h1>
-    <p class="lead">Flink is designed to perform well when memory runs out.</p>
-    <p class="lead">Flink contains its own memory management component, serialization framework, and type inference engine.</p>
-    <p class="lead">Tested in clusters of 100s of nodes, Amazon EC2, and Google Compute Engine.</p>
-  </div>
-</div>
-
-<!-- Expressive -->
-<div class="row">
+<!-- Exactly-once Semantics -->
+<div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
-    <h1 id="expressive">Expressive</h1>
-    <p class="lead">Write beautiful, type-safe, and maintainable code in Java or Scala. Execute it on a cluster. You can use native Java and Scala data types without packing them into key-value pairs, logical field addressing, and a wealth of operators.</p>
-    <h2>WordCount in Flink's Scala API</h2>
-    {% highlight scala %}
-case class Word (word: String, frequency: Int)
+    <h1 id="exactly_once"><i>Exactly-once Semantics for Stateful Computations</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Streaming applications can maintain custom state during their computation.</p>
+    <p class="lead">Flink's checkpointing mechanism ensures <i>exactly once</i> semantics for the state in the presence of failures.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/exactly_once_state.png" alt="Exactly-once Semantics for Stateful Computations" style="width:50%" />
+  </div>
+</div>
+
+----
+
+<!-- Continuous streaming -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="streaming_model"><i>Continuous Streaming Model with Flow Control</i></h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Data streaming applications are executed with continuous (long lived) operators.</p>
+    <p class="lead">Flink's streaming runtime has natural flow control: Slow downstream operators backpressure faster upstream operators.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/continuous_streams.png" alt="Continuous Streaming Model" style="width:60%" />
+  </div>
+</div>
+
+----
+
+<!-- Lightweight distributed snapshots -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="snapshots"><i>Fault-tolerance via Lightweight Distributed Snapshots</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink's fault tolerance mechanism is based on Chandy-Lamport distributed snapshots.</p>
+    <p class="lead">The mechanism is lightweight, allowing the system to maintain high throughput rates and provide strong consistency guarantees at the same time.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/distributed_snapshots.png" alt="Lightweight Distributed Snapshots" style="width:40%" />
+  </div>
+</div>
+
+----
+
+<!-- --------------------------------------------- -->
+<!--                Batch
+<!-- --------------------------------------------- -->
+
+<div class="row" style="padding: 0 0 0 0">
+  <div class="col-sm-12" style="text-align: center;">
+    <h1><b>Batch and Streaming in One System</b></h1>
+  </div>
+</div>
+
+----
+
+<!-- One Runtime for Streaming and Batch Processing -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="one_runtime"><i>One Runtime for Streaming and Batch Processing</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink uses one common runtime for data streaming applications and batch processing applications.</p>
+    <p class="lead">Batch processing applications run efficiently as special cases of stream processing applications.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/one_runtime.png" alt="Unified Runtime for Batch and Stream Data Analysis" style="width:50%" />
+  </div>
+</div>
+
+----
+
+
+<!-- Memory Management -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="memory_management"><i>Memory Management</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink implements its own memory management inside the JVM.</p>
+    <p class="lead">Applications scale to data sizes beyond main memory and experience less garbage collection overhead.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/memory_heap_division.png" alt="Managed JVM Heap" style="width:50%" />
+  </div>
+</div>
+
+----
+
+<!-- Iterations -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="iterations"><i>Iterations and Delta Iterations</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink has dedicated support for iterative computations (as in machine learning and graph analysis).</p>
+    <p class="lead">Delta iterations can exploit computational dependencies for faster convergence.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/iterations.png" alt="Performance of iterations and delta iterations" style="width:75%" />
+  </div>
+</div>
+
+----
+
+<!-- Optimizer -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="optimizer"><i>Program Optimizer</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Batch programs are automatically optimized to exploit situations where expensive operations (like shuffles and sorts) can be avoided, and when intermediate data should be cached.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/optimizer_choice.png" alt="Optimizer choosing between different execution strategies" style="width:100%" />
+  </div>
+</div>
+
+----
+
+<!-- --------------------------------------------- -->
+<!--             APIs and Libraries
+<!-- --------------------------------------------- -->
+
+<div class="row" style="padding: 0 0 0 0">
+  <div class="col-sm-12" style="text-align: center;">
+    <h1><b>APIs and Libraries</b></h1>
+  </div>
+</div>
+
+----
+
+<!-- Batch Processing API -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="batch_api"><i>Batch Processing Applications</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-5">
+    <p class="lead">Flink's <i>DataSet</i> API lets you write beautiful type-safe and maintainable code in Java or Scala. It supports a wide range of data types beyond key/value pairs, and a wealth of operators.</p>
+    <p class="lead">The example shows the core loop of the PageRank algorithm for graphs.</p>
+  </div>
+  <div class="col-sm-7">
+{% highlight scala %}
+case class Page(pageId: Long, rank: Double)
+case class Adjacency(id: Long, neighbors: Array[Long])
+
+val result = initialRanks.iterate(30) { pages =>
+  pages.join(adjacency).where("pageId").equalTo("pageId") {
+
+    (page, adj, out : Collector[Page]) => {
+      out.collect(Page(page.id, 0.15 / numPages))
+        
+      for (n <- adj.neighbors) {
+        out.collect(Page(n, 0.85*page.rank/adj.neighbors.length))
+      }
+    }
+  }
+  .groupBy("pageId").sum("rank")
+}
+{% endhighlight %}
+  </div>
+</div>
+
+----
+
+<!-- Data Streaming API -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="streaming_api"><i>Streaming Data Applications</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-5">
+    <p class="lead">The <i>DataStream</i> API supports functional transformations on data streams, with user-defined state, and flexible windows.</p>
+    <p class="lead">The example shows how to compute a sliding historam of word occurrences of a data stream of texts.</p>
+  </div>
+  <div class="col-sm-7">
+    <p class="lead">WindowWordCount in Flink's DataStream API</p>
+{% highlight scala %}
+case class Word(word: String, freq: Long)
+
+val texts: DataStream[String] = ...
 
 val counts = text
-  .flatMap {line => line.split(" ").map(
-    word => Word(word,1))}
-  .groupBy("word").sum("frequency")
-    {% endhighlight %}
-    <h2>Transitive Closure</h2>
-    {% highlight scala %}
-case class Path (from: Long, to: Long)
-
-val tc = edges.iterate(10) { paths: DataSet[Path] =>
-  val next = paths
-    .join(edges).where("to").equalTo("from") {
-      (path, edge) => Path(path.from, edge.to)
-    }
-    .union(paths).distinct()
-  next
-}
-    {% endhighlight %}
-  </div>
-</div>
-
-<!-- Easy to Use -->
-<div class="row" style="padding: 2em 0 2em 0">
-  <div class="col-sm-6">
-    <h1 id="easy-to-use">Easy to Use</h1>
-    <p class="lead">Flink requires few configuration parameters. And the system's bult-in optimizer takes care of finding the best way to execute the program in any enviroment.</p>
-    <p class="lead">Run on YARN with 3 commands, in a stand-alone cluster, or locally in a debugger.</p>
-  </div>
-  <div class="col-sm-6 text-center">
-    <img src="{{ site.baseurl }}/img/assets/optimizer-visual.png" alt="Apache Flink is easy to use" style="width:100%" />
-  </div>
-</div>
-
-<!-- Compatible with Hadoop -->
-<div class="row" style="padding: 2em 0 2em 0">
-  <div class="col-sm-6 text-center">
-    <img src="{{ site.baseurl }}/img/assets/hadoop-img.png" alt="Apache Flink is compatible with Hadoop" style="width:100%" />
-  </div>
-  <div class="col-sm-6">
-    <h1 id="hadoop">Compatible with Hadoop</h1>
-    <p class="lead">Flink supports all Hadoop input and output formats and data types</p>
-    <p class="lead">You can run your legacy MapReduce operators unmodified and faster on Flink..</p>
-    <p class="lead">Flink can read data from HDFS and HBase, and runs on top of YARN.</p>
-  </div>
-</div>
-
-{% comment %}
-
-<p class="lead" markdown="span">Get an overview of **how you can use Flink** and its **design**.</p>
-
-{% toc %}
-
-## Unified Stream &amp; Batch Processing
-
-<p class="lead" markdown="span">Flink's core is a *distributed streaming dataflow engine*, which efficiently supports both *batch* and *stream processing applications*.</p>
-
-<div class="row">
-  <div class="col-sm-4">
-    <img src="{{ site.baseurl }}/img/runtime.png" alt="Apache Flink Stack" title="Apache Flink Stack" width="100%" />
-  </div>
-  <div class="col-sm-8" markdown="1">
-
-Programs written with the [fluent programming APIs]() or using the [domain-specific APIs and libraries]() are translated to dataflows for the Flink engine. Flink takes care of data distribution, communication, and fault tolerance.
-
-Batch programs are as a special case of streaming programs as data inside the system is streamed whereever possible, including **pipelined shuffles**.
-  </div>
-</div>
-
-<hr>
-
-# Programming Flink
-
-## Fluent Programming APIs
-
-<p class="lead">
-Write beautiful, type-safe, and maintainable code in Java or Scala. You can use native Java and Scala data types without packing them into key-value pairs, logical field addressing, and a wealth of operators.
-</p>
-
-<div class="row">
-  <!-- DataSet API -->
-  <div class="col-sm-4" markdown="1">
-### DataSet API
-
-**Batch Processing**. Use the DataSet API to process static inputs. The following example takes an input text and counts all distinct words in it (the infamous [WordCount]() example).
-
-{% highlight java %}
-DataSet<Tuple2<String, Integer>> counts = 
-  text.flatMap(new Tokenizer())
-      .groupBy(0)
-      .sum(1);
-{% endhighlight %}
-
-Check out the [full example code]() and read the [programming guide]() for all features of the DataSet API.
-  </div>
-
-  <!-- DataStream API -->
-  <div class="col-sm-4" markdown="1">
-### DataStream API
-
-**Stream Processing**. Use the DataStream API to process continuous streams of data. The following example counts all distinct words in a sliding window over the input stream.
-
-{% highlight java %}
-DataStream<Tuple2<String, Integer>> counts =
-  text.flatMap(new Tokenizer())
-      .window(Count.of(windowSize))
-      .every(Count.of(slideSize))
-      .groupBy(0).sum(1);
-{% endhighlight %}
-
-Check out the [full example code]() and read the [streaming guide]() for all features of the DataStream API.
-  </div>
-
-  <!-- Table API -->
-  <div class="col-sm-4" markdown="1">
-### Table API
-
-**Language integrated queries**. Specify operations using SQL-like expressions. These operations work both with static inputs as well as continuous streams.
-
-{% highlight java %}
-Table table = tableEnv.toTable(text);
-Table filtered = table
+  .flatMap { line => line.split("\\W+") } 
+  .map { token => Word(token, 1) }
   .groupBy("word")
-  .select("word.count as count, word")
-  .filter("count = 2");
+  .window(Time.of(5, SECONDS)).every(Time.of(1, SECONDS))
+  .sum("freq")
 {% endhighlight %}
-
-Check out the [full example code]() and read the [Table API guide]() for all features of the Table API.
   </div>
 </div>
 
-<br>
-<hr>
-<br>
+----
 
-## Domain-specific APIs &amp; Libraries
-
-<p class="lead" markdown="1">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</p>
-
+<!-- Library Ecosystem -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="libraries"><i>Library Ecosystem</i></h1>
+  </div>
+</div>
 <div class="row">
-  <div class="col-sm-6" markdown="1">
-### Graph API &amp; Library: Gelly
+  <div class="col-sm-6">
+    <p class="lead">Flink's stack offers libraries with high-level APIs for different use cases: Machine Learning, Graph Analytics, and Relational Data Processing.</p>
+    <p class="lead">The libraries are currently in <i>beta</i> status and are heavily developed.</p>
   </div>
-
-  <div class="col-sm-6" markdown="1">
-### Machine Learning Library
-
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/stack.png" alt="Flink Stack with Libraries" style="width:60%" />
   </div>
 </div>
 
-<br>
+----
 
-## Deployment and Integration
+<!-- --------------------------------------------- -->
+<!--             Ecosystem
+<!-- --------------------------------------------- -->
 
-<p class="lead" markdown="1">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod</p>
+<div class="row" style="padding: 0 0 0 0">
+  <div class="col-sm-12" style="text-align: center;">
+    <h1><b>Ecosystem</b></h1>
+  </div>
+</div>
 
-<br>
+----
 
-# System Design
-
-## Stateful Operators
-
-Applications that go beyond simple filters or line-by-line transformations of the input need stateful operators. There are three kinds of state that are offered by Flink:
-
-- **User-defined state**: As Flink is a streaming dataflow system, operators are continuously running, and can contain user-defined state in the form of Java/Scala objects. This is the most elementary (but most flexible) operator state, but is not backed up or restored by the system in cases of failures.
-
-- **Managed state**: User-defined operations will be able to use a special interface to put their state into an object that is backed up and restored in case of failures. Flink contains managed state internally, and the community is working on exposing this to the user-facing APIs shortly.
-
-- **Windowed streams**: Flink offers the ability to create a finite stream from an infinite stream using (sliding) windows over the stream. The contents of those windows is special form of state that is managed by the system.
-
-Flink uses a variation of the [Chandy-Lamport algorithm]() for consistent asynchronous distributed snapshots. The state backup works hand-in-hand with checkpoint barriers for stream replay. This allows Flink to give **exactly-once processing guarantees** by replaying parts of a stream, reproducing the results of a user program.
-
-## Memory Management
-
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-
-## Iterative Dataflows
-
+<!-- Ecosystem -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="ecosystem"><i>Broad Integration</i></h1>
+  </div>
+</div>
 <div class="row">
-  <div class="col-sm-4">
-    <img src="{{ site.baseurl }}/img/main/section/pagerank.png" alt="Apache Flink Stack" title="Apache Flink Stack" width="100%" />
+  <div class="col-sm-6">
+    <p class="lead">Flink is integrated with many other projects in the open-source data processing ecosystem.</p>
+    <p class="lead">Flink runs on YARN, works with HDFS, streams data from Kafka, can execute Hadoop program code, and connects to various other data storage systems.</p>
   </div>
-  <div class="col-sm-8" markdown="1">
-
-Flink exploits in-memory data streaming and integrates iterative processing deeply into the system runtime.
-
-This makes the system extremely fast for data-intensive and iterative jobs.
+  <div class="col-sm-6  img-column">
+    <img src="{{ site.baseurl }}/img/features/ecosystem_logos.png" alt="Other projects that Flink is integrated with" style="width:75%" />
   </div>
 </div>
 
-
-## Program Optimizer
-
-{% endcomment %}
