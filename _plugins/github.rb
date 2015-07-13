@@ -5,10 +5,10 @@ module Jekyll
       super
       @input = input
     end
-# Usage: github $PATH [$TAG: master]
+# Usage: github $PATH [$TAG: master] [$TEXT]
     
     def render(context)
-      input = @input.sub(/".*"/, "").split
+      input = @input.gsub(/"/, "").split
       config = context.registers[:site].config
 
       path = input[0]
@@ -18,7 +18,11 @@ module Jekyll
       # 2. "master" (default)
       gh_tag = input[1].nil? ? "master" : input[1]
 
-      "#{config["github"]}/tree/#{gh_tag}/#{path}"
+      url = "#{config["github"]}/tree/#{gh_tag}/#{path}"
+
+      text = input.length > 2 ? input[2..-1].join(" ") : url
+
+      "<a href='#{url}'>#{text}</a>"
     end
   end
 end
