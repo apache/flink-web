@@ -47,7 +47,7 @@ layout: features
     <p class="lead">Flink's checkpointing mechanism ensures <i>exactly once</i> semantics for the state in the presence of failures.</p>
   </div>
   <div class="col-sm-6 img-column">
-    <img src="{{ site.baseurl }}/img/features/exactly_once_state.png" alt="Exactly-once Semantics for Stateful Computations" style="width:40%" />
+    <img src="{{ site.baseurl }}/img/features/exactly_once_state.png" alt="Exactly-once Semantics for Stateful Computations" style="width:50%" />
   </div>
 </div>
 
@@ -114,7 +114,7 @@ layout: features
     <p class="lead">Batch processing applications run efficiently as special cases of stream processing applications.</p>
   </div>
   <div class="col-sm-6 img-column">
-    <img src="{{ site.baseurl }}/img/features/one_runtime.png" alt="Unified Runtime for Batch and Stream Data Analysis" style="width:75%" />
+    <img src="{{ site.baseurl }}/img/features/one_runtime.png" alt="Unified Runtime for Batch and Stream Data Analysis" style="width:50%" />
   </div>
 </div>
 
@@ -168,7 +168,7 @@ layout: features
     <p class="lead">Batch programs are automatically optimized to exploit situations where expensive operations (like shuffles and sorts) can be avoided, and when intermediate data should be cached.</p>
   </div>
   <div class="col-sm-6 img-column">
-    <img src="{{ site.baseurl }}/img/features/optimizer_choice.png" alt="Optimizer choosing between different execution strategies" style="width:40%" />
+    <img src="{{ site.baseurl }}/img/features/optimizer_choice.png" alt="Optimizer choosing between different execution strategies" style="width:100%" />
   </div>
 </div>
 
