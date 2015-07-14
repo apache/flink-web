@@ -232,7 +232,7 @@ val result = initialRanks.iterate(30) { pages =>
 <div class="row">
   <div class="col-sm-5">
     <p class="lead">The <i>DataStream</i> API supports functional transformations on data streams, with user-defined state, and flexible windows.</p>
-    <p class="lead">The example shows how to compute a sliding historam of word occurrences of a data stream of texts.</p>
+    <p class="lead">The example shows how to compute a sliding histogram of word occurrences of a data stream of texts.</p>
   </div>
   <div class="col-sm-7">
     <p class="lead">WindowWordCount in Flink's DataStream API</p>
