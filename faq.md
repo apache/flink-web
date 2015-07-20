@@ -281,6 +281,14 @@ Check the logging behavior of your jobs. Emitting logging per or tuple may be
 helpful to debug jobs in small setups with tiny data sets, it becomes very
 inefficient and disk space consuming if used for large input data.
 
+### The slot allocated for my task manager has been released. What should I do?
+
+A `java.lang.Exception: The slot in which the task was executed has been released. Probably loss of TaskManager` usually occurs when there are big garbage collection stalls.
+In this case, a quick fix would be to use the G1 garbage collector. It works incrementally and it often leads to lower pauses. Furthermore, you can dedicate more memory to the user code (e.g. 0.4 per system and 0.6 per user).
+
+If both of these approaches fail and the error persists, simply increase the TaskManager's heartbeat pause by setting AKKA_WATCH_HEARTBEAT_PAUSE (akka.watch.heartbeat.pause) to a greater value (e.g. 600s).
+This will cause the JobManager to wait for a heartbeat for a longer time interval before considering the TaskManager lost.
+
 ## YARN Deployment
 
 ### The YARN session runs only for a few seconds
