@@ -21,12 +21,13 @@ layout: features
 <!-- High Performance -->
 <div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
-    <h1 id="performance"><i>High Performance</i></h1>
+    <h1 id="performance"><i>High Performance & Low Latency</i></h1>
   </div>
 </div>
 <div class="row">
   <div class="col-sm-12">
-    <p class="lead">Flink's data streaming runtime achieves high throughput rates and low latencies with little configuration.</p>
+    <p class="lead">Flink's data streaming runtime achieves high throughput rates and low latency with little configuration.
+    The charts below show the performance of a distributed item counting task, requiring streaming data shuffles.</p>
   </div>
 </div>
 <div class="row" style="padding: 0 0 2em 0">
