@@ -4,11 +4,11 @@ layout: base
 ---
 
 <div class="row">
-  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for scalable batch and stream data processing.</p></div>
+  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for distributed stream and batch data processing.</p></div>
 </div>
 
 <div class="row">
-  <div class="col-sm-6" markdown="1">
+  <div class="col-md-6" markdown="1">
 
 **Flink’s core** is a [streaming dataflow engine](features.html#unified-stream-amp-batch-processing) that provides data distribution, communication, and fault tolerance for distributed computations over data streams.
 
@@ -24,10 +24,8 @@ Flink also bundles **libraries for domain-specific use cases**:
 2. [Gelly](features.html#graph-api-amp-library-gelly), a graph processing API and library.
 
 You can **integrate** Flink easily with other well-known open source systems both for [data input and output](features.html#deployment-and-integration) as well as [deployment](features.html#deployment-and-integration).
-
-**Check out the [features](features.html) page to get a tour of all major Flink features.**
   </div>
-  <div class="col-sm-6 stack text-center">
+  <div class="col-md-6 stack text-center">
     <img src="{{ site.baseurl }}/img/flink-stack-small.png" alt="Apache Flink Stack" width="385px" height="300px">
   </div>
 </div>
@@ -37,32 +35,20 @@ You can **integrate** Flink easily with other well-known open source systems bot
 <div class="frontpage-tags">
   <div class="row">
     <div class="col-md-4 text-center">
-       <h2><span class="glyphicon glyphicon-flash"></span> <a href="features.html#fast">Fast</a></h2>
-      <p>State-of-the art performance exploiting in-memory processing and data streaming.</p>
+      <h2><span class="glyphicon glyphicon-send"></span> <a href="features.html#streaming">Streaming First</a></h2>
+      <p>High throughput and low latency stream processing with exactly-once guarantees.</p>
     </div>
     <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-plane"></span> <a href="features.html#reliable-and-scalable">Reliable</a></h2>
-      <p>Flink is designed to perform very well even when the cluster's memory runs out.</p>
+      <h2><span class="glyphicon glyphicon-flash"></span> <a href="features.html#batch-on-streaming">Batch on Streaming</a></h2>
+      <p>Batch processing applications run efficiently as special cases of stream processing applications.</p>
     </div>
     <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-cutlery"></span> <a href="features.html#expressive">Expressive</a></h2>
-      <p>Write beautiful, type-safe code in Java and Scala. Execute it on a cluster.</p>
+      <h2><span class="glyphicon glyphicon-fire"></span> <a href="features.html#apis-and-libs">APIs, Libraries, and Ecosystem</a></h2>
+      <p>DataSet, DataStream, and more. Integrated with the Apache Big Data stack.</p>
     </div>
   </div>
-
-  <div class="row">
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-send"></span> <a href="features.html#easy-to-use">Easy to use</a></h2>
-      <p>Few configuration parameters required. Cost-based optimizer built in.</p>
-    </div>
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-sort"></span> <a href="features.html#reliable-and-scalable">Scalable</a></h2>
-      <p>Tested on clusters of 100s of machines, Google Compute Engine, and Amazon EC2.</p>
-    </div>
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-refresh"></span> <a href="features.html#hadoop">Hadoop-compatible</a></h2>
-      <p>Flink runs on YARN and HDFS and has a Hadoop compatibility package.</p>
-    </div>
+  <div class="row" style="margin-top: 1em">
+    <div class="col-md-12"><p class="text-center"><strong>Check out the <a href="{{ site.baseurl }}/features.html">Features</a> page to get a tour of all major Flink features.</strong></p></div>
   </div>
 </div>
 
