@@ -117,10 +117,10 @@
             </li>
 
             <li class="dropdown hidden-md hidden-sm">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Project <span class="caret"></span></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Media <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
                 <!-- Project -->
-                <li role="presentation" class="dropdown-header"><strong>Project</strong></li>
+                <li role="presentation" class="dropdown-header"><strong>Media</strong></li>
                 <li><a href="/material.html">Material</a></li>
                 <li><a href="https://twitter.com/apacheflink"><small><span class="glyphicon glyphicon-new-window"></span></small> Twitter</a></li>
                 <li><a href="https://github.com/apache/flink"><small><span class="glyphicon glyphicon-new-window"></span></small> GitHub</a></li>
@@ -190,6 +190,7 @@ under the License.
       <li><a href="#i-cant-stop-flink-with-the-provided-stop-scripts-what-can-i-do" id="markdown-toc-i-cant-stop-flink-with-the-provided-stop-scripts-what-can-i-do">I can’t stop Flink with the provided stop-scripts. What can I do?</a></li>
       <li><a href="#i-got-an-outofmemoryexception-what-can-i-do" id="markdown-toc-i-got-an-outofmemoryexception-what-can-i-do">I got an OutOfMemoryException. What can I do?</a></li>
       <li><a href="#why-do-the-taskmanager-log-files-become-so-huge" id="markdown-toc-why-do-the-taskmanager-log-files-become-so-huge">Why do the TaskManager log files become so huge?</a></li>
+      <li><a href="#the-slot-allocated-for-my-task-manager-has-been-released-what-should-i-do" id="markdown-toc-the-slot-allocated-for-my-task-manager-has-been-released-what-should-i-do">The slot allocated for my task manager has been released. What should I do?</a></li>
     </ul>
   </li>
   <li><a href="#yarn-deployment" id="markdown-toc-yarn-deployment">YARN Deployment</a>    <ul>
@@ -473,6 +474,14 @@ but may cause data processing tasks to go to disk more often.</p>
 <p>Check the logging behavior of your jobs. Emitting logging per or tuple may be
 helpful to debug jobs in small setups with tiny data sets, it becomes very
 inefficient and disk space consuming if used for large input data.</p>
+
+<h3 id="the-slot-allocated-for-my-task-manager-has-been-released-what-should-i-do">The slot allocated for my task manager has been released. What should I do?</h3>
+
+<p>A <code>java.lang.Exception: The slot in which the task was executed has been released. Probably loss of TaskManager</code> usually occurs when there are big garbage collection stalls.
+In this case, a quick fix would be to use the G1 garbage collector. It works incrementally and it often leads to lower pauses. Furthermore, you can dedicate more memory to the user code (e.g. 0.4 per system and 0.6 per user).</p>
+
+<p>If both of these approaches fail and the error persists, simply increase the TaskManager’s heartbeat pause by setting AKKA_WATCH_HEARTBEAT_PAUSE (akka.watch.heartbeat.pause) to a greater value (e.g. 600s).
+This will cause the JobManager to wait for a heartbeat for a longer time interval before considering the TaskManager lost.</p>
 
 <h2 id="yarn-deployment">YARN Deployment</h2>
 
