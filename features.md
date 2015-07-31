@@ -12,7 +12,7 @@ layout: features
 
 <div class="row" style="padding: 0 0 0 0">
   <div class="col-sm-12" style="text-align: center;">
-    <h1><b>Streaming</b></h1>
+    <h1 id="streaming"><b>Streaming</b></h1>
   </div>
 </div>
 
@@ -99,7 +99,7 @@ layout: features
 
 <div class="row" style="padding: 0 0 0 0">
   <div class="col-sm-12" style="text-align: center;">
-    <h1><b>Batch and Streaming in One System</b></h1>
+    <h1 id="batch-on-streaming"><b>Batch and Streaming in One System</b></h1>
   </div>
 </div>
 
@@ -183,7 +183,7 @@ layout: features
 
 <div class="row" style="padding: 0 0 0 0">
   <div class="col-sm-12" style="text-align: center;">
-    <h1><b>APIs and Libraries</b></h1>
+    <h1 id="apis-and-libs"><b>APIs and Libraries</b></h1>
   </div>
 </div>
 
