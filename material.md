@@ -102,6 +102,13 @@ You can find more variants of the logo [in this directory]({{ site.baseurl }}/im
 </div>
 </div>
 
+## Color Scheme
+
+You can use the provided color scheme which incorporates some colors of the Flink logo:
+
+- [PDF color scheme]({{ site.baseurl }}/img/logo/colors/flink_colors.pdf)
+- [Powerpoint color scheme]({{ site.baseurl }}/img/logo/colors/flink_colors.pptx)
+
 ## Slides
 
 - Till Rohrmann: **Machine Learning with Apache Flink** *(March 23th, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/machine-learning-with-apache-flink)
