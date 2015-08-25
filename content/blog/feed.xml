@@ -7,6 +7,463 @@
 <atom:link href="http://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Introducing Gelly: Graph Processing with Apache Flink</title>
+<description>&lt;p&gt;This blog post introduces &lt;strong&gt;Gelly&lt;/strong&gt;, Apache Flink’s &lt;em&gt;graph-processing API and library&lt;/em&gt;. Flink’s native support
+for iterations makes it a suitable platform for large-scale graph analytics.
+By leveraging delta iterations, Gelly is able to map various graph processing models such as
+vertex-centric or gather-sum-apply to Flink dataflows.&lt;/p&gt;
+
+&lt;p&gt;Gelly allows Flink users to perform end-to-end data analysis in a single system.
+Gelly can be seamlessly used with Flink’s DataSet API,
+which means that pre-processing, graph creation, analysis, and post-processing can be done
+in the same application. At the end of this post, we will go through a step-by-step example
+in order to demonstrate that loading, transformation, filtering, graph creation, and analysis
+can be performed in a single Flink program.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Overview&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;#what-is-gelly&quot;&gt;What is Gelly?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#graph-representation-and-creation&quot;&gt;Graph Representation and Creation&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#transformations-and-utilities&quot;&gt;Transformations and Utilities&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#iterative-graph-processing&quot;&gt;Iterative Graph Processing&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#library-of-graph-algorithms&quot;&gt;Library of Graph Algorithms&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#use-case-music-profiles&quot;&gt;Use-Case: Music Profiles&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#ongoing-and-future-work&quot;&gt;Ongoing and Future Work&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-gelly&quot;&gt;What is Gelly?&lt;/h2&gt;
+
+&lt;p&gt;Gelly is a Graph API for Flink. It is currently supported in both Java and Scala.
+The Scala methods are implemented as wrappers on top of the basic Java operations.
+The API contains a set of utility functions for graph analysis, supports iterative graph
+processing and introduces a library of graph algorithms.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/flink-stack.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;graph-representation-and-creation&quot;&gt;Graph Representation and Creation&lt;/h2&gt;
+
+&lt;p&gt;In Gelly, a graph is represented by a DataSet of vertices and a DataSet of edges.
+A vertex is defined by its unique ID and a value, whereas an edge is defined by its source ID,
+target ID, and value. A vertex or edge for which a value is not specified will simply have the
+value type set to &lt;code&gt;NullValue&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A graph can be created from:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;DataSet of edges&lt;/strong&gt; and an optional &lt;strong&gt;DataSet of vertices&lt;/strong&gt; using &lt;code&gt;Graph.fromDataSet()&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;DataSet of Tuple3&lt;/strong&gt; and an optional &lt;strong&gt;DataSet of Tuple2&lt;/strong&gt; using &lt;code&gt;Graph.fromTupleDataSet()&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Collection of edges&lt;/strong&gt; and an optional &lt;strong&gt;Collection of vertices&lt;/strong&gt; using &lt;code&gt;Graph.fromCollection()&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In all three cases, if the vertices are not provided,
+Gelly will automatically produce the vertex IDs from the edge source and target IDs.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;transformations-and-utilities&quot;&gt;Transformations and Utilities&lt;/h2&gt;
+
+&lt;p&gt;These are methods of the Graph class and include common graph metrics, transformations
+and mutations as well as neighborhood aggregations.&lt;/p&gt;
+
+&lt;h4 id=&quot;common-graph-metrics&quot;&gt;Common Graph Metrics&lt;/h4&gt;
+&lt;p&gt;These methods can be used to retrieve several graph metrics and properties, such as the number
+of vertices, edges and the node degrees.&lt;/p&gt;
+
+&lt;h4 id=&quot;transformations&quot;&gt;Transformations&lt;/h4&gt;
+&lt;p&gt;The transformation methods enable several Graph operations, using high-level functions similar to
+the ones provided by the batch processing API. These transformations can be applied one after the
+other, yielding a new Graph after each step, in a fashion similar to operators on DataSets:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;inputGraph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getUndirected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mapEdges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CustomEdgeMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Transformations can be applied on:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Vertices&lt;/strong&gt;: &lt;code&gt;mapVertices&lt;/code&gt;, &lt;code&gt;joinWithVertices&lt;/code&gt;, &lt;code&gt;filterOnVertices&lt;/code&gt;, &lt;code&gt;addVertex&lt;/code&gt;, …&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Edges&lt;/strong&gt;: &lt;code&gt;mapEdges&lt;/code&gt;, &lt;code&gt;filterOnEdges&lt;/code&gt;, &lt;code&gt;removeEdge&lt;/code&gt;, …&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Triplets&lt;/strong&gt; (source vertex, target vertex, edge): &lt;code&gt;getTriplets&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;neighborhood-aggregations&quot;&gt;Neighborhood Aggregations&lt;/h4&gt;
+
+&lt;p&gt;Neighborhood methods allow vertices to perform an aggregation on their first-hop neighborhood.
+This provides a vertex-centric view, where each vertex can access its neighboring edges and neighbor values.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;reduceOnEdges()&lt;/code&gt; provides access to the neighboring edges of a vertex,
+i.e. the edge value and the vertex ID of the edge endpoint. In order to also access the
+neighboring vertices’ values, one should call the &lt;code&gt;reduceOnNeighbors()&lt;/code&gt; function.
+The scope of the neighborhood is defined by the EdgeDirection parameter, which can be IN, OUT or ALL,
+to gather in-coming, out-going or all edges (neighbors) of a vertex.&lt;/p&gt;
+
+&lt;p&gt;The two neighborhood
+functions mentioned above can only be used when the aggregation function is associative and commutative.
+In case the function does not comply with these restrictions or if it is desirable to return zero,
+one or more values per vertex, the more general  &lt;code&gt;groupReduceOnEdges()&lt;/code&gt; and 
+&lt;code&gt;groupReduceOnNeighbors()&lt;/code&gt; functions must be called.&lt;/p&gt;
+
+&lt;p&gt;Consider the following graph, for instance:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/neighborhood.png&quot; style=&quot;width:60%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;Assume you would want to compute the sum of the values of all incoming neighbors for each vertex.
+We will call the &lt;code&gt;reduceOnNeighbors()&lt;/code&gt; aggregation method since the sum is an associative and commutative operation and the neighbors’ values are needed:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;reduceOnNeighbors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;SumValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EdgeDirection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;IN&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The vertex with id 1 is the only node that has no incoming edges. The result is therefore:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/reduce-on-neighbors.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;iterative-graph-processing&quot;&gt;Iterative Graph Processing&lt;/h2&gt;
+
+&lt;p&gt;During the past few years, many different programming models for distributed graph processing
+have been introduced: &lt;a href=&quot;http://delivery.acm.org/10.1145/2490000/2484843/a22-salihoglu.pdf?ip=141.23.53.206&amp;amp;id=2484843&amp;amp;acc=ACTIVE%20SERVICE&amp;amp;key=2BA2C432AB83DA15.0F42380CB8DD3307.4D4702B0C3E38B35.4D4702B0C3E38B35&amp;amp;CFID=706313474&amp;amp;CFTOKEN=60107876&amp;amp;__acm__=1440408958_b131e035942130653e5782409b5c0cde&quot;&gt;vertex-centric&lt;/a&gt;,
+&lt;a href=&quot;http://researcher.ibm.com/researcher/files/us-ytian/giraph++.pdf&quot;&gt;partition-centric&lt;/a&gt;, &lt;a href=&quot;http://www.eecs.harvard.edu/cs261/notes/gonzalez-2012.htm&quot;&gt;gather-apply-scatter&lt;/a&gt;,
+&lt;a href=&quot;http://infoscience.epfl.ch/record/188535/files/paper.pdf&quot;&gt;edge-centric&lt;/a&gt;, &lt;a href=&quot;http://www.vldb.org/pvldb/vol7/p1673-quamar.pdf&quot;&gt;neighborhood-centric&lt;/a&gt;.
+Each one of these models targets a specific class of graph applications and each corresponding
+system implementation optimizes the runtime respectively. In Gelly, we would like to exploit the
+flexible dataflow model and the efficient iterations of Flink, to support multiple distributed
+graph processing models on top of the same system.&lt;/p&gt;
+
+&lt;p&gt;Currently, Gelly has methods for writing vertex-centric programs and provides support for programs
+implemented using the gather-sum(accumulate)-apply model. We are also considering to offer support
+for the partition-centric computation model, using Fink’s &lt;code&gt;mapPartition()&lt;/code&gt; operator.
+This model exposes the partition structure to the user and allows local graph structure exploitation
+inside a partition to avoid unnecessary communication.&lt;/p&gt;
+
+&lt;h4 id=&quot;vertex-centric&quot;&gt;Vertex-centric&lt;/h4&gt;
+
+&lt;p&gt;Gelly wraps Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-0.8/spargel_guide.html&quot;&gt;Spargel APi&lt;/a&gt; to 
+support the vertex-centric, Pregel-like programming model. Gelly’s &lt;code&gt;runVertexCentricIteration&lt;/code&gt; method accepts two user-defined functions:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;MessagingFunction:&lt;/strong&gt; defines what messages a vertex sends out for the next superstep.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;VertexUpdateFunction:&lt;/strong&gt;* defines how a vertex will update its value based on the received messages.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The method will execute the vertex-centric iteration on the input Graph and return a new Graph, with updated vertex values.&lt;/p&gt;
+
+&lt;p&gt;Gelly’s vertex-centric programming model exploits Flink’s efficient delta iteration operators.
+Many iterative graph algorithms expose non-uniform behavior, where some vertices converge to
+their final value faster than others. In such cases, the number of vertices that need to be
+recomputed during an iteration decreases as the algorithm moves towards convergence.&lt;/p&gt;
+
+&lt;p&gt;For example, consider a Single Source Shortest Paths problem on the following graph, where S
+is the source node, i is the iteration counter and the edge values represent distances between nodes:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/sssp.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;In each iteration, a vertex receives distances from its neighbors and adopts the minimum of
+these distances and its current distance as the new value. Then, it  propagates its new value
+to its neighbors. If a vertex does not change value during an iteration, there is no need for
+it to propagate its old distance to its neighbors; as they have already taken it into account.&lt;/p&gt;
+
+&lt;p&gt;Flink’s &lt;code&gt;IterateDelta&lt;/code&gt; operator permits exploitation of this property as well as the
+execution of computations solely on the active parts of the graph. The operator receives two inputs:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;the &lt;strong&gt;Solution Set&lt;/strong&gt;, which represents the current state of the input and&lt;/li&gt;
+  &lt;li&gt;the &lt;strong&gt;Workset&lt;/strong&gt;, which determines which parts of the graph will be recomputed in the next iteration.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In the SSSP example above, the Workset contains the vertices which update their distances.
+The user-defined iterative function is applied on these inputs to produce state updates.
+These updates are efficiently applied on the state, which is kept in memory.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/iteration.png&quot; style=&quot;width:60%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;Internally, a vertex-centric iteration is a Flink delta iteration, where the initial Solution Set
+is the vertex set of the input graph and the Workset is created by selecting the active vertices,
+i.e. the ones that updated their value in the previous iteration. The messaging and vertex-update
+functions are user-defined functions wrapped inside coGroup operators. In each superstep,
+the active vertices (Workset) are coGrouped with the edges to generate the neighborhoods for
+each vertex. The messaging function is then applied on each neighborhood. Next, the result of the
+messaging function is coGrouped with the current vertex values (Solution Set) and the user-defined
+vertex-update function is applied on the result. The output of this coGroup operator is finally
+used to update the Solution Set and create the Workset input for the next iteration.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/vertex-centric-plan.png&quot; style=&quot;width:40%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h4 id=&quot;gather-sum-apply&quot;&gt;Gather-Sum-Apply&lt;/h4&gt;
+
+&lt;p&gt;Gelly supports a variation of the popular Gather-Sum-Apply-Scatter  computation model,
+introduced by PowerGraph. In GSA, a vertex pulls information from its neighbors as opposed to the
+vertex-centric approach where the updates are pushed from the incoming neighbors.
+The &lt;code&gt;runGatherSumApplyIteration()&lt;/code&gt; accepts three user-defined functions:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;GatherFunction:&lt;/strong&gt; gathers neighboring partial values along in-edges.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;SumFunction:&lt;/strong&gt; accumulates/reduces the values into a single one.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;ApplyFunction:&lt;/strong&gt; uses the result computed in the sum phase to update the current vertex’s value.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Similarly to vertex-centric, GSA leverages Flink’s delta iteration operators as, in many cases,
+vertex values do not need to be recomputed during an iteration.&lt;/p&gt;
+
+&lt;p&gt;Let us reconsider the Single Source Shortest Paths algorithm. In each iteration, a vertex:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Gather&lt;/strong&gt; retrieves distances from its neighbors summed up with the corresponding edge values;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Sum&lt;/strong&gt; compares the newly obtained distances in order to extract the minimum;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Apply&lt;/strong&gt; and finally adopts the minimum distance computed in the sum step,
+provided that it is lower than its current value. If a vertex’s value does not change during
+an iteration, it no longer propagates its distance.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Internally, a Gather-Sum-Apply Iteration is a Flink delta iteration where the initial solution
+set is the vertex input set and the workset is created by selecting the active vertices.&lt;/p&gt;
+
+&lt;p&gt;The three functions: gather, sum and apply are user-defined functions wrapped in map, reduce
+and join operators respectively. In each superstep, the active vertices are joined with the
+edges in order to create neighborhoods for each vertex. The gather function is then applied on
+the neighborhood values via a map function. Afterwards, the result is grouped by the vertex ID
+and reduced using the sum function. Finally, the outcome of the sum phase is joined with the
+current vertex values (solution set), the values are updated, thus creating a new workset that
+serves as input for the next iteration.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/GSA-plan.png&quot; style=&quot;width:40%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;library-of-graph-algorithms&quot;&gt;Library of Graph Algorithms&lt;/h2&gt;
+
+&lt;p&gt;We are building a library of graph algorithms in Gelly, to easily analyze large-scale graphs.
+These algorithms extend the &lt;code&gt;GraphAlgorithm&lt;/code&gt; interface and can be simply executed on
+the input graph by calling a &lt;code&gt;run()&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;p&gt;We currently have implementations of the following algorithms:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;PageRank&lt;/li&gt;
+  &lt;li&gt;Single-Source-Shortest-Paths&lt;/li&gt;
+  &lt;li&gt;Label Propagation&lt;/li&gt;
+  &lt;li&gt;Community Detection (based on &lt;a href=&quot;http://arxiv.org/pdf/0808.2633.pdf&quot;&gt;this paper&lt;/a&gt;)&lt;/li&gt;
+  &lt;li&gt;Connected Components&lt;/li&gt;
+  &lt;li&gt;GSA Connected Components&lt;/li&gt;
+  &lt;li&gt;GSA PageRank&lt;/li&gt;
+  &lt;li&gt;GSA Single-Source-Shortest-Paths&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Gelly also offers implementations of common graph algorithms through &lt;a href=&quot;https://github.com/apache/flink/tree/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example&quot;&gt;examples&lt;/a&gt;.
+Among them, one can find graph weighting schemes, like Jaccard Similarity and Euclidean Distance Weighting, 
+as well as computation of common graph metrics.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;use-case-music-profiles&quot;&gt;Use-Case: Music Profiles&lt;/h2&gt;
+
+&lt;p&gt;In the following section, we go through a use-case scenario that combines the Flink DataSet API
+with Gelly in order to process users’ music preferences to suggest additions to their playlist.&lt;/p&gt;
+
+&lt;p&gt;First, we read a user’s music profile which is in the form of user-id, song-id and the number of
+plays that each song has. We then filter out the list of songs the users do not wish to see in their
+playlist. Then we compute the top songs per user (i.e. the songs a user listened to the most).
+Finally, as a separate use-case on the same data set, we create a user-user similarity graph based
+on the common songs and use this resulting graph to detect communities by calling Gelly’s Label Propagation
+library method.&lt;/p&gt;
+
+&lt;p&gt;For running the example implementation, please use the 0.10-SNAPSHOT version of Flink as a
+dependency. The full example code base can be found &lt;a href=&quot;https://github.com/apache/flink/blob/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example/MusicProfiles.java&quot;&gt;here&lt;/a&gt;. The public data set used for testing
+can be found &lt;a href=&quot;http://labrosa.ee.columbia.edu/millionsong/tasteprofile&quot;&gt;here&lt;/a&gt;. This data set contains &lt;strong&gt;48,373,586&lt;/strong&gt; real user-id, song-id and
+play-count triplets.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The code snippets in this post try to reduce verbosity by skipping type parameters of generic functions. Please have a look at &lt;a href=&quot;https://github.com/apache/flink/blob/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example/MusicProfiles.java&quot;&gt;the full example&lt;/a&gt; for the correct and complete code.&lt;/p&gt;
+
+&lt;h4 id=&quot;filtering-out-bad-records&quot;&gt;Filtering out Bad Records&lt;/h4&gt;
+
+&lt;p&gt;After reading the &lt;code&gt;(user-id, song-id, play-count)&lt;/code&gt; triplets from a CSV file and after parsing a
+text file in order to retrieve the list of songs that a user would not want to include in a
+playlist, we use a coGroup function to filter out the mismatches.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// read the user-song-play triplets.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;triplets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;getUserSongTripletsData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// read the mismatches dataset and extract the songIDs&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;validTriplets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;triplets&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;coGroup&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mismatches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;equalTo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;with&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CoGroupFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;coGroup&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Iterable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;triplets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Iterable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;invalidSongs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;invalidSongs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;hasNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;triplet&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;triplets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// valid triplet&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;triplet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The coGroup simply takes the triplets whose song-id (second field) matches the song-id from the
+mismatches list (first field) and if the iterator was empty for a certain triplet, meaning that
+there were no mismatches found, the triplet associated with that song is collected.&lt;/p&gt;
+
+&lt;h4 id=&quot;compute-the-top-songs-per-user&quot;&gt;Compute the Top Songs per User&lt;/h4&gt;
+
+&lt;p&gt;As a next step, we would like to see which songs a user played more often. To this end, we
+build a user-song weighted, bipartite graph in which edge source vertices are users, edge target
+vertices are songs and where the weight represents the number of times the user listened to that
+certain song.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/user-song-graph.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// create a user -&amp;gt; song weighted bipartite graph where the edge weights&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// correspond to play counts&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NullValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userSongGraph&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromTupleDataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;validTriplets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Consult the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html&quot;&gt;Gelly guide&lt;/a&gt; for guidelines 
+on how to create a graph from a given DataSet of edges or from a collection.&lt;/p&gt;
+
+&lt;p&gt;To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
+aggregation over the first hop neighborhood taking just the edges into consideration. We will
+basically iterate through the edge value and collect the target (song) of the maximum weight edge.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//get the top track (most listened to) for each user&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;usersWithTopTrack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userSongGraph&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;groupReduceOnEdges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GetTopSongPerUser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EdgeDirection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;OUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GetTopSongPerUser&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EdgesFunctionWithVertexValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;iterateEdges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Vertex&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Iterable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxPlaycount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topSong&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxPlaycount&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;maxPlaycount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;topSong&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTarget&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;topSong&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;creating-a-user-user-similarity-graph&quot;&gt;Creating a User-User Similarity Graph&lt;/h4&gt;
+
+&lt;p&gt;Clustering users based on common interests, in this case, common top songs, could prove to be
+very useful for advertisements or for recommending new musical compilations. In a user-user graph,
+two users who listen to the same song will simply be linked together through an edge as depicted
+in the figure below.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/user-song-to-user-user.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;To form the user-user graph in Flink, we will simply take the edges from the user-song graph
+(left-hand side of the image), group them by song-id, and then add all the users (source vertex ids)
+to an ArrayList.&lt;/p&gt;
+
+&lt;p&gt;We then match users who listened to the same song two by two, creating a new edge to mark their
+common interest (right-hand side of the image).&lt;/p&gt;
+
+&lt;p&gt;Afterwards, we perform a &lt;code&gt;distinct()&lt;/code&gt; operation to avoid creation of duplicate data.
+Considering that we now have the DataSet of edges which present interest, creating a graph is as
+straightforward as a call to the &lt;code&gt;Graph.fromDataSet()&lt;/code&gt; method.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// create a user-user similarity graph:&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// two users that listen to the same song are connected&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarUsers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userSongGraph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getEdges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// filter out user-song edges that are below the playcount threshold&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FilterFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;playcountThreshold&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;reduceGroup&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GroupReduceFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reduce&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Iterable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Edge&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;edges&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+                        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Edge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)));&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;distinct&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarUsersGraph&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromDataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;similarUsers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getUndirected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After having created a user-user graph, it would make sense to detect the various communities
+formed. To do so, we first initialize each vertex with a numeric label using the
+&lt;code&gt;joinWithVertices()&lt;/code&gt; function that takes a data set of Tuple2 as a parameter and joins
+the id of a vertex with the first element of the tuple, afterwards applying a map function.
+Finally, we call the &lt;code&gt;run()&lt;/code&gt; method with the LabelPropagation library method passed
+as a parameter. In the end, the vertices will be updated to contain the most frequent label
+among their neighbors.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// detect user communities using label propagation&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// initialize each vertex with a unique numeric label&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idsWithInitialLabels&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataSetUtils&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;zipWithUniqueId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;similarUsersGraph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getVertexIds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+                &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;f1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;f0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// update the vertex values and run the label propagation algorithm&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Vertex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;verticesWithCommunity&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarUsersGraph&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;joinWithVertices&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;idsWithlLabels&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idWithLabel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idWithLabel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;f1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;LabelPropagation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numIterations&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getVertices&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;ongoing-and-future-work&quot;&gt;Ongoing and Future Work&lt;/h2&gt;
+
+&lt;p&gt;Currently, Gelly matches the basic functionalities provided by most state-of-the-art graph
+processing systems. Our vision is to turn Gelly into more than “yet another library for running
+PageRank-like algorithms” by supporting generic iterations, implementing graph partitioning,
+providing bipartite graph support and by offering numerous other features.&lt;/p&gt;
+
+&lt;p&gt;We are also enriching Flink Gelly with a set of operators suitable for highly skewed graphs
+as well as a Graph API built on Flink Streaming.&lt;/p&gt;
+
+&lt;p&gt;In the near future, we would like to see how Gelly can be integrated with graph visualization
+tools, graph database systems and sampling techniques.&lt;/p&gt;
+
+&lt;p&gt;Curious? Read more about our plans for Gelly in the &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/Flink+Gelly&quot;&gt;roadmap&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;links&quot;&gt;Links&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html&quot;&gt;Gelly Documentation&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>Mon, 24 Aug 2015 00:00:00 +0200</pubDate>
+<link>http://flink.apache.org/news/2015/08/24/introducing-flink-gelly.html</link>
+<guid isPermaLink="true">/news/2015/08/24/introducing-flink-gelly.html</guid>
+</item>
+
+<item>
 <title>Announcing Apache Flink 0.9.0</title>
 <description>&lt;p&gt;The Apache Flink community is pleased to announce the availability of the 0.9.0 release. The release is the result of many months of hard work within the Flink community. It contains many new features and improvements which were previewed in the 0.9.0-milestone1 release and have been polished since then. This is the largest Flink release so far.&lt;/p&gt;
 
