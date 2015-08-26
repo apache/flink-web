@@ -2,16 +2,6 @@
 title: "Downloads"
 ---
 
-<script type="text/javascript">
-$( document ).ready(function() {
-  // Handler for .ready() called.
-  $('.ga-track').on('click', function() {
-    // we just use the element id for tracking with google analytics
-    ga('send', 'event', 'button', 'click', $(this).attr('id'));
-  });
-
-});
-</script>
 
 {% toc %}
 
