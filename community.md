@@ -219,6 +219,12 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
     <td class="text-center">hsaputra</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/8959638?s=50"></td>
+    <td class="text-center">Matthias J. Sax</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">mjsax</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/409707?s=50"></td>
     <td class="text-center">Sebastian Schelter</td>
     <td class="text-center">PMC, Committer</td>
