@@ -22,14 +22,15 @@ academia as well as a dedicated session on hands-on Flink training.
 
 Some highlights of the talks include
 
-- [William
+- A keynote by [William
   Vambenepe](http://flink-forward.org/?speaker=william-vambenepe),
   lead of the product management team responsible for Big Data
   services on Google Cloud Platform (BigQuery, Dataflow, etc...) on
   data streaming, Google Cloud Dataflow, and Apache Flink.
 
-- Talks by several practitioners on how they are putting
-  Flink to work in their projects.
+- Talks by several practitioners on how they are putting Flink to work
+  in their projects, including ResearchGate, Bouygues Telecom,
+  Amadeus, Telefonica, Capital One, Ericsson, and Otto Group.
 
 - Talks on how open source projects, including Apache Mahout, Apache
   SAMOA (incubating), Apache Zeppelin (incubating), Apache BigTop, and
@@ -38,6 +39,7 @@ Some highlights of the talks include
 - Talks by Flink committers on several aspects of the system, such as
   fault tolerance, the internal runtime architecture, and others.
 
-Check out the schedule [here](http://flink-forward.org/?post_type=day)
-and follow [this link](http://flink-forward.org/?page_id=96) to register.
+Check out the [schedule](http://flink-forward.org/?post_type=day) and
+[register](http://flink-forward.org/?page_id=96) for the
+conference.
 
