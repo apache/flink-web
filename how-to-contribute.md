@@ -1,197 +1,141 @@
 ---
-title:  "How To Contribute"
+title:  "Contributions Welcome!"
 ---
 
-The Flink project welcomes all sort of contributions in the form of code (improvements, features, bugfixes), tests, documentation, and community participation (discussions & questions).
+Apache Flink is developed by an open and friendly community. Everybody is cordially welcome to join the community and contribute to Apache Flink. There are several ways to interact with the community and to contribute to Flink including asking questions, filing bug reports, proposing new features, joining discussions on the mailing lists, contributing code or documentation, improving the website, or testing release candidates.
 
 {% toc %}
 
-## Easy Issues for Starters
+## Ask questions!
 
-We maintain all known issues and feature drafts in the [Flink JIRA project](https://issues.apache.org/jira/issues/?jql=project+%3D+FLINK).
+The Apache Flink community is eager to help and to answer your questions. We have a [user mailing list]({{ site.baseurl }}/community.html#mailing-lists ), hang out in an [IRC channel]({{ site.baseurl }}/community.html#irc), and watch Stack Overflow on the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag.
 
-We also try to maintain a [list of simple "starter issues"](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC) that we believe are good tasks for new contributors. Those tasks are meant to allow people to get into the project and become familiar with the process of contributing. Feel free to ask questions about issues that you would be interested in working on.
+-----
 
-In addition, you can find a list of ideas for projects and improvements in the [projects Wiki page](https://cwiki.apache.org/confluence/display/FLINK/Project+Ideas).
+## File a bug report
 
-## Contributing Code & Documentation
+Please let us know if you experienced a problem with Flink and file a bug report. Open [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK) and click on the blue **Create** button at the top. Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem. Thank you very much.
 
-This section gives you a brief introduction in how to contribute code and documentation to Flink. We maintain both the code and the documentation in the same repository, so the process is essentially the same for both. We use [git](http://git-scm.com/) for the code and documentation version control. The documentation is located in the `docs/` subdirectory of the git repository.
+-----
 
-The Flink project accepts code contributions through the [GitHub Mirror](https://github.com/apache/flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are basically a simpler way of offering a patch, by providing a pointer to a code branch that contains the change.
+## Propose an improvement or a new feature
 
-It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) issue.
+Our community is constantly looking for feedback to improve Apache Flink. If you have an idea how to improve Flink or have a new feature in mind that would be beneficial for Flink users, please open an issue in [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK). The improvement or new feature should be described in appropriate detail and include the scope and its requirements if possible. Detailed information is important for a few reasons:
 
+- It ensures your requirements are met when the improvement or feature is implemented.
+- It helps to estimate the effort and to design a solution that addresses your needs.
+- It allow for constructive discussions that might arise around this issue.
 
-### Setting up the Infrastructure and Creating a Pull Request
+Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contribute-code.html) guide in this case as well. 
 
-1. The first step is to create yourself a copy of the Flink code base. We suggest to fork the [Flink GitHub Mirror Repository](https://github.com/apache/flink) into your own [GitHub](https://github.com) account. You need to register on GitHub for that, if you have no account so far.
+-----
 
-2. Next, clone your repository fork to your local machine.
+## Help others and join the discussions
 
-   ```
-git clone https://github.com/<your-user-name>/flink.git
-```
+Most communication in the Apache Flink community happens on two mailing lists:
 
-3. It is typically helpful to switch to a *topic branch* for the changes. To create a dedicated branch based on the current master, use the following command:
+- The user mailing lists `user@flink.apache.org` is the place where users of Apache Flink ask questions and seek for help or advice. Joining the user list and helping other users is a very good way to contribute to Flink's community. Furthermore, there is the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag on Stack Overflow if you'd like to help Flink users (and harvest some points) there.
+- The development mailing list `dev@flink.apache.org` is the place where Flink developers exchange ideas and discuss new features, upcoming releases, and the development process in general. If you are interested in contributing code to Flink, you should join this mailing list.
 
-   ```
-git checkout -b myBranch master
-```
+You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/community.html#mailing-lists). In addition to the user list, there is also a [Flink IRC]({{ site.baseurl }}/community.html#irc) channel that you can join to talk to other users and contributors.
 
-4. Now you can create your changes, compile the code, and validate the changes. Here are some pointers on how to [build the code](https://github.com/apache/flink/#building-apache-flink-from-source).
-In addition to that, we recommend setting up Eclipse (or IntelliJ) using the "Import Maven Project" feature:
+-----
 
-      * Select "Import" from the "File" menu.
-      * Expand the "Maven" node, select "Existing Maven Projects", and click the "Next" button.
-      * Select the root directory by clicking on the "Browse" button and navigate to the top folder of the cloned Flink git repository.
-      * Ensure that all projects are selected and click the "Finish" button.<br/><br/><!-- newline hack -->
+## Test a release candidate
 
-      If you want to work on the Scala code you will need the following plugins:
+Apache Flink is continuously improved by its active community. Every few weeks, we release a new version of Apache Flink with bug fixes, improvements, and new features. The process of releasing a new version consists of the following steps:
 
-    **Eclipse 4.x**:
+1. Building a new release candidate and starting a vote (usually for 72 hours).
+2. Testing the release candidate and voting (`+1` if no issues were found, `-1` if the release candidate has issues).
+3. Going back to step 1 if the release candidate had issues otherwise we publish the release.
 
-      * scala-ide: `http://download.scala-ide.org/sdk/e38/scala210/stable/site`
-      * m2eclipse-scala: `http://alchim31.free.fr/m2e-scala/update-site`
-      * build-helper-maven-plugin: `https://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.15.0/N/0.15.0.201206251206/`<br/><br/><!-- newline hack -->
+Our wiki contains a page that summarizes the [test procedure for a release](https://cwiki.apache.org/confluence/display/FLINK/Releasing). Release testing is a big effort if done by a small group of people but can be easily scaled out to more people. The Flink community encourages everybody to participate in the testing of a release candidate. By testing a release candidate, you can ensure that the next Flink release is working properly for your setup and help to improve the quality of releases. 
 
-    **Eclipse 3.7**:
+-----
 
-      * scala-ide: `http://download.scala-ide.org/sdk/e37/scala210/stable/site`
-      * m2eclipse-scala: `http://alchim31.free.fr/m2e-scala/update-site`
-      * build-helper-maven-plugin: `https://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.14.0/N/0.14.0.201109282148/`<br/><br/><!-- newline hack -->
+## Contribute code
 
-      If you don't have the plugins your project will have build errors, but you can just close the Scala projects and ignore them.
+Apache Flink is maintained, improved, and extended by code contributions of volunteers. The Apache Flink community encourages anybody to contribute source code. In order to ensure a pleasant contribution experience for contributors and reviewers and to preserve the high quality of the code base, we follow a contribution process that is explained in our [Contribute code]( {{ site.base }}/contribute-code.html) guide. The guide does also include instructions to setup a development environment, our coding guidelines and code style, and explains how to submit a code contribution.
 
-5. After you have finalized your contribution, verify the compliance with the contribution guidelines (see below), and make the commit. To make the changes easily mergeable, please rebase them to the latest version of the main repository's master branch. Assuming you created a topic branch (step 3), you can follow this sequence of commands to do that:
-switch to the master branch, update it to the latest revision, switch back to your topic branch, and rebase it on top of the master branch.
+**Please read the [Contribute code]( {{ site.base }}/contribute-code.html) guide before you start to work on a code contribution.**
 
-   ```
-git checkout master
-git pull https://github.com/apache/flink.git master
-git checkout myBranch
-git rebase master
-```
-Have a look [here](https://help.github.com/articles/using-git-rebase) for more information about rebasing commits.
+Please do also read the [Submit a Contributor License Agreement]({{ site.baseurl }}/how-to-contribute.html#submit-a-contributor-license-agreement) Section.
 
+### Looking for an issue to work on?
+{:.no_toc} 
 
-6. Push the contribution back into your fork of the Flink repository.
+We maintain a list of all known bugs, proposed improvements and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process. 
 
-   ```
-git push origin myBranch
-```
-Go the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and send it.
+Please have a look at the list of [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC), if you are looking for an issue to work on. You can of course also choose [any other issue](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC) to work on. Feel free to ask questions about issues that you would be interested in working on.
 
+-----
 
-### Verifying the Compliance of your Code
+## Contribute documentation
 
-Before sending a patch or pull request, please verify that it complies with the guidelines of the project. While we try to keep the set of guidelines small and easy, it is important to follow those rules in order to guarantee good code quality, to allow efficient reviews, and to allow committers to easily merge your changes.
+Good documentation is crucial for any kind of software. This is especially true for sophisticated software systems such as distributed data processing engines like Apache Flink. The Apache Flink community aims to provide concise, precise, and complete documentation and welcomes any contribution to improve Apache Flink's documentation.
 
-Please have a look at the [coding guidelines]({{ site.baseurl }}/coding-guidelines.html) for a guide to the format of code and pull requests.
+- Please report missing, incorrect, or out-dated documentation as a [JIRA issue](http://issues.apache.org/jira/browse/FLINK).
+- Flink's documentation is written in Markdown and located in the `docs` folder in [Flink's source code repository]({{ site.baseurl }}/community.html#main-source-repositories). See the [Contribute documentation]({{ site.base }}/contribute-documentation.html) guidelines for detailed instructions for how to update and improve the documentation and to contribute your changes.
 
-Most important of all, verify that your changes are correct and do not break existing functionality. Run the existing tests by calling `mvn verify` in the root directory of the repository, and make sure that the tests succeed. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. Flink is pre-configured for [Travis CI](http://docs.travis-ci.com/), which can be easily enabled for your private repository fork (it uses GitHub for authentication, so you don't need an additional account). Simply add the *Travis CI* hook to your repository (*settings --> webhooks & services --> add service*) and enable tests for the "flink" repository on [Travis](https://travis-ci.org/profile).
+-----
 
-When contributing documentation, please review the rendered HTML versions of the documents you changed. You can look at the HTML pages by using the rendering script in preview mode.
+## Improve the website
 
-```
-cd docs
-./build_docs.sh -p
-```
-Now, open your browser at `http://localhost:4000` and check out the pages you changed.
+The [Apache Flink website](http://flink.apache.org) presents Apache Flink and its community. It serves several purposes including:
 
-## Contribute changes to the Website
+- Informing visitors about Apache Flink and its features.
+- Encouraging visitors to download and use Flink.
+- Encouraging visitors to engage with the community.
 
-The website of Apache Flink is hosted in a separate Git repository. We suggest making a fork of the [flink-web GitHub mirror repository](https://github.com/apache/flink-web).
+We welcome any contribution to improve our website.
 
-To make changes to the website, you have to checkout its source code first. The website resides in the `asf-site` branch of the repository:
+- Please open a [JIRA issue](http://issues.apache.org/jira/browse/FLINK) if you think our website could be improved.
+- Please follow the [Improve the website]({{ site.baseurl }}/improve-website.html) guidelines if you would like to update and improve the website.
 
-```
-git clone -b asf-site https://github.com/<your-user-name>/flink-web.git
-cd flink-web
-```
+-----
 
-The `flink-web` directory contains the files that we use to build the website. We use [Jekyll](http://jekyllrb.com/) to generate static HTML files for the website.
+## More ways to contribute...
 
-### Files and Directories in the website git repository
+There are many more ways to contribute to the Flink community. For example you can
 
-The files and directories in the website git repository have the following roles:
+- give a talk about Flink and tell others how you use it.
+- organize a local Meetup or user group.
+- talk to people about Flink.
+- ...
 
-- all files ending with `.md` are [Markdown](http://daringfireball.net/projects/markdown/) files. Those are the input for the HTML files.
-- regular directories (not starting with an underscore (`_`)) contain also `.md` files. The directory structure is also represented in the generated HTML files.
-- the `_posts` directory contains one Markdown file for each blog post on the website. To contribute a post, just add a new file there.
-- the `_includes/` directory contains includeable files such as the navigation bar or the footer.
-- the `docs/` directory contains copies of the documentation of Flink for different releases. There is a directory inside `docs/` for each stable release and the latest SNAPSHOT version. The build script is taking care of the maintenance of this directory.
-- the `content/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website repository, push also the updates in the `content/` directory!)
-- see the section below for the `build.sh` script.
+-----
 
+## Submit a Contributor License Agreement
 
-### The `build.sh` script
+Please submit a contributor license agreement to the Apache Software Foundation (ASF) if you would like to contribute to Apache Flink. The following quote from [http://www.apache.org/licenses](http://www.apache.org/licenses/#clas) gives more information about the ICLA and CCLA and why they are necessary.
 
-The `build.sh` script creates HTML files from the input Markdown files. Use the `-p` flag to let Jekyll serve a **p**review of the website on `http://localhost:4000/`.
+> The ASF desires that all contributors of ideas, code, or documentation to the Apache projects complete, sign, and submit (via postal mail, fax or email) an [Individual Contributor License Agreement](http://www.apache.org/licenses/icla.txt) (CLA) [ [PDF form](http://www.apache.org/licenses/icla.pdf) ]. The purpose of this agreement is to clearly define the terms under which intellectual property has been contributed to the ASF and thereby allow us to defend the project should there be a legal dispute regarding the software at some future time. A signed CLA is required to be on file before an individual is given commit rights to an ASF project.
+>
+> For a corporation that has assigned employees to work on an Apache project, a [Corporate CLA](http://www.apache.org/licenses/cla-corporate.txt) (CCLA) is available for contributing intellectual property via the corporation, that may have been assigned as part of an employment agreement. Note that a Corporate CLA does not remove the need for every developer to sign their own CLA as an individual, to cover any of their contributions which are not owned by the corporation signing the CCLA.
+>
+>  ...
 
-The build script also takes care of maintaining the `docs/` directory. Set the `-u` flag to **u**pdate documentation. This includes fetching the Flink git repository and copying different versions of the documentation.
+-----
 
 ## How to become a committer
 
+Committers are community members that have write access to the project's repositories, i.e., they can modify the code, documentation, and website by themselves and also accept other contributions. 
+
 There is no strict protocol for becoming a committer. Candidates for new committers are typically people that are active contributors and community members.
 
-Being an active community member means participating on mailing list discussions, helping to answer questions, being respectful towards others, and following the meritocratic principles of community management. Since the "Apache Way" has a strong focus on the project community, this part is very important.
+Being an active community member means participating on mailing list discussions, helping to answer questions, verifying release candidates, being respectful towards others, and following the meritocratic principles of community management. Since the "Apache Way" has a strong focus on the project community, this part is *very* important.
 
-Of course, contributing code to the project is important as well. A good way to start is contributing improvements, new features, or bugfixes. You need to show that you take responsibility for the code that you contribute, add tests/documentation, and help maintaining it.
+Of course, contributing code and documentation to the project is important as well. A good way to start is contributing improvements, new features, or bug fixes. You need to show that you take responsibility for the code that you contribute, add tests and documentation, and help maintaining it.
 
-Finally, candidates for new committers are suggested by current committers, mentors, or PMC members, and voted upon by the PMC.
+Candidates for new committers are suggested by current committers or PMC members, and voted upon by the PMC. 
+
+If you would like to become a committer, you should engage with the community and start contributing to Apache Flink in any of the above ways. You might also want to talk to other committers and ask for their advice and guidance.
 
 
-### How to use git as a committer
 
-Only the infrastructure team of the ASF has administrative access to the GitHub mirror. Therefore, comitters have to push changes to the git repository at the ASF.
 
-#### Main source repositories
 
-**ASF writable**: `https://git-wip-us.apache.org/repos/asf/flink.git`
 
-**ASF read-only**: `git://git.apache.org/repos/asf/flink.git`
 
-**ASF read-only**: `https://github.com/apache/flink.git`
 
-Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
-If you want to build for Hadoop 1, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=1`.
-
-#### Website repositories
-
-**ASF writable**: `https://git-wip-us.apache.org/repos/asf/flink-web.git`
-
-**ASF read-only**: `git://git.apache.org/repos/asf/flink-web.git`
-
-**ASF read-only**: `https://github.com/apache/flink-web.git`
-
-Details on how to set the credentials for the ASF git repostiory are [linked here](https://git-wip-us.apache.org/).
-To merge pull requests from our Flink GitHub mirror, there is a script in the source `./tools/merge_pull_request.sh.template`. Rename it to `merge_pull_request.sh` with the appropriate settings and use it for merging.
-
-## Snapshots (Nightly Builds)
-
-Apache Flink `{{ site.FLINK_VERSION_LATEST }}` is our latest development version.
-
-You can download a packaged version of our nightly builds, which include
-the most recent development code. You can use them if you need a feature
-before its release. Only builds that pass all tests are published here.
-
-- **Hadoop 1**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_LATEST }}" class="ga-track" id="download-hadoop1-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_LATEST | split:'/' | last }}</a>
-- **Hadoop 2 and YARN**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST }}" class="ga-track" id="download-hadoop2-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST | split:'/' | last }}</a>
-
-Add the **Apache Snapshot repository** to your Maven `pom.xml`:
-
-```xml
-<repositories>
-  <repository>
-    <id>apache.snapshots</id>
-    <name>Apache Development Snapshot Repository</name>
-    <url>https://repository.apache.org/content/repositories/snapshots/</url>
-    <releases><enabled>false</enabled></releases>
-    <snapshots><enabled>true</enabled></snapshots>
-  </repository>
-</repositories>
-```
-
-You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_1_LATEST}}` for compatibility with old Hadoop 1.x versions).
