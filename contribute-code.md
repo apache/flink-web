@@ -4,7 +4,7 @@ title:  "Contributing Code"
 
 Apache Flink is maintained, improved, and extended by code contributions of volunteers. The Apache Flink community encourages anybody to contribute source code. In order to ensure a pleasant contribution experience for contributors and reviewers and to preserve the high quality of the code base, we follow a contribution process that is explained in this document.
 
-This document contains everything you need to know about contributing code to Apache Flink. It describes the process of preparing, testing and submitting a contributing, explains coding guidelines and code style of Flink's code base, and gives instructions to setup a development environment.
+This document contains everything you need to know about contributing code to Apache Flink. It describes the process of preparing, testing and submitting a contribution, explains coding guidelines and code style of Flink's code base, and gives instructions to setup a development environment.
 
 **IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework.
 
@@ -16,7 +16,7 @@ This document contains everything you need to know about contributing code to Ap
 
 ... please make sure there is a JIRA issue that corresponds to your contribution. This is a *general rule* that the Flink community follows for all code contributions, including bug fixes, improvements, or new features, with an exception for *trivial* hot fixes. If you would like to fix a bug that you found or if you would like to add a new feature or improvement to Flink, please follow the [File a bug report]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) or [Propose an improvement or a new feature]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature) guidelines to open an issue in [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK) before starting with the implementation.
 
-If the description of a JIRA issue indicates that its resolution will touch sensible parts of the code base, be sufficiently complex, or add significant amounts of new code, the Flink community might requests a design document (most contributions should not require a design document). The purpose of this document is to ensure that the overall approach to address the issue is sensible and agreed upon by the community. JIRA issues that require a design document are tagged with the **`requires-design-doc`** label. The label can be attached by any community member who feels that a design document is necessary. A good description helps to decide whether a JIRA issue requires a design document or not. The design document must be added or attached to or link from the JIRA issue and cover the following aspects:
+If the description of a JIRA issue indicates that its resolution will touch sensible parts of the code base, be sufficiently complex, or add significant amounts of new code, the Flink community might request a design document (most contributions should not require a design document). The purpose of this document is to ensure that the overall approach to address the issue is sensible and agreed upon by the community. JIRA issues that require a design document are tagged with the **`requires-design-doc`** label. The label can be attached by any community member who feels that a design document is necessary. A good description helps to decide whether a JIRA issue requires a design document or not. The design document must be added or attached to or link from the JIRA issue and cover the following aspects:
 
 - Overview of the general approach
 - List of API changes (changed interfaces, new and deprecated configuration parameters, changed behavior, ...)
@@ -102,7 +102,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 ### Exceptions and error messages
 {:.no_toc} 
 
-- **Exception swallowing**. Do not swallow exceptions and print the stacktrace. Instead check how exceptions are handled in similar situations.
+- **Exception swallowing**. Do not swallow exceptions and print the stacktrace. Instead check how exceptions are handled by similar classes.
 
 - **Meaningful error messages**. Give meaningful exception messages. Try to imagine why an exception could be thrown (what a user did wrong) and give a message that will help a user to resolve the problem.
 
@@ -120,7 +120,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 
 - **Documentation Updates**. Many changes in the system will also affect the documentation (both JavaDocs and the user documentation in the `docs/` directory.). Pull requests and patches are required to update the documentation accordingly, otherwise the change can not be accepted to the source code. See the [Contribute documentation]({{site.base}}/contribute-documentation.html) guide for how to update the documentation.
 
-- **Javadocs for public methods**. Public methods and classes that are part of the user-facing API need to have JavaDocs. Please write meaningful docs. Good docs are concise and informative.
+- **Javadocs for public methods**. All public methods and classes need to have JavaDocs. Please write meaningful docs. Good docs are concise and informative. Please do also update JavaDocs if you change the signature or behavior of a documented method.
 
 ### Code formatting
 {:.no_toc} 
