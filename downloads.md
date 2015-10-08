@@ -85,6 +85,7 @@ These dependencies include a local execution environment and thus support local 
 
 ## All releases
 
+- Flink 0.9.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
 - Flink 0.9.0-milestone-1 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.0-milestone-1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
 - Flink 0.8.1 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/scala/index.html))
 - Flink 0.8.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html))
