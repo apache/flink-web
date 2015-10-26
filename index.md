@@ -65,9 +65,11 @@ Download the **latest stable release** and run Flink on your machine, cluster, o
   <a href="{{ site.github }}" class="btn btn-info" markdown="1">Apache Flink on **GitHub**</a>
 </div>
 
-The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup) for all deployment options.
+The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup/building.html) for all deployment options.
 
 The [programming guide]({{ site.docs-snapshot }}/apis/programming_guide.html) contains all information to get you started with writing and testing your Flink programs.
+
+See our list of [third-party packages]({{ site.baseurl }}/community.html#third-party-packages) for Flink.
 
 **Check out the [documentation]({{ site.docs-snapshot }}) for the next steps.**
 
