@@ -118,7 +118,157 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 - **ASF read-only**: git://git.apache.org/repos/asf/flink-web.git
 - **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
-## People
+
+# Third party packages
+
+This is a list of third party packages (ie, libraries, system extensions, or examples) built on Flink.
+The Flink community only collects links to those packages but does not maintain them.
+Thus, they do not belong to the Apache Flink project and the community cannot give any support for them.
+**Your project is missing?**
+Let us know per [user/dev mailing list](#mailing-lists).
+
+<table class="flink-packages" width="100%">
+  <style>
+  table.flink-packages {
+    table-layout: fixed;
+    border-color: transparent;
+    border-spacing: 5px;
+    border-collapse: separate;
+  }
+  td.flink-package-empty{
+    height: 12em;
+    vertical-align: bottom;
+    border-color: transparent;
+    background-color: transparent;
+  }
+  td.flink-package {
+    height: 12em;
+    vertical-align: bottom;
+    border-color: transparent;
+    background-color: #B9BFC7;
+    color: #E5EAFA;
+  }
+  td.flink-package-external {
+    height: 12em;
+    vertical-align: bottom;
+    border-color: transparent;
+    background-color: #F5A030;
+  }
+  td.flink-package > div {
+    transform: rotate(-90deg);
+    font-size: 12pt;
+    white-space: nowrap;
+  }
+  td.flink-package-external > div {
+    transform: rotate(-90deg);
+    font-size: 16pt;
+    white-space: nowrap;
+  }
+  td.flink-component {
+    font-size: 16pt;
+    text-align: center;
+    border-color: transparent;
+    color: #E5EAFA;
+  }
+  </style>
+  <tr>
+   <td class="flink-package"><div><span>&nbsp;Flink ML</span></div></td>
+   <td class="flink-package"><div><span>&nbsp;Table API</span></div></td>
+   <td class="flink-package"><div><span>&nbsp;Gelly (Graph)</span></div></td>
+   <td class="flink-package"><div><span>&nbsp;MapReduce</span></div></td>
+   <td class="flink-package"><div><span>&nbsp;Python</span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-zeppelin">Apache Zeppelin</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-mahout">Apache Mahout</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#cascading">Cascading</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#dataflow">Dataflow</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#gradoop">Gradoop</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#bigpetstore">BigPetStore</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#fastr">FastR</a></span></div></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package"><div><span>&nbsp;Table API</span></div></td>
+   <td class="flink-package"><div><span>&nbsp;Storm</span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-samoa">Apache SAMOA</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#dataflow">Dataflow</a></span></div></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+   <td class="flink-package-empty"></td>
+  </tr>
+
+  <tr bgcolor="#B9BFC7">
+   <td class="flink-component" colspan="15">DataSet API</td>
+   <td class="flink-component" colspan="15">DataStream API</td>
+  </tr>
+
+  <tr bgcolor="#B9BFC7">
+   <td class="flink-component" colspan="30">Flink Runtime</td>
+  </tr>
+
+  <tr bgcolor="#B9BFC7">
+   <td class="flink-component" colspan="6" width="20%">Local</td>
+   <td class="flink-component" colspan="6" width="20%">Remote</td>
+   <td class="flink-component" colspan="6" width="20%">Embedded</td>
+   <td class="flink-component" colspan="6" width="20%">YARN</td>
+   <td class="flink-component" colspan="6" width="20%">Tez</td>
+  </tr>
+</table>
+
+## Apache Zeppelin
+
+[Apache Zeppelin (incubator)](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with 
+[Flink as an execution engine](https://zeppelin.incubator.apache.org/docs/interpreter/flink.html) (next to others engines).
+See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin) about Zeppelin on Flink.
+
+## Apache Mahout 
+
+[Apache Mahout](https://mahout.apache.org/) in a machine learning library that will feature Flink as an execution engine soon.
+Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl) about Mahout-Samsara DSL.
+
+## Cascading 
+
+[Cascading](http://www.cascading.org/cascading-flink/) enables an user to build complex workflows easily on Flink and other execution engines.
+[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Concurrent](http://www.concurrentinc.com).
+See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
+
+## Google Dataflow
+
+Currently, Google Dataflow programs can be executed in batch mode on top of Flink via [FlinkPipelineRunner](https://github.com/dataArtisans/flink-dataflow).
+Executing streaming programs is WIP by [dataArtisans](http://data-artisans.com/).
+Maximilian Michels' [Flink Forward talk](http://www.slideshare.net/FlinkForward/maximilian-michels-google-cloud-dataflow-on-top-of-apache-flink) gives a good introduction.
+
+## GRADOOP
+
+[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) enables scalable graph processing on top of Flink developed at [Universtiy Leibzig](http://www.zv.uni-leipzig.de/).
+Check out Martin Junhanns' [Flink Forward talk](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink)
+
+## BigPetStore
+
+[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) is a benchmarking suite including a data generator and will be available for Flin k soon.
+See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/suneel-marthi-bigpetstore-flink-a-comprehensive-blueprint-for-apache-flink?ref=http://flink-forward.org/?session=tbd-3) as preview.
+
+## FastR
+
+[FastR](https://bitbucket.org/allr/fastr-flink) in an implemenation of the R language in Java. [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) exeutes R workload on top of Flink.
+
+## Apache SAMOA
+
+[Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) a streaming ML library featuring Flink an execution engine soon. Albert Bifet introduced SAMOA on Flink at his [Flink Forward talk](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink).
+
+## WordCount Example in Clojure
+
+Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/flink-clojure) on how to write a Flink program in Clojure.
+
+
+# People
 
 <table class="table table-striped">
   <thead>
