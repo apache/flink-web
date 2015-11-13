@@ -263,6 +263,10 @@ See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/
 
 [Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) a streaming ML library featuring Flink an execution engine soon. Albert Bifet introduced SAMOA on Flink at his [Flink Forward talk](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink).
 
+## Python Examples on Flink
+
+A [collection of examples](https://github.com/wdm0006/flink-python-examples) using Apache Flink's Python API.
+
 ## WordCount Example in Clojure
 
 Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/flink-clojure) on how to write a Flink program in Clojure.
