@@ -27,39 +27,39 @@ pick the Hadoop 1 version.
 
 ### Binaries
 
-<table class="table">
+<table class="table table-striped">
 <thead>
     <tr>
-    <th>Hadoop Version</th> <th>Scala 2.10</th> <th>Scala 2.11</th>
+    <th></th> <th>Scala 2.10</th> <th>Scala 2.11</th>
     </tr>
 </thead>
 <tbody>
     <tr>
-    <td>1.2.1</td>
+    <th>Hadoop 1.2.1</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}">Download</a></td>
     <td></td>
     </tr>
 
     <tr>
-    <td>2.3.0</td>
+    <th>Hadoop 2.3.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}">Download</a></td>
     </tr>
 
     <tr>
-    <td>2.4.1</td>
+    <th>Hadoop 2.4.1</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}">Download</a></td>
     </tr>
 
     <tr>
-    <td>2.6.0</td>
+    <th>Hadoop 2.6.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}">Download</a></td>
     </tr>
 
     <tr>
-    <td>2.7.0</td>
+    <th>Hadoop 2.7.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}">Download</a></td>
     </tr>
