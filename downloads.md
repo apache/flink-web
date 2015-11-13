@@ -19,41 +19,58 @@ $( document ).ready(function() {
 
 Apache Flink {{ site.stable }} is our latest stable release.
 
-You [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink) to use Flink, but if you plan to use Flink with data stored in Hadoop, pick the version matching your installed Hadoop version. If you don't want to do this, pick the Hadoop 1 version.
+You
+[don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
+to use Flink, but if you plan to use Flink with data stored in Hadoop, pick the
+version matching your installed Hadoop version. If you don't want to do this,
+pick the Hadoop 1 version.
+
+### Binaries
+
+<table class="table">
+<thead>
+    <tr>
+    <th>Hadoop Version</th> <th>Scala 2.10</th> <th>Scala 2.11</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+    <td>1.2.1</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}">Download</a></td>
+    <td></td>
+    </tr>
+
+    <tr>
+    <td>2.3.0</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}">Download</a></td>
+    </tr>
+
+    <tr>
+    <td>2.4.1</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}">Download</a></td>
+    </tr>
+
+    <tr>
+    <td>2.6.0</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}">Download</a></td>
+    </tr>
+
+    <tr>
+    <td>2.7.0</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}">Download</a></td>
+    </tr>
+
+    </tr>
+</tbody>
+</table>
+
+### Source
 
 <div class="list-group">
-  <!-- Hadoop 1 -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}" id="download-hadoop1" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 1</h4>
-
-    <p>Pick this package if you plan to use Flink with data stored in Hadoop 1.x.</p>
-    <p>Also pick this version if you don't plan to use Flink with Hadoop at all.</p>
-  </a>
-
-  <!-- Hadoop 2.2 -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" id="download-hadoop2" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.2.0</h4>
-    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.2.0 This version also supports YARN</p>
-  </a>
-
-  <!-- Hadoop 2.4 -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" id="download-hadoop24" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.4.1</h4>
-    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.4.1 This version also supports YARN</p>
-  </a>
-
-  <!-- Hadoop 2.6 -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" id="download-hadoop26" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.6.0</h4>
-    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.6.0 This version also supports YARN</p>
-  </a>
-
-  <!-- Hadoop 2.7 -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" id="download-hadoop27" class="list-group-item ga-track">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.stable }}</strong> for Hadoop 2.7.0</h4>
-    <p>Pick this package if you plan to install Flink use Flink with data stored in Hadoop 2.7.0 This version also supports YARN</p>
-  </a>
-
   <!-- Source -->
   <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE }}" class="list-group-item ga-track" id="download-source">
     <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
