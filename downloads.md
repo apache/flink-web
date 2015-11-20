@@ -90,6 +90,11 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
+  <artifactId>flink-streaming-java</artifactId>
+  <version>{{ site.FLINK_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
@@ -98,7 +103,7 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 These dependencies include a local execution environment and thus support local testing.
 
 - **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala`.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala` and `flink-streaming-java` with `flink-streaming-scala`.
 
 ## All releases
 
