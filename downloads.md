@@ -5,7 +5,8 @@ title: "Downloads"
 <script type="text/javascript">
 $( document ).ready(function() {
   // Handler for .ready() called.
-  $('.ga-track').on('click', function() {
+  $('.ga-track').click( function () {
+    console.log("tracking " + $(this).attr('id'))
     // we just use the element id for tracking with google analytics
     ga('send', 'event', 'button', 'click', $(this).attr('id'));
   });
@@ -36,32 +37,32 @@ pick the Hadoop 1 version.
 <tbody>
     <tr>
     <th>Hadoop 1.2.1</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}" class="ga-track" id="download-hadoop1">Download</a></td>
     <td></td>
     </tr>
 
     <tr>
     <th>Hadoop 2.3.0</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
     </tr>
 
     <tr>
     <th>Hadoop 2.4.1</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a></td>
     </tr>
 
     <tr>
     <th>Hadoop 2.6.0</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a></td>
     </tr>
 
     <tr>
     <th>Hadoop 2.7.0</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a></td>
     </tr>
 
     </tr>
@@ -107,14 +108,14 @@ These dependencies include a local execution environment and thus support local 
 
 ## All releases
 
-- Flink 0.9.1 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
-- Flink 0.9.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
-- Flink 0.9.0-milestone-1 ([Jars](http://archive.apache.org/dist/flink/flink-0.9.0-milestone-1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
-- Flink 0.8.1 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/scala/index.html))
-- Flink 0.8.0 ([Jars](http://archive.apache.org/dist/flink/flink-0.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html))
-- Flink 0.7.0-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/flink-0.7.0-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/scala/index.html))
-- Flink 0.6.1-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/scala/index.html))
-- Flink 0.6-incubating ([Jars](http://archive.apache.org/dist/incubator/flink/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/scala/index.html))
+- Flink 0.9.1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
+- Flink 0.9.0 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
+- Flink 0.9.0-milestone-1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.0-milestone-1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
+- Flink 0.8.1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.8.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.1/api/scala/index.html))
+- Flink 0.8.0 ([Binaries](http://archive.apache.org/dist/flink/flink-0.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.8.0/api/scala/index.html))
+- Flink 0.7.0-incubating ([Binaries](http://archive.apache.org/dist/incubator/flink/flink-0.7.0-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/api/scala/index.html))
+- Flink 0.6.1-incubating ([Binaries](http://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6.1/api/scala/index.html))
+- Flink 0.6-incubating ([Binaries](http://archive.apache.org/dist/incubator/flink/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.6/api/scala/index.html))
 - Stratosphere 0.5.1 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/scala/index.html))
 - Stratosphere 0.5 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/scala/index.html))
 - Stratosphere 0.4 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.4/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.4/api/scala/index.html))
