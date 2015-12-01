@@ -38,6 +38,24 @@ layout: features
 
 ----
 
+<!-- Event Time Streaming -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="event_time"><i>Support for Event Time and Out-of-Order Events</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink supports stream processing and windowing with <b>Event Time</b> semantics.</p>
+    <p class="lead">Event time makes it easy to compute over streams where events arrive out of order, and where events may arrive delayed.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/out_of_order_stream.png" alt="Event Time and Out-of-Order Streams" style="width:100%" />
+  </div>
+</div>
+
+----
+
 <!-- Exactly-once Semantics -->
 <div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
@@ -56,17 +74,35 @@ layout: features
 
 ----
 
+<!-- Windowing -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="windows"><i>Highly flexible Streaming Windows</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <p class="lead">Flink supports windows over time, count, or sessions, as well as data-driven windows.</p>
+    <p class="lead">Windows can be customized with flexible triggering conditions, to support sophisticated streaming patterns.</p>
+  </div>
+  <div class="col-sm-6 img-column">
+    <img src="{{ site.baseurl }}/img/features/windows.png" alt="Windows" style="width:100%" />
+  </div>
+</div>
+
+----
+
 <!-- Continuous streaming -->
 <div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
-    <h1 id="streaming_model"><i>Continuous Streaming Model with Flow Control</i></h1>
+    <h1 id="streaming_model"><i>Continuous Streaming Model with Backpressure</i></h1>
   </div>
 </div>
 
 <div class="row">
   <div class="col-sm-6">
     <p class="lead">Data streaming applications are executed with continuous (long lived) operators.</p>
-    <p class="lead">Flink's streaming runtime has natural flow control: Slow downstream operators backpressure faster upstream operators.</p>
+    <p class="lead">Flink's streaming runtime has natural flow control: Slow data sinks backpressure faster sources.</p>
   </div>
   <div class="col-sm-6 img-column">
     <img src="{{ site.baseurl }}/img/features/continuous_streams.png" alt="Continuous Streaming Model" style="width:60%" />
