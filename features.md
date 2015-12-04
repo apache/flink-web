@@ -225,6 +225,36 @@ layout: features
 
 ----
 
+<!-- Data Streaming API -->
+<div class="row" style="padding: 0 0 2em 0">
+  <div class="col-sm-12">
+    <h1 id="streaming_api"><i>Streaming Data Applications</i></h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-5">
+    <p class="lead">The <i>DataStream</i> API supports functional transformations on data streams, with user-defined state, and flexible windows.</p>
+    <p class="lead">The example shows how to compute a sliding histogram of word occurrences of a data stream of texts.</p>
+  </div>
+  <div class="col-sm-7">
+    <p class="lead">WindowWordCount in Flink's DataStream API</p>
+{% highlight scala %}
+case class Word(word: String, freq: Long)
+
+val texts: DataStream[String] = ...
+
+val counts = text
+  .flatMap { line => line.split("\\W+") } 
+  .map { token => Word(token, 1) }
+  .keyBy("word")
+  .timeWindow(Time.seconds(5), Time.seconds(1))
+  .sum("freq")
+{% endhighlight %}
+  </div>
+</div>
+
+----
+
 <!-- Batch Processing API -->
 <div class="row" style="padding: 0 0 2em 0">
   <div class="col-sm-12">
@@ -254,36 +284,6 @@ val result = initialRanks.iterate(30) { pages =>
   }
   .groupBy("pageId").sum("rank")
 }
-{% endhighlight %}
-  </div>
-</div>
-
-----
-
-<!-- Data Streaming API -->
-<div class="row" style="padding: 0 0 2em 0">
-  <div class="col-sm-12">
-    <h1 id="streaming_api"><i>Streaming Data Applications</i></h1>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-5">
-    <p class="lead">The <i>DataStream</i> API supports functional transformations on data streams, with user-defined state, and flexible windows.</p>
-    <p class="lead">The example shows how to compute a sliding histogram of word occurrences of a data stream of texts.</p>
-  </div>
-  <div class="col-sm-7">
-    <p class="lead">WindowWordCount in Flink's DataStream API</p>
-{% highlight scala %}
-case class Word(word: String, freq: Long)
-
-val texts: DataStream[String] = ...
-
-val counts = text
-  .flatMap { line => line.split("\\W+") } 
-  .map { token => Word(token, 1) }
-  .groupBy("word")
-  .window(Time.of(5, SECONDS)).every(Time.of(1, SECONDS))
-  .sum("freq")
 {% endhighlight %}
   </div>
 </div>
