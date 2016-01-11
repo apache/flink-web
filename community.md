@@ -247,8 +247,7 @@ Maximilian Michels' [Flink Forward talk](http://www.slideshare.net/FlinkForward/
 
 ## GRADOOP
 
-[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) enables scalable graph processing on top of Flink developed at [Universtiy Leibzig](http://www.zv.uni-leipzig.de/).
-Check out Martin Junhanns' [Flink Forward talk](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink)
+[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) enables scalable graph analytics on top of Flink and is developed at Leipzig University. Check out [Martin Junghanns’ Flink Forward talk](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink).
 
 ## BigPetStore
 
