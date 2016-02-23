@@ -114,6 +114,10 @@ We use JIRA to track all code related issues: [{{ site.jira }}]({{ site.jira }})
 
 All issue activity is also mirrored to the issues mailing list.
 
+## Meetups
+
+There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-flink/) featuring Flink.
+
 ## Source Code
 
 ### Main source repositories
