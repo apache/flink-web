@@ -16,17 +16,18 @@ Flink includes **several APIs** for creating applications that use the Flink eng
 
 1. [DataStream API]({{ site.docs-snapshot }}/apis/streaming/index.html) for unbounded streams embedded in Java and Scala, and
 2. [DataSet API]({{ site.docs-snapshot }}/apis/batch/index.html) for static data embedded in Java, Scala, and Python,
-3. [Table API]({{ site.docs-snapshot }}/libs/table.html) with a SQL-like expression language embedded in Java and Scala.
+3. [Table API]({{ site.docs-snapshot }}/apis/batch/libs/table.html) with a SQL-like expression language embedded in Java and Scala.
 
 Flink also bundles **libraries for domain-specific use cases**:
 
-1. [Machine Learning library]({{ site.docs-snapshot }}/libs/ml/index.html), and
-2. [Gelly]({{ site.docs-snapshot }}/libs/gelly_guide.html), a graph processing API and library.
+1. [CEP]({{ site.docs-snapshot }}/apis/streaming/libs/cep.html), a complex event processing library,
+2. [Machine Learning library]({{ site.docs-snapshot }}/apis/batch/libs/ml/index.html), and
+3. [Gelly]({{ site.docs-snapshot }}/apis/batch/libs/gelly.html), a graph processing API and library.
 
 You can **integrate** Flink easily with other well-known open source systems both for [data input and output](features.html#deployment-and-integration) as well as [deployment](features.html#deployment-and-integration).
   </div>
   <div class="col-md-6 stack text-center">
-    <img src="{{ site.baseurl }}/img/flink-stack-small.png" alt="Apache Flink Stack" width="385px" height="300px">
+    <img src="{{ site.baseurl }}/img/flink-stack2.png" alt="Apache Flink Stack" width="430px" height="275px">
   </div>
 </div>
 
