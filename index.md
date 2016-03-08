@@ -27,7 +27,8 @@ Flink also bundles **libraries for domain-specific use cases**:
 You can **integrate** Flink easily with other well-known open source systems both for [data input and output](features.html#deployment-and-integration) as well as [deployment](features.html#deployment-and-integration).
   </div>
   <div class="col-md-6 stack text-center">
-    <img src="{{ site.baseurl }}/img/flink-stack2.png" alt="Apache Flink Stack" width="430px" height="275px">
+    <!-- https://docs.google.com/drawings/d/1XCNHsBDAq0fP-TSazE4CcrUinrC37JFiuXAoAEZZavE/ -->
+    <img src="{{ site.baseurl }}/img/flink-stack-frontpage.png" alt="Apache Flink Stack" width="480px" height="280px">
   </div>
 </div>
 
