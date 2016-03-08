@@ -24,10 +24,8 @@ declare -r FALSE=1
 # takes a string and returns true if it seems to represent "yes"
 function isYes() {
   local x=$1
-  [ $x = "y" ] && echo $TRUE; return
-  [ $x = "Y" ] && echo $TRUE; return
-  [ $x = "yes" ] && echo $TRUE; return
-echo $FALSE
+  [ $x = "y" -o $x = "Y" -o $x = "yes" ] && echo $TRUE; return
+  echo $FALSE
 }
 
 function mkDir() {
@@ -44,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.11.7"
-defaultFlinkVersion="0.10.2"
+defaultFlinkVersion="1.0.0"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -73,7 +71,7 @@ while [ $TRUE ]; do
   read -p "Create Project? (Y/n): " createProject
   createProject=${createProject:-y}
   
-  [ "$(isYes $createProject)" = "$TRUE" ] && break
+  [ "$(isYes "$createProject")" = "$TRUE" ] && break
 
 done
 
@@ -112,6 +110,8 @@ lazy val root = (project in file(\".\")).
   settings(
     libraryDependencies ++= flinkDependencies
   )
+
+mainClass in assembly := Some(\"$organization.Job\")
 
 // make run command include the provided dependencies
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
