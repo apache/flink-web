@@ -91,12 +91,12 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java</artifactId>
+  <artifactId>flink-streaming-java_2.10</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients</artifactId>
+  <artifactId>flink-clients_2.10</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
@@ -104,10 +104,11 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 These dependencies include a local execution environment and thus support local testing.
 
 - **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala` and `flink-streaming-java` with `flink-streaming-scala`.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.10` and `flink-streaming-java_2.10` with `flink-streaming-scala_2.10`. For Scala 2.11 dependencies, use the suffix `_2.11` instead of `_2.10`.
 
 ## All releases
 
+- Flink 0.10.2 ([Binaries](http://archive.apache.org/dist/flink/flink-0.10.2/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/api/scala/index.html))
 - Flink 0.9.1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
 - Flink 0.9.0 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
 - Flink 0.9.0-milestone-1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.0-milestone-1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
