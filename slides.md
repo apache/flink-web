@@ -23,6 +23,8 @@ Flink Forward 2015 (October 12th/13th, 2015) was the first conference to bring t
 - Jamie Grier: **Stateful Stream Processing at In-Memory Speed**. *Flink NYC Meetup, March 2016*: [SlideShare](http://www.slideshare.net/JamieGrier/stateful-stream-processing-at-inmemory-speed)
 - Robert Metzger: **Stream Processing with Apache Flink**. *QCon London, March 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/qcon-london-stream-processing-with-apache-flink)
 - Vasia Kalavri: **Batch and Stream Graph Processing with Apache Flink**. *Flink and Neo4j Meetup Berlin, March 2016*: [SlideShare](http://www.slideshare.net/vkalavri/batch-and-stream-graph-processing-with-apache-flink)
+- Maximilian Michels: **Stream Processing with Apache Flink**. *Big Data Technology Summit, February 2016*:
+[SlideShare](http://de.slideshare.net/MaximilianMichels/big-datawarsaw-animated)
 - Vasia Kalavri: **Single-Pass Graph Streaming Analytics with Apache Flink**. *FOSDEM, January 2016*: [SlideShare](http://www.slideshare.net/vkalavri/gellystream-singlepass-graph-streaming-analytics-with-apache-flink)
 - Till Rohrmann: **Streaming Done Right**. *FOSDEM, January 2016*: [SlideShare](http://www.slideshare.net/tillrohrmann/apache-flink-streaming-done-right-fosdem-2016)
 
