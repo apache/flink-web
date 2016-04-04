@@ -270,6 +270,9 @@ A [collection of examples](https://github.com/wdm0006/flink-python-examples) usi
 
 Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/flink-clojure) on how to write a Flink program in Clojure.
 
+## Anomaly Detection and Prediction in Flink
+
+[flink-htm](https://github.com/nupic-community/flink-htm) is a library for anomaly detection and prediction in Apache Flink. The algorithms are based on Hierarchical Temporal Memory (HTM) as implemented by the Numenta Platform for Intelligent Computing (NuPIC).
 
 # People
 
