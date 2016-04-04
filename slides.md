@@ -32,6 +32,7 @@ Flink Forward 2015 (October 12th/13th, 2015) was the first conference to bring t
 - Stephan Ewen: **Flink-0.10** *(October 28th, 2015)*: [SlideShare](http://www.slideshare.net/stephanewen1/flink-010-bay-area-meetup-october-2015)
 - Robert Metzger: **Architecture of Flink's Streaming Runtime** *(ApacheCon, September 29th, 2015)*: [SlideShare](http://www.slideshare.net/robertmetzger1/architecture-of-flinks-streaming-runtime-apachecon-eu-2015)
 - Robert Metzger: **Click-Through Example for Flink's KafkaConsumer Checkpointing** *(September, 2015)*: [SlideShare](http://www.slideshare.net/robertmetzger1/clickthrough-example-for-flinks-kafkaconsumer-checkpointing)
+- Paris Carbone: **Apache Flink Streaming. Resiliency and Consistency** (Google Tech Talk, August 2015: [SlideShare](http://www.slideshare.net/ParisCarbone/tech-talk-google-on-flink-fault-tolerance-and-ha)
 - Andra Lungu: **Graph Processing with Apache Flink** *(August 26th, 2015)*: [SlideShare](http://www.slideshare.net/AndraLungu/flink-gelly-karlsruhe-june-2015)
 - Till Rohrmann: **Interactive data analytisis with Apache Flink** *(June 23rd, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/data-analysis-49806564)
 - Gyula Fóra: **Real-time data processing with Apache Flink** *(Budapest Data Forum, June 4th, 2015)*: [SlideShare](http://www.slideshare.net/GyulaFra/flink-streaming-budapestdata)
