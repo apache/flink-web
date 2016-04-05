@@ -14,7 +14,7 @@ Flink Forward 2015 (October 12th/13th, 2015) was the first conference to bring t
 
 ## Slides
 
-**Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference. You can also find slides on [Flink Big Data Dot Com](http://www.flinkbigdata.com).
+**Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference.
 
 ### 2016
 
