@@ -236,7 +236,7 @@ Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/Fl
 ## Cascading 
 
 [Cascading](http://www.cascading.org/cascading-flink/) enables an user to build complex workflows easily on Flink and other execution engines.
-[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Concurrent](http://www.concurrentinc.com).
+[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Driven, Inc](http://www.driven.io/).
 See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
 
 ## Google Dataflow
