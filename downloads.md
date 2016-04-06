@@ -16,9 +16,9 @@ $( document ).ready(function() {
 
 {% toc %}
 
-## Latest stable release (v{{ site.stable }})
+## Latest stable release (v{{ site.FLINK_VERSION_STABLE }})
 
-Apache Flink {{ site.stable }} is our latest stable release.
+Apache Flink {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 You
 [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
@@ -108,6 +108,7 @@ These dependencies include a local execution environment and thus support local 
 
 ## All releases
 
+- Flink 1.0.0 ([Binaries](http://archive.apache.org/dist/flink/flink-1.0.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/api/scala/index.html))
 - Flink 0.10.2 ([Binaries](http://archive.apache.org/dist/flink/flink-0.10.2/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.10/api/scala/index.html))
 - Flink 0.9.1 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
 - Flink 0.9.0 ([Binaries](http://archive.apache.org/dist/flink/flink-0.9.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/api/scala/index.html))
