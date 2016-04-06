@@ -209,3 +209,7 @@ Next on the road map is support for a regular expression-like pattern specificat
 Furthermore, it is planned to allow the where-clause to access fields of previously matched events. 
 This feature will allow to prune unpromising event sequences early.
 
+<hr />
+
+*Note:* The example code requires Flink 1.0.1 or higher.
+
