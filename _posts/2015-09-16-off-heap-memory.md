@@ -159,7 +159,7 @@ There is still a bit of mystery left, specifically why sometimes code is faster 
 
 ## Appendix: Detailed Micro Benchmarks
 
-These microbenchmarks test the performance of the different memory segment implementations on various operation. The code is available [as part of the Flink project](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/core/memory/benchmarks/MemorySegmentSpeedBenchmark.java)
+These microbenchmarks test the performance of the different memory segment implementations on various operation.
 
 Each experiments tests the different implementations multiple times in different orders, to balance the advantage/disadvantage of the JIT compiler specializing towards certain code paths. All experiments were run 5x, discarding the fastest and slowest run, and then averaged. This compensated for delay before the JIT kicks in.
 

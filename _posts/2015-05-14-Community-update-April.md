@@ -11,6 +11,17 @@ excerpt: "<p>The monthly update from the Flink community. Including the availabi
 
 April was an packed month for Apache Flink. 
 
+### Flink runner for Google Cloud Dataflow
+
+A Flink runner for Google Cloud Dataflow was announced. See the blog
+posts by [data Artisans](http://data-artisans.com/announcing-google-cloud-dataflow-on-flink-and-easy-flink-deployment-on-google-cloud/) and
+the [Google Cloud Platform Blog](http://googlecloudplatform.blogspot.de/2015/03/announcing-Google-Cloud-Dataflow-runner-for-Apache-Flink.html).
+Google Cloud Dataflow programs can be written using and open-source
+SDK and run in multiple backends, either as a managed service inside
+Google's infrastructure, or leveraging open source runners,
+including Apache Flink.
+
+
 ## Flink 0.9.0-milestone1 release
 
 The highlight of April was of course the availability of [Flink 0.9-milestone1]({{site.baseurl}}/news/2015/04/13/release-0.9.0-milestone1.html). This was a release packed with new features, including, a Python DataSet API, the new SQL-like Table API, FlinkML, a machine learning library on Flink, Gelly, FLink's Graph API, as well as a mode to run Flink on YARN leveraging Tez. In case you missed it, check out the [release announcement blog post]({{site.baseurl}}/news/2015/04/13/release-0.9.0-milestone1.html) for details
@@ -29,4 +40,4 @@ Fabian Hueske gave an [interview at InfoQ](http://www.infoq.com/news/2015/04/hue
 
 ## Upcoming events
 
-Stay tuned for a wealth of upcoming events! Two Flink talsk will be presented at [Berlin Buzzwords](http://berlinbuzzwords.de/15/sessions), Flink will be presented at the [Hadoop Summit in San Jose](http://2015.hadoopsummit.org/san-jose/). A [training workshop on Apache Flink](http://www.meetup.com/Apache-Flink-Meetup/events/220557545/) is being organized in Berlin. Finally, [Flink Forward](http://flink-forward.org), the first conference to bring together the whole Flink community is taking place in Berlin in October 2015.
+Stay tuned for a wealth of upcoming events! Two Flink talsk will be presented at [Berlin Buzzwords](http://berlinbuzzwords.de/15/sessions), Flink will be presented at the [Hadoop Summit in San Jose](http://2015.hadoopsummit.org/san-jose/). A [training workshop on Apache Flink](http://www.meetup.com/Apache-Flink-Meetup/events/220557545/) is being organized in Berlin. Finally, [Flink Forward](http://2015.flink-forward.org/), the first conference to bring together the whole Flink community is taking place in Berlin in October 2015.

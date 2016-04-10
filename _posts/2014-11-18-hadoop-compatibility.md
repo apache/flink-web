@@ -87,4 +87,4 @@ While the Hadoop compatibility package is already very useful, we are currently 
 
 Flink lets you reuse a lot of the code you wrote for Hadoop MapReduce, including all data types, all Input- and OutputFormats, and Mapper and Reducers of the mapred-API. Hadoop functions can be used within Flink programs and mixed with all other Flink functions. Due to Flink’s pipelined execution, Hadoop functions can arbitrarily be assembled without data exchange via HDFS. Moreover, the Flink community is currently working on a dedicated Hadoop Job operation to supporting the execution of Hadoop jobs as a whole.
 
-If you want to use Flink’s Hadoop compatibility package checkout our [documentation](http://ci.apache.org/projects/flink/flink-docs-release-0.7/hadoop_compatibility.html).
+If you want to use Flink’s Hadoop compatibility package checkout our [documentation](https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/hadoop_compatibility.html).
