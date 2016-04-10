@@ -70,12 +70,12 @@ DataSet<Vertex<Long, Double>> singleSourceShortestPaths = graph
 {% endhighlight %}	   
 
 See more Gelly examples
-[here](https://github.com/apache/flink/tree/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example).
+[here](https://github.com/apache/flink/tree/master/flink-libraries/flink-gelly-examples).
 
 ### Flink Expressions
 
 The newly merged
-[flink-table](https://github.com/apache/flink/tree/master/flink-staging/flink-table)
+[flink-table](https://github.com/apache/flink/tree/master/flink-libraries/flink-table)
 module is the first step in Flink’s roadmap towards logical queries
 and SQL support. Here’s a preview on how you can read two CSV file,
 assign a logical schema to, and apply transformations like filters and
@@ -99,7 +99,7 @@ val items =
 ### Access to HCatalog tables
 
 With the [flink-hcatalog
-module](https://github.com/apache/flink/tree/master/flink-staging/flink-hcatalog),
+module](https://github.com/apache/flink/tree/master/flink-batch-connectors/flink-hcatalog),
 you can now conveniently access HCatalog/Hive tables. The module
 supports projection (selection and order of fields) and partition
 filters.

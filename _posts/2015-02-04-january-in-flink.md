@@ -15,17 +15,13 @@ Flink 0.8.0 was released. See [here](http://flink.apache.org/news/2015/01/21/rel
 
 The community has published a [roadmap for 2015](https://cwiki.apache.org/confluence/display/FLINK/Flink+Roadmap) on the Flink wiki. Check it out to see what is coming up in Flink, and pick up an issue to contribute!
 
-### Scaling ALS
-
-Flink committers employed at [data Artisans](http://data-artisans.com) published a [blog post](http://data-artisans.com/computing-recommendations-with-flink.html) on how they scaled matrix factorization with Flink and Google Compute Engine to matrices with 28 billion elements.
-
 ### Articles in the press
 
 The Apache Software Foundation [announced](https://blogs.apache.org/foundation/entry/the_apache_software_foundation_announces69) Flink as a Top-Level Project. The announcement was picked up by the media, e.g., [here](http://sdtimes.com/inside-apache-software-foundations-newest-top-level-project-apache-flink/?utm_content=11232092&utm_medium=social&utm_source=twitter), [here](http://www.datanami.com/2015/01/12/apache-flink-takes-route-distributed-data-processing/), and [here](http://i-programmer.info/news/197-data-mining/8176-flink-reaches-top-level-status.html).
 
 ### Hadoop Summit
 
-A submitted abstract on Flink Streaming [won the community](http://2015.hadoopsummit.org/amsterdam-blog/announcing-the-community-vote-session-winners-for-the-2015-hadoop-summit-europe/) vote at “The Future of Hadoop” track.
+A submitted abstract on Flink Streaming won the community vote at “The Future of Hadoop” track.
 
 ### Meetups and talks
 

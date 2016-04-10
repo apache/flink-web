@@ -148,7 +148,7 @@ Flink's compatibility package for Storm allows using unmodified Spouts and Bolts
 This enables you to even embed third-party Spouts and Bolts where the source code is not available.
 While you can embed Spouts/Bolts in a Flink program and mix-and-match them with Flink operators, running whole topologies is the easiest way to get started and can be achieved with almost no code changes.
 
-If you want to try out Flink's Storm compatibility package checkout our [Documentation](https://ci.apache.org/projects/flink/flink-docs-master/apis/storm_compatibility.html).
+If you want to try out Flink's Storm compatibility package checkout our [Documentation](https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/storm_compatibility.html).
 
 <hr />
 

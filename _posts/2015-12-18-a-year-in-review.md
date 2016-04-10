@@ -49,14 +49,14 @@ meetups around the globe](http://apache-flink.meetup.com/):
 # Flink Forward 2015
 
 One of the highlights of the year for Flink was undoubtedly the [Flink
-Forward](http://flink-forward.org/) conference, the first conference
+Forward](http://2015.flink-forward.org/) conference, the first conference
 on Apache Flink that was held in October in Berlin. More than 250
 participants (roughly half based outside Germany where the conference
 was held) attended more than 33 technical talks from organizations
 including Google, MongoDB, Bouygues Telecom, NFLabs, Euranova, RedHat,
 IBM, Huawei, Intel, Ericsson, Capital One, Zalando, Amadeus, the Otto
 Group, and ResearchGate. If you have not yet watched their talks,
-check out the [slides](http://flink-forward.org/?post_type=day) and
+check out the [slides](http://2015.flink-forward.org/?post_type=day) and
 [videos](https://www.youtube.com/playlist?list=PLDX4T_cnKjD31JeWR1aMOi9LXPRQ6nyHO)
 from Flink Forward.
 
