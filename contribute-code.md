@@ -187,7 +187,7 @@ The code is downloaded into a directory called `flink`.
 
 If you are behind a firewall you may need to provide Proxy settings to Maven and your IDE.
 
-Some tests communicate over IRC and need a [SOCKS proxy server](http://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html) to pass.
+For example, the WikipediaEditsSourceTest communicates over IRC and need a [SOCKS proxy server](http://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html) to pass.
 
 ### Setup an IDE and import the source code
 {:.no_toc} 
