@@ -191,7 +191,7 @@ Let us know per [user/dev mailing list](#mailing-lists).
    <td class="flink-package"><div><span>&nbsp;Storm</span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-samoa">Apache SAMOA</a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#dataflow">Dataflow</a></span></div></td>
-   <td class="flink-package-empty"></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-ignite">Apache Ignite</a></span></div></td>
    <td class="flink-package-empty"></td>
    <td class="flink-package-empty"></td>
    <td class="flink-package-empty"></td>
@@ -251,7 +251,7 @@ Maximilian Michels' [Flink Forward talk](http://www.slideshare.net/FlinkForward/
 
 ## BigPetStore
 
-[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) is a benchmarking suite including a data generator and will be available for Flin k soon.
+[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) is a benchmarking suite including a data generator and will be available for Flink soon.
 See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/suneel-marthi-bigpetstore-flink-a-comprehensive-blueprint-for-apache-flink?ref=http://flink-forward.org/?session=tbd-3) as preview.
 
 ## FastR
@@ -273,6 +273,10 @@ Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/fl
 ## Anomaly Detection and Prediction in Flink
 
 [flink-htm](https://github.com/nupic-community/flink-htm) is a library for anomaly detection and prediction in Apache Flink. The algorithms are based on Hierarchical Temporal Memory (HTM) as implemented by the Numenta Platform for Intelligent Computing (NuPIC).
+
+## Apache Ignite
+
+[Apache Ignite](https://ignite.apache.org) is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time. See [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) to inject data into Ignite cache.
 
 # People
 
