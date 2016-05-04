@@ -154,6 +154,10 @@ for (...) {
 i++; // increment by one
 ```
 
+### IntelliJ code style schema
+
+There is a code style [schema](https://github.com/apache/flink/tree/master/tools/FlinkCodeStyle.xml) for IntelliJ available within source code.
+
 -----
 
 ## Best practices
