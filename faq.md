@@ -50,7 +50,7 @@ Hadoop client libraries by default.
 
 Additionally, we provide a special YARN Enabled download of Flink for
 users with an existing Hadoop YARN cluster. [Apache Hadoop
-YARN](http://hadoop.apache.org/docs/r2.2.0/hadoop-yarn/hadoop-yarn-site/YARN.html) 
+YARN](http://hadoop.apache.org/docs/r2.2.0/hadoop-yarn/hadoop-yarn-site/YARN.html)
 is Hadoop's cluster resource manager that allows to use
 different execution engines next to each other on a cluster.
 
@@ -153,8 +153,8 @@ If you run Flink in a massively parallel setting (100+ parallel threads),
 you need to adapt the number of network buffers via the config parameter
 `taskmanager.network.numberOfBuffers`.
 As a rule-of-thumb, the number of buffers should be at least
-`4 * numberOfNodes * numberOfTasksPerNode^2`. See
-[Configuration Reference]({{ site.docs-snapshot }}/setup/config.html) for details.
+`4 * numberOfTaskManagers * numberOfSlotsPerTaskManager^2`. See
+[Configuration Reference]({{ site.docs-snapshot }}/setup/config.html#configuring-the-network-buffers) for details.
 
 ### My job fails early with a java.io.EOFException. What could be the cause?
 
@@ -198,7 +198,7 @@ Among the exceptions are the following:
         at org.apache.hadoop.hdfs.server.blockmanagement.DatanodeManager.getDatanodeStorageInfos(DatanodeManager.java:478)
         at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.updatePipelineInternal(FSNamesystem.java:6039)
         at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.updatePipeline(FSNamesystem.java:6002)`
-        
+
 If you are experiencing any of these, we recommend using a Flink build with a Hadoop version matching
 your local HDFS version.
 You can also manually build Flink against the exact Hadoop version (for example
@@ -242,10 +242,10 @@ cluster.sh`). You can kill their processes on Linux/Mac as follows:
 
 - Determine the process id (pid) of the JobManager / TaskManager process. You
 can use the `jps` command on Linux(if you have OpenJDK installed) or command
-`ps -ef | grep java` to find all Java processes. 
+`ps -ef | grep java` to find all Java processes.
 - Kill the process with `kill -9 <pid>`, where `pid` is the process id of the
 affected JobManager or TaskManager process.
-    
+
 On Windows, the TaskManager shows a table of all processes and allows you to
 destroy a process by right its entry.
 
