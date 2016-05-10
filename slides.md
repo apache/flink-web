@@ -18,6 +18,8 @@ Flink Forward 2015 (October 12th/13th, 2015) was the first conference to bring t
 
 ### 2016
 
+- Stephan Ewen: *Streaming Analytics with Apache Flink 1.0* *Flink NYC Flink, May 2016*: [SlideShare](http://www.slideshare.net/stephanewen1/apache-flink-myc-flink-meetup)
+- Ufuk Celebi: **Unified Stream & Batch Processing with Apache Flink**. *Hadoop Summit Dublin, April 2016*: [SlideShare](http://www.slideshare.net/HadoopSummit/unified-stream-and-batch-processing-with-apache-flink)
 - Kostas Tzoumas: **Counting Elements in Streams**. *Strata San Jose, March 2016*: [SlideShare](http://www.slideshare.net/KostasTzoumas/apache-flink-at-strata-san-jose-2016)
 - Jamie Grier: **Extending the Yahoo! Streaming Benchmark**. *Flink Washington DC Meetup, March 2016*: [SlideShare](http://www.slideshare.net/JamieGrier/extending-the-yahoo-streaming-benchmark)
 - Jamie Grier: **Stateful Stream Processing at In-Memory Speed**. *Flink NYC Meetup, March 2016*: [SlideShare](http://www.slideshare.net/JamieGrier/stateful-stream-processing-at-inmemory-speed)
