@@ -30,7 +30,7 @@ function isYes() {
 
 function mkDir() {
   local x=$1
-  echo ${x// /-} | tr '[:upper:]' '[:lower:]' 
+  echo ${x// /-} | tr '[:upper:]' '[:lower:]'
 }
 
 function mkPackage() {
@@ -42,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.11.7"
-defaultFlinkVersion="1.0.2"
+defaultFlinkVersion="1.0.3"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -70,7 +70,7 @@ while [ $TRUE ]; do
   echo "-----------------------------------------------"
   read -p "Create Project? (Y/n): " createProject
   createProject=${createProject:-y}
-  
+
   [ "$(isYes "$createProject")" = "$TRUE" ] && break
 
 done
@@ -294,10 +294,10 @@ echo "package $organization
 import org.apache.flink.streaming.api.scala._
 
 /**
- * This example shows an implementation of WordCount with data from a text socket. 
+ * This example shows an implementation of WordCount with data from a text socket.
  * To run the example make sure that the service providing the text data is already up and running.
  *
- * To start an example socket text stream on your local machine run netcat from a command line, 
+ * To start an example socket text stream on your local machine run netcat from a command line,
  * where the parameter specifies the port number:
  *
  * {{{
@@ -342,4 +342,3 @@ object SocketTextStreamWordCount {
 
 }
 " > ${directoryName}/src/main/scala/$(mkPackage $organization)/SocketTextStreamWordCount.scala
-
