@@ -249,6 +249,10 @@ affected JobManager or TaskManager process.
 On Windows, the TaskManager shows a table of all processes and allows you to
 destroy a process by right its entry.
 
+Both the JobManager and TaskManager services will write signals (like SIGKILL
+and SIGTERM) into their respective log files. This can be helpful for 
+debugging issues with the stopping behavior.
+
 ### I got an OutOfMemoryException. What can I do?
 
 These exceptions occur usually when the functions in the program consume a lot
@@ -274,6 +278,11 @@ the user-defined functions, you can reduce that value using the configuration
 entries `taskmanager.memory.fraction` or `taskmanager.memory.size`. See the
 [Configuration Reference]({{ site.docs-snapshot }}/setup/config.html) for details. This will leave more memory to JVM heap,
 but may cause data processing tasks to go to disk more often.
+
+Another reason for OutOfMemoryExceptions is the use of the wrong state backend.
+By default, Flink is using a heap-based state backend for operator state in
+streaming jobs. The `RocksDBStateBackend` allows state sizes larger than the
+available heap space.
 
 ### Why do the TaskManager log files become so huge?
 
@@ -387,6 +396,20 @@ directories in his own home directory.
 
 Flink creates a `.flink/` directory in the users home directory
 where it stores the Flink jar and configuration file.
+
+
+### My job is not reacting to a job cancellation?
+
+Flink is canceling a job by calling the `cancel()` method on all user tasks. Ideally,
+the tasks properly react to the call and stop what they are currently doing, so that 
+all threads can shut down.
+
+If the tasks are not reacting for a certain amount of time, Flink will start interrupting
+the thread periodically.
+
+The TaskManager logs will also contain the current stack of the method where the user 
+code is blocked. 
+
 
 ## Features
 
