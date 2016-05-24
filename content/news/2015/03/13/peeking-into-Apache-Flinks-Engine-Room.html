@@ -167,7 +167,7 @@
 <p>In this blog post, we cut through Apache Flink’s layered architecture and take a look at its internals with a focus on how it handles joins. Specifically, I will</p>
 
 <ul>
-  <li>show how easy it is to join data sets using Flink’s fluent APIs,</li>
+  <li>show how easy it is to join data sets using Flink’s fluent APIs, </li>
   <li>discuss basic distributed join strategies, Flink’s join implementations, and its memory management,</li>
   <li>talk about Flink’s optimizer that automatically chooses join strategies,</li>
   <li>show some performance numbers for joining data sets of different sizes, and finally</li>
@@ -178,7 +178,7 @@
 
 <h3 id="how-do-i-join-with-flink">How do I join with Flink?</h3>
 
-<p>Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce <a href="http://research.google.com/archive/mapreduce.html">[1]</a> but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.8/dataset_transformations.html">[2]</a>.</p>
+<p>Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce <a href="http://research.google.com/archive/mapreduce.html">[1]</a> but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.8/dataset_transformations.html">[2]</a>. </p>
 
 <p>Joining two Scala case class data sets is very easy as the following example shows:</p>
 
@@ -215,7 +215,7 @@
 
 <ol>
   <li>The data of both inputs is distributed across all parallel instances that participate in the join and</li>
-  <li>each parallel instance performs a standard stand-alone join algorithm on its local partition of the overall data.</li>
+  <li>each parallel instance performs a standard stand-alone join algorithm on its local partition of the overall data. </li>
 </ol>
 
 <p>The distribution of data across parallel instances must ensure that each valid join pair can be locally built by exactly one instance. For both steps, there are multiple valid strategies that can be independently picked and which are favorable in different situations. In Flink terminology, the first phase is called Ship Strategy and the second phase Local Strategy. In the following I will describe Flink’s ship and local strategies to join two data sets <em>R</em> and <em>S</em>.</p>
@@ -234,7 +234,7 @@
 <img src="/img/blog/joins-repartition.png" style="width:90%;margin:15px" />
 </center>
 
-<p>The Broadcast-Forward strategy sends one complete data set (R) to each parallel instance that holds a partition of the other data set (S), i.e., each parallel instance receives the full data set R. Data set S remains local and is not shipped at all. The cost of the BF strategy depends on the size of R and the number of parallel instances it is shipped to. The size of S does not matter because S is not moved. The figure below illustrates how both ship strategies work.</p>
+<p>The Broadcast-Forward strategy sends one complete data set (R) to each parallel instance that holds a partition of the other data set (S), i.e., each parallel instance receives the full data set R. Data set S remains local and is not shipped at all. The cost of the BF strategy depends on the size of R and the number of parallel instances it is shipped to. The size of S does not matter because S is not moved. The figure below illustrates how both ship strategies work. </p>
 
 <center>
 <img src="/img/blog/joins-broadcast.png" style="width:90%;margin:15px" />
@@ -243,7 +243,7 @@
 <p>The Repartition-Repartition and Broadcast-Forward ship strategies establish suitable data distributions to execute a distributed join. Depending on the operations that are applied before the join, one or even both inputs of a join are already distributed in a suitable way across parallel instances. In this case, Flink will reuse such distributions and only ship one or no input at all.</p>
 
 <h4 id="flinks-memory-management">Flink’s Memory Management</h4>
-<p>Before delving into the details of Flink’s local join algorithms, I will briefly discuss Flink’s internal memory management. Data processing algorithms such as joining, grouping, and sorting need to hold portions of their input data in memory. While such algorithms perform best if there is enough memory available to hold all data, it is crucial to gracefully handle situations where the data size exceeds memory. Such situations are especially tricky in JVM-based systems such as Flink because the system needs to reliably recognize that it is short on memory. Failure to detect such situations can result in an <code>OutOfMemoryException</code> and kill the JVM.</p>
+<p>Before delving into the details of Flink’s local join algorithms, I will briefly discuss Flink’s internal memory management. Data processing algorithms such as joining, grouping, and sorting need to hold portions of their input data in memory. While such algorithms perform best if there is enough memory available to hold all data, it is crucial to gracefully handle situations where the data size exceeds memory. Such situations are especially tricky in JVM-based systems such as Flink because the system needs to reliably recognize that it is short on memory. Failure to detect such situations can result in an <code>OutOfMemoryException</code> and kill the JVM. </p>
 
 <p>Flink handles this challenge by actively managing its memory. When a worker node (TaskManager) is started, it allocates a fixed portion (70% by default) of the JVM’s heap memory that is available after initialization as 32KB byte arrays. These byte arrays are distributed as working memory to all algorithms that need to hold significant portions of data in memory. The algorithms receive their input data as Java data objects and serialize them into their working memory.</p>
 
@@ -260,7 +260,7 @@
 <p>After the data has been distributed across all parallel join instances using either a Repartition-Repartition or Broadcast-Forward ship strategy, each instance runs a local join algorithm to join the elements of its local partition. Flink’s runtime features two common join strategies to perform these local joins:</p>
 
 <ul>
-  <li>the <em>Sort-Merge-Join</em> strategy (SM) and</li>
+  <li>the <em>Sort-Merge-Join</em> strategy (SM) and </li>
   <li>the <em>Hybrid-Hash-Join</em> strategy (HH).</li>
 </ul>
 
@@ -305,13 +305,13 @@
 <ul>
   <li>1GB     : 1000GB</li>
   <li>10GB    : 1000GB</li>
-  <li>100GB   : 1000GB</li>
+  <li>100GB   : 1000GB </li>
   <li>1000GB  : 1000GB</li>
 </ul>
 
 <p>The Broadcast-Forward strategy is only executed for up to 10GB. Building a hash table from 100GB broadcasted data in 5GB working memory would result in spilling proximately 95GB (build input) + 950GB (probe input) in each parallel thread and require more than 8TB local disk storage on each machine.</p>
 
-<p>As in the single-core benchmark, we run 1:N joins, generate the data on-the-fly, and immediately discard the result after the join. We run the benchmark on 10 n1-highmem-8 Google Compute Engine instances. Each instance is equipped with 8 cores, 52GB RAM, 40GB of which are configured as working memory (5GB per core), and one local SSD for spilling to disk. All benchmarks are performed using the same configuration, i.e., no fine tuning for the respective data sizes is done. The programs are executed with a parallelism of 80.</p>
+<p>As in the single-core benchmark, we run 1:N joins, generate the data on-the-fly, and immediately discard the result after the join. We run the benchmark on 10 n1-highmem-8 Google Compute Engine instances. Each instance is equipped with 8 cores, 52GB RAM, 40GB of which are configured as working memory (5GB per core), and one local SSD for spilling to disk. All benchmarks are performed using the same configuration, i.e., no fine tuning for the respective data sizes is done. The programs are executed with a parallelism of 80. </p>
 
 <center>
 <img src="/img/blog/joins-dist-perf.png" style="width:70%;margin:15px" />
@@ -328,7 +328,7 @@
 <ul>
   <li>Flink’s fluent Scala and Java APIs make joins and other data transformations easy as cake.</li>
   <li>The optimizer does the hard choices for you, but gives you control in case you know better.</li>
-  <li>Flink’s join implementations perform very good in-memory and gracefully degrade when going to disk.</li>
+  <li>Flink’s join implementations perform very good in-memory and gracefully degrade when going to disk. </li>
   <li>Due to Flink’s robust memory management, there is no need for job- or data-specific memory tuning to avoid a nasty <code>OutOfMemoryException</code>. It just runs out-of-the-box.</li>
 </ul>
 
