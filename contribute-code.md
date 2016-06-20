@@ -6,7 +6,9 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 
 This document contains everything you need to know about contributing code to Apache Flink. It describes the process of preparing, testing and submitting a contribution, explains coding guidelines and code style of Flink's code base, and gives instructions to setup a development environment.
 
-**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework.
+**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a JIRA ticket and reach consensus with the community on whether this feature is needed.
+
+
 
 {% toc %}
 

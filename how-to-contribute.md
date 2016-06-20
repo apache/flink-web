@@ -28,6 +28,9 @@ Our community is constantly looking for feedback to improve Apache Flink. If you
 
 Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contribute-code.html) guide in this case as well. 
 
+
+We recommend to first reach consensus with the community on whether a new feature is required and how to implement a new feature, before starting with the implementation. Some features might be out of scope of the project, and it's best to discover this early.
+
 -----
 
 ## Help others and join the discussions
