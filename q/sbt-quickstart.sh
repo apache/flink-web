@@ -92,7 +92,9 @@ In order to run your application from within IntelliJ, you have to select the cl
 
 # Create the build.sbt file
 
-echo "name := \"$projectName\"
+echo "resolvers in ThisBuild ++= Seq(\"Apache Development Snapshot Repository\" at \"https://repository.apache.org/content/repositories/snapshots/\", Resolver.mavenLocal)
+
+name := \"$projectName\"
 
 version := \"$version\"
 
