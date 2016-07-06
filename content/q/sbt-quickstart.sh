@@ -42,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.11.7"
-defaultFlinkVersion="1.0.3"
+defaultFlinkVersion="1.1.0"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -92,7 +92,9 @@ In order to run your application from within IntelliJ, you have to select the cl
 
 # Create the build.sbt file
 
-echo "name := \"$projectName\"
+echo "resolvers in ThisBuild ++= Seq(\"Apache Development Snapshot Repository\" at \"https://repository.apache.org/content/repositories/snapshots/\", Resolver.mavenLocal)
+
+name := \"$projectName\"
 
 version := \"$version\"
 
