@@ -136,20 +136,20 @@ Let us know per [user/dev mailing list](#mailing-lists).
     border-collapse: separate;
   }
   td.flink-package-empty{
-    height: 12em;
+    height: 14em;
     vertical-align: bottom;
     border-color: transparent;
     background-color: transparent;
   }
   td.flink-package {
-    height: 12em;
+    height: 14em;
     vertical-align: bottom;
     border-color: transparent;
     background-color: #B9BFC7;
     color: #E5EAFA;
   }
   td.flink-package-external {
-    height: 12em;
+    height: 14em;
     vertical-align: bottom;
     border-color: transparent;
     background-color: #F5A030;
@@ -180,7 +180,7 @@ Let us know per [user/dev mailing list](#mailing-lists).
    <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-zeppelin">Apache Zeppelin</a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-mahout">Apache Mahout</a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#cascading">Cascading</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#dataflow">Dataflow</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-beam-incubating">Apache Beam <small style="font-size:40%">(incubating)</small></a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#gradoop">Gradoop</a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#bigpetstore">BigPetStore</a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#fastr">FastR</a></span></div></td>
@@ -190,7 +190,7 @@ Let us know per [user/dev mailing list](#mailing-lists).
    <td class="flink-package"><div><span>&nbsp;Table API</span></div></td>
    <td class="flink-package"><div><span>&nbsp;Storm</span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-samoa">Apache SAMOA</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#dataflow">Dataflow</a></span></div></td>
+   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-beam-incubating">Apache Beam <small style="font-size:40%">(incubating)</small></a></span></div></td>
    <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-ignite">Apache Ignite</a></span></div></td>
    <td class="flink-package-empty"></td>
    <td class="flink-package-empty"></td>
@@ -239,11 +239,9 @@ Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/Fl
 [Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Driven, Inc](http://www.driven.io/).
 See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
 
-## Google Dataflow
+## Apache Beam (incubating)
 
-Currently, Google Dataflow programs can be executed in batch mode on top of Flink via [FlinkPipelineRunner](https://github.com/dataArtisans/flink-dataflow).
-Executing streaming programs is WIP by [dataArtisans](http://data-artisans.com/).
-Maximilian Michels' [Flink Forward talk](http://www.slideshare.net/FlinkForward/maximilian-michels-google-cloud-dataflow-on-top-of-apache-flink) gives a good introduction.
+[Apache Beam (incubating)](http://beam.incubator.apache.org/) is an open source, unified programming model that you can use to create a data processing pipeline. Flink is one of the back-ends supported by the Beam programming model.
 
 ## GRADOOP
 
