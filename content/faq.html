@@ -211,6 +211,7 @@ under the License.
   <li><a href="#yarn-deployment" id="markdown-toc-yarn-deployment">YARN Deployment</a>    <ul>
       <li><a href="#the-yarn-session-runs-only-for-a-few-seconds" id="markdown-toc-the-yarn-session-runs-only-for-a-few-seconds">The YARN session runs only for a few seconds</a></li>
       <li><a href="#the-yarn-session-crashes-with-a-hdfs-permission-exception-during-startup" id="markdown-toc-the-yarn-session-crashes-with-a-hdfs-permission-exception-during-startup">The YARN session crashes with a HDFS permission exception during startup</a></li>
+      <li><a href="#my-job-is-not-reacting-to-a-job-cancellation" id="markdown-toc-my-job-is-not-reacting-to-a-job-cancellation">My job is not reacting to a job cancellation?</a></li>
     </ul>
   </li>
   <li><a href="#features" id="markdown-toc-features">Features</a>    <ul>
@@ -453,6 +454,10 @@ affected JobManager or TaskManager process.</li>
 <p>On Windows, the TaskManager shows a table of all processes and allows you to
 destroy a process by right its entry.</p>
 
+<p>Both the JobManager and TaskManager services will write signals (like SIGKILL
+and SIGTERM) into their respective log files. This can be helpful for 
+debugging issues with the stopping behavior.</p>
+
 <h3 id="i-got-an-outofmemoryexception-what-can-i-do">I got an OutOfMemoryException. What can I do?</h3>
 
 <p>These exceptions occur usually when the functions in the program consume a lot
@@ -483,6 +488,11 @@ entries <code>taskmanager.memory.fraction</code> or <code>taskmanager.memory.siz
 but may cause data processing tasks to go to disk more often.</p>
   </li>
 </ol>
+
+<p>Another reason for OutOfMemoryExceptions is the use of the wrong state backend.
+By default, Flink is using a heap-based state backend for operator state in
+streaming jobs. The <code>RocksDBStateBackend</code> allows state sizes larger than the
+available heap space.</p>
 
 <h3 id="why-do-the-taskmanager-log-files-become-so-huge">Why do the TaskManager log files become so huge?</h3>
 
@@ -600,6 +610,18 @@ directories in his own home directory.</p>
 
 <p>Flink creates a <code>.flink/</code> directory in the users home directory
 where it stores the Flink jar and configuration file.</p>
+
+<h3 id="my-job-is-not-reacting-to-a-job-cancellation">My job is not reacting to a job cancellation?</h3>
+
+<p>Flink is canceling a job by calling the <code>cancel()</code> method on all user tasks. Ideally,
+the tasks properly react to the call and stop what they are currently doing, so that 
+all threads can shut down.</p>
+
+<p>If the tasks are not reacting for a certain amount of time, Flink will start interrupting
+the thread periodically.</p>
+
+<p>The TaskManager logs will also contain the current stack of the method where the user 
+code is blocked.</p>
 
 <h2 id="features">Features</h2>
 
