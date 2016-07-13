@@ -31,6 +31,10 @@ Detailed information is also required, if you plan to contribute the improvement
 
 We recommend to first reach consensus with the community on whether a new feature is required and how to implement a new feature, before starting with the implementation. Some features might be out of scope of the project, and it's best to discover this early.
 
+For very big features that change Flink in a fundamental way we have another process in place:
+[Flink Improvement Proposals](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals). If you are interested you can propose a new feature there or follow the
+discussions on existing proposals.
+
 -----
 
 ## Help others and join the discussions
