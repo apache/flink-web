@@ -50,7 +50,7 @@ You can **integrate** Flink easily with other well-known open source systems bot
     </div>
   </div>
   <div class="row" style="margin-top: 1em">
-    <div class="col-md-12"><p class="text-center"><strong>Check out the <a href="{{ site.baseurl }}/features.html">Features</a> page to get a tour of all major Flink features and the <a href="{{ site.baseurl }}/production.html">Powered by Flink</a> page to see real-world Flink use cases.</strong></p></div>
+    <div class="col-md-12"><p class="text-center"><strong>Check out the <a href="{{ site.baseurl }}/features.html">Features</a> page to get a tour of all major Flink features and the <a href="{{ site.baseurl }}/poweredby.html">Powered by Flink</a> page to see real-world Flink use cases.</strong></p></div>
   </div>
 </div>
 
