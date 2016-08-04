@@ -292,8 +292,10 @@ inefficient and disk space consuming if used for large input data.
 
 ### The slot allocated for my task manager has been released. What should I do?
 
-A `java.lang.Exception: The slot in which the task was executed has been released. Probably loss of TaskManager` usually occurs when there are big garbage collection stalls.
-In this case, a quick fix would be to use the G1 garbage collector. It works incrementally and it often leads to lower pauses. Furthermore, you can dedicate more memory to the user code (e.g. 0.4 per system and 0.6 per user).
+If you see a `java.lang.Exception: The slot in which the task was executed has been released. Probably loss of TaskManager` even though the TaskManager did actually not crash, it 
+means that the TaskManager was unresponsive for a time. That can be due to network issues, but is frequently due to long garbage collection stalls.
+In this case, a quick fix would be to use an incremental Garbage Collector, like the G1 garbage collector. It usually leads to shorter pauses. Furthermore, you can dedicate more memory to
+the user code by reducing the amount of memory Flink grabs for its internal operations (see configuration of TaskManager managed memory).
 
 If both of these approaches fail and the error persists, simply increase the TaskManager's heartbeat pause by setting AKKA_WATCH_HEARTBEAT_PAUSE (akka.watch.heartbeat.pause) to a greater value (e.g. 600s).
 This will cause the JobManager to wait for a heartbeat for a longer time interval before considering the TaskManager lost.
@@ -335,6 +337,23 @@ the host.
 YARN configuration is wrong and more memory than physically available is
 configured. Execute `dmesg` on the machine where the AM was running to see if
 this happened. You see messages from Linux' [OOM killer](http://linux-mm.org/OOM_Killer).
+
+### My YARN containers are killed because they use too much memory
+
+This is usually indicated my a log message like the following one:
+
+~~~
+Container container_e05_1467433388200_0136_01_000002 is completed with diagnostics: Container [pid=5832,containerID=container_e05_1467433388200_0136_01_000002] is running beyond physical memory limits. Current usage: 2.3 GB of 2 GB physical memory used; 6.1 GB of 4.2 GB virtual memory used. Killing container.
+~~~
+
+In that case, the JVM process grew too large. Because the Java heap size is always limited, the extra memory typically comes from non-heap sources:
+
+  - Libraries that use off-heap memory. (Flink's own off-heap memory is limited and taken into account when calculating the allowed heap size.)
+  - PermGen space (strings and classes), code caches, memory mapped jar files
+  - Native libraries (RocksDB)
+
+You can activate the [memory debug logger](https://ci.apache.org/projects/flink/flink-docs-release-1.0/setup/config.html#memory-and-performance-debugging) to get more insight into what memory pool is actually using up too much memory.
+
 
 ### The YARN session crashes with a HDFS permission exception during startup
 
