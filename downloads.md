@@ -18,7 +18,7 @@ $( document ).ready(function() {
 
 ## Latest stable release (v{{ site.FLINK_VERSION_STABLE }})
 
-Apache Flink {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
+Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 You
 [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
@@ -36,31 +36,31 @@ pick the Hadoop 1 version.
 </thead>
 <tbody>
     <tr>
-    <th>Hadoop 1.2.1</th>
+    <th>Hadoop® 1.2.1</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}" class="ga-track" id="download-hadoop1">Download</a></td>
     <td></td>
     </tr>
 
     <tr>
-    <th>Hadoop 2.3.0</th>
+    <th>Hadoop® 2.3.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
     </tr>
 
     <tr>
-    <th>Hadoop 2.4.1</th>
+    <th>Hadoop® 2.4.1</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a></td>
     </tr>
 
     <tr>
-    <th>Hadoop 2.6.0</th>
+    <th>Hadoop® 2.6.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a></td>
     </tr>
 
     <tr>
-    <th>Hadoop 2.7.0</th>
+    <th>Hadoop® 2.7.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a></td>
     </tr>
@@ -74,7 +74,7 @@ pick the Hadoop 1 version.
 <div class="list-group">
   <!-- Source -->
   <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE }}" class="list-group-item ga-track" id="download-source">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Flink {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
+    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Apache Flink® {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
     <p>Review the source code or build Flink on your own, using this package</p>
   </a>
 </div>
