@@ -4,7 +4,7 @@ layout: base
 ---
 
 <div class="row">
-  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink** is an open source platform for distributed stream and batch data processing.</p></div>
+  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink®** is an open source platform for distributed stream and batch data processing.</p></div>
 </div>
 
 <div class="row">
@@ -63,8 +63,8 @@ You can **integrate** Flink easily with other well-known open source systems bot
 Download the **latest stable release** and run Flink on your machine, cluster, or cloud:
 
 <div class="text-center download-button">
-  <a href="downloads.html" class="btn btn-primary" markdown="1">**Download** Apache Flink {{ site.stable }}</a>
-  <a href="{{ site.github }}" class="btn btn-info" markdown="1">Apache Flink on **GitHub**</a>
+  <a href="downloads.html" class="btn btn-primary" markdown="1">**Download** Apache Flink® {{ site.stable }}</a>
+  <a href="{{ site.github }}" class="btn btn-info" markdown="1">Apache Flink® on **GitHub**</a>
 </div>
 
 The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup/building.html) for all deployment options.
