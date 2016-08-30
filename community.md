@@ -418,6 +418,12 @@ Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/fl
     <td class="text-center">Committer</td>
     <td class="text-center">greg</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5284370?s=50"></td>
+    <td class="text-center">Tzu-Li (Gordon) Tai</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">tzulitai</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
