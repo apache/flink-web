@@ -14,15 +14,15 @@ layout: base
 
 Flink includes **several APIs** for creating applications that use the Flink engine:
 
-1. [DataStream API]({{ site.docs-snapshot }}/apis/streaming/index.html) for unbounded streams embedded in Java and Scala, and
-2. [DataSet API]({{ site.docs-snapshot }}/apis/batch/index.html) for static data embedded in Java, Scala, and Python,
-3. [Table API]({{ site.docs-snapshot }}/apis/batch/libs/table.html) with a SQL-like expression language embedded in Java and Scala.
+1. [DataStream API]({{ site.docs-snapshot }}/dev/datastream_api.html) for unbounded streams embedded in Java and Scala, and
+2. [DataSet API]({{ site.docs-snapshot }}/dev/batch/index.html) for static data embedded in Java, Scala, and Python,
+3. [Table API]({{ site.docs-snapshot }}/dev/table_api.html) with a SQL-like expression language embedded in Java and Scala.
 
 Flink also bundles **libraries for domain-specific use cases**:
 
-1. [CEP]({{ site.docs-snapshot }}/apis/streaming/libs/cep.html), a complex event processing library,
-2. [Machine Learning library]({{ site.docs-snapshot }}/apis/batch/libs/ml/index.html), and
-3. [Gelly]({{ site.docs-snapshot }}/apis/batch/libs/gelly.html), a graph processing API and library.
+1. [CEP]({{ site.docs-snapshot }}/dev/libs/cep.html), a complex event processing library,
+2. [Machine Learning library]({{ site.docs-snapshot }}/dev/libs/ml/index.html), and
+3. [Gelly]({{ site.docs-snapshot }}/dev/libs/gelly/index.html), a graph processing API and library.
 
 You can **integrate** Flink easily with other well-known open source systems both for [data input and output](features.html#deployment-and-integration) as well as [deployment](features.html#deployment-and-integration).
   </div>
@@ -69,7 +69,7 @@ Download the **latest stable release** and run Flink on your machine, cluster, o
 
 The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup/building.html) for all deployment options.
 
-The [programming guide]({{ site.docs-snapshot }}/apis/programming_guide.html) contains all information to get you started with writing and testing your Flink programs.
+The [programming guide]({{ site.docs-snapshot }}/dev/api_concepts.html) contains all information to get you started with writing and testing your Flink programs.
 
 See our list of [third-party packages]({{ site.baseurl }}/community.html#third-party-packages) for Flink.
 
