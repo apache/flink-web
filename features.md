@@ -244,7 +244,7 @@ case class Word(word: String, freq: Long)
 val texts: DataStream[String] = ...
 
 val counts = text
-  .flatMap { line => line.split("\\W+") } 
+  .flatMap { line => line.split("\\W+") }
   .map { token => Word(token, 1) }
   .keyBy("word")
   .timeWindow(Time.seconds(5), Time.seconds(1))
@@ -272,13 +272,14 @@ case class Page(pageId: Long, rank: Double)
 case class Adjacency(id: Long, neighbors: Array[Long])
 
 val result = initialRanks.iterate(30) { pages =>
-  pages.join(adjacency).where("pageId").equalTo("pageId") {
+  pages.join(adjacency).where("pageId").equalTo("id") {
 
-    (page, adj, out : Collector[Page]) => {
-      out.collect(Page(page.id, 0.15 / numPages))
-        
+    (page, adj, out: Collector[Page]) => {
+      out.collect(Page(page.pageId, 0.15 / numPages))
+
+      val nLen = adj.neighbors.length
       for (n <- adj.neighbors) {
-        out.collect(Page(n, 0.85*page.rank/adj.neighbors.length))
+        out.collect(Page(n, 0.85 * page.rank / nLen))
       }
     }
   }
@@ -335,4 +336,3 @@ val result = initialRanks.iterate(30) { pages =>
     <img src="{{ site.baseurl }}/img/features/ecosystem_logos.png" alt="Other projects that Flink is integrated with" style="width:75%" />
   </div>
 </div>
-
