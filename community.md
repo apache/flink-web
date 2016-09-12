@@ -2,7 +2,7 @@
 title: "Community"
 ---
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is a [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/flink). Please remember to tag your questions with the *[flink](http://stackoverflow.com/questions/tagged/flink)* tag. Bugs and feature requests can either be discussed on *dev mailing list* or on [JIRA]({{ site.jire }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is a [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/flink). Please remember to tag your questions with the *[flink](http://stackoverflow.com/questions/tagged/flink)* tag. Bugs and feature requests can either be discussed on *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
 
 {% toc %}
 
