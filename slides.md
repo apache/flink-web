@@ -19,7 +19,7 @@ On September 12-14, 2016 the second edition of Flink Forward took place. [Please
 
 ### 2016
 
-- Robert Metzger: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Flink Forward, Berlin September 2016*: [SlideShare] (http://www.slideshare.net/FlinkForward/kostas-tzoumasstpehan-ewen-keynote-the-maturing-data-streaming-ecosystem-and-apache-flinks-accelerated-growth)
+- Kostas Tzoumas & Stpehan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Flink Forward, Berlin September 2016*: [SlideShare] (http://www.slideshare.net/FlinkForward/kostas-tzoumasstpehan-ewen-keynote-the-maturing-data-streaming-ecosystem-and-apache-flinks-accelerated-growth)
 - Robert Metzger: **Connecting Apache Flink to the World - Reviewing the streaming connectors** *Flink Forward, Berlin September 2016*: [SlideShare] (http://www.slideshare.net/FlinkForward/robert-metzger-connecting-apache-flink-to-the-world-reviewing-the-streaming-connectors)
 - Till Rohrmann & Fabian Hueske: **Declarative stream processing with StreamSQL and CEP** *Flink Forward, Berlin September 2016*: [SlideShare] (http://www.slideshare.net/FlinkForward/fabian-huesketill-rohrmann-declarative-stream-processing-with-streamsql-and-cep)
 - Jamie Grier: **Robust Stream Processing with Apache Flink** *Flink Forward, Berlin September 2016*: [SlideShare] (http://www.slideshare.net/FlinkForward/jamie-grier-robust-stream-processing-with-apache-flink)
