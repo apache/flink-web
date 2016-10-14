@@ -33,7 +33,7 @@ The following questions are frequently asked with regard to the Flink project **
 ### Is Flink a Hadoop Project?
 
 Flink is a data processing system and an **alternative to Hadoop's
-MapReduce component**. It comes with its *own runtime*, rather than building on top
+MapReduce component**. It comes with its *own runtime* rather than building on top
 of MapReduce. As such, it can work completely independently of the Hadoop
 ecosystem. However, Flink can also access Hadoop's distributed file
 system (HDFS) to read and write data, and Hadoop's next-generation resource
@@ -51,7 +51,7 @@ Hadoop client libraries by default.
 Additionally, we provide a special YARN Enabled download of Flink for
 users with an existing Hadoop YARN cluster. [Apache Hadoop
 YARN](http://hadoop.apache.org/docs/r2.2.0/hadoop-yarn/hadoop-yarn-site/YARN.html)
-is Hadoop's cluster resource manager that allows to use
+is Hadoop's cluster resource manager that allows use of
 different execution engines next to each other on a cluster.
 
 ## Usage
@@ -286,9 +286,9 @@ available heap space.
 
 ### Why do the TaskManager log files become so huge?
 
-Check the logging behavior of your jobs. Emitting logging per or tuple may be
-helpful to debug jobs in small setups with tiny data sets, it becomes very
-inefficient and disk space consuming if used for large input data.
+Check the logging behavior of your jobs. Emitting logging per object or tuple may be
+helpful to debug jobs in small setups with tiny data sets but can limit performance
+and consume substantial disk space if used for large input data.
 
 ### The slot allocated for my task manager has been released. What should I do?
 
@@ -434,10 +434,10 @@ code is blocked.
 
 ### What kind of fault-tolerance does Flink provide?
 
-For streaming programs, Flink has a novel approach to draw periodic snapshots of the streaming dataflow state and use those for recovery.
+For streaming programs Flink has a novel approach to draw periodic snapshots of the streaming dataflow state and use those for recovery.
 This mechanism is both efficient and flexible. See the documentation on [streaming fault tolerance]({{ site.docs-snapshot }}/internals/stream_checkpointing.html) for details.
 
-For batch processing programs, Flink remembers the programs sequence of transformations and can restart failed jobs.
+For batch processing programs Flink remembers the program's sequence of transformations and can restart failed jobs.
 
 
 ### Are Hadoop-like utilities, such as Counters and the DistributedCache supported?
