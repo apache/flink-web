@@ -37,7 +37,7 @@ if [ "`command -v bundle`" == "" ]; then
 fi
 
 # Install Ruby dependencies locally
-bundle install --path .rubydeps
+bundle install --full-index --path .rubydeps
 
 DOCS_SRC=${DIR}
 DOCS_DST=${DOCS_SRC}/content

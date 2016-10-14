@@ -81,7 +81,10 @@ pick the Hadoop 1 version.
 
 ## Maven Dependencies
 
-You can add the following dependencies to your `pom.xml` to include Apache Flink in your project.
+You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
+
+- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.10` and `flink-streaming-java_2.10` with `flink-streaming-scala_2.10`. For Scala 2.11 dependencies, use the suffix `_2.11` instead of `_2.10`.
 
 ```xml
 <dependency>
@@ -100,11 +103,6 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
-
-These dependencies include a local execution environment and thus support local testing.
-
-- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.10` and `flink-streaming-java_2.10` with `flink-streaming-scala_2.10`. For Scala 2.11 dependencies, use the suffix `_2.11` instead of `_2.10`.
 
 ## All releases
 
