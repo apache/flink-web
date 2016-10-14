@@ -299,11 +299,11 @@ val result = initialRanks.iterate(30) { pages =>
 </div>
 <div class="row">
   <div class="col-sm-6">
-    <p class="lead">Flink's stack offers libraries with high-level APIs for different use cases: Machine Learning, Graph Analytics, and Relational Data Processing.</p>
+    <p class="lead">Flink's stack offers libraries with high-level APIs for different use cases: Complex Event Processing, Machine Learning, and Graph Analytics.</p>
     <p class="lead">The libraries are currently in <i>beta</i> status and are heavily developed.</p>
   </div>
   <div class="col-sm-6 img-column">
-    <img src="{{ site.baseurl }}/img/features/stack.png" alt="Flink Stack with Libraries" style="width:60%" />
+    <img src="{{ site.baseurl }}/img/flink-stack-frontpage.png" alt="Flink Stack with Libraries" style="width:100%" />
   </div>
 </div>
 
