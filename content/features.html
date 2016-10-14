@@ -394,7 +394,7 @@
 <span class="k">val</span> <span class="n">texts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
 
 <span class="k">val</span> <span class="n">counts</span> <span class="k">=</span> <span class="n">text</span>
-  <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\W+&quot;</span><span class="o">)</span> <span class="o">}</span> 
+  <span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span> <span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\W+&quot;</span><span class="o">)</span> <span class="o">}</span>
   <span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">token</span> <span class="k">=&gt;</span> <span class="nc">Word</span><span class="o">(</span><span class="n">token</span><span class="o">,</span> <span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
   <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="s">&quot;word&quot;</span><span class="o">)</span>
   <span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">5</span><span class="o">),</span> <span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
@@ -422,13 +422,14 @@
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Adjacency</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">neighbors</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Long</span><span class="o">])</span>
 
 <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">initialRanks</span><span class="o">.</span><span class="n">iterate</span><span class="o">(</span><span class="mi">30</span><span class="o">)</span> <span class="o">{</span> <span class="n">pages</span> <span class="k">=&gt;</span>
-  <span class="n">pages</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">adjacency</span><span class="o">).</span><span class="n">where</span><span class="o">(</span><span class="s">&quot;pageId&quot;</span><span class="o">).</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&quot;pageId&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">pages</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">adjacency</span><span class="o">).</span><span class="n">where</span><span class="o">(</span><span class="s">&quot;pageId&quot;</span><span class="o">).</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="o">{</span>
 
-    <span class="o">(</span><span class="n">page</span><span class="o">,</span> <span class="n">adj</span><span class="o">,</span> <span class="n">out</span> <span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">Page</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">Page</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">id</span><span class="o">,</span> <span class="mf">0.15</span> <span class="o">/</span> <span class="n">numPages</span><span class="o">))</span>
-        
+    <span class="o">(</span><span class="n">page</span><span class="o">,</span> <span class="n">adj</span><span class="o">,</span> <span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">Page</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">Page</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">pageId</span><span class="o">,</span> <span class="mf">0.15</span> <span class="o">/</span> <span class="n">numPages</span><span class="o">))</span>
+
+      <span class="k">val</span> <span class="n">nLen</span> <span class="k">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">neighbors</span><span class="o">.</span><span class="n">length</span>
       <span class="k">for</span> <span class="o">(</span><span class="n">n</span> <span class="k">&lt;-</span> <span class="n">adj</span><span class="o">.</span><span class="n">neighbors</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">Page</span><span class="o">(</span><span class="n">n</span><span class="o">,</span> <span class="mf">0.85</span><span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">rank</span><span class="o">/</span><span class="n">adj</span><span class="o">.</span><span class="n">neighbors</span><span class="o">.</span><span class="n">length</span><span class="o">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">Page</span><span class="o">(</span><span class="n">n</span><span class="o">,</span> <span class="mf">0.85</span> <span class="o">*</span> <span class="n">page</span><span class="o">.</span><span class="n">rank</span> <span class="o">/</span> <span class="n">nLen</span><span class="o">))</span>
       <span class="o">}</span>
     <span class="o">}</span>
   <span class="o">}</span>
@@ -485,7 +486,6 @@
     <img src="/img/features/ecosystem_logos.png" alt="Other projects that Flink is integrated with" style="width:75%" />
   </div>
 </div>
-
 
 
   </div>
