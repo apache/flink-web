@@ -21,7 +21,7 @@ On September 12-14, 2016 the second edition of Flink Forward took place. All [sl
 ### 2016
 
 - Stefan Richter: **A look at Apache Flink 1.2 and beyond** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/StefanRichter10/a-look-at-flink-12)
-- Robert Metzger: **Apache Flink Community Updates November 2016 ** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/apache-flink-community-updates-november-2016-berlin-meetup)
+- Robert Metzger: **Apache Flink Community Updates November 2016** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/apache-flink-community-updates-november-2016-berlin-meetup)
 - Aljoscha Krettek: **Apache Flink for IoT: How Event-Time Processing Enables Easy and Accurate Analytics** *Big Data Spain, Madrid November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/aljoscha-krettek-apache-flink-for-iot-how-eventtime-processing-enables-easy-and-accurate-analytics)
 - Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Apache Big Data Europe 2016, Seville November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/keynote-stephan-ewen-stream-processing-as-a-foundational-paradigm-and-apache-flinks-approach-to-it)
 - Kostas Tzoumas: **Stream Processing with Apache Flink®** *Apache Flink London Meetup, November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/kostas-tzoumas-stream-processing-with-apache-flink)
