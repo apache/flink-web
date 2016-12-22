@@ -128,5 +128,3 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 - Stratosphere 0.5.1 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5.1/api/scala/index.html))
 - Stratosphere 0.5 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.5/api/scala/index.html))
 - Stratosphere 0.4 ([Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.4/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-0.4/api/scala/index.html))
-
-A full list of releases is available in the [Apache Flink archives](http://archive.apache.org/dist/flink/).
