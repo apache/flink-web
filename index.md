@@ -63,7 +63,7 @@ You can **integrate** Flink easily with other well-known open source systems bot
 Download the **latest stable release** and run Flink on your machine, cluster, or cloud:
 
 <div class="text-center download-button">
-  <a href="downloads.html" class="btn btn-primary" markdown="1">**Download** Apache Flink® {{ site.stable }}</a>
+  <a href="downloads.html" class="btn btn-primary" markdown="1">**Download** Apache Flink® {{ site.FLINK_VERSION_STABLE }}</a>
   <a href="{{ site.github }}" class="btn btn-info" markdown="1">Apache Flink® on **GitHub**</a>
 </div>
 
