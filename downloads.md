@@ -106,6 +106,7 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 
 ## All releases
 
+- Flink 1.1.4 - 2016-12-21 ([Source](http://archive.apache.org/dist/flink/flink-1.1.4/flink-1.1.4-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.1.4/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/api/scala/index.html))
 - Flink 1.1.3 - 2016-10-13 ([Source](http://archive.apache.org/dist/flink/flink-1.1.3/flink-1.1.3-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.1.3/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.1/api/scala/index.html))
 - Flink 1.1.2 - 2016-09-05 ([Source](http://archive.apache.org/dist/flink/flink-1.1.2/flink-1.1.2-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.1.2/))
 - Flink 1.1.1 - 2016-08-11 ([Source](http://archive.apache.org/dist/flink/flink-1.1.1/flink-1.1.1-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.1.1/))
