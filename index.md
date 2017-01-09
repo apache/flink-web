@@ -18,7 +18,7 @@ layout: base
 
 
 <div class="row front-graphic">
-  <img src="/img/flink-front-graphic-update.png" width="599px" height="305px" />
+  <img src="{{ site.baseurl }}/img/flink-front-graphic-update.png" width="599px" height="305px" />
 </div>
 
 
