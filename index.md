@@ -1,113 +1,159 @@
 ---
-title: "Scalable Batch and Stream Data Processing"
+title: "Scalable Stream and Batch Data Processing"
 layout: base
 ---
+<div class="row-fluid">
 
-<div class="row">
-  <div class="col-sm-12"><p class="lead" markdown="span">**Apache Flink®** is an open source platform for distributed stream and batch data processing.</p></div>
+  <div class="col-sm-10 col-sm-offset-1 homecontent">
+    <p class="lead" markdown="span">Apache Flink® is an open-source stream processing framework for **distributed, high-performing, always-available,** and **accurate** data streaming applications.</p>
+    <a href="{{ site.baseurl }}/introduction.html" class="btn btn-default btn-intro">Introduction to Flink</a>
+  </div>
+
+<div class="col-sm-12">
+  <hr />
 </div>
 
-<div class="row">
-  <div class="col-md-6" markdown="1">
-
-**Flink’s core** is a [streaming dataflow engine](features.html) that provides data distribution, communication, and fault tolerance for distributed computations over data streams.
-
-Flink includes **several APIs** for creating applications that use the Flink engine:
-
-1. [DataStream API]({{ site.docs-snapshot }}/dev/datastream_api.html) for unbounded streams embedded in Java and Scala, and
-2. [DataSet API]({{ site.docs-snapshot }}/dev/batch/index.html) for static data embedded in Java, Scala, and Python,
-3. [Table API]({{ site.docs-snapshot }}/dev/table_api.html) with a SQL-like expression language embedded in Java and Scala.
-
-Flink also bundles **libraries for domain-specific use cases**:
-
-1. [CEP]({{ site.docs-snapshot }}/dev/libs/cep.html), a complex event processing library,
-2. [Machine Learning library]({{ site.docs-snapshot }}/dev/libs/ml/index.html), and
-3. [Gelly]({{ site.docs-snapshot }}/dev/libs/gelly/index.html), a graph processing API and library.
-
-You can **integrate** Flink easily with other well-known open source systems both for [data input and output](features.html#deployment-and-integration) as well as [deployment](features.html#deployment-and-integration).
-  </div>
-  <div class="col-md-6 stack text-center">  
-    <!-- https://docs.google.com/drawings/d/1XCNHsBDAq0fP-TSazE4CcrUinrC37JFiuXAoAEZZavE/ -->
-    <img src="{{ site.baseurl }}/img/flink-stack-frontpage.png" alt="Apache Flink Stack" width="480px" height="280px">
-  </div>
 </div>
 
----
 
-<div class="frontpage-tags">
-  <div class="row">
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-send"></span> <a href="features.html#streaming">Streaming First</a></h2>
-      <p>High throughput and low latency stream processing with exactly-once guarantees.</p>
-    </div>
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-flash"></span> <a href="features.html#batch-on-streaming">Batch on Streaming</a></h2>
-      <p>Batch processing applications run efficiently as special cases of stream processing applications.</p>
-    </div>
-    <div class="col-md-4 text-center">
-      <h2><span class="glyphicon glyphicon-fire"></span> <a href="features.html#apis-and-libs">APIs, Libraries, and Ecosystem</a></h2>
-      <p>DataSet, DataStream, and more. Integrated with the Apache Big Data stack.</p>
-    </div>
-  </div>
-  <div class="row" style="margin-top: 1em">
-    <div class="col-md-12"><p class="text-center"><strong>Check out the <a href="{{ site.baseurl }}/features.html">Features</a> page to get a tour of all major Flink features and the <a href="{{ site.baseurl }}/poweredby.html">Powered by Flink</a> page to see real-world Flink use cases.</strong></p></div>
-  </div>
+
+<div class="row front-graphic">
+  <img src="/img/flink-front-graphic-update.png" width="599px" height="305px" />
 </div>
 
----
 
-<div class="row">
-  <div class="col-sm-6" markdown="1">
-## Getting Started
+<!-- Powered by section -->
 
-Download the **latest stable release** and run Flink on your machine, cluster, or cloud:
+<div class="row-fluid">
+  <div class="col-sm-12">
 
-<div class="text-center download-button">
-  <a href="downloads.html" class="btn btn-primary" markdown="1">**Download** Apache Flink® {{ site.FLINK_VERSION_STABLE }}</a>
-  <a href="{{ site.github }}" class="btn btn-info" markdown="1">Apache Flink® on **GitHub**</a>
+  <hr />
+
+  <a style="float:right" href="{{ site.baseurl }}/poweredby.html">See more ></a>
+
+  <div class="jcarousel">
+    <ul>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" /></div>
+          <!--<span>Alibaba uses Flink for real-time search optimization.</span>-->
+
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" /></div>
+          <!-- <span>Bouygues Telecom uses Flink for network monitoring.</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" /></div>
+          <!-- <span>Capital One uses Flink for anomaly detection.</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" /></div>
+          <!-- <span>Ericsson uses Flink for .</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/king-logo.png" width="175" alt="King" /></div>
+          <!-- <span>King uses Flink to power real-time game analytics.</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" /></div>
+          <!-- <span>Otto Group uses Flink for.</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" /></div>
+          <!-- <span>ResearchGate uses Flink for.</span>        -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /></div>
+          <!-- <span>Zalando goes big with Flink.</span> -->
+        </li>
+    </ul>
+  </div>
+
+  <a href="#" class="jcarousel-control-prev" data-jcarouselcontrol="true"><span class="glyphicon glyphicon-chevron-left"></span></a>
+  <a href="#" class="jcarousel-control-next" data-jcarouselcontrol="true"><span class="glyphicon glyphicon-chevron-right"></span></a>
+
+  </div>
+
 </div>
 
-The documentation contains a [setup guide]({{ site.docs-snapshot }}/setup/building.html) for all deployment options.
+<!-- Updates section -->
 
-The [programming guide]({{ site.docs-snapshot }}/dev/api_concepts.html) contains all information to get you started with writing and testing your Flink programs.
+<div class="row-fluid">
 
-See our list of [third-party packages]({{ site.baseurl }}/community.html#third-party-packages) for Flink.
-
-**Check out the [documentation]({{ site.docs-snapshot }}) for the next steps.**
-
-  </div>
-  <div class="col-sm-6" markdown="1" style="padding-bottom:1em">
-## Latest blog posts
-
-<ul class="list-group">
-{% for post in site.posts limit:5 %}  
-      <li class="list-group-item"><span>{{ post.date | date_to_string }}</span> &raquo;
-        <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
-      </li>
-{% endfor %}
-</ul>
-
-**Check out [the blog](blog/) for all posts.**
-  </div>
+<div class="col-sm-12">
+  <hr />
 </div>
 
-<div class="row">
-  <div class="col-sm-6" markdown="1">
-## Community
+<div class="col-sm-3">
 
-You can post questions to the Flink [community]() on various channels. Pick the one, which suits you best:
+  <h2>Latest Blog Posts</h2>
 
-- <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> **User mailing list**. Subscribe to the mailing list by sending an empty email to user-subscribe@flink.apache.org. Once the subscription is confirmed, you can send questions to user@flink.apache.org.
-
-- <span class="glyphicon glyphicon-search" aria-hidden="true"></span> **Stack Overflow**. Post your questions to [Stack Overflow](http://stackoverflow.com/questions/ask/?tags=flink) and tag them with [#flink](http://stackoverflow.com/questions/ask/?tags=flink).
-
-- <span class="glyphicon glyphicon-comment" aria-hidden="true"></span> **IRC chat**. The IRC channel **#flink** at irc.freenode.org is dedicated to Apache Flink. Join the channel and chat with the Flink community.
-
-**Check out [the community page](community.html) for all community-related information. If you want to contribute, make sure to have a look at the [contribution guide](how-to-contribute.html).**
-  </div>
-
-  <div class="col-sm-6 text-center">
-   <a class="twitter-timeline" href="https://twitter.com/ApacheFlink" data-widget-id="598498380973735936">Tweets by @ApacheFlink</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-  </div>
 </div>
+
+<div class="col-sm-9">
+
+  <dl>
+    {% for post in site.posts limit:5 %}  
+        <dt> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></dt>
+        <dd>{{ post.excerpt }}</dd>
+    {% endfor %}
+  </dl>
+
+</div></div>
+
+<script type="text/javascript" src="{{ site.baseurl }}/js/jquery.jcarousel.min.js"></script>
+
+<script type="text/javascript">
+
+  $(window).load(function(){
+   $(function() {
+        var jcarousel = $('.jcarousel');
+
+        jcarousel
+            .on('jcarousel:reload jcarousel:create', function () {
+                var carousel = $(this),
+                    width = carousel.innerWidth();
+
+                if (width >= 600) {
+                    width = width / 4;
+                } else if (width >= 350) {
+                    width = width / 3;
+                }
+
+                carousel.jcarousel('items').css('width', Math.ceil(width) + 'px');
+            })
+            .jcarousel({
+                wrap: 'circular',
+                autostart: true
+            });
+
+        $('.jcarousel-control-prev')
+            .jcarouselControl({
+                target: '-=1'
+            });
+
+        $('.jcarousel-control-next')
+            .jcarouselControl({
+                target: '+=1'
+            });
+
+        $('.jcarousel-pagination')
+            .on('jcarouselpagination:active', 'a', function() {
+                $(this).addClass('active');
+            })
+            .on('jcarouselpagination:inactive', 'a', function() {
+                $(this).removeClass('active');
+            })
+            .on('click', function(e) {
+                e.preventDefault();
+            })
+            .jcarouselPagination({
+                perPage: 1,
+                item: function(page) {
+                    return '<a href="#' + page + '">' + page + '</a>';
+                }
+            });
+    });
+  });
+
+</script>

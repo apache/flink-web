@@ -1,10 +1,9 @@
 ---
-title: "Community"
+title: "Community & Project Info"
 ---
+{% toc %}
 
 There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is a [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/flink). Please remember to tag your questions with the *[flink](http://stackoverflow.com/questions/tagged/flink)* tag. Bugs and feature requests can either be discussed on *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
-
-{% toc %}
 
 ## Mailing Lists
 
@@ -131,163 +130,15 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 - **ASF read-only**: git://git.apache.org/flink-web.git
 - **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
+## Training
 
-# Third party packages
+[dataArtisans](http://data-artisans.com) currently maintains free Apache Flink training. Their [training website](http://dataartisans.github.io/flink-training) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
 
-This is a list of third party packages (ie, libraries, system extensions, or examples) built on Flink.
-The Flink community only collects links to those packages but does not maintain them.
-Thus, they do not belong to the Apache Flink project and the community cannot give any support for them.
-**Your project is missing?**
-Let us know per [user/dev mailing list](#mailing-lists).
+## Flink Forward
 
-<table class="flink-packages" width="100%">
-  <style>
-  table.flink-packages {
-    table-layout: fixed;
-    border-color: transparent;
-    border-spacing: 5px;
-    border-collapse: separate;
-  }
-  td.flink-package-empty{
-    height: 14em;
-    vertical-align: bottom;
-    border-color: transparent;
-    background-color: transparent;
-  }
-  td.flink-package {
-    height: 14em;
-    vertical-align: bottom;
-    border-color: transparent;
-    background-color: #B9BFC7;
-    color: #E5EAFA;
-  }
-  td.flink-package-external {
-    height: 14em;
-    vertical-align: bottom;
-    border-color: transparent;
-    background-color: #F5A030;
-  }
-  td.flink-package > div {
-    transform: rotate(-90deg);
-    font-size: 12pt;
-    white-space: nowrap;
-  }
-  td.flink-package-external > div {
-    transform: rotate(-90deg);
-    font-size: 16pt;
-    white-space: nowrap;
-  }
-  td.flink-component {
-    font-size: 16pt;
-    text-align: center;
-    border-color: transparent;
-    color: #E5EAFA;
-  }
-  </style>
-  <tr>
-   <td class="flink-package"><div><span>&nbsp;Flink ML</span></div></td>
-   <td class="flink-package"><div><span>&nbsp;Table API</span></div></td>
-   <td class="flink-package"><div><span>&nbsp;Gelly (Graph)</span></div></td>
-   <td class="flink-package"><div><span>&nbsp;MapReduce</span></div></td>
-   <td class="flink-package"><div><span>&nbsp;Python</span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-zeppelin">Apache Zeppelin</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-mahout">Apache Mahout</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#cascading">Cascading</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-beam-incubating">Apache Beam <small style="font-size:40%">(incubating)</small></a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#gradoop">Gradoop</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#bigpetstore">BigPetStore</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#fastr">FastR</a></span></div></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package"><div><span>&nbsp;Table API</span></div></td>
-   <td class="flink-package"><div><span>&nbsp;Storm</span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-samoa">Apache SAMOA</a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-beam-incubating">Apache Beam <small style="font-size:40%">(incubating)</small></a></span></div></td>
-   <td class="flink-package-external"><div><span>&nbsp;<a href="#apache-ignite">Apache Ignite</a></span></div></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-   <td class="flink-package-empty"></td>
-  </tr>
+Flink Forward 2015 (October 12-13, 2015) was the first conference to bring together the Apache Flink developer and user community. You can find [slides and videos](http://2015.flink-forward.org/?post_type=session) of all talks on the Flink Forward 2015 page.
 
-  <tr bgcolor="#B9BFC7">
-   <td class="flink-component" colspan="15">DataSet API</td>
-   <td class="flink-component" colspan="15">DataStream API</td>
-  </tr>
-
-  <tr bgcolor="#B9BFC7">
-   <td class="flink-component" colspan="30">Flink Runtime</td>
-  </tr>
-
-  <tr bgcolor="#B9BFC7">
-   <td class="flink-component" colspan="6" width="20%">Local</td>
-   <td class="flink-component" colspan="6" width="20%">Remote</td>
-   <td class="flink-component" colspan="6" width="20%">Embedded</td>
-   <td class="flink-component" colspan="6" width="20%">YARN</td>
-   <td class="flink-component" colspan="6" width="20%">Tez</td>
-  </tr>
-</table>
-
-## Apache Zeppelin
-
-[Apache Zeppelin (incubator)](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with 
-[Flink as an execution engine](https://zeppelin.incubator.apache.org/docs/interpreter/flink.html) (next to others engines).
-See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin) about Zeppelin on Flink.
-
-## Apache Mahout 
-
-[Apache Mahout](https://mahout.apache.org/) in a machine learning library that will feature Flink as an execution engine soon.
-Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl) about Mahout-Samsara DSL.
-
-## Cascading 
-
-[Cascading](http://www.cascading.org/cascading-flink/) enables an user to build complex workflows easily on Flink and other execution engines.
-[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Driven, Inc](http://www.driven.io/).
-See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
-
-## Apache Beam (incubating)
-
-[Apache Beam (incubating)](http://beam.incubator.apache.org/) is an open source, unified programming model that you can use to create a data processing pipeline. Flink is one of the back-ends supported by the Beam programming model.
-
-## GRADOOP
-
-[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) enables scalable graph analytics on top of Flink and is developed at Leipzig University. Check out [Martin Junghanns’ Flink Forward talk](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink).
-
-## BigPetStore
-
-[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) is a benchmarking suite including a data generator and will be available for Flink soon.
-See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/suneel-marthi-bigpetstore-flink-a-comprehensive-blueprint-for-apache-flink?ref=http://flink-forward.org/?session=tbd-3) as preview.
-
-## FastR
-
-[FastR](https://bitbucket.org/allr/fastr-flink) in an implemenation of the R language in Java. [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) exeutes R workload on top of Flink.
-
-## Apache SAMOA
-
-[Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) a streaming ML library featuring Flink an execution engine soon. Albert Bifet introduced SAMOA on Flink at his [Flink Forward talk](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink).
-
-## Python Examples on Flink
-
-A [collection of examples](https://github.com/wdm0006/flink-python-examples) using Apache Flink's Python API.
-
-## WordCount Example in Clojure
-
-Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/flink-clojure) on how to write a Flink program in Clojure.
-
-## Anomaly Detection and Prediction in Flink
-
-[flink-htm](https://github.com/nupic-community/flink-htm) is a library for anomaly detection and prediction in Apache Flink. The algorithms are based on Hierarchical Temporal Memory (HTM) as implemented by the Numenta Platform for Intelligent Computing (NuPIC).
-
-## Apache Ignite
-
-[Apache Ignite](https://ignite.apache.org) is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time. See [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) to inject data into Ignite cache.
+The second edition of Flink Forward took place on September 12-14, 2016. All [slides and videos](http://flink-forward.org/program/sessions/) are available on the Flink Forward 2016 page.
 
 # People
 
@@ -412,7 +263,7 @@ Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/fl
     <td class="text-center">Timo Walther</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">twalthr</td>
-  </tr> 
+  </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1826769?s=50"></td>
     <td class="text-center">Daniel Warneke</td>
@@ -490,3 +341,171 @@ The following people were very kind to mentor the project while in incubation.
     <td class="text-center">hsaputra</td>
   </tr>
 </table>
+
+# Slides
+
+**Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference.
+
+### 2016
+
+- Stefan Richter: **A look at Apache Flink 1.2 and beyond** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/StefanRichter10/a-look-at-flink-12)
+- Robert Metzger: **Apache Flink Community Updates November 2016** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/apache-flink-community-updates-november-2016-berlin-meetup)
+- Aljoscha Krettek: **Apache Flink for IoT: How Event-Time Processing Enables Easy and Accurate Analytics** *Big Data Spain, Madrid November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/aljoscha-krettek-apache-flink-for-iot-how-eventtime-processing-enables-easy-and-accurate-analytics)
+- Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Apache Big Data Europe 2016, Seville November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/keynote-stephan-ewen-stream-processing-as-a-foundational-paradigm-and-apache-flinks-approach-to-it)
+- Kostas Tzoumas: **Stream Processing with Apache Flink®** *Apache Flink London Meetup, November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/kostas-tzoumas-stream-processing-with-apache-flink)
+- Kostas Tzoumas: **Apache Flink®: State of the Union and What's Next** *Strata + Hadoop World New York, September 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/kostas-tzoumas-apache-flink-state-of-the-union-and-whats-next)
+- Kostas Tzoumas & Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/kostas-tzoumasstpehan-ewen-keynote-the-maturing-data-streaming-ecosystem-and-apache-flinks-accelerated-growth)
+- Robert Metzger: **Connecting Apache Flink to the World - Reviewing the streaming connectors** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/robert-metzger-connecting-apache-flink-to-the-world-reviewing-the-streaming-connectors)
+- Till Rohrmann & Fabian Hueske: **Declarative stream processing with StreamSQL and CEP** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/fabian-huesketill-rohrmann-declarative-stream-processing-with-streamsql-and-cep)
+- Jamie Grier: **Robust Stream Processing with Apache Flink** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/jamie-grier-robust-stream-processing-with-apache-flink)
+- Jamie Grier: **The Stream Processor as a Database- Building Online Applications directly on Streams** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/jamie-grier-the-stream-processor-as-a-database-building-online-applications-directly-on-streams)
+- Till Rohramnn: **Dynamic Scaling - How Apache Flink adapts to changing workloads** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/till-rohrmann-dynamic-scaling-how-apache-flink-adapts-to-changing-workloads)
+- Stephan Ewen: **Running Flink Everywhere** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/stephan-ewen-running-flink-everywhere)
+- Stephan Ewen: **Scaling Apache Flink to very large State** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/stephan-ewen-scaling-to-large-state)
+- Aljoscha Krettek: **The Future of Apache Flink** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/aljoscha-krettek-the-future-of-apache-flink)
+- Fabian Hueske: **Taking a look under the hood of Apache Flink's relational APIs** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/fhueske/taking-a-look-under-hood-of-apache-flinks-relational-apis)
+- Kostas Tzoumas: **Streaming in the Wild with Apache Flink** *Hadoop Summit San Jose, June 2016*: [SlideShare](http://www.slideshare.net/KostasTzoumas/streaming-in-the-wild-with-apache-flink-63790942)
+- Stephan Ewen: **The Stream Processor as the Database - Apache Flink** *Berlin Buzzwords, June 2016*: [SlideShare](http://www.slideshare.net/stephanewen1/the-stream-processor-as-the-database-apache-flink-berlin-buzzwords)
+- Till Rohrmann & Fabian Hueske: **Streaming Analytics & CEP - Two sides of the same coin?** *Berlin Buzzwords, June 2016*: [SlideShare](http://www.slideshare.net/tillrohrmann/streaming-analytics-cep-two-sides-of-the-same-coin)
+- Robert Metzger: **A Data Streaming Architecture with Apache Flink** *Berlin Buzzwords, June 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/a-data-streaming-architecture-with-apache-flink-berlin-buzzwords-2016)
+- Stephan Ewen: **Continuous Processing with Apache Flink** *Strata + Hadoop World London, May 2016*: [SlideShare](http://www.slideshare.net/stephanewen1/continuous-processing-with-apache-flink-strata-london-2016)
+- Stephan Ewen: **Streaming Analytics with Apache Flink 1.0** *Flink NYC Flink, May 2016*: [SlideShare](http://www.slideshare.net/stephanewen1/apache-flink-myc-flink-meetup)
+- Ufuk Celebi: **Unified Stream & Batch Processing with Apache Flink**. *Hadoop Summit Dublin, April 2016*: [SlideShare](http://www.slideshare.net/HadoopSummit/unified-stream-and-batch-processing-with-apache-flink)
+- Kostas Tzoumas: **Counting Elements in Streams**. *Strata San Jose, March 2016*: [SlideShare](http://www.slideshare.net/KostasTzoumas/apache-flink-at-strata-san-jose-2016)
+- Jamie Grier: **Extending the Yahoo! Streaming Benchmark**. *Flink Washington DC Meetup, March 2016*: [SlideShare](http://www.slideshare.net/JamieGrier/extending-the-yahoo-streaming-benchmark)
+- Jamie Grier: **Stateful Stream Processing at In-Memory Speed**. *Flink NYC Meetup, March 2016*: [SlideShare](http://www.slideshare.net/JamieGrier/stateful-stream-processing-at-inmemory-speed)
+- Robert Metzger: **Stream Processing with Apache Flink**. *QCon London, March 2016*: [SlideShare](http://www.slideshare.net/robertmetzger1/qcon-london-stream-processing-with-apache-flink)
+- Vasia Kalavri: **Batch and Stream Graph Processing with Apache Flink**. *Flink and Neo4j Meetup Berlin, March 2016*: [SlideShare](http://www.slideshare.net/vkalavri/batch-and-stream-graph-processing-with-apache-flink)
+- Maximilian Michels: **Stream Processing with Apache Flink**. *Big Data Technology Summit, February 2016*:
+[SlideShare](http://de.slideshare.net/MaximilianMichels/big-datawarsaw-animated)
+- Vasia Kalavri: **Single-Pass Graph Streaming Analytics with Apache Flink**. *FOSDEM, January 2016*: [SlideShare](http://www.slideshare.net/vkalavri/gellystream-singlepass-graph-streaming-analytics-with-apache-flink)
+- Till Rohrmann: **Streaming Done Right**. *FOSDEM, January 2016*: [SlideShare](http://www.slideshare.net/tillrohrmann/apache-flink-streaming-done-right-fosdem-2016)
+
+### 2015
+
+- Till Rohrmann: **Streaming Data Flow with Apache Flink** *(October 29th, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/streaming-data-flow-with-apache-flink-paris-flink-meetup-2015-54572718)
+- Stephan Ewen: **Flink-0.10** *(October 28th, 2015)*: [SlideShare](http://www.slideshare.net/stephanewen1/flink-010-bay-area-meetup-october-2015)
+- Robert Metzger: **Architecture of Flink's Streaming Runtime** *(ApacheCon, September 29th, 2015)*: [SlideShare](http://www.slideshare.net/robertmetzger1/architecture-of-flinks-streaming-runtime-apachecon-eu-2015)
+- Robert Metzger: **Click-Through Example for Flink's KafkaConsumer Checkpointing** *(September, 2015)*: [SlideShare](http://www.slideshare.net/robertmetzger1/clickthrough-example-for-flinks-kafkaconsumer-checkpointing)
+- Paris Carbone: **Apache Flink Streaming. Resiliency and Consistency** (Google Tech Talk, August 2015: [SlideShare](http://www.slideshare.net/ParisCarbone/tech-talk-google-on-flink-fault-tolerance-and-ha)
+- Andra Lungu: **Graph Processing with Apache Flink** *(August 26th, 2015)*: [SlideShare](http://www.slideshare.net/AndraLungu/flink-gelly-karlsruhe-june-2015)
+- Till Rohrmann: **Interactive data analytisis with Apache Flink** *(June 23rd, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/data-analysis-49806564)
+- Gyula Fóra: **Real-time data processing with Apache Flink** *(Budapest Data Forum, June 4th, 2015)*: [SlideShare](http://www.slideshare.net/GyulaFra/flink-streaming-budapestdata)
+- Till Rohrmann: **Machine Learning with Apache Flink** *(March 23th, 2015)*: [SlideShare](http://www.slideshare.net/tillrohrmann/machine-learning-with-apache-flink)
+- Marton Balassi: **Flink Streaming** *(February 26th, 2015)*: [SlideShare](http://www.slideshare.net/MrtonBalassi/flink-streaming-berlin-meetup)
+- Vasia Kalavri: **Large-Scale Graph Processing with Apache Flink** *(FOSDEM, 31st January, 2015)*: [SlideShare](http://www.slideshare.net/vkalavri/largescale-graph-processing-with-apache-flink-graphdevroom-fosdem15)
+- Fabian Hueske: **Hadoop Compatibility** *(January 28th, 2015)*: [SlideShare](http://www.slideshare.net/fhueske/flink-hadoopcompat20150128)
+- Kostas Tzoumas: **Apache Flink Overview** *(January 14th, 2015)*: [SlideShare](http://www.slideshare.net/KostasTzoumas/apache-flink-api-runtime-and-project-roadmap)
+
+### 2014
+
+- Kostas Tzoumas: **Flink Internals** *(November 18th, 2014)*: [SlideShare](http://www.slideshare.net/KostasTzoumas/flink-internals)
+- Marton Balassi & Gyula Fóra: **The Flink Big Data Analytics Platform** *(ApachecCon, November 11th, 2014)*: [SlideShare](http://www.slideshare.net/GyulaFra/flink-apachecon)
+- Till Rohrmann: **Introduction to Apache Flink** *(October 15th, 2014)*: [SlideShare](http://www.slideshare.net/tillrohrmann/introduction-to-apache-flink)
+
+# Materials
+
+## Apache Flink Logos
+
+We provide the Apache Flink logo in different sizes and formats. You can [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB) or just pick the one you need from this page.
+
+### Portable Network Graphics (PNG)
+
+<div class="row text-center">
+  <div class="col-sm-4">
+    <h4>Colored logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_color.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
+
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/color_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_color.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_color.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_1000.png)</p>
+  </div>
+
+  <div class="col-sm-4">
+    <h4>White filled logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_white.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" style="background:black;" /></p>
+
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/white_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_white.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_white.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500_white.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_white_1000.png)</p>
+  </div>
+
+  <div class="col-sm-4">
+    <h4>Black outline logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_black.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
+
+    <p markdown="1">**Sizes (px)**:
+      [50x50]({{ site.baseurl }}/img/logo/png/50/black_50.png),
+      [100x100]({{ site.baseurl }}/img/logo/png/100/flink_squirrel_100_black.png),
+      [200x200]({{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_black.png),
+      [500x500]({{ site.baseurl }}/img/logo/png/500/flink_squirrel_500_black.png),
+      [1000x1000]({{ site.baseurl }}/img/logo/png/1000/flink_squirrel_black_1000.png)</p>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body" markdown="span">
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/png) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+  </div>
+</div>
+
+### Scalable Vector Graphics (SVG)
+
+<div class="row text-center img100">
+  <div class="col-sm-4 text-center">
+    <h4>Colored logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/color_black.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+
+    <p markdown="1">Colored logo with black text ([color_black.svg]({{ site.baseurl }}/img/logo/svg/color_black.svg))</p>
+  </div>
+  <div class="col-sm-4">
+    <h4>White filled logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/white_filled.svg" alt="Apache Flink Logo" title="Apache Flink Logo" style="background:black;" /></p>
+
+    <p markdown="1">White filled logo ([white_filled.svg]({{ site.baseurl }}/img/logo/svg/white_filled.svg))</p>
+  </div>
+  <div class="col-sm-4">
+    <h4>Black outline logo</h4>
+
+    <p><img src="{{ site.baseurl }}/img/logo/svg/black_outline.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+
+    <p markdown="1">Black outline logo ([black_outline.svg]({{ site.baseurl }}/img/logo/svg/black_outline.svg))</p>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body" markdown="span">
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/svg) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+  </div>
+</div>
+
+### Photoshop (PSD)
+
+<div class="panel panel-default">
+  <div class="panel-body" markdown="1">
+You can download the logo in PSD format as well:
+
+- **Colored logo**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_squirrel_1000.psd).
+- **Black outline logo with text**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_1000.psd), [5000x5000]({{ site.baseurl }}/img/logo/psd/flink_5000.psd).
+
+You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/psd) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+</div>
+</div>
+
+## Color Scheme
+
+You can use the provided color scheme which incorporates some colors of the Flink logo:
+
+- [PDF color scheme]({{ site.baseurl }}/img/logo/colors/flink_colors.pdf)
+- [Powerpoint color scheme]({{ site.baseurl }}/img/logo/colors/flink_colors.pptx)
