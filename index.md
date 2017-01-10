@@ -21,6 +21,30 @@ layout: base
   <img src="{{ site.baseurl }}/img/flink-front-graphic-update.png" width="599px" height="305px" />
 </div>
 
+<!-- Updates section -->
+
+<div class="row-fluid">
+
+<div class="col-sm-12">
+  <hr />
+</div>
+
+<div class="col-sm-3">
+
+  <h2>Latest Blog Posts</h2>
+
+</div>
+
+<div class="col-sm-9">
+
+  <dl>
+    {% for post in site.posts limit:5 %}  
+        <dt> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></dt>
+        <dd>{{ post.excerpt }}</dd>
+    {% endfor %}
+  </dl>
+
+</div>
 
 <!-- Powered by section -->
 
@@ -75,31 +99,6 @@ layout: base
   </div>
 
 </div>
-
-<!-- Updates section -->
-
-<div class="row-fluid">
-
-<div class="col-sm-12">
-  <hr />
-</div>
-
-<div class="col-sm-3">
-
-  <h2>Latest Blog Posts</h2>
-
-</div>
-
-<div class="col-sm-9">
-
-  <dl>
-    {% for post in site.posts limit:5 %}  
-        <dt> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></dt>
-        <dd>{{ post.excerpt }}</dd>
-    {% endfor %}
-  </dl>
-
-</div></div>
 
 <script type="text/javascript" src="{{ site.baseurl }}/js/jquery.jcarousel.min.js"></script>
 
