@@ -134,6 +134,10 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
 [dataArtisans](http://data-artisans.com) currently maintains free Apache Flink training. Their [training website](http://dataartisans.github.io/flink-training) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
 
+## Project Wiki
+
+The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">project wiki</a> contains a range of relevant resources for Flink users. However, some content on the wiki might be out-of-date. When in doubt, please refer to the <a href="{{ site.docs-stable }}" target="_blank">Flink documentation</a>. 
+
 ## Flink Forward
 
 Flink Forward 2015 (October 12-13, 2015) was the first conference to bring together the Apache Flink developer and user community. You can find [slides and videos](http://2015.flink-forward.org/?post_type=session) of all talks on the Flink Forward 2015 page.
