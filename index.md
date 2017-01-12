@@ -51,9 +51,11 @@ layout: base
 <div class="row-fluid">
   <div class="col-sm-12">
 
-  <hr />
 
-  <a style="float:right" href="{{ site.baseurl }}/poweredby.html">See more ></a>
+  <hr />
+    <h2><a href="{{ site.baseurl }}/poweredby.html">Powered by Flink</a></h2>
+
+
 
   <div class="jcarousel">
     <ul>
