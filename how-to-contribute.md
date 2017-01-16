@@ -1,7 +1,6 @@
 ---
-title:  "Contributions Welcome!"
+title: "How To Contribute"
 ---
-
 Apache Flink is developed by an open and friendly community. Everybody is cordially welcome to join the community and contribute to Apache Flink. There are several ways to interact with the community and to contribute to Flink including asking questions, filing bug reports, proposing new features, joining discussions on the mailing lists, contributing code or documentation, improving the website, or testing release candidates.
 
 {% toc %}
@@ -26,7 +25,7 @@ Our community is constantly looking for feedback to improve Apache Flink. If you
 - It helps to estimate the effort and to design a solution that addresses your needs.
 - It allow for constructive discussions that might arise around this issue.
 
-Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contribute-code.html) guide in this case as well. 
+Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contribute-code.html) guide in this case as well.
 
 
 We recommend to first reach consensus with the community on whether a new feature is required and how to implement a new feature, before starting with the implementation. Some features might be out of scope of the project, and it's best to discover this early.
@@ -56,7 +55,7 @@ Apache Flink is continuously improved by its active community. Every few weeks, 
 2. Testing the release candidate and voting (`+1` if no issues were found, `-1` if the release candidate has issues).
 3. Going back to step 1 if the release candidate had issues otherwise we publish the release.
 
-Our wiki contains a page that summarizes the [test procedure for a release](https://cwiki.apache.org/confluence/display/FLINK/Releasing). Release testing is a big effort if done by a small group of people but can be easily scaled out to more people. The Flink community encourages everybody to participate in the testing of a release candidate. By testing a release candidate, you can ensure that the next Flink release is working properly for your setup and help to improve the quality of releases. 
+Our wiki contains a page that summarizes the [test procedure for a release](https://cwiki.apache.org/confluence/display/FLINK/Releasing). Release testing is a big effort if done by a small group of people but can be easily scaled out to more people. The Flink community encourages everybody to participate in the testing of a release candidate. By testing a release candidate, you can ensure that the next Flink release is working properly for your setup and help to improve the quality of releases.
 
 -----
 
@@ -69,9 +68,9 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 Please do also read the [Submit a Contributor License Agreement]({{ site.baseurl }}/how-to-contribute.html#submit-a-contributor-license-agreement) Section.
 
 ### Looking for an issue to work on?
-{:.no_toc} 
+{:.no_toc}
 
-We maintain a list of all known bugs, proposed improvements and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process. 
+We maintain a list of all known bugs, proposed improvements and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process.
 
 Please have a look at the list of [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC), if you are looking for an issue to work on. You can of course also choose [any other issue](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC) to work on. Feel free to ask questions about issues that you would be interested in working on.
 
@@ -126,7 +125,7 @@ Please submit a contributor license agreement to the Apache Software Foundation 
 
 ## How to become a committer
 
-Committers are community members that have write access to the project's repositories, i.e., they can modify the code, documentation, and website by themselves and also accept other contributions. 
+Committers are community members that have write access to the project's repositories, i.e., they can modify the code, documentation, and website by themselves and also accept other contributions.
 
 There is no strict protocol for becoming a committer. Candidates for new committers are typically people that are active contributors and community members.
 
@@ -134,15 +133,6 @@ Being an active community member means participating on mailing list discussions
 
 Of course, contributing code and documentation to the project is important as well. A good way to start is contributing improvements, new features, or bug fixes. You need to show that you take responsibility for the code that you contribute, add tests and documentation, and help maintaining it.
 
-Candidates for new committers are suggested by current committers or PMC members, and voted upon by the PMC. 
+Candidates for new committers are suggested by current committers or PMC members, and voted upon by the PMC.
 
 If you would like to become a committer, you should engage with the community and start contributing to Apache Flink in any of the above ways. You might also want to talk to other committers and ask for their advice and guidance.
-
-
-
-
-
-
-
-
-
