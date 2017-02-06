@@ -36,12 +36,6 @@ pick the Hadoop 1 version.
 </thead>
 <tbody>
     <tr>
-    <th>Hadoop® 1.2.1</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_STABLE }}" class="ga-track" id="download-hadoop1">Download</a></td>
-    <td></td>
-    </tr>
-
-    <tr>
     <th>Hadoop® 2.3.0</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
@@ -83,7 +77,6 @@ pick the Hadoop 1 version.
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
 
-- **Hadoop 1**: If you want to interact with Hadoop 1, use `{{ site.FLINK_VERSION_HADOOP_1_STABLE }}` as the version.
 - **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.10` and `flink-streaming-java_2.10` with `flink-streaming-scala_2.10`. For Scala 2.11 dependencies, use the suffix `_2.11` instead of `_2.10`.
 
 ```xml
