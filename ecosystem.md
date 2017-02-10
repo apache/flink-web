@@ -14,16 +14,16 @@ many other data processing projects and frameworks.
 <p>Currently these systems are supported:</p>
 
 <ul>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/elasticsearch.html" target="_blank">Elasticsearch</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/elasticsearch2.html" target="_blank">Elasticsearch 2x</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/twitter.html" target="_blank">Twitter Streaming API</a> (source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/connectors/redis.html" target="_blank">Redis</a> (sink)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch</a> (sink)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/elasticsearch2.html" target="_blank">Elasticsearch 2.x</a> (sink)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/twitter.html" target="_blank">Twitter</a> (source)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
+  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
+  <li><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a> (sink)</li>
 </ul>
 
 To run an application using one of these connectors, additional third party
@@ -42,7 +42,7 @@ Please let us know on the [user/dev mailing list](#mailing-lists).
 
 **Apache Zeppelin**
 
-[Apache Zeppelin (incubator)](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with
+[Apache Zeppelin](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with
 [Flink as an execution engine](https://zeppelin.incubator.apache.org/docs/interpreter/flink.html) (next to others engines).
 See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin) about Zeppelin on Flink.
 
