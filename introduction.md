@@ -2,7 +2,7 @@
 title: "Introduction to Apache Flink®"
 ---
 <br>
-Below is a high-level overview of Apache Flink and stream processing. For a more technical introduction, we recommend the <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/concepts/concepts.html" target="_blank">"Concepts" page</a> in the Flink documentation.
+Below is a high-level overview of Apache Flink and stream processing. For a more technical introduction, we recommend the <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/concepts/programming-model.html" target="_blank">"Concepts" page</a> in the Flink documentation.
 <br>
 {% toc %}
 
@@ -96,13 +96,13 @@ Flink’s core is a distributed streaming dataflow engine, meaning that data is 
 
 ### APIs
 
-+ Flink’s <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/index.html" target="_blank">DataStream API</a> is for programs that implement transformations on data streams (e.g., filtering, updating state, defining windows, aggregating).
-+ The <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/batch/index.html" target="_blank">DataSet API</a> is for programs that implement transformations on data sets (e.g., filtering, mapping, joining, grouping).
-+ The <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/table.html" target="_blank">Table API</a> is a SQL-like expression language for relational stream and batch processing that can be easily embedded in Flink’s DataSet and DataStream APIs (Java and Scala).
-+ <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/table.html#sql" target="_blank">Streaming SQL</a> enables SQL queries to be executed on streaming and batch tables. The syntax is based on <a href="https://calcite.apache.org/docs/stream.html" target="_blank">Apache Calcite™</a>.
++ Flink’s <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/datastream_api.html" target="_blank">DataStream API</a> is for programs that implement transformations on data streams (e.g., filtering, updating state, defining windows, aggregating).
++ The <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/batch/index.html" target="_blank">DataSet API</a> is for programs that implement transformations on data sets (e.g., filtering, mapping, joining, grouping).
++ The <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/table_api.html#table-api" target="_blank">Table API</a> is a SQL-like expression language for relational stream and batch processing that can be easily embedded in Flink’s DataSet and DataStream APIs (Java and Scala).
++ <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/table_api.html#sql" target="_blank">Streaming SQL</a> enables SQL queries to be executed on streaming and batch tables. The syntax is based on <a href="https://calcite.apache.org/docs/stream.html" target="_blank">Apache Calcite™</a>.
 
 ### Libraries
-Flink also includes special-purpose libraries for <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/streaming/libs/cep.html" target="_blank">complex event processing</a>, <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/batch/libs/ml/index.html" target="_blank">machine learning</a>, <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/apis/batch/libs/gelly.html" target="_blank">graph processing</a>, and <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/storm_compatibility.html" target="_blank">Apache Storm compatibility</a>.
+Flink also includes special-purpose libraries for <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/cep.html" target="_blank">complex event processing</a>, <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/ml/index.html" target="_blank">machine learning</a>, <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/gelly/index.html" target="_blank">graph processing</a>, and <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/storm_compatibility.html" target="_blank">Apache Storm compatibility</a>.
 
 ## Flink and other frameworks
 
@@ -120,6 +120,6 @@ If you’re interested in learning more, we’ve collected [information about th
 
 ## Key Takeaways and Next Steps
 
-In summary, Apache Flink is an open-source stream processing framework that eliminates the "performance vs. reliability" tradeoff often associated with open-source streaming engines and performs consistently in both categories. Following this introduction, we recommend you try our <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/quickstart/setup_quickstart.html" target="_blank">quickstart</a>, [download]({{ site.baseurl }}/downloads.html) the most recent stable version of Flink, or review the <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.1/" target="_blank">documentation</a>.
+In summary, Apache Flink is an open-source stream processing framework that eliminates the "performance vs. reliability" tradeoff often associated with open-source streaming engines and performs consistently in both categories. Following this introduction, we recommend you try our <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/quickstart/setup_quickstart.html" target="_blank">quickstart</a>, [download]({{ site.baseurl }}/downloads.html) the most recent stable version of Flink, or review the <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/index.html" target="_blank">documentation</a>.
 
 And we encourage you to join the Flink user mailing list and to share your questions with the community. We’re here to help you get the most out of Flink.
