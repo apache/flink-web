@@ -14,15 +14,15 @@ many other data processing projects and frameworks.
 <p>Currently these systems are supported:</p>
 
 <ul>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/elasticsearch2.html" target="_blank">Elasticsearch 2.x</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/twitter.html" target="_blank">Twitter</a> (source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
-  <li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch</a> (sink)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch2.html" target="_blank">Elasticsearch 2.x</a> (sink)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a> (source)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
   <li><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a> (sink)</li>
 </ul>
 
