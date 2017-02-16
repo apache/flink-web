@@ -18,8 +18,13 @@ On September 12-14, 2016 the second edition of Flink Forward took place. All [sl
 
 **Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference.
 
+### 2017
+- Fabian Hueske: **Stream Analytics with SQL on Apache Flink** *Big Data Tech Summit, Warsaw February 2017*: [SlideShare](http://www.slideshare.net/dataArtisans/fabian-hueske-stream-analytics-with-sql-on-apache-flink)
+
+
 ### 2016
 
+- Stephan Ewen: **Stream Processing as a Foundational Paradigm and Apache Flink's Approach to It** *Big Data, Berlin v 10.0, December 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/stephan-ewen-stream-processing-as-a-foundational-paradigm-and-apache-flinks-approach-to-it)
 - Kostas Tzoumas & Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/kostas-tzoumasstpehan-ewen-keynote-the-maturing-data-streaming-ecosystem-and-apache-flinks-accelerated-growth)
 - Robert Metzger: **Connecting Apache Flink to the World - Reviewing the streaming connectors** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/robert-metzger-connecting-apache-flink-to-the-world-reviewing-the-streaming-connectors)
 - Till Rohrmann & Fabian Hueske: **Declarative stream processing with StreamSQL and CEP** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/fabian-huesketill-rohrmann-declarative-stream-processing-with-streamsql-and-cep)
