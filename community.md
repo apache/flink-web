@@ -237,6 +237,12 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">chiwanpark</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2128543?s=50"></td>
+    <td class="text-center">Stefan Richter</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">srichter</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5756858?s=50"></td>
     <td class="text-center">Till Rohrmann</td>
     <td class="text-center">PMC, Committer</td>
