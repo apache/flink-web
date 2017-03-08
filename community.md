@@ -140,7 +140,7 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
 ## Project Wiki
 
-The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">project wiki</a> contains a range of relevant resources for Flink users. However, some content on the wiki might be out-of-date. When in doubt, please refer to the <a href="{{ site.docs-stable }}" target="_blank">Flink documentation</a>. 
+The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">project wiki</a> contains a range of relevant resources for Flink users. However, some content on the wiki might be out-of-date. When in doubt, please refer to the <a href="{{ site.docs-stable }}" target="_blank">Flink documentation</a>.
 
 ## Flink Forward
 
@@ -206,6 +206,12 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">vasia</td>
   </tr>
   </tr>
+  <tr>
+  <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50"></td>
+  <td class="text-center">Kostas Kloudas</td>
+  <td class="text-center">Committer</td>
+  <td class="text-center">kkloudas</td>
+</tr>
     <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/68551?s=50"></td>
     <td class="text-center">Aljoscha Krettek</td>
