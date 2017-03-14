@@ -70,6 +70,9 @@ select the version matching your installed Hadoop version.
   </a>
 </div>
 
+
+
+
 ## Maven Dependencies
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
@@ -93,6 +96,13 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
+
+## Update Policy for old releases
+
+As of March 2017, the Flink community [decided](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
+
+Note that the community is always open for discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
+
 
 ## All releases
 

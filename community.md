@@ -96,6 +96,8 @@ There are many ways to get help from the Apache Flink community. The [mailing li
   </tr>
 </table>
 
+<b style="color:red">Please make sure you are subscribed to the mailing list you are posting to!</b> If you are not subscribed to the mailing list, your message will either be rejected (dev@ list) or you won't receive the response (user@) list.
+
 ## IRC
 
 There is an IRC channel called #flink dedicated to Apache Flink at irc.freenode.org. There is also a [web-based IRC client](http://webchat.freenode.net/?channels=flink) available.
