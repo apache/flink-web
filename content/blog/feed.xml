@@ -7,6 +7,183 @@
 <atom:link href="http://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>From Streams to Tables and Back Again: An Update on Flink&#39;s Table &amp; SQL API</title>
+<description>&lt;p&gt;Stream processing can deliver a lot of value. Many organizations have recognized the benefit of managing large volumes of data in real-time, reacting quickly to trends, and providing customers with live services at scale. Streaming applications with well-defined business logic can deliver a competitive advantage.&lt;/p&gt;
+
+&lt;p&gt;Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/datastream_api.html&quot;&gt;DataStream&lt;/a&gt; abstraction is a powerful API which lets you flexibly define both basic and complex streaming pipelines. Additionally, it offers low-level operations such as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/stream/asyncio.html&quot;&gt;Async IO&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/stream/process_function.html&quot;&gt;ProcessFunctions&lt;/a&gt;. However, many users do not need such a deep level of flexibility. They need an API which quickly solves 80% of their use cases where simple tasks can be defined using little code.&lt;/p&gt;
+
+&lt;p&gt;To deliver the power of stream processing to a broader set of users, the Apache Flink community is developing APIs that provide simpler abstractions and more concise syntax so that users can focus on their business logic instead of advanced streaming concepts. Along with other APIs (such as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/libs/cep.html&quot;&gt;CEP&lt;/a&gt; for complex event processing on streams), Flink offers a relational API that aims to unify stream and batch processing: the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/table_api.html&quot;&gt;Table &amp;amp; SQL API&lt;/a&gt;, often referred to as the Table API.&lt;/p&gt;
+
+&lt;p&gt;Recently, contributors working for companies such as Alibaba, Huawei, data Artisans, and more decided to further develop the Table API. Over the past year, the Table API has been rewritten entirely. Since Flink 1.1, its core has been based on &lt;a href=&quot;http://calcite.apache.org/&quot;&gt;Apache Calcite&lt;/a&gt;, which parses SQL and optimizes all relational queries. Today, the Table API can address a wide range of use cases in both batch and stream environments with unified semantics.&lt;/p&gt;
+
+&lt;p&gt;This blog post summarizes the current status of Flink’s Table API and showcases some of the recently-added features in Apache Flink. Among the features presented here are the unified access to batch and streaming data, data transformation, and window operators.
+The following paragraphs are not only supposed to give you a general overview of the Table API, but also to illustrate the potential of relational APIs in the future.&lt;/p&gt;
+
+&lt;p&gt;Because the Table API is built on top of Flink’s core APIs, &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/datastream_api.html&quot;&gt;DataStreams&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/batch/index.html&quot;&gt;DataSets&lt;/a&gt; can be converted to a Table and vice-versa without much overhead. Hereafter, we show how to create tables from different sources and specify programs that can be executed locally or in a distributed setting. In this post, we will use the Scala version of the Table API, but there is also a Java version as well as a SQL API with an equivalent set of features.&lt;/p&gt;
+
+&lt;h2 id=&quot;data-transformation-and-etl&quot;&gt;Data Transformation and ETL&lt;/h2&gt;
+
+&lt;p&gt;A common task in every data processing pipeline is importing data from one or multiple systems, applying some transformations to it, then exporting the data to another system. The Table API can help to manage these recurring tasks. For reading data, the API provides a set of ready-to-use &lt;code&gt;TableSources&lt;/code&gt; such as a &lt;code&gt;CsvTableSource&lt;/code&gt; and &lt;code&gt;KafkaTableSource&lt;/code&gt;, however, it also allows the implementation of custom &lt;code&gt;TableSources&lt;/code&gt; that can hide configuration specifics (e.g. watermark generation) from users who are less familiar with streaming concepts.&lt;/p&gt;
+
+&lt;p&gt;Let’s assume we have a CSV file that stores customer information. The values are delimited by a “|”-character and contain a customer identifier, name, timestamp of the last update, and preferences encoded in a comma-separated key-value string:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;42|Bob Smith|2016-07-23 16:10:11|color=12,length=200,size=200
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The following example illustrates how to read a CSV file and perform some data cleansing before converting it to a regular DataStream program.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// set up execution environment&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// configure table source&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customerSource&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CsvTableSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;/path/to/customer_data.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ignoreFirstLine&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fieldDelimiter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;|&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LONG&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;last_update&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;TIMESTAMP&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;prefs&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// name your table source&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTableSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customers&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customerSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// define your table program&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;table&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customers&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isNotNull&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;last_update&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;2016-01-01 00:00:00&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toTimestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lowerCase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;prefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// convert it to a data stream&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ds&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;ds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The Table API comes with a large set of built-in functions that make it easy to specify  business logic using a language integrated query (LINQ) syntax. In the example above, we filter out customers with invalid names and only select those that updated their preferences recently. We convert names to lowercase for normalization. For debugging purposes, we convert the table into a DataStream and print it.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;CsvTableSource&lt;/code&gt; supports both batch and stream environments. If the programmer wants to execute the program above in a batch application, all he or she has to do is to replace the environment via &lt;code&gt;ExecutionEnvironment&lt;/code&gt; and change the output conversion from &lt;code&gt;DataStream&lt;/code&gt; to &lt;code&gt;DataSet&lt;/code&gt;. The Table API program itself doesn’t change.&lt;/p&gt;
+
+&lt;p&gt;In the example, we converted the table program to a data stream of &lt;code&gt;Row&lt;/code&gt; objects. However, we are not limited to row data types. The Table API supports all types from the underlying APIs such as Java and Scala Tuples, Case Classes, POJOs, or generic types that are serialized using Kryo. Let’s assume that we want to have regular object (POJO) with the following format instead of generic rows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Customer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prefs&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;java.util.Properties&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can use the following table program to convert the CSV file into Customer objects. Flink takes care of creating objects and mapping fields for us.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ds&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customers&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;last_update&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parseProperties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;prefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;prefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Customer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You might have noticed that the query above uses a function to parse the preferences field. Even though Flink’s Table API is shipped with a large set of built-in functions, is often necessary to define custom user-defined scalar functions. In the above example we use a user-defined function &lt;code&gt;parseProperties&lt;/code&gt;. The following code snippet shows how easily we can implement a scalar function.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;parseProperties&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ScalarFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Properties&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(\&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;=&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreach&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Scalar functions can be used to deserialize, extract, or convert values (and more). By overwriting the &lt;code&gt;open()&lt;/code&gt; method we can even have access to runtime information such as distributed cached files or metrics. Even the &lt;code&gt;open()&lt;/code&gt; method is only called once during the runtime’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/internals/task_lifecycle.html&quot;&gt;task lifecycle&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;unified-windowing-for-static-and-streaming-data&quot;&gt;Unified Windowing for Static and Streaming Data&lt;/h2&gt;
+
+&lt;p&gt;Another very common task, especially when working with continuous data, is the definition of windows to split a stream into pieces of finite size, over which we can apply computations. At the moment, the Table API supports three types of windows: sliding windows, tumbling windows, and session windows (for general definitions of the different types of windows, we recommend &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/windows.html&quot;&gt;Flink’s documentation&lt;/a&gt;). All three window types work on &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/event_time.html&quot;&gt;event or processing time&lt;/a&gt;. Session windows can be defined over time intervals, sliding and tumbling windows can be defined over time intervals or a number of rows.&lt;/p&gt;
+
+&lt;p&gt;Let’s assume that our customer data from the example above is an event stream of updates generated whenever the customer updated his or her preferences. We assume that events come from a TableSource that has assigned timestamps and watermarks. The definition of a window happens again in a LINQ-style fashion. The following example could be used to count the updates to the preferences during one day.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Tumble&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;over&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.d&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ay&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;rowtime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;from&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;to&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;prefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;updates&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By using the &lt;code&gt;on()&lt;/code&gt; parameter, we can specify whether the window is supposed to work on event-time or not. The Table API assumes that timestamps and watermarks are assigned correctly when using event-time. Elements with timestamps smaller than the last received watermark are dropped. Since the extraction of timestamps and generation of watermarks depends on the data source and requires some deeper knowledge of their origin, the TableSource or the upstream DataStream is usually responsible for assigning these properties.&lt;/p&gt;
+
+&lt;p&gt;The following code shows how to define other types of windows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// using processing-time&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Tumble&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;over&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;100.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rows&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;manyRowWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// using event-time&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Session&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withGap&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;15.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;minutes&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;rowtime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;sessionWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Slide&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;over&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.d&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ay&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;every&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hour&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;rowtime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;dailyWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Since batch is just a special case of streaming (where a batch happens to have a defined start and end point), it is also possible to apply all of these windows in a batch execution environment. Without any modification of the table program itself, we can run the code on a DataSet given that we specified a column named “rowtime”. This is particularly interesting if we want to compute exact results from time-to-time, so that late events that are heavily out-of-order can be included in the computation.&lt;/p&gt;
+
+&lt;p&gt;At the moment, the Table API only supports so-called “group windows” that also exist in the DataStream API. Other windows such as SQL’s OVER clause windows are in development and &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-11%3A+Table+API+Stream+Aggregations&quot;&gt;planned for Flink 1.3&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In order to demonstrate the expressiveness and capabilities of the API, here’s a snippet with a more advanced example of an exponentially decaying moving average over a sliding window of one hour which returns aggregated results every second. The table program weighs recent orders more heavily than older orders. This example is borrowed from &lt;a href=&quot;https://calcite.apache.org/docs/stream.html#hopping-windows&quot;&gt;Apache Calcite&lt;/a&gt; and shows what will be possible in future Flink releases for both the Table API and SQL.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Slide&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;over&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hour&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;every&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;second&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;productId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;productId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;unitPrice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;rowtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hour&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;rowtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hour&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;user-defined-table-functions&quot;&gt;User-defined Table Functions&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/table_api.html#user-defined-table-functions&quot;&gt;User-defined table functions&lt;/a&gt; were added in Flink 1.2. These can be quite useful for table columns containing non-atomic values which need to be extracted and mapped to separate fields before processing. Table functions take an arbitrary number of scalar values and allow for returning an arbitrary number of rows as output instead of a single value, similar to a flatMap function in the DataStream or DataSet API. The output of a table function can then be joined with the original row in the table by using either a left-outer join or cross join.&lt;/p&gt;
+
+&lt;p&gt;Using the previously-mentioned customer table, let’s assume we want to produce a table that contains the color and size preferences as separate columns. The table program would look like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// create an instance of the table function&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extractPrefs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PropertiesExtractor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// derive rows and join them with original row&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extractPrefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;prefs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;username&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;PropertiesExtractor&lt;/code&gt; is a user-defined table function that extracts the color and size. We are not interested in customers that haven’t set these preferences and thus don’t emit anything if both properties are not present in the string value. Since we are using a (cross) join in the program, customers without a result on the right side of the join will be filtered out.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PropertiesExtractor&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TableFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;prefs&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// split string into (key, value) pairs&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pairs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prefs&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;split&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;=&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pairs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;find&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(\&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;color&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(\&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pairs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;find&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(\&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;size&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(\&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// emit a row if color and size are specified&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;match&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// skip&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getResultType&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RowTypeInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;There is significant interest in making streaming more accessible and easier to use. Flink’s Table API development is happening quickly, and we believe that soon, you will be able to implement large batch or streaming pipelines using purely relational APIs or even convert existing Flink jobs to table programs. The Table API is already a very useful tool since you can work around limitations and missing features at any time by switching back-and-forth between the DataSet/DataStream abstraction to the Table abstraction.&lt;/p&gt;
+
+&lt;p&gt;Contributions like support of Apache Hive UDFs, external catalogs, more TableSources, additional windows, and more operators will make the Table API an even more useful tool. Particularly, the upcoming introduction of Dynamic Tables, which is worth a blog post of its own, shows that even in 2017, new relational APIs open the door to a number of possibilities.&lt;/p&gt;
+
+&lt;p&gt;Try it out, or even better, join the design discussions on the &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; and &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel&quot;&gt;JIRA&lt;/a&gt; and start contributing!&lt;/p&gt;
+</description>
+<pubDate>Wed, 29 Mar 2017 14:00:00 +0200</pubDate>
+<link>http://flink.apache.org/news/2017/03/29/table-sql-api-update.html</link>
+<guid isPermaLink="true">/news/2017/03/29/table-sql-api-update.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.1.5 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the next bugfix version of the Apache Flink 1.1 series.&lt;/p&gt;
 
@@ -74,7 +251,7 @@ We highly recommend all users to upgrade to Flink 1.1.5.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Thu, 23 Mar 2017 02:00:00 +0800</pubDate>
+<pubDate>Thu, 23 Mar 2017 19:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2017/03/23/release-1.1.5.html</link>
 <guid isPermaLink="true">/news/2017/03/23/release-1.1.5.html</guid>
 </item>
@@ -348,7 +525,7 @@ If you have, for example, a flatMap() operator that keeps a running aggregate pe
   &lt;li&gt;魏偉哲&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 06 Feb 2017 20:00:00 +0800</pubDate>
+<pubDate>Mon, 06 Feb 2017 13:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2017/02/06/release-1.2.0.html</link>
 <guid isPermaLink="true">/news/2017/02/06/release-1.2.0.html</guid>
 </item>
@@ -563,7 +740,7 @@ If you have, for example, a flatMap() operator that keeps a running aggregate pe
 &lt;/ul&gt;
 
 </description>
-<pubDate>Wed, 21 Dec 2016 17:00:00 +0800</pubDate>
+<pubDate>Wed, 21 Dec 2016 10:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2016/12/21/release-1.1.4.html</link>
 <guid isPermaLink="true">/news/2016/12/21/release-1.1.4.html</guid>
 </item>
@@ -757,7 +934,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;Lastly, we’d like to extend a sincere thank you to all of the Flink community for making 2016 a great year!&lt;/p&gt;
 </description>
-<pubDate>Mon, 19 Dec 2016 17:00:00 +0800</pubDate>
+<pubDate>Mon, 19 Dec 2016 10:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2016/12/19/2016-year-in-review.html</link>
 <guid isPermaLink="true">/news/2016/12/19/2016-year-in-review.html</guid>
 </item>
@@ -861,7 +1038,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 12 Oct 2016 17:00:00 +0800</pubDate>
+<pubDate>Wed, 12 Oct 2016 11:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/10/12/release-1.1.3.html</link>
 <guid isPermaLink="true">/news/2016/10/12/release-1.1.3.html</guid>
 </item>
@@ -935,7 +1112,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;/ul&gt;
 
 </description>
-<pubDate>Mon, 05 Sep 2016 17:00:00 +0800</pubDate>
+<pubDate>Mon, 05 Sep 2016 11:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/09/05/release-1.1.2.html</link>
 <guid isPermaLink="true">/news/2016/09/05/release-1.1.2.html</guid>
 </item>
@@ -955,7 +1132,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;p&gt;We hope to see many community members at Flink Forward 2016. Registration is available online: &lt;a href=&quot;http://flink-forward.org/registration/&quot;&gt;flink-forward.org/registration&lt;/a&gt;
 &lt;/p&gt;
 </description>
-<pubDate>Wed, 24 Aug 2016 17:00:00 +0800</pubDate>
+<pubDate>Wed, 24 Aug 2016 11:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/08/24/ff16-keynotes-panels.html</link>
 <guid isPermaLink="true">/news/2016/08/24/ff16-keynotes-panels.html</guid>
 </item>
@@ -986,7 +1163,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Thu, 11 Aug 2016 17:00:00 +0800</pubDate>
+<pubDate>Thu, 11 Aug 2016 11:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/08/11/release-1.1.1.html</link>
 <guid isPermaLink="true">/news/2016/08/11/release-1.1.1.html</guid>
 </item>
@@ -1208,7 +1385,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;卫乐&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 08 Aug 2016 21:00:00 +0800</pubDate>
+<pubDate>Mon, 08 Aug 2016 15:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/08/08/release-1.1.0.html</link>
 <guid isPermaLink="true">/news/2016/08/08/release-1.1.0.html</guid>
 </item>
@@ -1337,7 +1514,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;If this post made you curious and you want to try out Flink’s SQL interface and the new Table API, we encourage you to do so! Simply clone the SNAPSHOT &lt;a href=&quot;https://github.com/apache/flink/tree/master&quot;&gt;master branch&lt;/a&gt; and check out the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/table.html&quot;&gt;Table API documentation for the SNAPSHOT version&lt;/a&gt;. Please note that the branch is under heavy development, and hence some code examples in this blog post might not work. We are looking forward to your feedback and welcome contributions.&lt;/p&gt;
 </description>
-<pubDate>Tue, 24 May 2016 18:00:00 +0800</pubDate>
+<pubDate>Tue, 24 May 2016 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/05/24/stream-sql.html</link>
 <guid isPermaLink="true">/news/2016/05/24/stream-sql.html</guid>
 </item>
@@ -1381,7 +1558,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;[streaming-contrib] Fix port clash in DbStateBackend tests&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 11 May 2016 16:00:00 +0800</pubDate>
+<pubDate>Wed, 11 May 2016 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/05/11/release-1.0.3.html</link>
 <guid isPermaLink="true">/news/2016/05/11/release-1.0.3.html</guid>
 </item>
@@ -1427,7 +1604,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3716&quot;&gt;FLINK-3716&lt;/a&gt;] [kafka consumer] Decreasing socket timeout so testFailOnNoBroker() will pass before JUnit timeout&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Fri, 22 Apr 2016 16:00:00 +0800</pubDate>
+<pubDate>Fri, 22 Apr 2016 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/04/22/release-1.0.2.html</link>
 <guid isPermaLink="true">/news/2016/04/22/release-1.0.2.html</guid>
 </item>
@@ -1440,7 +1617,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;Read more &lt;a href=&quot;http://flink-forward.org/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Thu, 14 Apr 2016 18:00:00 +0800</pubDate>
+<pubDate>Thu, 14 Apr 2016 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/04/14/flink-forward-announce.html</link>
 <guid isPermaLink="true">/news/2016/04/14/flink-forward-announce.html</guid>
 </item>
@@ -1633,7 +1810,7 @@ This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; The example code requires Flink 1.0.1 or higher.&lt;/p&gt;
 
 </description>
-<pubDate>Wed, 06 Apr 2016 18:00:00 +0800</pubDate>
+<pubDate>Wed, 06 Apr 2016 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/04/06/cep-monitoring.html</link>
 <guid isPermaLink="true">/news/2016/04/06/cep-monitoring.html</guid>
 </item>
@@ -1704,7 +1881,7 @@ This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 06 Apr 2016 16:00:00 +0800</pubDate>
+<pubDate>Wed, 06 Apr 2016 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2016/04/06/release-1.0.1.html</link>
 <guid isPermaLink="true">/news/2016/04/06/release-1.0.1.html</guid>
 </item>
@@ -1831,7 +2008,7 @@ When using this backend, active state in streaming programs can grow well beyond
   &lt;li&gt;zhangminglei&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 08 Mar 2016 21:00:00 +0800</pubDate>
+<pubDate>Tue, 08 Mar 2016 14:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2016/03/08/release-1.0.0.html</link>
 <guid isPermaLink="true">/news/2016/03/08/release-1.0.0.html</guid>
 </item>
@@ -1868,7 +2045,7 @@ When using this backend, active state in streaming programs can grow well beyond
   &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3020&quot;&gt;FLINK-3020&lt;/a&gt;: Set number of task slots to maximum parallelism in local execution&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Thu, 11 Feb 2016 16:00:00 +0800</pubDate>
+<pubDate>Thu, 11 Feb 2016 09:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2016/02/11/release-0.10.2.html</link>
 <guid isPermaLink="true">/news/2016/02/11/release-0.10.2.html</guid>
 </item>
@@ -2092,7 +2269,7 @@ discussion&lt;/a&gt;
 on the Flink mailing lists.&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 18 Dec 2015 18:00:00 +0800</pubDate>
+<pubDate>Fri, 18 Dec 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/12/18/a-year-in-review.html</link>
 <guid isPermaLink="true">/news/2015/12/18/a-year-in-review.html</guid>
 </item>
@@ -2239,7 +2416,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 &lt;p&gt;&lt;sup id=&quot;fn1&quot;&gt;1. We confess, there are three lines changed compared to a Storm project &lt;img class=&quot;emoji&quot; style=&quot;width:16px;height:16px;align:absmiddle&quot; src=&quot;/img/blog/smirk.png&quot; /&gt;—because the example covers local &lt;em&gt;and&lt;/em&gt; remote execution. &lt;a href=&quot;#ref1&quot; title=&quot;Back to text.&quot;&gt;↩&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 11 Dec 2015 18:00:00 +0800</pubDate>
+<pubDate>Fri, 11 Dec 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/12/11/storm-compatibility.html</link>
 <guid isPermaLink="true">/news/2015/12/11/storm-compatibility.html</guid>
 </item>
@@ -2396,7 +2573,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 
 &lt;p&gt;Support for various types of windows over continuous data streams is a must-have for modern stream processors. Apache Flink is a stream processor with a very strong feature set, including a very flexible mechanism to build and evaluate windows over continuous data streams. Flink provides pre-defined window operators for common uses cases as well as a toolbox that allows to define very custom windowing logic. The Flink community will add more pre-defined window operators as we learn the requirements from our users.&lt;/p&gt;
 </description>
-<pubDate>Fri, 04 Dec 2015 18:00:00 +0800</pubDate>
+<pubDate>Fri, 04 Dec 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/12/04/Introducing-windows.html</link>
 <guid isPermaLink="true">/news/2015/12/04/Introducing-windows.html</guid>
 </item>
@@ -2455,7 +2632,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 &lt;/ul&gt;
 
 </description>
-<pubDate>Fri, 27 Nov 2015 16:00:00 +0800</pubDate>
+<pubDate>Fri, 27 Nov 2015 09:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/11/27/release-0.10.1.html</link>
 <guid isPermaLink="true">/news/2015/11/27/release-0.10.1.html</guid>
 </item>
@@ -2630,7 +2807,7 @@ Also note that some methods in the DataStream API had to be renamed as part of t
 &lt;/ul&gt;
 
 </description>
-<pubDate>Mon, 16 Nov 2015 16:00:00 +0800</pubDate>
+<pubDate>Mon, 16 Nov 2015 09:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/11/16/release-0.10.0.html</link>
 <guid isPermaLink="true">/news/2015/11/16/release-0.10.0.html</guid>
 </item>
@@ -3521,7 +3698,7 @@ Either &lt;code&gt;0 + absolutePointer&lt;/code&gt; or &lt;code&gt;objectRefAddr
 &lt;/div&gt;
 
 </description>
-<pubDate>Wed, 16 Sep 2015 16:00:00 +0800</pubDate>
+<pubDate>Wed, 16 Sep 2015 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/09/16/off-heap-memory.html</link>
 <guid isPermaLink="true">/news/2015/09/16/off-heap-memory.html</guid>
 </item>
@@ -3573,7 +3750,7 @@ fault tolerance, the internal runtime architecture, and others.&lt;/p&gt;
 register for the conference.&lt;/p&gt;
 
 </description>
-<pubDate>Thu, 03 Sep 2015 16:00:00 +0800</pubDate>
+<pubDate>Thu, 03 Sep 2015 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/09/03/flink-forward.html</link>
 <guid isPermaLink="true">/news/2015/09/03/flink-forward.html</guid>
 </item>
@@ -3634,7 +3811,7 @@ for this release:&lt;/p&gt;
   &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2584&quot;&gt;FLINK-2584&lt;/a&gt; ASM dependency is not shaded away&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 01 Sep 2015 16:00:00 +0800</pubDate>
+<pubDate>Tue, 01 Sep 2015 10:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/09/01/release-0.9.1.html</link>
 <guid isPermaLink="true">/news/2015/09/01/release-0.9.1.html</guid>
 </item>
@@ -4091,7 +4268,7 @@ tools, graph database systems and sampling techniques.&lt;/p&gt;
 &lt;h2 id=&quot;links&quot;&gt;Links&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html&quot;&gt;Gelly Documentation&lt;/a&gt;&lt;/p&gt;
 </description>
-<pubDate>Mon, 24 Aug 2015 00:00:00 +0800</pubDate>
+<pubDate>Mon, 24 Aug 2015 00:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/08/24/introducing-flink-gelly.html</link>
 <guid isPermaLink="true">/news/2015/08/24/introducing-flink-gelly.html</guid>
 </item>
@@ -4330,7 +4507,7 @@ tools, graph database systems and sampling techniques.&lt;/p&gt;
 
 &lt;p&gt;Flink will require at least Java 7 in major releases after 0.9.0.&lt;/p&gt;
 </description>
-<pubDate>Wed, 24 Jun 2015 22:00:00 +0800</pubDate>
+<pubDate>Wed, 24 Jun 2015 16:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</link>
 <guid isPermaLink="true">/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</guid>
 </item>
@@ -4369,7 +4546,7 @@ including Apache Flink.&lt;/p&gt;
 
 &lt;p&gt;Stay tuned for a wealth of upcoming events! Two Flink talsk will be presented at &lt;a href=&quot;http://berlinbuzzwords.de/15/sessions&quot;&gt;Berlin Buzzwords&lt;/a&gt;, Flink will be presented at the &lt;a href=&quot;http://2015.hadoopsummit.org/san-jose/&quot;&gt;Hadoop Summit in San Jose&lt;/a&gt;. A &lt;a href=&quot;http://www.meetup.com/Apache-Flink-Meetup/events/220557545/&quot;&gt;training workshop on Apache Flink&lt;/a&gt; is being organized in Berlin. Finally, &lt;a href=&quot;http://2015.flink-forward.org/&quot;&gt;Flink Forward&lt;/a&gt;, the first conference to bring together the whole Flink community is taking place in Berlin in October 2015.&lt;/p&gt;
 </description>
-<pubDate>Thu, 14 May 2015 18:00:00 +0800</pubDate>
+<pubDate>Thu, 14 May 2015 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/05/14/Community-update-April.html</link>
 <guid isPermaLink="true">/news/2015/05/14/Community-update-April.html</guid>
 </item>
@@ -4560,7 +4737,7 @@ The following figure shows how two objects are compared.&lt;/p&gt;
   &lt;li&gt;Flink’s DBMS-style operators operate natively on binary data yielding high performance in-memory and destage gracefully to disk if necessary.&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 11 May 2015 18:00:00 +0800</pubDate>
+<pubDate>Mon, 11 May 2015 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</link>
 <guid isPermaLink="true">/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</guid>
 </item>
@@ -4812,7 +4989,7 @@ Improve usability of command line interface&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 13 Apr 2015 18:00:00 +0800</pubDate>
+<pubDate>Mon, 13 Apr 2015 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/04/13/release-0.9.0-milestone1.html</link>
 <guid isPermaLink="true">/news/2015/04/13/release-0.9.0-milestone1.html</guid>
 </item>
@@ -4879,7 +5056,7 @@ limited in that it does not yet handle large state and iterative
 programs.&lt;/p&gt;
 
 </description>
-<pubDate>Tue, 07 Apr 2015 18:00:00 +0800</pubDate>
+<pubDate>Tue, 07 Apr 2015 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/04/07/march-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/04/07/march-in-flink.html</guid>
 </item>
@@ -5066,7 +5243,7 @@ programs.&lt;/p&gt;
 [4] &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/batch/index.html#semantic-annotations&quot;&gt;Flink 1.0 documentation: Semantic annotations&lt;/a&gt; &lt;br /&gt;
 [5] &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints&quot;&gt;Flink 1.0 documentation: Optimizer join hints&lt;/a&gt; &lt;br /&gt;&lt;/p&gt;
 </description>
-<pubDate>Fri, 13 Mar 2015 18:00:00 +0800</pubDate>
+<pubDate>Fri, 13 Mar 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html</link>
 <guid isPermaLink="true">/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html</guid>
 </item>
@@ -5182,7 +5359,7 @@ Hadoop clusters.  Also, basic support for accessing secured HDFS with
 a standalone Flink setup is now available.&lt;/p&gt;
 
 </description>
-<pubDate>Mon, 02 Mar 2015 18:00:00 +0800</pubDate>
+<pubDate>Mon, 02 Mar 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/03/02/february-2015-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/03/02/february-2015-in-flink.html</guid>
 </item>
@@ -5827,7 +6004,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
 </description>
-<pubDate>Mon, 09 Feb 2015 20:00:00 +0800</pubDate>
+<pubDate>Mon, 09 Feb 2015 13:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/02/09/streaming-example.html</link>
 <guid isPermaLink="true">/news/2015/02/09/streaming-example.html</guid>
 </item>
@@ -5876,7 +6053,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 
 &lt;p&gt;The improved YARN client of Flink now allows users to deploy Flink on YARN for executing a single job. Older versions only supported a long-running YARN session. The code of the YARN client has been refactored to provide an (internal) Java API for controlling YARN clusters more easily.&lt;/p&gt;
 </description>
-<pubDate>Wed, 04 Feb 2015 18:00:00 +0800</pubDate>
+<pubDate>Wed, 04 Feb 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/02/04/january-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/02/04/january-in-flink.html</guid>
 </item>
@@ -5962,7 +6139,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
   &lt;li&gt;Chen Xu&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 21 Jan 2015 18:00:00 +0800</pubDate>
+<pubDate>Wed, 21 Jan 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/01/21/release-0.8.html</link>
 <guid isPermaLink="true">/news/2015/01/21/release-0.8.html</guid>
 </item>
@@ -6024,7 +6201,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
 
 &lt;p&gt;The community is working hard together with the Apache infra team to migrate the Flink infrastructure to a top-level project. At the same time, the Flink community is working on the Flink 0.8.0 release which should be out very soon.&lt;/p&gt;
 </description>
-<pubDate>Tue, 06 Jan 2015 18:00:00 +0800</pubDate>
+<pubDate>Tue, 06 Jan 2015 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2015/01/06/december-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/01/06/december-in-flink.html</guid>
 </item>
@@ -6111,7 +6288,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
 
 &lt;p&gt;If you want to use Flink’s Hadoop compatibility package checkout our &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/hadoop_compatibility.html&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Tue, 18 Nov 2014 18:00:00 +0800</pubDate>
+<pubDate>Tue, 18 Nov 2014 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2014/11/18/hadoop-compatibility.html</link>
 <guid isPermaLink="true">/news/2014/11/18/hadoop-compatibility.html</guid>
 </item>
@@ -6183,7 +6360,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
   &lt;li&gt;Yingjun Wu&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 04 Nov 2014 18:00:00 +0800</pubDate>
+<pubDate>Tue, 04 Nov 2014 11:00:00 +0100</pubDate>
 <link>http://flink.apache.org/news/2014/11/04/release-0.7.0.html</link>
 <guid isPermaLink="true">/news/2014/11/04/release-0.7.0.html</guid>
 </item>
@@ -6282,7 +6459,7 @@ properties, some algorithms)&lt;/p&gt;
 &lt;p&gt;http://www.meetup.com/HandsOnProgrammingEvents/events/210504392/&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 03 Oct 2014 18:00:00 +0800</pubDate>
+<pubDate>Fri, 03 Oct 2014 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2014/10/03/upcoming_events.html</link>
 <guid isPermaLink="true">/news/2014/10/03/upcoming_events.html</guid>
 </item>
@@ -6296,7 +6473,7 @@ of the system. We suggest all users of Flink to work with this newest version.&l
 
 &lt;p&gt;&lt;a href=&quot;/downloads.html&quot;&gt;Download&lt;/a&gt; the release today.&lt;/p&gt;
 </description>
-<pubDate>Fri, 26 Sep 2014 18:00:00 +0800</pubDate>
+<pubDate>Fri, 26 Sep 2014 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2014/09/26/release-0.6.1.html</link>
 <guid isPermaLink="true">/news/2014/09/26/release-0.6.1.html</guid>
 </item>
@@ -6379,7 +6556,7 @@ robust, as well as breaking API changes.&lt;/p&gt;
   &lt;li&gt;Tobias Wiens&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 26 Aug 2014 18:00:00 +0800</pubDate>
+<pubDate>Tue, 26 Aug 2014 12:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2014/08/26/release-0.6.html</link>
 <guid isPermaLink="true">/news/2014/08/26/release-0.6.html</guid>
 </item>
