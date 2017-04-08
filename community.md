@@ -163,14 +163,14 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">mbalassi</td>
   </tr>
-    <tr>
-        <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/858078?v=3&s=50"></td>
-        <td class="text-center">Paris Carbone</td>
-        <td class="text-center">Committer</td>
-        <td class="text-center">senorcarbone</td>
-    </tr>
   <tr>
-    <td class="text-center" width="10%"><img src="https://avatars3.githubusercontent.com/u/1756620?s=50"></a></td>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/858078?v=3&s=50"></td>
+    <td class="text-center">Paris Carbone</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">senorcarbone</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1756620?s=50"></td>
     <td class="text-center">Ufuk Celebi</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">uce</td>
@@ -188,10 +188,16 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">gyfora</td>
   </tr>
   <tr>
-    <td class="text-center"></td>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/332352?s=50"></td>
     <td class="text-center">Alan Gates</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">gates</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/569655?s=50"></td>
+    <td class="text-center">Greg Hogan</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">greg</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/2388347?s=50"></td>
@@ -207,16 +213,22 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
   </tr>
   </tr>
   <tr>
-  <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50"></td>
-  <td class="text-center">Kostas Kloudas</td>
-  <td class="text-center">Committer</td>
-  <td class="text-center">kkloudas</td>
-</tr>
-    <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50"></td>
+    <td class="text-center">Kostas Kloudas</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">kkloudas</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/68551?s=50"></td>
     <td class="text-center">Aljoscha Krettek</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">aljoscha</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4425616?s=50"></td>
+    <td class="text-center">ChengXiang Li</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">chengxiang</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/2550549?s=50"></td>
@@ -273,13 +285,19 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">ssc</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5284370?s=50"></td>
+    <td class="text-center">Tzu-Li (Gordon) Tai</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">tzulitai</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/1925554?s=50"></td>
     <td class="text-center">Kostas Tzoumas</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">ktzoumas</td>
   </tr>
   <tr>
-    <td class="text-center"></td>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/5746567?s=50"></td>
     <td class="text-center">Timo Walther</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">twalthr</td>
@@ -289,24 +307,6 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">Daniel Warneke</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">warneke</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4425616?s=50"></td>
-    <td class="text-center">ChengXiang Li</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">chengxiang</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/569655?s=50"></td>
-    <td class="text-center">Greg Hogan</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">greg</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5284370?s=50"></td>
-    <td class="text-center">Tzu-Li (Gordon) Tai</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">tzulitai</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5378924?s=50"></td>
