@@ -314,6 +314,12 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">Committer</td>
     <td class="text-center">jark</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/955396?s=50"></td>
+    <td class="text-center">Kurt Young</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">kurt</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
