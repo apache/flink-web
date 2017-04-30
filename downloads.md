@@ -24,7 +24,7 @@ You
 [don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
 to use Flink, but if you plan to use Flink with data stored in Hadoop, pick the
 version matching your installed Hadoop version. If you don't want to do this,
-pick the Hadoop 1 version.
+pick the Hadoop 2 version.
 
 ### Binaries
 
