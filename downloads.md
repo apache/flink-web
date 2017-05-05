@@ -20,11 +20,10 @@ $( document ).ready(function() {
 
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
-You
-[don't have to install Hadoop](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
-to use Flink, but if you plan to use Flink with data stored in Hadoop, pick the
-version matching your installed Hadoop version. If you don't want to do this,
-pick the Hadoop 2 version.
+An Apache Hadoop installation is
+[not required](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
+to use Flink. If you plan to run Flink in YARN or process data stored in HDFS then
+select the version matching your installed Hadoop version.
 
 ### Binaries
 
@@ -36,29 +35,27 @@ pick the Hadoop 2 version.
 </thead>
 <tbody>
     <tr>
-    <th>Hadoop® 2.3.0</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
+    <th>Hadoop® 2.7</th>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a></td>
     </tr>
 
     <tr>
-    <th>Hadoop® 2.4.1</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a></td>
-    </tr>
-
-    <tr>
-    <th>Hadoop® 2.6.0</th>
+    <th>Hadoop® 2.6</th>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a></td>
     <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a></td>
     </tr>
 
     <tr>
-    <th>Hadoop® 2.7.0</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a></td>
+    <th>Hadoop® 2.4</th>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a></td>
     </tr>
 
+    <tr>
+    <th>Hadoop® 2.3</th>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
     </tr>
 </tbody>
 </table>
