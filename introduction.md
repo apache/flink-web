@@ -14,7 +14,7 @@ Before we go into detail about Flink, let’s review at a higher level the _type
 + Unbounded: Infinite datasets that are appended to continuously
 + Bounded: Finite, unchanging datasets
 
-Many real-word data sets that are traditionally thought of as bounded or “batch” data are in reality unbounded datasets. This is true whether the data is stored in a sequence of directories on HDFS or in a log-based system like Apache Kafka.
+Many real-world data sets that are traditionally thought of as bounded or “batch” data are in reality unbounded datasets. This is true whether the data is stored in a sequence of directories on HDFS or in a log-based system like Apache Kafka.
 
 Examples of unbounded datasets include but are not limited to:
 
