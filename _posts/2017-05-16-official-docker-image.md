@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Introducing official Docker images for Apache Flink"
+title:  "Introducing Official Docker Images for Apache Flink"
 date:   2017-05-16 09:00:00
 author: "Patrick Lucas (Data Artisans) and Ismaël Mejía (Talend)"
 author-twitter: "iemejia"
