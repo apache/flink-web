@@ -1,17 +1,17 @@
 ---
 layout: post
-title:  "Introducing Official Docker Images for Apache Flink"
+title:  "Introducing Docker Images for Apache Flink"
 date:   2017-05-16 09:00:00
 author: "Patrick Lucas (Data Artisans) and Ismaël Mejía (Talend)"
 author-twitter: "iemejia"
 categories: news
 ---
 
-For some time, the Apache Flink community has provided scripts to build a Docker image to run Flink. Now, starting with version 1.2.1, Flink will have an [official Docker image](https://hub.docker.com/r/_/flink/). This image is maintained by the Flink community and curated by the [Docker](https://github.com/docker-library/official-images) team to ensure it meets the quality standards for container images of the Docker community.
+For some time, the Apache Flink community has provided scripts to build a Docker image to run Flink. Now, starting with version 1.2.1, Flink will have a [Docker image](https://hub.docker.com/r/_/flink/) on the Docker Hub. This image is maintained by the Flink community and curated by the [Docker](https://github.com/docker-library/official-images) team to ensure it meets the quality standards for container images of the Docker community.
 
 A community-maintained way to run Apache Flink on Docker and other container runtimes and orchestrators is part of the ongoing effort by the Flink community to make Flink a first-class citizen of the container world.
 
-If you want to use the official Docker image today you can get the latest version by running:
+If you want to use the Docker image today you can get the latest version by running:
 
 	docker pull flink
 
@@ -24,3 +24,5 @@ With this image there are various ways to start a Flink cluster, both locally an
 While this announcement is an important milestone, it’s just the first step to help users run containerized Flink in production. There are [improvements](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20Docker%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20due%20ASC%2C%20priority%20DESC%2C%20created%20ASC) to be made in Flink itself and we will continue to improve these Docker images and for the documentation and examples surrounding them.
 
 This is of course a team effort, so any contribution is welcome. The [docker-flink](https://github.com/docker-flink) GitHub organization hosts the source files to [generate the images](https://github.com/docker-flink/docker-flink) and the [documentation](https://github.com/docker-flink/docs/tree/master/flink) that is presented alongside the images on Docker Hub.
+
+*Disclaimer: The docker images are provided as a community project by individuals on a best-effort basis. They are not official releases by the Apache Flink PMC.*
