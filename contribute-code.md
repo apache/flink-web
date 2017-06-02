@@ -137,22 +137,63 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 
 ## Code style
 
-- **Apache license headers**. Make sure you have Apache License headers in your files. The RAT plugin is checking for that when you build the code.
-- **Tabs vs. spaces**. We are using tabs for indentation, not spaces. We are not religious there, it just happened to be that we started with tabs, and it is important to not mix them (merge/diff conflicts).
-- **Blocks**. All statements after `if`, `for`, `while`, `do`, ... must always be encapsulated in a block with curly braces (even if the block contains one statement):
-  
-  ```java
+### License
+- **Apache license headers.** Make sure you have Apache License headers in your files. The RAT plugin is checking for that when you build the code.
+
+### Imports
+- **Empty line before and after package declaration.**
+- **No unused imports.**
+- **No redundant imports.**
+- **No wildcard imports.** They can cause problems when adding to the code and in some cases even during refactoring.
+- **Import order.** Imports must be ordered alphabetically, grouped into the following blocks, with each block separated by an empty line:
+	- &lt;imports from org.apache.flink.*&gt;
+	- &lt;imports from other libraries&gt;
+	- &lt;imports from javax.*&gt;
+	- &lt;imports from java.*&gt;
+	- &lt;imports from scala.*&gt;
+	- &lt;static imports&gt;
+
+### Naming
+- **Package names must start with a letter, and must not contain upper-case letters or special characters.**
+- **Non-private static final fields must be upper-case, with words being separated by underscores.** (`MY_STATIC_VARIABLE`)
+- **Non-static fields/methods must be in lower camcel case.** (`myNonStaticField`)
+
+### Whitespace
+- **Tabs vs. spaces.** We are using tabs for indentation, not spaces. We are not religious there, it just happened to be that we started with tabs, and it is important to not mix them (merge/diff conflicts).
+- **No trailing whitespace.**
+- **Spaces around operators/keywords.** Operators (+, =, >, ...) and keywords (if, for, catch, ...) must have a space before and after them, provided they are not at the start or end of the line.
+
+### Braces
+- **Left curly braces (`{`) must not be placed on a new line.**
+- **Right curly braces (`}`) must always be placed at the beginning of the line.**
+- **Blocks.** All statements after `if`, `for`, `while`, `do`, ... must always be encapsulated in a block with curly braces (even if the block contains one statement):
+  If you are wondering why, recall the famous [*goto bug*](https://www.imperialviolet.org/2014/02/22/applebug.html) in Apple's SSL library.
+
+```java
 for (...) {
  ...
 }
 ```
-  If you are wondering why, recall the famous [*goto bug*](https://www.imperialviolet.org/2014/02/22/applebug.html) in Apple's SSL library.
-- **No wildcard imports**. Do not use wildcard imports in the core files. They can cause problems when adding to the code and in some cases even during refactoring. Exceptions are the Tuple classes, Tuple-related utilities, and Flink user programs, when importing operators/functions. Tests are a special case of the user programs.
-- **No unused imports**. Remove all unused imports.
-- **Use Guava Checks**. To increase homogeneity, consistently use Guava methods checkNotNull and checkArgument rather than Apache Commons Validate.
-- **No raw generic types**. Do not use raw generic types, unless strictly necessary (sometime necessary for signature matches, arrays).
-- **Supress warnings**. Add annotations to suppress warnings, if they cannot be avoided (such as "unchecked", or "serial").
-- **Comments**. Add comments to your code. What is it doing? Add JavaDocs or inherit them by not adding any comments to the methods. Do not automatically generate comments and avoid unnecessary comments like:
+
+### Javadocs
+- **All public/protected methods and classes must have a Javadoc.**
+- **The first sentence of the javadoc must end with a period.**
+- **Paragraphs must be separated with a new line, and started with &lt;p&gt;.**
+
+### Modifiers
+- **No redundant modifiers.** For example, public modifiers in interface methods.
+- **Follow JLS3 modifier order.** Modifiers must be ordered in the following order: public, protected, private, abstract, static, final, transient, volatile, synchronized, native, strictfp.
+
+### Files
+- **All files must end with `\n`.**
+- **File length must not exceed 3000 lines.**
+
+### Misc
+- **Arrays must be defined Java-style.** I.e `public String[] array`.
+- **Use Flink Preconditions.** To increase homogeneity, consistently use org.apache.flink.Preconditons methods checkNotNull and checkArgument rather than Apache Commons Validate or Google Guava.
+- **No raw generic types.** Do not use raw generic types, unless strictly necessary (sometime necessary for signature matches, arrays).
+- **Supress warnings.** Add annotations to suppress warnings, if they cannot be avoided (such as "unchecked", or "serial").
+- **Comments.** Add comments to your code. What is it doing? Add JavaDocs or inherit them by not adding any comments to the methods. Do not automatically generate comments and avoid unnecessary comments like:
 
   ```java
 i++; // increment by one
