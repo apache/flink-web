@@ -32,7 +32,7 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" /><br />
-      Bouygues Telecom is running 30 production applications powered by Flink and is processing 10 billion raw events per day. <br><br><a href="http://flink-forward.org/kb_sessions/a-brief-history-of-time-with-apache-flink-real-time-monitoring-and-analysis-with-flink-kafka-hb/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Bouygues Telcom at Flink Forward 2016</a>
+      Bouygues Telecom is running 30 production applications powered by Flink and is processing 10 billion raw events per day. <br><br><a href="http://2016.flink-forward.org/kb_sessions/a-brief-history-of-time-with-apache-flink-real-time-monitoring-and-analysis-with-flink-kafka-hb/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Bouygues Telcom at Flink Forward 2016</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" /><br />
@@ -65,11 +65,11 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="King" />
          <br />
-         Otto Group, the world's second-largest online retailer, uses Flink for business intelligence stream processing. <br><br><a href="http://flink-forward.org/kb_sessions/flinkspector-taming-the-squirrel/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Otto at Flink Forward 2016</a>
+         Otto Group, the world's second-largest online retailer, uses Flink for business intelligence stream processing. <br><br><a href="http://2016.flink-forward.org/kb_sessions/flinkspector-taming-the-squirrel/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Otto at Flink Forward 2016</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" /><br />
-         ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
+         ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
   </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /><br />
