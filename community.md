@@ -315,6 +315,12 @@ The second edition of Flink Forward took place on September 12-14, 2016. All [sl
     <td class="text-center">jark</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/6242259?s=50"></td>
+    <td class="text-center">Dawid Wysakowicz</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">dwysakowicz</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/955396?s=50"></td>
     <td class="text-center">Kurt Young</td>
     <td class="text-center">Committer</td>
