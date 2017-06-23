@@ -16,11 +16,19 @@ On September 12-14, 2016 the second edition of Flink Forward took place. All [sl
 
 In 2017, Flink Forward came to San Francisco to welcome the Apache Flink community to one day of training and one day of conference. Find all videos on our [YouTube Channel](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) and all slides on [Slideshare](https://www.slideshare.net/FlinkForward)
 
+The thrid edition of [Flink Forward Berlin] (http://berlin.flink-forward.org/takes)takes place on September 11-13, 2017.
+
 ## Slides
 
 **Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference.
 
 ### 2017
+- Tzu-Li (Gordon) Tai: **Stateful Stream Processing with Apache Flink** *Apache Flink Meetup Berlin, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/tzuli-gordon-stateful-stream-processing-with-apache-flink)
+- Stephan Ewen: **Experiences running Flink at Very Large Scale** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/stephan-ewen-experiences-running-flink-at-very-large-scale)
+- Kostas Kloudas: **Complex Event Processing with Flink: the state of FlinkCEP** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/kostas-kloudas-complex-event-processing-with-flink-the-state-of-flinkcep)
+- Fabian Hueske: **Stream Analytics with SQL on Apache Flink** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/fabian-hueske-stream-analytics-with-sql-on-apache-flink-76998033)
+- Aljoscha Krettek & Kenneth Knowles: **Portable stateful big data processing in Apache Beam** *Strata London 2017, Miami, May 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/aljoscha-krettek-portable-stateful-big-data-processing-in-apache-beam)
+- Aljoscha Krettek: **Apache Flink® and IoT: How Stateful Event-Time Processing Enables Accurate Analytics** *Apache Con North America, Miami, May 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/aljoscha-krettek-apache-flink-and-iot-how-stateful-eventtime-processing-enables-accurate-analytics)
 - Timo Walther: **Table & SQL API – unified APIs for batch and stream processing** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-timo-walther-table-sql-api-unified-apis-for-batch-and-stream-processing)
 - Kostas Kloudas: **Extending Flink’s Streaming APIs** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-konstantinos-kloudas-extending-flinks-streaming-apis)
 - Tzu-Li (Gordon) Tai: **Joining the Scurry of Squirrels: Contributing to Apache Flink** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-tzuli-gordon-tai-joining-the-scurry-of-squirrels-contributing-to-apache-flink)
