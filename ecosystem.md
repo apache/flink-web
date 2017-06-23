@@ -78,6 +78,10 @@ See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/
 
 [Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) a streaming ML library featuring Flink an execution engine soon. Albert Bifet introduced SAMOA on Flink at his [Flink Forward talk](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink).
 
+**Alluxio**
+
+[Alluxio](http://www.alluxio.org/) is an open-source memory-speed virtual distributed storage that enables applications to efficiently share data and access data across different storage systems in a [unified namespace](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html). Here is an example of [using Flink to access data through Alluxio](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html).
+
 **Python Examples on Flink**
 
 A [collection of examples](https://github.com/wdm0006/flink-python-examples) using Apache Flink's Python API.
