@@ -322,7 +322,7 @@ certain song.
 Graph<String, NullValue, Integer> userSongGraph = Graph.fromTupleDataSet(validTriplets, env);
 ```
 
-Consult the [Gelly guide](https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html) for guidelines 
+Consult the [Gelly guide](https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/) for guidelines 
 on how to create a graph from a given DataSet of edges or from a collection.
 
 To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
@@ -452,4 +452,4 @@ Curious? Read more about our plans for Gelly in the [roadmap](https://cwiki.apac
 [Back to top](#top)
 
 ## Links
-[Gelly Documentation](https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html)
+[Gelly Documentation](https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/)
