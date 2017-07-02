@@ -148,7 +148,9 @@ The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 Flink Forward 2015 (October 12-13, 2015) was the first conference to bring together the Apache Flink developer and user community. You can find [slides and videos](http://2015.flink-forward.org/?post_type=session) of all talks on the Flink Forward 2015 page.
 
-The second edition of Flink Forward took place on September 12-14, 2016. All [slides and videos](http://flink-forward.org/program/sessions/) are available on the Flink Forward 2016 page.
+The second edition of Flink Forward took place on September 12-14, 2016. All [slides and videos](http://2016.flink-forward.org/program/sessions/) are available on the Flink Forward 2016 page.
+
+In 2017, Flink Forward came to San Francisco to welcome the Apache Flink community to one day of training and one day of conference. Find all videos on our [YouTube Channel](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) and all slides on [Slideshare](https://www.slideshare.net/FlinkForward).
 
 # People
 
@@ -398,6 +400,27 @@ The following people were very kind to mentor the project while in incubation.
 
 **Note**: Keep in mind that code examples on slides have a chance of being incomplete or outdated. Always refer to the [latest documentation]({{ site.docs-snapshot }}) for an up to date reference.
 
+### 2017
+
+- Tzu-Li (Gordon) Tai: **Stateful Stream Processing with Apache Flink** *Apache Flink Meetup Berlin, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/tzuli-gordon-stateful-stream-processing-with-apache-flink)
+- Stephan Ewen: **Experiences running Flink at Very Large Scale** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/stephan-ewen-experiences-running-flink-at-very-large-scale)
+- Kostas Kloudas: **Complex Event Processing with Flink: the state of FlinkCEP** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/kostas-kloudas-complex-event-processing-with-flink-the-state-of-flinkcep)
+- Fabian Hueske: **Stream Analytics with SQL on Apache Flink** *Berlin Buzzwords, June 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/fabian-hueske-stream-analytics-with-sql-on-apache-flink-76998033)
+- Aljoscha Krettek & Kenneth Knowles: **Portable stateful big data processing in Apache Beam** *Strata London 2017, Miami, May 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/aljoscha-krettek-portable-stateful-big-data-processing-in-apache-beam)
+- Aljoscha Krettek: **Apache Flink® and IoT: How Stateful Event-Time Processing Enables Accurate Analytics** *Apache Con North America, Miami, May 2017*: [SlideShare](https://de.slideshare.net/dataArtisans/aljoscha-krettek-apache-flink-and-iot-how-stateful-eventtime-processing-enables-accurate-analytics)
+- Timo Walther: **Table & SQL API – unified APIs for batch and stream processing** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-timo-walther-table-sql-api-unified-apis-for-batch-and-stream-processing)
+- Kostas Kloudas: **Extending Flink’s Streaming APIs** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-konstantinos-kloudas-extending-flinks-streaming-apis)
+- Tzu-Li (Gordon) Tai: **Joining the Scurry of Squirrels: Contributing to Apache Flink** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-tzuli-gordon-tai-joining-the-scurry-of-squirrels-contributing-to-apache-flink)
+- Stefan Richter: **Improvements for large state and recovery in Flink** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-stefan-richter-improvements-for-large-state-and-recovery-in-flink)
+- Ufuk Celebi: **The Stream Processor as a Database: Building Online Applications directly on Streams** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-ufuk-celebi-the-stream-processor-as-a-database-building-online-applications-directly-on-streams)
+- Jamie Grier: **Apache Flink - The Latest and Greatest ** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-jamie-grier-apache-flinkthe-latest-and-greatest)
+- Stephan Ewen: **Experiences running Flink at Very Large Scale** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-stephan-ewen-experiences-running-flink-at-very-large-scale)
+- Stephan Ewen: **Convergence of real-time analytics and data-driven applications** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-stephan-ewen-convergence-of-realtime-analytics-and-datadriven-applications)
+- Till Rohrmann: **Redesigning Apache Flink’s Distributed Architecture Back to Sessions overview** *Flink Forward San Francisco, April 2017*: [SlideShare](https://www.slideshare.net/FlinkForward/flink-forward-sf-2017-till-rohrmann-redesigning-apache-flinks-distributed-architecture-back-to-sessions-overview)
+- Timo Walther: **Table & SQL API - unified APIs for batch and stream processing** *Apache Flink Meetup Amsterdam, March 2017*: [SlideShare](https://www.slideshare.net/dataArtisans/timo-walther-table-sql-api-unified-apis-for-batch-and-stream-processing)
+- Kostas Kloudas: **Extending Flink's Streaming APIs** *Apache Flink Meetup Berlin, February 2017*: [SlideShare](https://www.slideshare.net/dataArtisans/kostas-kloudas-extending-flinks-streaming-apis)
+- Fabian Hueske: **Stream Analytics with SQL on Apache Flink** *Big Data Tech Summit, Warsaw February 2017*: [SlideShare](http://www.slideshare.net/dataArtisans/fabian-hueske-stream-analytics-with-sql-on-apache-flink)
+
 ### 2016
 
 - Stefan Richter: **A look at Apache Flink 1.2 and beyond** *Apache Flink Meetup Berlin, November 2016*: [SlideShare](http://www.slideshare.net/StefanRichter10/a-look-at-flink-12)
@@ -406,6 +429,7 @@ The following people were very kind to mentor the project while in incubation.
 - Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Apache Big Data Europe 2016, Seville November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/keynote-stephan-ewen-stream-processing-as-a-foundational-paradigm-and-apache-flinks-approach-to-it)
 - Kostas Tzoumas: **Stream Processing with Apache Flink®** *Apache Flink London Meetup, November 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/kostas-tzoumas-stream-processing-with-apache-flink)
 - Kostas Tzoumas: **Apache Flink®: State of the Union and What's Next** *Strata + Hadoop World New York, September 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/kostas-tzoumas-apache-flink-state-of-the-union-and-whats-next)
+- Stephan Ewen: **Stream Processing as a Foundational Paradigm and Apache Flink's Approach to It** *Big Data, Berlin v 10.0, December 2016*: [SlideShare](http://www.slideshare.net/dataArtisans/stephan-ewen-stream-processing-as-a-foundational-paradigm-and-apache-flinks-approach-to-it)
 - Kostas Tzoumas & Stephan Ewen: **Keynote -The maturing data streaming ecosystem and Apache Flink’s accelerated growth** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/kostas-tzoumasstpehan-ewen-keynote-the-maturing-data-streaming-ecosystem-and-apache-flinks-accelerated-growth)
 - Robert Metzger: **Connecting Apache Flink to the World - Reviewing the streaming connectors** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/robert-metzger-connecting-apache-flink-to-the-world-reviewing-the-streaming-connectors)
 - Till Rohrmann & Fabian Hueske: **Declarative stream processing with StreamSQL and CEP** *Flink Forward, Berlin September 2016*: [SlideShare](http://www.slideshare.net/FlinkForward/fabian-huesketill-rohrmann-declarative-stream-processing-with-streamsql-and-cep)
