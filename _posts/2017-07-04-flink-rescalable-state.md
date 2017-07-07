@@ -65,9 +65,9 @@ In the following section, we’ll explain how we solved the problem of efficient
 
 ## Reassigning Operator State When Rescaling
 
-First, we’ll discuss how state reassignment in rescaling works for operator state. A common real-world use-case of operator state in Flink is to maintain the current offsets for Kafka partitions in Kafka sources. Each Kafka source instance would maintain `<PartitionID, Offset>` pairs–one pair for each Kafka partition that the source is reading–as operator state. How would we redistribute this operator state in case of rescaling? Ideally, we would like to reassign all `<PartitionID, Offset>` pairs from the checkpoint in round robin across all parallel operator instances after the rescaling.
+First, we’ll discuss how state reassignment in rescaling works for operator state. A common real-world use-case of operator state in Flink is to maintain the current offsets for Kafka partitions in Kafka sources. Each Kafka source instance would maintain `<PartitionID, Offset>` pairs – one pair for each Kafka partition that the source is reading–as operator state. How would we redistribute this operator state in case of rescaling? Ideally, we would like to reassign all `<PartitionID, Offset>` pairs from the checkpoint in round robin across all parallel operator instances after the rescaling.
 
-As a user, we are aware of the “meaning” of Kafka partition offsets, and we know that we can treat them as independent, redistributable units of state. The problem remains how we can we share this domain-specific knowledge with Flink.
+As a user, we are aware of the “meaning” of Kafka partition offsets, and we know that we can treat them as independent, redistributable units of state. The problem of how we can we share this domain-specific knowledge with Flink remains.
 
 **Figure 2A** illustrates the previous interface for checkpointing operator state in Flink. On snapshot, each operator instance returned an object that represented its complete state. In the case of a Kafka source, this object was a list of partition offsets.
 
@@ -128,7 +128,7 @@ The second flavour of state in Flink is keyed state. In contrast to operator sta
 
 To illustrate how keyed state differs from operator state, let’s use the following example. Assume we have a stream of events, where each event has the schema `{customer_id:int, value:int}`. We have already learned that we can use operator state to compute and emit the running sum of values for all customers.
 
-Now assume we want to slightly modify our goal and compute a running sum of values for each individual customer_id. This is a use case from keyed state, as one aggregated state must be maintained for each unique key in the stream.
+Now assume we want to slightly modify our goal and compute a running sum of values for each individual `customer_id`. This is a use case from keyed state, as one aggregated state must be maintained for each unique key in the stream.
 
 Note that keyed state is only available for keyed streams, which are created through the `keyBy()` operation in Flink. The `keyBy()` operation (i) specifies how to extract a key from each event and (ii) ensures that all events with the same key are always processed by the same parallel operator instance. As a result, all keyed state is transitively also bound to one parallel operator instance, because for each key, exactly one operator instance is responsible. This mapping from key to operator is deterministically computed through hash partitioning on the key.
 
@@ -138,7 +138,7 @@ While this automatically solves the problem of logically remapping the state to 
 
 When we’re not rescaling, each subtask can simply read the whole state as written to the checkpoint by a previous instance in one sequential read.
 
-When rescaling, however, this is no longer possible–the state for each subtask is now potentially scattered across the files written by all subtasks (think about what happens if you change the parallelism in `hash(key) mod parallelism`). We have illustrated this problem in **Figure 3A**. In this example, we show how keys are shuffled when rescaling from parallelism 3 to 4 for a key space of 0, 20, using identity as hash function to keep it easy to follow.
+When rescaling, however, this is no longer possible – the state for each subtask is now potentially scattered across the files written by all subtasks (think about what happens if you change the parallelism in `hash(key) mod parallelism`). We have illustrated this problem in **Figure 3A**. In this example, we show how keys are shuffled when rescaling from parallelism 3 to 4 for a key space of 0, 20, using identity as hash function to keep it easy to follow.
 
 A naive approach might be to read all the previous subtask state from the checkpoint in all sub-tasks and filter out the matching keys for each sub-task. While this approach can benefit from a sequential read pattern, each subtask potentially reads a large fraction of irrelevant state data, and the distributed file system receives a huge number of parallel read requests.
 
