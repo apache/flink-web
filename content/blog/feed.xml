@@ -7,6 +7,185 @@
 <atom:link href="http://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>A Deep Dive into Rescalable State in Apache Flink</title>
+<description>&lt;p&gt;&lt;em&gt;Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink.&lt;/em&gt;
+ &lt;br /&gt;
+ &lt;br /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#an-intro-to-stateful-stream-processing&quot; id=&quot;markdown-toc-an-intro-to-stateful-stream-processing&quot;&gt;An Intro to Stateful Stream Processing&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#state-in-apache-flink&quot; id=&quot;markdown-toc-state-in-apache-flink&quot;&gt;State in Apache Flink&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#rescaling-stateful-stream-processing-jobs&quot; id=&quot;markdown-toc-rescaling-stateful-stream-processing-jobs&quot;&gt;Rescaling Stateful Stream Processing Jobs&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#reassigning-operator-state-when-rescaling&quot; id=&quot;markdown-toc-reassigning-operator-state-when-rescaling&quot;&gt;Reassigning Operator State When Rescaling&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#reassigning-keyed-state-when-rescaling&quot; id=&quot;markdown-toc-reassigning-keyed-state-when-rescaling&quot;&gt;Reassigning Keyed State When Rescaling&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wrapping-up&quot; id=&quot;markdown-toc-wrapping-up&quot;&gt;Wrapping Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;an-intro-to-stateful-stream-processing&quot;&gt;An Intro to Stateful Stream Processing&lt;/h2&gt;
+
+&lt;p&gt;At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.&lt;/p&gt;
+
+&lt;p&gt;In contrast, operators in &lt;em&gt;stateless&lt;/em&gt; stream processing only consider their current inputs, without further context and knowledge about the past. A simple example to illustrate this difference: let us consider a source stream that emits events with schema &lt;code&gt;e = {event_id:int, event_value:int}&lt;/code&gt;. Our goal is, for each event, to extract and output the &lt;code&gt;event_value&lt;/code&gt;. We can easily achieve this with a simple source-map-sink pipeline, where the map function extracts the &lt;code&gt;event_value&lt;/code&gt; from the event and emits it downstream to an outputting sink. This is an instance of stateless stream processing.&lt;/p&gt;
+
+&lt;p&gt;But what if we want to modify our job to output the &lt;code&gt;event_value&lt;/code&gt; only if it is larger than the value from the previous event? In this case, our map function obviously needs some way to remember the &lt;code&gt;event_value&lt;/code&gt; from a past event — and so this is an instance of stateful stream processing.&lt;/p&gt;
+
+&lt;p&gt;This example should demonstrate that state is a fundamental, enabling concept in stream processing that is required for a majority of interesting use cases.&lt;/p&gt;
+
+&lt;h2 id=&quot;state-in-apache-flink&quot;&gt;State in Apache Flink&lt;/h2&gt;
+
+&lt;p&gt;Apache Flink is a massively parallel distributed system that allows stateful stream processing at large scale. For scalability, a Flink job is logically decomposed into a graph of operators, and the execution of each operator is physically decomposed into multiple parallel operator instances. Conceptually, each parallel operator instance in Flink is an independent task that can be scheduled on its own machine in a network-connected cluster of shared-nothing machines.&lt;/p&gt;
+
+&lt;p&gt;For high throughput and low latency in this setting, network communications among tasks must be minimized. In Flink, network communication for stream processing only happens along the logical edges in the job’s operator graph (vertically), so that the stream data can be transferred from upstream to downstream operators.&lt;/p&gt;
+
+&lt;p&gt;However, there is no communication between the parallel instances of an operator (horizontally). To avoid such network communication, data locality is a key principle in Flink and strongly affects how state is stored and accessed.&lt;/p&gt;
+
+&lt;p&gt;For the sake of data locality, all state data in Flink is always bound to the task that runs the corresponding parallel operator instance and is co-located on the same machine that runs the task.&lt;/p&gt;
+
+&lt;p&gt;Through this design, all state data for a task is local, and no network communication between tasks is required for state access. Avoiding this kind of traffic is crucial for the scalability of a massively parallel distributed system like Flink.&lt;/p&gt;
+
+&lt;p&gt;For Flink’s stateful stream processing, we differentiate between two different types of state: operator state and keyed state. Operator state is scoped per parallel instance of an operator (sub-task), and keyed state can be thought of as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/state.html#keyed-state&quot;&gt;“operator state that has been partitioned, or sharded, with exactly one state-partition per key”&lt;/a&gt;. We could have easily implemented our previous example as operator state: all events that are routed through the operator instance can influence its value.&lt;/p&gt;
+
+&lt;h2 id=&quot;rescaling-stateful-stream-processing-jobs&quot;&gt;Rescaling Stateful Stream Processing Jobs&lt;/h2&gt;
+
+&lt;p&gt;Changing the parallelism (that is, changing the number of parallel subtasks that perform work for an operator) in stateless streaming is very easy. It requires only starting or stopping parallel instances of stateless operators and dis-/connecting them to/from their upstream and downstream operators as shown in &lt;strong&gt;Figure 1A&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, changing the parallelism of stateful operators is much more involved because we must also (i) redistribute the previous operator state in a (ii) consistent, (iii) meaningful way. Remember that in Flink’s shared-nothing architecture, all state is local to the task that runs the owning parallel operator instance, and there is no communication between parallel operator instances at job runtime.&lt;/p&gt;
+
+&lt;p&gt;However, there is already one mechanism in Flink that allows the exchange of operator state between tasks, in a consistent way, with exactly-once guarantees — Flink’s checkpointing!&lt;/p&gt;
+
+&lt;p&gt;You can see detail about Flink’s checkpoints in &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/internals/stream_checkpointing.html&quot;&gt;the documentation&lt;/a&gt;. In a nutshell, a checkpoint is triggered when a checkpoint coordinator injects a special event (a so-called checkpoint barrier) into a stream.&lt;/p&gt;
+
+&lt;p&gt;Checkpoint barriers flow downstream with the event stream from sources to sinks, and whenever an operator instance receives a barrier, the operator instance immediately snapshots its current state to a distributed storage system, e.g. HDFS.&lt;/p&gt;
+
+&lt;p&gt;On restore, the new tasks for the job (which potentially run on different machines now) can again pick up the state data from the distributed storage system.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;center&gt;&lt;i&gt;Figure 1&lt;/i&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/stateless-stateful-streaming.svg&quot; style=&quot;width:70%;margin:10px&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;We can piggyback rescaling of stateful jobs on checkpointing, as shown in &lt;strong&gt;Figure 1B&lt;/strong&gt;. First, a checkpoint is triggered and sent to a distributed storage system. Next, the job is restarted with a changed parallelism and can access a consistent snapshot of all previous state from the distributed storage. While this solves (i) redistribution of a (ii) consistent state across machines there is still one problem: without a clear 1:1 relationship between previous state and new parallel operator instances, how can we assign the state in a (iii) meaningful way?&lt;/p&gt;
+
+&lt;p&gt;We could again assign the state from previous &lt;code&gt;map_1&lt;/code&gt; and &lt;code&gt;map_2&lt;/code&gt; to the new &lt;code&gt;map_1&lt;/code&gt; and &lt;code&gt;map_2&lt;/code&gt;. But this would leave &lt;code&gt;map_3&lt;/code&gt; with empty state. Depending on the type of state and concrete semantics of the job, this naive approach could lead to anything from inefficiency to incorrect results.&lt;/p&gt;
+
+&lt;p&gt;In the following section, we’ll explain how we solved the problem of efficient, meaningful state reassignment in Flink. Each of Flink state’s two flavours, operator state and keyed state, requires a different approach to state assignment.&lt;/p&gt;
+
+&lt;h2 id=&quot;reassigning-operator-state-when-rescaling&quot;&gt;Reassigning Operator State When Rescaling&lt;/h2&gt;
+
+&lt;p&gt;First, we’ll discuss how state reassignment in rescaling works for operator state. A common real-world use-case of operator state in Flink is to maintain the current offsets for Kafka partitions in Kafka sources. Each Kafka source instance would maintain &lt;code&gt;&amp;lt;PartitionID, Offset&amp;gt;&lt;/code&gt; pairs – one pair for each Kafka partition that the source is reading–as operator state. How would we redistribute this operator state in case of rescaling? Ideally, we would like to reassign all &lt;code&gt;&amp;lt;PartitionID, Offset&amp;gt;&lt;/code&gt; pairs from the checkpoint in round robin across all parallel operator instances after the rescaling.&lt;/p&gt;
+
+&lt;p&gt;As a user, we are aware of the “meaning” of Kafka partition offsets, and we know that we can treat them as independent, redistributable units of state. The problem of how we can we share this domain-specific knowledge with Flink remains.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Figure 2A&lt;/strong&gt; illustrates the previous interface for checkpointing operator state in Flink. On snapshot, each operator instance returned an object that represented its complete state. In the case of a Kafka source, this object was a list of partition offsets.&lt;/p&gt;
+
+&lt;p&gt;This snapshot object was then written to the distributed store. On restore, the object was read from distributed storage and passed to the operator instance as a parameter to the restore function.&lt;/p&gt;
+
+&lt;p&gt;This approach was problematic for rescaling: how could Flink decompose the operator state into meaningful, redistributable partitions? Even though the Kafka source was actually always a list of partition offsets, the previously-returned state object was a black box to Flink and therefore could not be redistributed.&lt;/p&gt;
+
+&lt;p&gt;As a generalized approach to solve this black box problem, we slightly modified the checkpointing interface, called &lt;code&gt;ListCheckpointed&lt;/code&gt;. &lt;strong&gt;Figure 2B&lt;/strong&gt; shows the new checkpointing interface, which returns and receives a list of state partitions. Introducing a list instead of a single object makes the meaningful partitioning of state explicit: each item in the list still remains a black box to Flink, but is considered an atomic, independently re-distributable part of the operator state.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;center&gt;&lt;i&gt;Figure 2&lt;/i&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/list-checkpointed.svg&quot; style=&quot;width:70%;margin:10px&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Our approach provides a simple API with which implementing operators can encode domain-specific knowledge about how to partition and merge units of state. With our new checkpointing interface, the Kafka source makes individual partition offsets explicit, and state reassignment becomes as easy as splitting and merging lists.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FlinkKafkaConsumer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RichParallelSourceFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CheckpointedFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+	 &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+
+   &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ListState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KafkaTopicPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offsetsOperatorState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+   &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+   &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;initializeState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FunctionInitializationContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+      &lt;span class=&quot;n&quot;&gt;OperatorStateStore&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateStore&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getOperatorStateStore&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;// register the state with the backend&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;offsetsOperatorState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateStore&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getSerializableListState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;kafka-offsets&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+      &lt;span class=&quot;c1&quot;&gt;// if the job was restarted, we set the restored offsets&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;isRestored&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KafkaTopicPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offsetsOperatorState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// ... restore logic&lt;/span&gt;
+         &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+   &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+   &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;snapshotState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FunctionSnapshotContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+      &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;offsetsOperatorState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;clear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+      &lt;span class=&quot;c1&quot;&gt;// write the partition offsets to the list of operator states&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;Entry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KafkaTopicPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;partition&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;subscribedPartitionOffsets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;entrySet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;offsetsOperatorState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;partition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()));&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+   &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;reassigning-keyed-state-when-rescaling&quot;&gt;Reassigning Keyed State When Rescaling&lt;/h2&gt;
+&lt;p&gt;The second flavour of state in Flink is keyed state. In contrast to operator state, keyed state is scoped by key, where the key is extracted from each stream event.&lt;/p&gt;
+
+&lt;p&gt;To illustrate how keyed state differs from operator state, let’s use the following example. Assume we have a stream of events, where each event has the schema &lt;code&gt;{customer_id:int, value:int}&lt;/code&gt;. We have already learned that we can use operator state to compute and emit the running sum of values for all customers.&lt;/p&gt;
+
+&lt;p&gt;Now assume we want to slightly modify our goal and compute a running sum of values for each individual &lt;code&gt;customer_id&lt;/code&gt;. This is a use case from keyed state, as one aggregated state must be maintained for each unique key in the stream.&lt;/p&gt;
+
+&lt;p&gt;Note that keyed state is only available for keyed streams, which are created through the &lt;code&gt;keyBy()&lt;/code&gt; operation in Flink. The &lt;code&gt;keyBy()&lt;/code&gt; operation (i) specifies how to extract a key from each event and (ii) ensures that all events with the same key are always processed by the same parallel operator instance. As a result, all keyed state is transitively also bound to one parallel operator instance, because for each key, exactly one operator instance is responsible. This mapping from key to operator is deterministically computed through hash partitioning on the key.&lt;/p&gt;
+
+&lt;p&gt;We can see that keyed state has one clear advantage over operator state when it comes to rescaling: we can easily figure out how to correctly split and redistribute the state across parallel operator instances. State reassignment simply follows the partitioning of the keyed stream. After rescaling, the state for each key must be assigned to the operator instance that is now responsible for that key, as determined by the hash partitioning of the keyed stream.&lt;/p&gt;
+
+&lt;p&gt;While this automatically solves the problem of logically remapping the state to sub-tasks after rescaling, there is one more practical problem left to solve: how can we efficiently transfer the state to the subtasks’ local backends?&lt;/p&gt;
+
+&lt;p&gt;When we’re not rescaling, each subtask can simply read the whole state as written to the checkpoint by a previous instance in one sequential read.&lt;/p&gt;
+
+&lt;p&gt;When rescaling, however, this is no longer possible – the state for each subtask is now potentially scattered across the files written by all subtasks (think about what happens if you change the parallelism in &lt;code&gt;hash(key) mod parallelism&lt;/code&gt;). We have illustrated this problem in &lt;strong&gt;Figure 3A&lt;/strong&gt;. In this example, we show how keys are shuffled when rescaling from parallelism 3 to 4 for a key space of 0, 20, using identity as hash function to keep it easy to follow.&lt;/p&gt;
+
+&lt;p&gt;A naive approach might be to read all the previous subtask state from the checkpoint in all sub-tasks and filter out the matching keys for each sub-task. While this approach can benefit from a sequential read pattern, each subtask potentially reads a large fraction of irrelevant state data, and the distributed file system receives a huge number of parallel read requests.&lt;/p&gt;
+
+&lt;p&gt;Another approach could be to build an index that tracks the location of the state for each key in the checkpoint. With this approach, all sub-tasks could locate and read the matching keys very selectively. This approach would avoid reading irrelevant data, but it has two major downsides. A materialized index for all keys, i.e. a key-to-read-offset mapping, can potentially grow very large. Furthermore, this approach can also introduce a huge amount of random I/O (when seeking to the data for individual keys, see &lt;strong&gt;Figure 3A&lt;/strong&gt;, which typically entails very bad performance in distributed file systems.&lt;/p&gt;
+
+&lt;p&gt;Flink’s approach sits in between those two extremes by introducing key-groups as the atomic unit of state assignment. How does this work? The number of key-groups must be determined before the job is started and (currently) cannot be changed after the fact. As key-groups are the atomic unit of state assignment, this also means that the number of key-groups is the upper limit for parallelism. In a nutshell, key-groups give us a way to trade between flexibility in rescaling (by setting an upper limit for parallelism) and the maximum overhead involved in indexing and restoring the state.&lt;/p&gt;
+
+&lt;p&gt;We assign key-groups to subtasks as ranges. This makes the reads on restore not only sequential within each key-group, but often also across multiple key-groups. An additional benefit: this also keeps the metadata of key-group-to-subtask assignments very small. We do not maintain explicit lists of key-groups because it is sufficient to track the range boundaries.&lt;/p&gt;
+
+&lt;p&gt;We have illustrated rescaling from parallelism 3 to 4 with 10 key-groups in &lt;strong&gt;Figure 3B&lt;/strong&gt;. As we can see, introducing key-groups and assigning them as ranges greatly improves the access pattern over the naive approach. Equation 2 and 3 in &lt;strong&gt;Figure 3B&lt;/strong&gt; also details how we compute key-groups and the range assignment.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;center&gt;&lt;i&gt;Figure 2&lt;/i&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/key-groups.svg&quot; style=&quot;width:70%;margin:10px&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
+
+&lt;p&gt;Thanks for staying with us, and we hope you now have a clear idea of how rescalable state works in Apache Flink and how to make use of rescaling in real-world scenarios.&lt;/p&gt;
+
+&lt;p&gt;Flink 1.3.0, which was released earlier this month, adds more tooling for state management and fault tolerance in Flink, including incremental checkpoints. And the community is exploring features such as…&lt;/p&gt;
+
+&lt;p&gt;• State replication&lt;br /&gt;
+• State that isn’t bound to the lifecycle of a Flink job&lt;br /&gt;
+• Automatic rescaling (with no savepoints required)&lt;/p&gt;
+
+&lt;p&gt;…for Flink 1.4.0 and beyond.&lt;/p&gt;
+
+&lt;p&gt;If you’d like to learn more, we recommend starting with the Apache Flink &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/state.html&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;This is an excerpt from a post that originally appeared on the data Artisans blog. If you’d like to read the original post in its entirety, you can find it &lt;a href=&quot;https://data-artisans.com/blog/apache-flink-at-mediamath-rescaling-stateful-applications&quot; target=&quot;_blank&quot;&gt;here&lt;/a&gt; (external link).&lt;/em&gt;&lt;/p&gt;
+</description>
+<pubDate>Tue, 04 Jul 2017 09:00:00 +0000</pubDate>
+<link>http://flink.apache.org/features/2017/07/04/flink-rescalable-state.html</link>
+<guid isPermaLink="true">/features/2017/07/04/flink-rescalable-state.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.3.1 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.3 series.&lt;/p&gt;
 
@@ -148,7 +327,7 @@
 &lt;/ul&gt;
 
 </description>
-<pubDate>Fri, 23 Jun 2017 18:00:00 +0200</pubDate>
+<pubDate>Fri, 23 Jun 2017 16:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/06/23/release-1.3.1.html</link>
 <guid isPermaLink="true">/news/2017/06/23/release-1.3.1.html</guid>
 </item>
@@ -324,7 +503,7 @@
 &lt;p&gt;Addison Higham, Alexey Diomin, Aljoscha Krettek, Andrea Sella, Andrey Melentyev, Anton Mushin, barcahead, biao.liub, Bowen Li, Chen Qin, Chico Sokol, David Anderson, Dawid Wysakowicz, DmytroShkvyra, Fabian Hueske, Fabian Wollert, fengyelei, Flavio Pompermaier, FlorianFan, Fokko Driesprong, Geoffrey Mon, godfreyhe, gosubpl, Greg Hogan, guowei.mgw, hamstah, Haohui Mai, Hequn Cheng, hequn.chq, heytitle, hongyuhong, Jamie Grier, Jark Wu, jingzhang, Jinkui Shi, Jin Mingjian, Joerg Schad, Joshua Griffith, Jürgen Thomann, kaibozhou, Kathleen Sharp, Ken Geis, kkloudas, Kurt Young, lincoln-lil, lingjinjiang, liuyuzhong7, Lorenz Buehmann, manuzhang, Marc Tremblay, Mauro Cortellazzi, Max Kuklinski, mengji.fy, Mike Dias, mtunique, Nico Kruber, Omar Erminy, Patrick Lucas, paul, phoenixjiangnan, rami-alisawi, Ramkrishna, Rick Cox, Robert Metzger, Rodrigo Bonifacio, rtudoran, Seth Wiesman, Shaoxuan Wang, shijinkui, shuai.xus, Shuyi Chen, spkavuly, Stefano Bortoli, Stefan Richter, Stephan Ewen, Stephen Gran, sunjincheng121, tedyu, Till Rohrmann, tonycox, Tony Wei, twalthr, Tzu-Li (Gordon) Tai, Ufuk Celebi, Ventura Del Monte, Vijay Srinivasaraghavan, WangTaoTheTonic, wenlong.lwl, xccui, xiaogang.sxg, Xpray, zcb, zentol, zhangminglei, Zhenghua Gao, Zhijiang, Zhuoluo Yang, zjureel, Zohar Mizrahi, 士远, 槿瑜, 淘江, 金竹&lt;/p&gt;
 
 </description>
-<pubDate>Thu, 01 Jun 2017 14:00:00 +0200</pubDate>
+<pubDate>Thu, 01 Jun 2017 12:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/06/01/release-1.3.0.html</link>
 <guid isPermaLink="true">/news/2017/06/01/release-1.3.0.html</guid>
 </item>
@@ -353,7 +532,7 @@
 
 &lt;p&gt;&lt;em&gt;Disclaimer: The docker images are provided as a community project by individuals on a best-effort basis. They are not official releases by the Apache Flink PMC.&lt;/em&gt;&lt;/p&gt;
 </description>
-<pubDate>Tue, 16 May 2017 11:00:00 +0200</pubDate>
+<pubDate>Tue, 16 May 2017 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/05/16/official-docker-image.html</link>
 <guid isPermaLink="true">/news/2017/05/16/official-docker-image.html</guid>
 </item>
@@ -569,7 +748,7 @@
 &lt;/ul&gt;
 
 </description>
-<pubDate>Wed, 26 Apr 2017 20:00:00 +0200</pubDate>
+<pubDate>Wed, 26 Apr 2017 18:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/04/26/release-1.2.1.html</link>
 <guid isPermaLink="true">/news/2017/04/26/release-1.2.1.html</guid>
 </item>
@@ -754,7 +933,7 @@
 
 &lt;p&gt;In recent months, many members of the Flink community have been discussing and contributing to the relational APIs. We made great progress so far. While most work has focused on processing streams in append mode, the next steps on the agenda are to work on dynamic tables to support queries that update their results. If you are excited about the idea of processing streams with SQL and would like to contribute to this effort, please give feedback, join the discussions on the mailing list, or grab a JIRA issue to work on.&lt;/p&gt;
 </description>
-<pubDate>Tue, 04 Apr 2017 14:00:00 +0200</pubDate>
+<pubDate>Tue, 04 Apr 2017 12:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/04/04/dynamic-tables.html</link>
 <guid isPermaLink="true">/news/2017/04/04/dynamic-tables.html</guid>
 </item>
@@ -931,7 +1110,7 @@ The following paragraphs are not only supposed to give you a general overview of
 
 &lt;p&gt;Try it out, or even better, join the design discussions on the &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; and &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel&quot;&gt;JIRA&lt;/a&gt; and start contributing!&lt;/p&gt;
 </description>
-<pubDate>Wed, 29 Mar 2017 14:00:00 +0200</pubDate>
+<pubDate>Wed, 29 Mar 2017 12:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/03/29/table-sql-api-update.html</link>
 <guid isPermaLink="true">/news/2017/03/29/table-sql-api-update.html</guid>
 </item>
@@ -1004,7 +1183,7 @@ We highly recommend all users to upgrade to Flink 1.1.5.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Thu, 23 Mar 2017 19:00:00 +0100</pubDate>
+<pubDate>Thu, 23 Mar 2017 18:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/03/23/release-1.1.5.html</link>
 <guid isPermaLink="true">/news/2017/03/23/release-1.1.5.html</guid>
 </item>
@@ -1278,7 +1457,7 @@ If you have, for example, a flatMap() operator that keeps a running aggregate pe
   &lt;li&gt;魏偉哲&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 06 Feb 2017 13:00:00 +0100</pubDate>
+<pubDate>Mon, 06 Feb 2017 12:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2017/02/06/release-1.2.0.html</link>
 <guid isPermaLink="true">/news/2017/02/06/release-1.2.0.html</guid>
 </item>
@@ -1493,7 +1672,7 @@ If you have, for example, a flatMap() operator that keeps a running aggregate pe
 &lt;/ul&gt;
 
 </description>
-<pubDate>Wed, 21 Dec 2016 10:00:00 +0100</pubDate>
+<pubDate>Wed, 21 Dec 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/12/21/release-1.1.4.html</link>
 <guid isPermaLink="true">/news/2016/12/21/release-1.1.4.html</guid>
 </item>
@@ -1687,7 +1866,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;Lastly, we’d like to extend a sincere thank you to all of the Flink community for making 2016 a great year!&lt;/p&gt;
 </description>
-<pubDate>Mon, 19 Dec 2016 10:00:00 +0100</pubDate>
+<pubDate>Mon, 19 Dec 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/12/19/2016-year-in-review.html</link>
 <guid isPermaLink="true">/news/2016/12/19/2016-year-in-review.html</guid>
 </item>
@@ -1791,7 +1970,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 12 Oct 2016 11:00:00 +0200</pubDate>
+<pubDate>Wed, 12 Oct 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/10/12/release-1.1.3.html</link>
 <guid isPermaLink="true">/news/2016/10/12/release-1.1.3.html</guid>
 </item>
@@ -1865,7 +2044,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;/ul&gt;
 
 </description>
-<pubDate>Mon, 05 Sep 2016 11:00:00 +0200</pubDate>
+<pubDate>Mon, 05 Sep 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/09/05/release-1.1.2.html</link>
 <guid isPermaLink="true">/news/2016/09/05/release-1.1.2.html</guid>
 </item>
@@ -1885,7 +2064,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 &lt;p&gt;We hope to see many community members at Flink Forward 2016. Registration is available online: &lt;a href=&quot;http://flink-forward.org/registration/&quot;&gt;flink-forward.org/registration&lt;/a&gt;
 &lt;/p&gt;
 </description>
-<pubDate>Wed, 24 Aug 2016 11:00:00 +0200</pubDate>
+<pubDate>Wed, 24 Aug 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/08/24/ff16-keynotes-panels.html</link>
 <guid isPermaLink="true">/news/2016/08/24/ff16-keynotes-panels.html</guid>
 </item>
@@ -1916,7 +2095,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Thu, 11 Aug 2016 11:00:00 +0200</pubDate>
+<pubDate>Thu, 11 Aug 2016 09:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/08/11/release-1.1.1.html</link>
 <guid isPermaLink="true">/news/2016/08/11/release-1.1.1.html</guid>
 </item>
@@ -2138,7 +2317,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;卫乐&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 08 Aug 2016 15:00:00 +0200</pubDate>
+<pubDate>Mon, 08 Aug 2016 13:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/08/08/release-1.1.0.html</link>
 <guid isPermaLink="true">/news/2016/08/08/release-1.1.0.html</guid>
 </item>
@@ -2267,7 +2446,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;If this post made you curious and you want to try out Flink’s SQL interface and the new Table API, we encourage you to do so! Simply clone the SNAPSHOT &lt;a href=&quot;https://github.com/apache/flink/tree/master&quot;&gt;master branch&lt;/a&gt; and check out the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/table.html&quot;&gt;Table API documentation for the SNAPSHOT version&lt;/a&gt;. Please note that the branch is under heavy development, and hence some code examples in this blog post might not work. We are looking forward to your feedback and welcome contributions.&lt;/p&gt;
 </description>
-<pubDate>Tue, 24 May 2016 12:00:00 +0200</pubDate>
+<pubDate>Tue, 24 May 2016 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/05/24/stream-sql.html</link>
 <guid isPermaLink="true">/news/2016/05/24/stream-sql.html</guid>
 </item>
@@ -2311,7 +2490,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;[streaming-contrib] Fix port clash in DbStateBackend tests&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 11 May 2016 10:00:00 +0200</pubDate>
+<pubDate>Wed, 11 May 2016 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/05/11/release-1.0.3.html</link>
 <guid isPermaLink="true">/news/2016/05/11/release-1.0.3.html</guid>
 </item>
@@ -2357,7 +2536,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
   &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3716&quot;&gt;FLINK-3716&lt;/a&gt;] [kafka consumer] Decreasing socket timeout so testFailOnNoBroker() will pass before JUnit timeout&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Fri, 22 Apr 2016 10:00:00 +0200</pubDate>
+<pubDate>Fri, 22 Apr 2016 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/04/22/release-1.0.2.html</link>
 <guid isPermaLink="true">/news/2016/04/22/release-1.0.2.html</guid>
 </item>
@@ -2370,7 +2549,7 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 
 &lt;p&gt;Read more &lt;a href=&quot;http://flink-forward.org/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Thu, 14 Apr 2016 12:00:00 +0200</pubDate>
+<pubDate>Thu, 14 Apr 2016 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/04/14/flink-forward-announce.html</link>
 <guid isPermaLink="true">/news/2016/04/14/flink-forward-announce.html</guid>
 </item>
@@ -2563,7 +2742,7 @@ This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; The example code requires Flink 1.0.1 or higher.&lt;/p&gt;
 
 </description>
-<pubDate>Wed, 06 Apr 2016 12:00:00 +0200</pubDate>
+<pubDate>Wed, 06 Apr 2016 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/04/06/cep-monitoring.html</link>
 <guid isPermaLink="true">/news/2016/04/06/cep-monitoring.html</guid>
 </item>
@@ -2634,7 +2813,7 @@ This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 06 Apr 2016 10:00:00 +0200</pubDate>
+<pubDate>Wed, 06 Apr 2016 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/04/06/release-1.0.1.html</link>
 <guid isPermaLink="true">/news/2016/04/06/release-1.0.1.html</guid>
 </item>
@@ -2761,7 +2940,7 @@ When using this backend, active state in streaming programs can grow well beyond
   &lt;li&gt;zhangminglei&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 08 Mar 2016 14:00:00 +0100</pubDate>
+<pubDate>Tue, 08 Mar 2016 13:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/03/08/release-1.0.0.html</link>
 <guid isPermaLink="true">/news/2016/03/08/release-1.0.0.html</guid>
 </item>
@@ -2798,7 +2977,7 @@ When using this backend, active state in streaming programs can grow well beyond
   &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3020&quot;&gt;FLINK-3020&lt;/a&gt;: Set number of task slots to maximum parallelism in local execution&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Thu, 11 Feb 2016 09:00:00 +0100</pubDate>
+<pubDate>Thu, 11 Feb 2016 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2016/02/11/release-0.10.2.html</link>
 <guid isPermaLink="true">/news/2016/02/11/release-0.10.2.html</guid>
 </item>
@@ -3022,7 +3201,7 @@ discussion&lt;/a&gt;
 on the Flink mailing lists.&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 18 Dec 2015 11:00:00 +0100</pubDate>
+<pubDate>Fri, 18 Dec 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/12/18/a-year-in-review.html</link>
 <guid isPermaLink="true">/news/2015/12/18/a-year-in-review.html</guid>
 </item>
@@ -3169,7 +3348,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 &lt;p&gt;&lt;sup id=&quot;fn1&quot;&gt;1. We confess, there are three lines changed compared to a Storm project &lt;img class=&quot;emoji&quot; style=&quot;width:16px;height:16px;align:absmiddle&quot; src=&quot;/img/blog/smirk.png&quot; /&gt;—because the example covers local &lt;em&gt;and&lt;/em&gt; remote execution. &lt;a href=&quot;#ref1&quot; title=&quot;Back to text.&quot;&gt;↩&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 11 Dec 2015 11:00:00 +0100</pubDate>
+<pubDate>Fri, 11 Dec 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/12/11/storm-compatibility.html</link>
 <guid isPermaLink="true">/news/2015/12/11/storm-compatibility.html</guid>
 </item>
@@ -3326,7 +3505,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 
 &lt;p&gt;Support for various types of windows over continuous data streams is a must-have for modern stream processors. Apache Flink is a stream processor with a very strong feature set, including a very flexible mechanism to build and evaluate windows over continuous data streams. Flink provides pre-defined window operators for common uses cases as well as a toolbox that allows to define very custom windowing logic. The Flink community will add more pre-defined window operators as we learn the requirements from our users.&lt;/p&gt;
 </description>
-<pubDate>Fri, 04 Dec 2015 11:00:00 +0100</pubDate>
+<pubDate>Fri, 04 Dec 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/12/04/Introducing-windows.html</link>
 <guid isPermaLink="true">/news/2015/12/04/Introducing-windows.html</guid>
 </item>
@@ -3385,7 +3564,7 @@ While you can embed Spouts/Bolts in a Flink program and mix-and-match them with 
 &lt;/ul&gt;
 
 </description>
-<pubDate>Fri, 27 Nov 2015 09:00:00 +0100</pubDate>
+<pubDate>Fri, 27 Nov 2015 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/11/27/release-0.10.1.html</link>
 <guid isPermaLink="true">/news/2015/11/27/release-0.10.1.html</guid>
 </item>
@@ -3560,7 +3739,7 @@ Also note that some methods in the DataStream API had to be renamed as part of t
 &lt;/ul&gt;
 
 </description>
-<pubDate>Mon, 16 Nov 2015 09:00:00 +0100</pubDate>
+<pubDate>Mon, 16 Nov 2015 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/11/16/release-0.10.0.html</link>
 <guid isPermaLink="true">/news/2015/11/16/release-0.10.0.html</guid>
 </item>
@@ -4451,7 +4630,7 @@ Either &lt;code&gt;0 + absolutePointer&lt;/code&gt; or &lt;code&gt;objectRefAddr
 &lt;/div&gt;
 
 </description>
-<pubDate>Wed, 16 Sep 2015 10:00:00 +0200</pubDate>
+<pubDate>Wed, 16 Sep 2015 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/09/16/off-heap-memory.html</link>
 <guid isPermaLink="true">/news/2015/09/16/off-heap-memory.html</guid>
 </item>
@@ -4503,7 +4682,7 @@ fault tolerance, the internal runtime architecture, and others.&lt;/p&gt;
 register for the conference.&lt;/p&gt;
 
 </description>
-<pubDate>Thu, 03 Sep 2015 10:00:00 +0200</pubDate>
+<pubDate>Thu, 03 Sep 2015 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/09/03/flink-forward.html</link>
 <guid isPermaLink="true">/news/2015/09/03/flink-forward.html</guid>
 </item>
@@ -4564,7 +4743,7 @@ for this release:&lt;/p&gt;
   &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2584&quot;&gt;FLINK-2584&lt;/a&gt; ASM dependency is not shaded away&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 01 Sep 2015 10:00:00 +0200</pubDate>
+<pubDate>Tue, 01 Sep 2015 08:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/09/01/release-0.9.1.html</link>
 <guid isPermaLink="true">/news/2015/09/01/release-0.9.1.html</guid>
 </item>
@@ -4895,7 +5074,7 @@ certain song.&lt;/p&gt;
 &lt;span class=&quot;c1&quot;&gt;// correspond to play counts&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NullValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userSongGraph&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Graph&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromTupleDataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;validTriplets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;Consult the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html&quot;&gt;Gelly guide&lt;/a&gt; for guidelines 
+&lt;p&gt;Consult the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/&quot;&gt;Gelly guide&lt;/a&gt; for guidelines 
 on how to create a graph from a given DataSet of edges or from a collection.&lt;/p&gt;
 
 &lt;p&gt;To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
@@ -5019,7 +5198,7 @@ tools, graph database systems and sampling techniques.&lt;/p&gt;
 &lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;links&quot;&gt;Links&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/libs/gelly_guide.html&quot;&gt;Gelly Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/&quot;&gt;Gelly Documentation&lt;/a&gt;&lt;/p&gt;
 </description>
 <pubDate>Mon, 24 Aug 2015 00:00:00 +0200</pubDate>
 <link>http://flink.apache.org/news/2015/08/24/introducing-flink-gelly.html</link>
@@ -5260,7 +5439,7 @@ tools, graph database systems and sampling techniques.&lt;/p&gt;
 
 &lt;p&gt;Flink will require at least Java 7 in major releases after 0.9.0.&lt;/p&gt;
 </description>
-<pubDate>Wed, 24 Jun 2015 16:00:00 +0200</pubDate>
+<pubDate>Wed, 24 Jun 2015 14:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</link>
 <guid isPermaLink="true">/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</guid>
 </item>
@@ -5299,7 +5478,7 @@ including Apache Flink.&lt;/p&gt;
 
 &lt;p&gt;Stay tuned for a wealth of upcoming events! Two Flink talsk will be presented at &lt;a href=&quot;http://berlinbuzzwords.de/15/sessions&quot;&gt;Berlin Buzzwords&lt;/a&gt;, Flink will be presented at the &lt;a href=&quot;http://2015.hadoopsummit.org/san-jose/&quot;&gt;Hadoop Summit in San Jose&lt;/a&gt;. A &lt;a href=&quot;http://www.meetup.com/Apache-Flink-Meetup/events/220557545/&quot;&gt;training workshop on Apache Flink&lt;/a&gt; is being organized in Berlin. Finally, &lt;a href=&quot;http://2015.flink-forward.org/&quot;&gt;Flink Forward&lt;/a&gt;, the first conference to bring together the whole Flink community is taking place in Berlin in October 2015.&lt;/p&gt;
 </description>
-<pubDate>Thu, 14 May 2015 12:00:00 +0200</pubDate>
+<pubDate>Thu, 14 May 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/05/14/Community-update-April.html</link>
 <guid isPermaLink="true">/news/2015/05/14/Community-update-April.html</guid>
 </item>
@@ -5490,7 +5669,7 @@ The following figure shows how two objects are compared.&lt;/p&gt;
   &lt;li&gt;Flink’s DBMS-style operators operate natively on binary data yielding high performance in-memory and destage gracefully to disk if necessary.&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 11 May 2015 12:00:00 +0200</pubDate>
+<pubDate>Mon, 11 May 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</link>
 <guid isPermaLink="true">/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</guid>
 </item>
@@ -5742,7 +5921,7 @@ Improve usability of command line interface&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Mon, 13 Apr 2015 12:00:00 +0200</pubDate>
+<pubDate>Mon, 13 Apr 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/04/13/release-0.9.0-milestone1.html</link>
 <guid isPermaLink="true">/news/2015/04/13/release-0.9.0-milestone1.html</guid>
 </item>
@@ -5809,7 +5988,7 @@ limited in that it does not yet handle large state and iterative
 programs.&lt;/p&gt;
 
 </description>
-<pubDate>Tue, 07 Apr 2015 12:00:00 +0200</pubDate>
+<pubDate>Tue, 07 Apr 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/04/07/march-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/04/07/march-in-flink.html</guid>
 </item>
@@ -5996,7 +6175,7 @@ programs.&lt;/p&gt;
 [4] &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/batch/index.html#semantic-annotations&quot;&gt;Flink 1.0 documentation: Semantic annotations&lt;/a&gt; &lt;br /&gt;
 [5] &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints&quot;&gt;Flink 1.0 documentation: Optimizer join hints&lt;/a&gt; &lt;br /&gt;&lt;/p&gt;
 </description>
-<pubDate>Fri, 13 Mar 2015 11:00:00 +0100</pubDate>
+<pubDate>Fri, 13 Mar 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html</link>
 <guid isPermaLink="true">/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html</guid>
 </item>
@@ -6112,7 +6291,7 @@ Hadoop clusters.  Also, basic support for accessing secured HDFS with
 a standalone Flink setup is now available.&lt;/p&gt;
 
 </description>
-<pubDate>Mon, 02 Mar 2015 11:00:00 +0100</pubDate>
+<pubDate>Mon, 02 Mar 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/03/02/february-2015-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/03/02/february-2015-in-flink.html</guid>
 </item>
@@ -6757,7 +6936,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;#top&quot;&gt;Back to top&lt;/a&gt;&lt;/p&gt;
 </description>
-<pubDate>Mon, 09 Feb 2015 13:00:00 +0100</pubDate>
+<pubDate>Mon, 09 Feb 2015 12:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/02/09/streaming-example.html</link>
 <guid isPermaLink="true">/news/2015/02/09/streaming-example.html</guid>
 </item>
@@ -6806,7 +6985,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 
 &lt;p&gt;The improved YARN client of Flink now allows users to deploy Flink on YARN for executing a single job. Older versions only supported a long-running YARN session. The code of the YARN client has been refactored to provide an (internal) Java API for controlling YARN clusters more easily.&lt;/p&gt;
 </description>
-<pubDate>Wed, 04 Feb 2015 11:00:00 +0100</pubDate>
+<pubDate>Wed, 04 Feb 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/02/04/january-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/02/04/january-in-flink.html</guid>
 </item>
@@ -6892,7 +7071,7 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
   &lt;li&gt;Chen Xu&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Wed, 21 Jan 2015 11:00:00 +0100</pubDate>
+<pubDate>Wed, 21 Jan 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/01/21/release-0.8.html</link>
 <guid isPermaLink="true">/news/2015/01/21/release-0.8.html</guid>
 </item>
@@ -6954,7 +7133,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
 
 &lt;p&gt;The community is working hard together with the Apache infra team to migrate the Flink infrastructure to a top-level project. At the same time, the Flink community is working on the Flink 0.8.0 release which should be out very soon.&lt;/p&gt;
 </description>
-<pubDate>Tue, 06 Jan 2015 11:00:00 +0100</pubDate>
+<pubDate>Tue, 06 Jan 2015 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2015/01/06/december-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/01/06/december-in-flink.html</guid>
 </item>
@@ -7041,7 +7220,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
 
 &lt;p&gt;If you want to use Flink’s Hadoop compatibility package checkout our &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/hadoop_compatibility.html&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
 </description>
-<pubDate>Tue, 18 Nov 2014 11:00:00 +0100</pubDate>
+<pubDate>Tue, 18 Nov 2014 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2014/11/18/hadoop-compatibility.html</link>
 <guid isPermaLink="true">/news/2014/11/18/hadoop-compatibility.html</guid>
 </item>
@@ -7113,7 +7292,7 @@ Flink serialization system improved a lot over time and by now surpasses the cap
   &lt;li&gt;Yingjun Wu&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 04 Nov 2014 11:00:00 +0100</pubDate>
+<pubDate>Tue, 04 Nov 2014 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2014/11/04/release-0.7.0.html</link>
 <guid isPermaLink="true">/news/2014/11/04/release-0.7.0.html</guid>
 </item>
@@ -7212,7 +7391,7 @@ properties, some algorithms)&lt;/p&gt;
 &lt;p&gt;http://www.meetup.com/HandsOnProgrammingEvents/events/210504392/&lt;/p&gt;
 
 </description>
-<pubDate>Fri, 03 Oct 2014 12:00:00 +0200</pubDate>
+<pubDate>Fri, 03 Oct 2014 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2014/10/03/upcoming_events.html</link>
 <guid isPermaLink="true">/news/2014/10/03/upcoming_events.html</guid>
 </item>
@@ -7226,7 +7405,7 @@ of the system. We suggest all users of Flink to work with this newest version.&l
 
 &lt;p&gt;&lt;a href=&quot;/downloads.html&quot;&gt;Download&lt;/a&gt; the release today.&lt;/p&gt;
 </description>
-<pubDate>Fri, 26 Sep 2014 12:00:00 +0200</pubDate>
+<pubDate>Fri, 26 Sep 2014 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2014/09/26/release-0.6.1.html</link>
 <guid isPermaLink="true">/news/2014/09/26/release-0.6.1.html</guid>
 </item>
@@ -7309,7 +7488,7 @@ robust, as well as breaking API changes.&lt;/p&gt;
   &lt;li&gt;Tobias Wiens&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-<pubDate>Tue, 26 Aug 2014 12:00:00 +0200</pubDate>
+<pubDate>Tue, 26 Aug 2014 10:00:00 +0000</pubDate>
 <link>http://flink.apache.org/news/2014/08/26/release-0.6.html</link>
 <guid isPermaLink="true">/news/2014/08/26/release-0.6.html</guid>
 </item>
