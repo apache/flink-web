@@ -342,6 +342,12 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
     <td class="text-center">Committer</td>
     <td class="text-center">shixg</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/22488084?s=50"></td>
+    <td class="text-center">Jincheng Sun</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">jincheng</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
