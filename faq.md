@@ -61,7 +61,7 @@ different execution engines next to each other on a cluster.
 There are a multiple of ways to track the progress of a Flink program:
 
 - The JobManager (the master of the distributed system) starts a web interface
-to observe program execution. In runs on port 8081 by default (configured in
+to observe program execution. It runs on port 8081 by default (configured in
 `conf/flink-config.yml`).
 - When you start a program from the command line, it will print the status
 changes of all operators as the program progresses through the operations.
