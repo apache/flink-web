@@ -36,26 +36,26 @@ select the version matching your installed Hadoop version.
 <tbody>
     <tr>
     <th>Hadoop® 2.7</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE_MD5 }}">md5</a>)</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
     </tr>
 
     <tr>
     <th>Hadoop® 2.6</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE_MD5 }}">md5</a>)</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
     </tr>
 
     <tr>
     <th>Hadoop® 2.4</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE_MD5 }}">md5</a>)</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
     </tr>
 
     <tr>
     <th>Hadoop® 2.3</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a></td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a></td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE_MD5 }}">md5</a>)</td>
+    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
     </tr>
 </tbody>
 </table>
@@ -68,10 +68,12 @@ select the version matching your installed Hadoop version.
     <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Apache Flink® {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
     <p>Review the source code or build Flink on your own, using this package</p>
   </a>
+   (<a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_MD5 }}">md5</a>)
 </div>
 
+## Verifying Hashes and Signatures
 
-
+Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://dist.apache.org/repos/dist/release/flink/KEYS).
 
 ## Maven Dependencies
 
@@ -105,6 +107,8 @@ Note that the community is always open for discussing bugfix releases for even o
 
 
 ## All releases
+
+All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
 
 - Flink 1.3.2 - 2017-08-05 ([Source](http://www.apache.org/dyn/closer.lua/flink/flink-1.3.2/flink-1.3.2-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.3.2/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/scala/index.html))
 - Flink 1.3.1 - 2017-06-23 ([Source](http://www.apache.org/dyn/closer.lua/flink/flink-1.3.1/flink-1.3.1-src.tgz), [Binaries](http://archive.apache.org/dist/flink/flink-1.3.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/scala/index.html))
