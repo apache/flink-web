@@ -21,7 +21,8 @@ source 'https://rubygems.org'
 ruby '>=1.9.0'
 
 # Dependencies required to build the Flink docs
-gem 'jekyll', '2.5.3'
-gem 'kramdown', '1.10.0'
-gem 'pygments.rb', '0.6.3'
-gem 'therubyracer', '0.12.2'
+gem 'jekyll', '3.5.1'
+gem 'jekyll-paginate', '1.1.0'
+gem 'kramdown', '1.14.0'
+gem 'pygments.rb', '1.1.2'
+gem 'therubyracer', '0.12.3'
