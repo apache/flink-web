@@ -25,3 +25,5 @@ gem 'jekyll', '2.5.3'
 gem 'kramdown', '1.10.0'
 gem 'pygments.rb', '0.6.3'
 gem 'therubyracer', '0.12.2'
+# explicitly require yajl-ruby (dependency of jekyll) in a version that works with Ruby 2.4
+gem 'yajl-ruby', '1.2.2'
