@@ -57,9 +57,9 @@ Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/Fl
 [Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is build by [dataArtisans](http://data-artisans.com/) and [Driven, Inc](http://www.driven.io/).
 See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
 
-**Apache Beam (incubating)**
+**Apache Beam**
 
-[Apache Beam (incubating)](http://beam.incubator.apache.org/) is an open source, unified programming model that you can use to create a data processing pipeline. Flink is one of the back-ends supported by the Beam programming model.
+[Apache Beam](https://beam.apache.org/) is an open source, unified programming model that you can use to create a data processing pipeline. Flink is one of the back-ends supported by the Beam programming model.
 
 **GRADOOP**
 
