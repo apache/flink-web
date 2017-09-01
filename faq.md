@@ -20,7 +20,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-The following questions are frequently asked with regard to the Flink project **in general**. If you have further questions, make sure to consult the [documentation]() or [ask the community]().
+The following questions are frequently asked with regard to the Flink project **in general**. If you have further questions, make sure to consult the [documentation]({{site.docs-snapshot}}) or [ask the community]({{ site.baseurl }}/community.html).
 
 {% toc %}
 
