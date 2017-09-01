@@ -20,7 +20,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-The following questions are frequently asked with regard to the Flink project **in general**. If you have further questions, make sure to consult the [documentation]() or [ask the community]().
+The following questions are frequently asked with regard to the Flink project **in general**. If you have further questions, make sure to consult the [documentation]({{site.docs-snapshot}}) or [ask the community]({{ site.baseurl }}/community.html).
 
 {% toc %}
 
@@ -50,7 +50,7 @@ Hadoop client libraries by default.
 
 Additionally, we provide a special YARN Enabled download of Flink for
 users with an existing Hadoop YARN cluster. [Apache Hadoop
-YARN](http://hadoop.apache.org/docs/r2.2.0/hadoop-yarn/hadoop-yarn-site/YARN.html)
+YARN](http://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html)
 is Hadoop's cluster resource manager that allows use of
 different execution engines next to each other on a cluster.
 
@@ -82,10 +82,10 @@ of the master and the worker where the exception occurred
 
 ### How do I debug Flink programs?
 
-- When you start a program locally with the [LocalExecutor]({{site.docs-snapshot}}/apis/local_execution.html),
+- When you start a program locally with the [LocalExecutor]({{site.docs-snapshot}}/dev/local_execution.html),
 you can place breakpoints in your functions and debug them like normal
 Java/Scala programs.
-- The [Accumulators]({{ site.docs-snapshot }}/apis/programming_guide.html#accumulators--counters) are very helpful in
+- The [Accumulators]({{ site.docs-snapshot }}/dev/api_concepts.html#accumulators--counters) are very helpful in
 tracking the behavior of the parallel execution. They allow you to gather
 information inside the program's operations and show them after the program
 execution.
@@ -108,15 +108,15 @@ parallelism has to be 1 and set it accordingly.
 
 The parallelism can be set in numerous ways to ensure a fine-grained control
 over the execution of a Flink program. See
-the [Configuration guide]({{ site.docs-snapshot }}/setup/config.html#common-options) for detailed instructions on how to
-set the parallelism. Also check out [this figure]({{ site.docs-snapshot }}/setup/config.html#configuring-taskmanager-processing-slots) detailing
+the [Configuration guide]({{ site.docs-snapshot }}/ops/config.html#common-options) for detailed instructions on how to
+set the parallelism. Also check out [this figure]({{ site.docs-snapshot }}/ops/config.html#configuring-taskmanager-processing-slots) detailing
 how the processing slots and parallelism are related to each other.
 
 ## Errors
 
 ### Why am I getting a "NonSerializableException" ?
 
-All functions in Flink must be serializable, as defined by [java.io.Serializable](http://docs.oracle.com/javase/7/docs/api/java/io/Serializable.html).
+All functions in Flink must be serializable, as defined by [java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html).
 Since all function interfaces are serializable, the exception means that one
 of the fields used in your function is not serializable.
 
@@ -144,7 +144,7 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 }
 ~~~
 
-See [Type Extraction and Serialization]({{ site.docs-snapshot }}/internals/types_serialization.html) for
+See [Type Extraction and Serialization]({{ site.docs-snapshot }}/dev/types_serialization.html) for
 an in-depth discussion of how Flink handles types.
 
 ### I get an error message saying that not enough buffers are available. How do I fix this?
@@ -154,7 +154,7 @@ you need to adapt the number of network buffers via the config parameter
 `taskmanager.network.numberOfBuffers`.
 As a rule-of-thumb, the number of buffers should be at least
 `4 * numberOfTaskManagers * numberOfSlotsPerTaskManager^2`. See
-[Configuration Reference]({{ site.docs-snapshot }}/setup/config.html#configuring-the-network-buffers) for details.
+[Configuration Reference]({{ site.docs-snapshot }}/ops/config.html#configuring-the-network-buffers) for details.
 
 ### My job fails early with a java.io.EOFException. What could be the cause?
 
@@ -177,7 +177,7 @@ Call to <host:port> failed on local exception: java.io.EOFException
     at org.apache.flinkruntime.fs.hdfs.DistributedFileSystem.initialize(DistributedFileSystem.java:276
 ~~~
 
-Please refer to the [download page]({{ site.baseurl }}/downloads.html#maven) and
+Please refer to the [download page]({{ site.baseurl }}/downloads.html) and
 the {% github README.md master "build instructions" %}
 for details on how to set up Flink for different Hadoop and HDFS versions.
 
@@ -276,7 +276,7 @@ destage operations to disk, if necessary. By default, the system reserves around
 70% of the memory. If you frequently run applications that need more memory in
 the user-defined functions, you can reduce that value using the configuration
 entries `taskmanager.memory.fraction` or `taskmanager.memory.size`. See the
-[Configuration Reference]({{ site.docs-snapshot }}/setup/config.html) for details. This will leave more memory to JVM heap,
+[Configuration Reference]({{ site.docs-snapshot }}/ops/config.html) for details. This will leave more memory to JVM heap,
 but may cause data processing tasks to go to disk more often.
 
 Another reason for OutOfMemoryExceptions is the use of the wrong state backend.
@@ -352,7 +352,7 @@ In that case, the JVM process grew too large. Because the Java heap size is alwa
   - PermGen space (strings and classes), code caches, memory mapped jar files
   - Native libraries (RocksDB)
 
-You can activate the [memory debug logger](https://ci.apache.org/projects/flink/flink-docs-release-1.0/setup/config.html#memory-and-performance-debugging) to get more insight into what memory pool is actually using up too much memory.
+You can activate the [memory debug logger]({{ site.docs-snapshot }}/ops/config.html#memory-and-performance-debugging) to get more insight into what memory pool is actually using up too much memory.
 
 
 ### The YARN session crashes with a HDFS permission exception during startup
@@ -442,9 +442,9 @@ For batch processing programs Flink remembers the program's sequence of transfor
 
 ### Are Hadoop-like utilities, such as Counters and the DistributedCache supported?
 
-[Flink's Accumulators]({{ site.docs-snapshot }}/apis/programming_guide.html#accumulators--counters) work very similar like
+[Flink's Accumulators]({{ site.docs-snapshot }}/dev/api_concepts.html#accumulators--counters) work very similar like
 Hadoop's counters, but are more powerful.
 
 Flink has a [Distributed Cache](https://github.com/apache/flink/tree/master/flink-core/src/main/java/org/apache/flink/api/common/cache/DistributedCache.java) that is deeply integrated with the APIs. Please refer to the [JavaDocs](https://github.com/apache/flink/tree/master/flink-java/src/main/java/org/apache/flink/api/java/ExecutionEnvironment.java#L831) for details on how to use it.
 
-In order to make data sets available on all tasks, we encourage you to use [Broadcast Variables]({{ site.docs-snapshot }}/apis/programming_guide.html#broadcast-variables) instead. They are more efficient and easier to use than the distributed cache.
+In order to make data sets available on all tasks, we encourage you to use [Broadcast Variables]({{ site.docs-snapshot }}/dev/batch/index.html#broadcast-variables) instead. They are more efficient and easier to use than the distributed cache.
