@@ -130,6 +130,12 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
+### Bahir Flink repositories
+
+- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
+- **ASF read-only**: git://git.apache.org/bahir-flink.git
+- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
+
 ### Website repositories
 
 - **ASF writable**: [https://git-wip-us.apache.org/repos/asf/flink-web.git](https://git-wip-us.apache.org/repos/asf/flink-web.git)
