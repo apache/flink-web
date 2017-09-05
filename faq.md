@@ -50,7 +50,7 @@ Hadoop client libraries by default.
 
 Additionally, we provide a special YARN Enabled download of Flink for
 users with an existing Hadoop YARN cluster. [Apache Hadoop
-YARN](https://hadoop.apache.org/docs/r2.7.2/hadoop-yarn/hadoop-yarn-site/YARN.html)
+YARN](http://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/index.html)
 is Hadoop's cluster resource manager that allows use of
 different execution engines next to each other on a cluster.
 
