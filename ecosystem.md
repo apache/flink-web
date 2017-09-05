@@ -97,3 +97,7 @@ Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/fl
 **Apache Ignite**
 
 [Apache Ignite](https://ignite.apache.org) is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time. See [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) to inject data into Ignite cache.
+
+**Tink temporal graph library**
+
+[Tink](https://github.com/otherwise777/Temporal_Graph_library) is a temporal graph library build on top of Flink. It allows for temporal graph analytics like different interpretations of the shortest temporal path algorithm and metrics like temporal betweenness and temporal closeness. This library was the result of the [Thesis](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf) of Wouter Ligtenberg.
