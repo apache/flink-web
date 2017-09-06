@@ -100,4 +100,4 @@ Small [WordCount example](https://github.com/mjsax/flink-external/tree/master/fl
 
 **Tink temporal graph library**
 
-[Tink](https://github.com/otherwise777/Temporal_Graph_library) is a temporal graph library build on top of Flink. It allows for temporal graph analytics like different interpretations of the shortest temporal path algorithm and metrics like temporal betweenness and temporal closeness. This library was the result of the [Thesis](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf) of Wouter Ligtenberg
+[Tink](https://github.com/otherwise777/Temporal_Graph_library) is a temporal graph library build on top of Flink. It allows for temporal graph analytics like different interpretations of the shortest temporal path algorithm and metrics like temporal betweenness and temporal closeness. This library was the result of the [Thesis](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf) of Wouter Ligtenberg.
