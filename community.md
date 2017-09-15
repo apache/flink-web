@@ -130,6 +130,12 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
+### Bahir Flink repositories
+
+- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
+- **ASF read-only**: git://git.apache.org/bahir-flink.git
+- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
+
 ### Website repositories
 
 - **ASF writable**: [https://git-wip-us.apache.org/repos/asf/flink-web.git](https://git-wip-us.apache.org/repos/asf/flink-web.git)
@@ -138,7 +144,7 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
 ## Training
 
-[dataArtisans](http://data-artisans.com) currently maintains free Apache Flink training. Their [training website](http://dataartisans.github.io/flink-training) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
+[dataArtisans](http://data-artisans.com) currently maintains free Apache Flink training. Their [training website](http://training.data-artisans.com/) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
 
 ## Project Wiki
 
