@@ -216,8 +216,7 @@ need to manually configure the *flink-scala* project to use a *compiler plugin*:
 - In the field "Xplugin", put the path "/home/<user-name>/.m2/repository/org/scalamacros/paradise_2.10.4/2.0.1/paradise_2.10.4-2.0.1.jar"
 - NOTE: You have to build Flink with Maven on the command line first, to make sure the plugin is downloaded.
 
-### My program does not compute the correct result. Why are my custom key types
-are not grouped/joined correctly?
+### My program does not compute the correct result. Why are my custom key types not grouped/joined correctly?
 
 Keys must correctly implement the methods `java.lang.Object#hashCode()`,
 `java.lang.Object#equals(Object o)`, and `java.util.Comparable#compareTo(...)`.
