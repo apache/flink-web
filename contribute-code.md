@@ -147,6 +147,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 - **No wildcard imports.** They can cause problems when adding to the code and in some cases even during refactoring.
 - **Import order.** Imports must be ordered alphabetically, grouped into the following blocks, with each block separated by an empty line:
 	- &lt;imports from org.apache.flink.*&gt;
+	- &lt;imports from org.apache.flink.shaded.*&gt;
 	- &lt;imports from other libraries&gt;
 	- &lt;imports from javax.*&gt;
 	- &lt;imports from java.*&gt;
