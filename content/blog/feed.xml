@@ -7,6 +7,140 @@
 <atom:link href="http://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Looking Ahead to Apache Flink 1.4.0 and 1.5.0</title>
+<description>&lt;p&gt;The Apache Flink 1.4.0 release is on track to happen in the next couple of weeks, and for all of the
+readers out there who haven’t been following the release discussion on &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;Flink’s developer mailing
+list&lt;/a&gt;, we’d like to provide some details on
+what’s coming in Flink 1.4.0 as well as a preview of what the Flink community will save for 1.5.0.&lt;/p&gt;
+
+&lt;p&gt;Both releases include ambitious features that we believe will move Flink to an entirely new level in
+terms of the types of problems it can solve and applications it can support. The community deserves
+lots of credit for its hard work over the past few months, and we’re excited to see these features
+in the hands of users.&lt;/p&gt;
+
+&lt;p&gt;This post will describe how the community plans to get there and the rationale behind the approach.&lt;/p&gt;
+
+&lt;h2 id=&quot;coming-soon-major-changes-to-the-flinks-runtime&quot;&gt;Coming soon: Major Changes to the Flink’s Runtime&lt;/h2&gt;
+
+&lt;p&gt;There are 3 significant improvements to the Apache Flink engine that the community has nearly
+completed and that will have a meaningful impact on Flink’s operability and performance.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Rework of the deployment model and distributed process&lt;/li&gt;
+  &lt;li&gt;Transition from configurable, fixed-interval network I/O to event-driven network I/O and application-level flow control for better backpressure handling&lt;/li&gt;
+  &lt;li&gt;Faster recovery from failure&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Next, we’ll go through each of these improvements in more detail.&lt;/p&gt;
+
+&lt;h2 id=&quot;reworking-flinks-deployment-model-and-distributed-process&quot;&gt;Reworking Flink’s Deployment Model and Distributed Process&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=65147077&quot;&gt;FLIP-6&lt;/a&gt; is an initiative
+that’s been in the works for more than a year and represents a major refactor of Flink’s deployment
+model and distributed process. The underlying motivation for FLIP-6 was the fact that Flink is being
+adopted by a wider range of developer communities–both developers coming from the big data and
+analytics space as well as developers coming from the event-driven applications space.&lt;/p&gt;
+
+&lt;p&gt;Modern, stateful stream processing has served as a convergence for these two developer communities.
+Despite a significant overlap of the core concepts in the applications being built, each group of
+developers has its own set of common tools, deployment models, and expected behaviors when working
+with a stream processing framework like Flink.&lt;/p&gt;
+
+&lt;p&gt;FLIP-6 will ensure that Flink fits naturally in both of these contexts, behaving as though it’s
+native to each ecosystem and operating seamlessly within a broader technology stack. A few of the
+specific changes in FLIP-6 that will have such an impact:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Leveraging cluster management frameworks to support full resource elasticity&lt;/li&gt;
+  &lt;li&gt;First-class support for containerized environments such as Kubernetes and Docker&lt;/li&gt;
+  &lt;li&gt;REST-based client-cluster communication to ease operations and 3rd party integrations&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;FLIP-6, along with already-introduced features like
+&lt;a href=&quot;https://data-artisans.com/blog/apache-flink-at-mediamath-rescaling-stateful-applications&quot;&gt;rescalable state&lt;/a&gt;,
+lays the groundwork for dynamic scaling in Flink, meaning that Flink programs will be able to scale up or down
+automatically based on required resources–a huge step forward in terms of ease of operability and
+the efficiency of Flink applications.&lt;/p&gt;
+
+&lt;h2 id=&quot;lower-latency-via-improvements-to-the-apache-flink-network-stack&quot;&gt;Lower Latency via Improvements to the Apache Flink Network Stack&lt;/h2&gt;
+
+&lt;p&gt;Speed will always be a key consideration for users who build stream processing applications, and
+Flink 1.5 will include a rework of the network stack that will even further improve Flink’s latency.
+At the heart of this work is a transition from configurable, fixed-interval network I/O to event-
+driven network I/O and application-level flow control, ensuring that Flink will use all available
+network capacity, as well as credit-based flow control which offers more fine-grained backpressuring
+for improved checkpoint alignments.&lt;/p&gt;
+
+&lt;p&gt;In our testing (&lt;a href=&quot;https://www.slideshare.net/FlinkForward/flink-forward-berlin-2017-nico-kruber-building-a-network-stack-for-optimal-throughput-lowlatency-tradeoffs&quot;&gt;see slide 26 here&lt;/a&gt;),
+we’ve seen a substantial improvement in latency using event-driven network I/O, and the community
+is also doing work to make sure we’re able to provide this increase in speed without a measurable
+throughput tradeoff.&lt;/p&gt;
+
+&lt;h2 id=&quot;faster-recovery-from-failures&quot;&gt;Faster Recovery from Failures&lt;/h2&gt;
+
+&lt;p&gt;Flink 1.3.0 introduced incremental checkpoints, making it possible to take a checkpoint of state
+updates since the last successfully-completed checkpoint only rather than the previous behavior of
+only taking checkpoints of the entire state of the application. This has led to significant
+performance improvements for users with large state.&lt;/p&gt;
+
+&lt;p&gt;Flink 1.5 will introduce task-local recovery, which means that Flink will store a second copy of the
+most recent checkpoint on the local disk (or even in main memory) of a task manager. The primary
+copy still goes to durable storage so that it’s resilient to machine failures.&lt;/p&gt;
+
+&lt;p&gt;In case of failover, the scheduler will try to reschedule tasks to their previous task manager (in
+other words, to the same machine again) if this is possible. The task can then recover from the
+locally-kept state. This makes it possible to avoid reading all state from the distributed file
+system (which is remote over the network). Especially in applications with very large state, not
+having to read many gigabytes over the network and instead from local disk will result in
+significant performance gains in recovery.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-proposed-timeline-for-flink-14-and-flink-15&quot;&gt;The Proposed Timeline for Flink 1.4 and Flink 1.5&lt;/h2&gt;
+
+&lt;p&gt;The good news is that all 3 of the features described above are well underway, and in fact, much of
+the work is already covered by open pull requests.&lt;/p&gt;
+
+&lt;p&gt;But given these features’ importance and the complexity of the work involved, the community expected
+that the QA and testing required would be extensive and would delay the release of the otherwise-
+ready features also on the list for the next release.&lt;/p&gt;
+
+&lt;p&gt;And so the community decided to withhold the 3 features above (deployment model rework, improvements
+to the network stack, and faster recovery) to be included a separate Flink 1.5 release that will
+come shortly after the Flink 1.4 release. Flink 1.5 is estimated to come just a couple of months
+after 1.4 rather than the typical 4-month cycle in between major releases.&lt;/p&gt;
+
+&lt;p&gt;The soon-to-be-released Flink 1.4 represents the current state of Flink without merging those 3
+features. And Flink 1.4 is a substantial release in its own right, including, but not limited to,
+the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;A significantly improved dependency structure&lt;/strong&gt;, removing many of Flink’s dependencies and subtle runtime conflicts. This increases overall stability and removes friction when embedding Flink or calling Flink “library style”.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Reversed class loading for dynamically-loaded user code&lt;/strong&gt;, allowing for different dependencies than those included in the core framework.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;An Apache Kafka 0.11 exactly-once producer&lt;/strong&gt;, making it possible to build end-to-end exactly once applications with Flink and Kafka.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Streaming SQL JOIN based on processing time and event time&lt;/strong&gt;, which gives users the full advantage of Flink’s time handling while using a SQL JOIN.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Table API / Streaming SQL Source and Sink Additions&lt;/strong&gt;, including a Kafka 0.11 source and JDBC sink.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Hadoop-free Flink&lt;/strong&gt;, meaning that users who don’t rely on any Hadoop components (such as YARN or HDFS) in their Flink applications can use Flink without Hadoop for the first time.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Improvements to queryable state&lt;/strong&gt;, including a more container-friendly architecture, a more user-friendly API that hides configuration parameters, and the groundwork to be able to expose window state (the state of an in-flight window) in the future.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Connector improvements and fixes&lt;/strong&gt; for a range of connectors including Kafka, Apache Cassandra, Amazon Kinesis, and more.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Improved RPC performance&lt;/strong&gt; for faster recovery from failure&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The community decided it was best to get these features into a stable version of Flink as soon as
+possible, and the separation of what could have been a single (and very substantial) Flink 1.4
+release into 1.4 and 1.5 serves that purpose.&lt;/p&gt;
+
+&lt;p&gt;We’re excited by what each of these represents for Apache Flink, and we’d like to extend our thanks
+to the Flink community for all of their hard work.&lt;/p&gt;
+
+&lt;p&gt;If you’d like to follow along with release discussions, &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;please subscribe to the dev@ mailing
+list&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+<pubDate>Wed, 22 Nov 2017 11:00:00 +0100</pubDate>
+<link>http://flink.apache.org/news/2017/11/22/release-1.4-and-1.5-timeline.html</link>
+<guid isPermaLink="true">/news/2017/11/22/release-1.4-and-1.5-timeline.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.3.2 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.3 series.&lt;/p&gt;
 
