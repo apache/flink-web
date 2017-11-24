@@ -37,7 +37,7 @@ Contributions for JIRA issues that require a design document will not be added t
 - Take any discussion or requirement that is recorded in the JIRA issue into account.
 - Follow the design document (if a design document is required) as close as possible. Please update the design document and seek consensus, if your implementation deviates too much from the solution proposed by the design document. Minor variations are OK but should be pointed out when the contribution is submitted.
 - Closely follow the [coding guidelines]( {{site.base}}/contribute-code.html#coding-guidelines) and the [code style]({{ site.base }}/contribute-code.html#code-style).
-- Do not mix unrelated issues into one contribution. 
+- Do not mix unrelated issues into one contribution.
 
 **Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the JIRA issue.
 
@@ -55,7 +55,7 @@ It is very important to verify the compliance of changes before submitting your 
 - Check that the code style is not violated.
 - Making sure no unrelated or unnecessary reformatting changes are included.
 
-You can build the code, run the tests, and check (parts of) the code style by calling 
+You can build the code, run the tests, and check (parts of) the code style by calling
 
 ```
 mvn clean verify
@@ -91,7 +91,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 ## Coding guidelines
 
 ### Pull requests and commit message
-{:.no_toc} 
+{:.no_toc}
 
 - **Single change per PR**. Please do not combine various unrelated changes in a single pull request. Rather, open multiple individual pull requests where each PR refers to a JIRA issue. This ensures that pull requests are *topic related*, can be merged more easily, and typically result in topic-specific merge conflicts only.
 
@@ -104,14 +104,14 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 - **No merge commits**. Please do not open pull requests containing merge commits. Use `git pull --rebase origin master` if you want to update your changes to the latest master prior to opening a pull request.
 
 ### Exceptions and error messages
-{:.no_toc} 
+{:.no_toc}
 
 - **Exception swallowing**. Do not swallow exceptions and print the stacktrace. Instead check how exceptions are handled by similar classes.
 
 - **Meaningful error messages**. Give meaningful exception messages. Try to imagine why an exception could be thrown (what a user did wrong) and give a message that will help a user to resolve the problem.
 
 ### Tests
-{:.no_toc} 
+{:.no_toc}
 
 - **Tests need to pass**. Any pull request where the tests do not pass or which does not compile will not undergo any further review. We recommend to connect your private GitHub accounts with [Travis CI](http://travis-ci.org/) (like the Flink GitHub repository). Travis will run tests for all tested environments whenever you push something into *your* Github repository. Please note the previous [comment about flaky tests]( {{site.base}}/contribute-code.html#verifying-the-compliance-of-your-code).
 
@@ -127,7 +127,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 - **Javadocs for public methods**. All public methods and classes need to have JavaDocs. Please write meaningful docs. Good docs are concise and informative. Please do also update JavaDocs if you change the signature or behavior of a documented method.
 
 ### Code formatting
-{:.no_toc} 
+{:.no_toc}
 
 - **No reformattings**. Please keep reformatting of source files to a minimum. Diffs become unreadable if you (or your IDE automatically) remove or replace whitespaces, reformat code, or comments. Also, other patches that affect the same files become un-mergeable. Please configure your IDE such that code is not automatically reformatted. Pull requests with excessive or unnecessary code reformatting might be rejected.
 
@@ -218,7 +218,7 @@ i++; // increment by one
 * Java 7 or 8
 
 ### Clone the repository
-{:.no_toc} 
+{:.no_toc}
 
 Apache Flink's source code is stored in a [git](http://git-scm.com/) repository which is mirrored to [Github](https://github.com/apache/flink). The common way to exchange code on Github is to fork a the repository into your personal Github account. For that, you need to have a [Github](https://github.com) account or create one for free. Forking a repository means that Github creates a copy of the forked repository for you. This is done by clicking on the *fork* button on the upper right of the [repository website](https://github.com/apache/flink). Once you have a fork of Flink's repository in your personal account, you can clone that repository to your local machine.
 
@@ -236,7 +236,7 @@ If you are behind a firewall you may need to provide Proxy settings to Maven and
 For example, the WikipediaEditsSourceTest communicates over IRC and need a [SOCKS proxy server](http://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html) to pass.
 
 ### Setup an IDE and import the source code
-{:.no_toc} 
+{:.no_toc}
 
 The Flink committers use IntelliJ IDEA and Eclipse IDE to develop the Flink code base.
 
@@ -265,13 +265,13 @@ Further details, and a guide to newer Scala IDE versions can be found in the
 **Note:** Before following this setup, make sure to run the build from the command line once
 (`mvn clean install -DskipTests`, see above)
 
-1. Download the Scala IDE (preferred) or install the plugin to Eclipse Kepler. See 
+1. Download the Scala IDE (preferred) or install the plugin to Eclipse Kepler. See
    [How to setup Eclipse](https://github.com/apache/flink/blob/master/docs/internals/ide_setup.md#eclipse) for download links and instructions.
 2. Add the "macroparadise" compiler plugin to the Scala compiler.
    Open "Window" -> "Preferences" -> "Scala" -> "Compiler" -> "Advanced" and put into the "Xplugin" field the path to
    the *macroparadise* jar file (typically "/home/*-your-user-*/.m2/repository/org/scalamacros/paradise_2.10.4/2.0.1/paradise_2.10.4-2.0.1.jar").
    Note: If you do not have the jar file, you probably did not run the command line build.
-3. Import the Flink Maven projects ("File" -> "Import" -> "Maven" -> "Existing Maven Projects") 
+3. Import the Flink Maven projects ("File" -> "Import" -> "Maven" -> "Existing Maven Projects")
 4. During the import, Eclipse will ask to automatically install additional Maven build helper plugins.
 5. Close the "flink-java8" project. Since Eclipse Kepler does not support Java 8, you cannot develop this project.
 
@@ -281,7 +281,7 @@ Apache Flink uses Apache Maven as build tool. Most IDE are capable of importing 
 
 
 ### Build the code
-{:.no_toc} 
+{:.no_toc}
 
 To build Flink from source code, open a terminal, navigate to the root directory of the Flink source code, and call
 
@@ -291,7 +291,7 @@ mvn clean package
 
 This will build Flink and run all tests. Flink is now installed in `build-target`.
 
-To build Flink without executing the tests you can call 
+To build Flink without executing the tests you can call
 
 ```
 mvn -DskipTests clean package
@@ -306,7 +306,7 @@ mvn -DskipTests clean package
 Only the infrastructure team of the ASF has administrative access to the GitHub mirror. Therefore, comitters have to push changes to the git repository at the ASF.
 
 ### Main source repositories
-{:.no_toc} 
+{:.no_toc}
 
 **ASF writable**: https://git-wip-us.apache.org/repos/asf/flink.git
 
@@ -328,7 +328,6 @@ You can download a packaged version of our nightly builds, which include
 the most recent development code. You can use them if you need a feature
 before its release. Only builds that pass all tests are published here.
 
-- **Hadoop 1**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_LATEST }}" class="ga-track" id="download-hadoop1-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_1_LATEST | split:'/' | last }}</a>
 - **Hadoop 2 and YARN**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST }}" class="ga-track" id="download-hadoop2-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST | split:'/' | last }}</a>
 
 Add the **Apache Snapshot repository** to your Maven `pom.xml`:
