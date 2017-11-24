@@ -25,38 +25,26 @@ An Apache Hadoop installation is
 to use Flink. If you plan to run Flink in YARN or process data stored in HDFS then
 select the version matching your installed Hadoop version.
 
+The binary releases marked with a Hadoop version come bundled with binaries for that Hadoop version,
+the binary release without bundled Hadoop can be used without Hadoop or with a Hadoop version
+that is installed in the environment, i.e. this version can pick up a Hadoop version from
+the classpath.
+
 ### Binaries
 
 <table class="table table-striped">
 <thead>
     <tr>
-    <th></th> <th>Scala 2.10</th> <th>Scala 2.11</th>
+    <th></th> <th>Scala 2.11</th>
     </tr>
 </thead>
 <tbody>
+    {% for binary_release in site.stable_releases %}
     <tr>
-    <th>Hadoop® 2.7</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE }}" class="ga-track" id="download-hadoop27">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_STABLE_MD5 }}">md5</a>)</td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop27_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_27_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
+    <th>{{ binary_release.name }}</th>
+    <td><a href="{{ binary_release.url }}" class="ga-track" id="{{ binary_release.id }}">Download</a> (<a href="{{ binary_release.asc_url }}">asc</a>, <a href="{{ binary_release.md5_url }}">md5</a>)</td>
     </tr>
-
-    <tr>
-    <th>Hadoop® 2.6</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE }}" class="ga-track" id="download-hadoop26">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_STABLE_MD5 }}">md5</a>)</td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop26_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_26_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
-    </tr>
-
-    <tr>
-    <th>Hadoop® 2.4</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE }}" class="ga-track" id="download-hadoop24">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_STABLE_MD5 }}">md5</a>)</td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop24_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_24_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
-    </tr>
-
-    <tr>
-    <th>Hadoop® 2.3</th>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE }}" class="ga-track" id="download-hadoop2">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_STABLE_MD5 }}">md5</a>)</td>
-    <td><a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE }}" class="ga-track" id="download-hadoop2_211">Download</a> (<a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_SCALA_211_STABLE_MD5 }}">md5</a>)</td>
-    </tr>
+    {% endfor %}
 </tbody>
 </table>
 
@@ -79,7 +67,7 @@ Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographi
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
 
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.10` and `flink-streaming-java_2.10` with `flink-streaming-scala_2.10`. For Scala 2.11 dependencies, use the suffix `_2.11` instead of `_2.10`.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.11` and `flink-streaming-java_2.11` with `flink-streaming-scala_2.11`.
 
 ```xml
 <dependency>
@@ -89,12 +77,12 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.10</artifactId>
+  <artifactId>flink-streaming-java_2.11</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.10</artifactId>
+  <artifactId>flink-clients_2.11</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
@@ -110,6 +98,7 @@ Note that the community is always open for discussing bugfix releases for even o
 
 All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
 
+- Flink 1.4.0 - 2017-11-29 ([Source](https://archive.apache.org/dist/flink/flink-1.4.0/flink-1.4.0-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.4.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/api/scala/index.html))
 - Flink 1.3.2 - 2017-08-05 ([Source](https://archive.apache.org/dist/flink/flink-1.3.2/flink-1.3.2-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.3.2/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/scala/index.html))
 - Flink 1.3.1 - 2017-06-23 ([Source](https://archive.apache.org/dist/flink/flink-1.3.1/flink-1.3.1-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.3.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/scala/index.html))
 - Flink 1.3.0 - 2017-06-01 ([Source](https://archive.apache.org/dist/flink/flink-1.3.0/flink-1.3.0-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.3.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/api/scala/index.html))
