@@ -1,6 +1,9 @@
 ---
 title: "How To Contribute"
 ---
+
+<hr />
+
 Apache Flink is developed by an open and friendly community. Everybody is cordially welcome to join the community and contribute to Apache Flink. There are several ways to interact with the community and to contribute to Flink including asking questions, filing bug reports, proposing new features, joining discussions on the mailing lists, contributing code or documentation, improving the website, or testing release candidates.
 
 {% toc %}

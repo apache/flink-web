@@ -1,12 +1,13 @@
 ---
-title: "Scalable Stream and Batch Data Processing"
+title: "Stateful Computations over Data Streams"
 layout: base
 ---
 <div class="row-fluid">
 
-  <div class="col-sm-10 col-sm-offset-1 homecontent">
-    <p class="lead" markdown="span">Apache Flink® is an open-source stream processing framework for **distributed, high-performing, always-available,** and **accurate** data streaming applications.</p>
-    <a href="{{ site.baseurl }}/introduction.html" class="btn btn-default btn-intro">Introduction to Flink</a>
+  <div class="col-sm-12">
+    <p class="lead" markdown="span">
+      **Apache Flink<sup>®</sup> - Stateful Computations over Data Streams**
+    </p>
   </div>
 
 <div class="col-sm-12">
@@ -15,47 +16,124 @@ layout: base
 
 </div>
 
-
+<!-- High-level architecture figure -->
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/flink-home-graphic-update.svg" width="700px" />
-</div>
-
-<!-- Updates section -->
-
-<div class="row-fluid">
-
-<div class="col-sm-12">
   <hr />
+  <img src="{{ site.baseurl }}/img/flink-home-graphic.png" width="800px" />
 </div>
 
-<div class="col-sm-3">
+<!-- Feature grid -->
 
-  <h2>Latest Blog Posts</h2>
-
+<!--
+<div class="row">
+  <div class="col-sm-12">
+    <hr />
+    <h2><a href="{{ site.baseurl }}/features.html">Features</a></h2>
+  </div>
 </div>
-
-<div class="col-sm-9">
-
-  <dl>
-    {% for post in site.posts limit:5 %}  
-        <dt> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></dt>
-        <dd>{{ post.excerpt }}</dd>
-    {% endfor %}
-  </dl>
-
+-->
+<div class="row">
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon-th"></span> <b>All streaming use cases</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>Event-driven Applications</li>
+          <li>Stream &amp; Batch Analytics</li>
+          <li>Data Pipelines &amp; ETL</li>
+        </ul>
+        <a href="{{ site.baseurl }}/usecases.html">Learn more</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon-ok"></span> <b>Guaranteed correctness</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>Exactly-once state consistency</li>
+          <li>Event-time processing</li>
+          <li>Sophisticated late data handling</li>
+        </ul>
+        <a href="{{ site.baseurl }}/flink-applications.html#building-blocks-for-streaming-applications">Learn more</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon glyphicon-sort-by-attributes"></span> <b>Layered APIs</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>SQL on Stream &amp; Batch Data</li>
+          <li>DataStream API &amp; DataSet API</li>
+          <li>ProcessFunction (Time &amp; State)</li>
+        </ul>
+        <a href="{{ site.baseurl }}/flink-applications.html#layered-apis">Learn more</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon-dashboard"></span> <b>Operational Focus</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>Flexible deployment</li>
+          <li>High-availability setup</li>
+          <li>Savepoints</li>
+        </ul>
+        <a href="{{ site.baseurl }}/flink-operations.html">Learn more</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon-fullscreen"></span> <b>Scales to any use case</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>Scale-out architecture</li>
+          <li>Support for very large state</li>
+          <li>Incremental checkpointing</li>
+        </ul>
+        <a href="{{ site.baseurl }}/flink-architecture.html#run-applications-at-any-scale">Learn more</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span class="glyphicon glyphicon-flash"></span> <b>Excellent Performance</b>
+      </div>
+      <div class="panel-body">
+        <ul style="font-size: small;">
+          <li>Low latency</li>
+          <li>High throughput</li>
+          <li>In-Memory computing</li>
+        </ul>
+        <a href="{{ site.baseurl }}/flink-architecture.html#leverage-in-memory-performance">Learn more</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Powered by section -->
 
-<div class="row-fluid">
+<div class="row">
   <div class="col-sm-12">
-
-
-  <hr />
+    <br />
     <h2><a href="{{ site.baseurl }}/poweredby.html">Powered by Flink</a></h2>
-
-
 
   <div class="jcarousel">
     <ul>
@@ -124,6 +202,33 @@ layout: base
   </div>
 
 </div>
+
+<!-- Updates section -->
+
+<div class="row">
+
+<div class="col-sm-12">
+  <hr />
+</div>
+
+<div class="col-sm-3">
+
+  <h2><a href="{{ site.baseurl }}/blog.html">Latest Blog Posts</a></h2>
+
+</div>
+
+<div class="col-sm-9">
+
+  <dl>
+    {% for post in site.posts limit:5 %}  
+        <dt> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></dt>
+        <dd>{{ post.excerpt }}</dd>
+    {% endfor %}
+  </dl>
+
+</div>
+
+<!-- Scripts section -->
 
 <script type="text/javascript" src="{{ site.baseurl }}/js/jquery.jcarousel.min.js"></script>
 

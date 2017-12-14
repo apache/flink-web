@@ -2,6 +2,8 @@
 title: "Downloads"
 ---
 
+<hr />
+
 <script type="text/javascript">
 $( document ).ready(function() {
   // Handler for .ready() called.

@@ -1,6 +1,9 @@
 ---
 title: "Community & Project Info"
 ---
+
+<hr />
+
 {% toc %}
 
 There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
@@ -97,12 +100,6 @@ There are many ways to get help from the Apache Flink community. The [mailing li
 </table>
 
 <b style="color:red">Please make sure you are subscribed to the mailing list you are posting to!</b> If you are not subscribed to the mailing list, your message will either be rejected (dev@ list) or you won't receive the response (user@ list).
-
-## IRC
-
-There is an IRC channel called #flink dedicated to Apache Flink at irc.freenode.org. There is also a [web-based IRC client](http://webchat.freenode.net/?channels=flink) available.
-
-The IRC channel can be used for online discussions about Apache Flink as community, but developers should be careful to move or duplicate all the official or useful discussions to the issue tracking system or dev mailing list.
 
 ## Stack Overflow
 
