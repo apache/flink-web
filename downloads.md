@@ -61,7 +61,7 @@ the classpath.
 
 ## Verifying Hashes and Signatures
 
-Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://dist.apache.org/repos/dist/release/flink/KEYS).
+Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
 
 ## Maven Dependencies
 
