@@ -6,25 +6,19 @@ title: "Powered by Flink"
 <!--                Powered by Flink
 <!-- --------------------------------------------- -->
 
-----
-<head>
-<style>
-   th, td {
-   padding: 10px;
-   }
-   .height > img {min-height: 137px};
-</style>
-</head>
+<hr />
 
-<p>To demonstrate Flink's capabilities, we've collected a few examples of Flink use cases inside of companies. The <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> has a comprehensive list of companies and organizations using Flink.</p>
+Apache Flink powers business-critical applications in many companies and enterprises around the globe. On this page, we present a few notable Flink users that run interesting use cases in production and link to resources that discuss their applications in more detail.
 
-Would you like to be included on this page? Please reach out to the [Flink user mailing list]({{ site.baseurl }}/community.html#mailing-lists) and let us know.
+More Flink users are listed in the <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> in the project wiki. Please note that the list is *not* comprehensive. We only add users that explicitly ask to be listed.
+
+If you would you like to be included on this page, please reach out to the [Flink user mailing list]({{ site.baseurl }}/community.html#mailing-lists) and let us know.
 
 <div class="row-fluid">
 
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" /><br />
-      Alibaba, the world's largest retailer, uses a fork of Flink called Blink to optimize search rankings in real time. <br><br><a href="http://data-artisans.com/blink-flink-alibaba-search/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Flink's role at Alibaba</a>
+      Alibaba, the world's largest retailer, uses a fork of Flink called Blink to optimize search rankings in real time. <br><br><a href="https://data-artisans.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Flink's role at Alibaba</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" width="175"  alt="BetterCloud" /><br />
@@ -36,7 +30,7 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" /><br />
-      Capital One, a Fortune 500 financial services company, uses Flink for real-time activity monitoring and alerting. <br><br><a href="http://www.slideshare.net/FlinkForward/flink-case-study-capital-one" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Capital One's case study slides</a>
+      Capital One, a Fortune 500 financial services company, uses Flink for real-time activity monitoring and alerting. <br><br><a href="https://www.slideshare.net/FlinkForward/flink-forward-san-francisco-2018-andrew-gao-jeff-sharpe-finding-bad-acorns" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about Capital One's fraud detection use case</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175"  alt="Drivetribe" /><br />
@@ -82,7 +76,7 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /><br />
-         Zalando, one of the largest e-commerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://tech.zalando.de/blog/apache-showdown-flink-vs.-spark/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
+         Zalando, one of the largest e-commerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
 
 
 </div>
