@@ -15,8 +15,7 @@ many other data processing projects and frameworks.
 
 <ul>
   <li><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch</a> (sink)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch2.html" target="_blank">Elasticsearch 2.x</a> (sink)</li>
+  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x</a> (sink)</li>
   <li><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
   <li><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
   <li><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
