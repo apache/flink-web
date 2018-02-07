@@ -7,6 +7,96 @@
 <atom:link href="http://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Managing Large State in Apache Flink: An Intro to Incremental Checkpointing</title>
+<description>&lt;p&gt;Apache Flink was purpose-built for &lt;em&gt;stateful&lt;/em&gt; stream processing. However, what is state in a stream processing application? I defined state and stateful stream processing in a &lt;a href=&quot;http://flink.apache.org/features/2017/07/04/flink-rescalable-state.html&quot;&gt;previous blog post&lt;/a&gt;, and in case you need a refresher, &lt;em&gt;state is defined as memory in an application’s operators that stores information about previously-seen events that you can use to influence the processing of future events&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;State is a fundamental, enabling concept in stream processing required for a majority of complex use cases. Some examples highlighted in the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/state.html&quot;&gt;Flink documentation&lt;/a&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;When an application searches for certain event patterns, the state stores the sequence of events encountered so far.&lt;/li&gt;
+  &lt;li&gt;When aggregating events per minute, the state holds the pending aggregates.&lt;/li&gt;
+  &lt;li&gt;When training a machine learning model over a stream of data points, the state holds the current version of the model parameters.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, stateful stream processing is only useful in production environments if the state is fault tolerant. “Fault tolerance” means that even if there’s a software or machine failure, the computed end-result is accurate, with no data loss or double-counting of events.&lt;/p&gt;
+
+&lt;p&gt;Flink’s fault tolerance has always been a powerful and popular feature, minimizing the impact of software or machine failure on your business and making it possible to guarantee exactly-once results from a Flink application.&lt;/p&gt;
+
+&lt;p&gt;Core to this is &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/checkpointing.html&quot;&gt;checkpointing&lt;/a&gt;, which is the mechanism Flink uses to make application state fault tolerant. A checkpoint in Flink is a global, asynchronous snapshot of application state that’s taken on a regular interval and sent to durable storage (usually, a distributed file system). In the event of a failure, Flink restarts an application using the most recently completed checkpoint as a starting point. Some Apache Flink users run applications with gigabytes or even terabytes of application state. These users reported that with such large state, creating a checkpoint was often a slow and resource intensive operation, which is why in Flink 1.3 we introduced ‘incremental checkpointing.’&lt;/p&gt;
+
+&lt;p&gt;Before incremental checkpointing, every single Flink checkpoint consisted of the full state of an application. We created the incremental checkpointing feature after we noticed that writing the full state for every checkpoint was often unnecessary, as the state changes from one checkpoint to the next were rarely that large. Incremental checkpointing instead maintains the differences (or ‘delta’) between each checkpoint and stores only the differences between the last checkpoint and the current state.&lt;/p&gt;
+
+&lt;p&gt;Incremental checkpoints can provide a significant performance improvement for jobs with a very large state. Early testing of the feature by a production user with terabytes of state shows a drop in checkpoint time from more than 3 minutes down to 30 seconds after implementing incremental checkpoints. This is because the checkpoint doesn’t need to transfer the full state to durable storage on each checkpoint.&lt;/p&gt;
+
+&lt;h3 id=&quot;how-to-start&quot;&gt;How to Start&lt;/h3&gt;
+
+&lt;p&gt;Currently, you can only use incremental checkpointing with a RocksDB state back-end, and Flink uses RocksDB’s internal backup mechanism to consolidate checkpoint data over time. As a result, the incremental checkpoint history in Flink does not grow indefinitely, and Flink eventually consumes and prunes old checkpoints automatically.&lt;/p&gt;
+
+&lt;p&gt;To enable incremental checkpointing in your application, I recommend you read the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.4/ops/state/large_state_tuning.html#tuning-rocksdb&quot;&gt;the Apache Flink documentation on checkpointing&lt;/a&gt; for full details, but in summary, you enable checkpointing as normal, but enable incremental checkpointing in the constructor by setting the second parameter to &lt;code&gt;true&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;java-example&quot;&gt;Java Example&lt;/h4&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filebackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;scala-example&quot;&gt;Scala Example&lt;/h4&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filebackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By default, Flink retains 1 completed checkpoint, so if you need a higher number, &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/dev/stream/state/checkpointing.html#related-config-options&quot;&gt;you can configure it with the following flag&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;checkpoints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;retained&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;how-it-works&quot;&gt;How it Works&lt;/h3&gt;
+
+&lt;p&gt;Flink’s incremental checkpointing uses &lt;a href=&quot;https://github.com/facebook/rocksdb/wiki/Checkpoints&quot;&gt;RocksDB checkpoints&lt;/a&gt; as a foundation. RocksDB is a key-value store based on ‘&lt;a href=&quot;https://en.wikipedia.org/wiki/Log-structured_merge-tree&quot;&gt;log-structured-merge&lt;/a&gt;’ (LSM) trees that collects all changes in a mutable (changeable) in-memory buffer called a ‘memtable’. Any updates to the same key in the memtable replace previous values, and once the memtable is full, RocksDB writes it to disk with all entries sorted by their key and with light compression applied. Once RocksDB writes the memtable to disk it is immutable (unchangeable) and is now called a ‘sorted-string-table’ (sstable).&lt;/p&gt;
+
+&lt;p&gt;A ‘compaction’ background task merges sstables to consolidate potential duplicates for each key, and over time RocksDB deletes the original sstables, with the merged sstable containing all information from across all the other sstables.&lt;/p&gt;
+
+&lt;p&gt;On top of this, Flink tracks which sstable files RocksDB has created and deleted since the previous checkpoint, and as the sstables are immutable, Flink uses this to figure out the state changes. To do this, Flink triggers a flush in RocksDB, forcing all memtables into sstables on disk, and hard-linked in a local temporary directory. This process is synchronous to the processing pipeline, and Flink performs all further steps asynchronously and does not block processing.&lt;/p&gt;
+
+&lt;p&gt;Then Flink copies all new sstables to stable storage (e.g., HDFS, S3) to reference in the new checkpoint. Flink doesn’t copy all sstables that already existed in the previous checkpoint to stable storage but re-reference them. Any new checkpoints will no longer reference deleted files as deleted sstables in RocksDB are always the result of compaction, and it eventually replaces old tables with an sstable that is the result of a merge. This how in Flink’s incremental checkpoints can prune the checkpoint history.&lt;/p&gt;
+
+&lt;p&gt;For tracking changes between checkpoints, the uploading of consolidated tables is redundant work. Flink performs the process incrementally, and typically adds only a small overhead, so we consider this worthwhile because it allows Flink to keep a shorter history of checkpoints to consider in a recovery.&lt;/p&gt;
+
+&lt;h4 id=&quot;an-example&quot;&gt;An Example&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/blog/incremental_cp_impl_example.svg&quot; alt=&quot;Example setup&quot; /&gt;
+&lt;em&gt;Example setup&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Take an example with a subtask of one operator that has a keyed state, and the number of retained checkpoints set at &lt;strong&gt;2&lt;/strong&gt;. The columns in the figure above show the state of the local RocksDB instance for each checkpoint, the files it references, and the counts in the shared state registry after the checkpoint completes.&lt;/p&gt;
+
+&lt;p&gt;For checkpoint ‘CP 1’, the local RocksDB directory contains two sstable files, it considers these new and uploads them to stable storage using directory names that match the checkpoint name. When the checkpoint completes, Flink creates the two entries in the shared state registry and sets their counts to ‘1’. The key in the shared state registry is a composite of an operator, subtask, and the original sstable file name. The registry also keeps a mapping from the key to the file path in stable storage.&lt;/p&gt;
+
+&lt;p&gt;For checkpoint ‘CP 2’, RocksDB has created two new sstable files, and the two older ones still exist. For checkpoint ‘CP 2’, Flink adds the two new files to stable storage and can reference the previous two files. When the checkpoint completes, Flink increases the counts for all referenced files by 1.&lt;/p&gt;
+
+&lt;p&gt;For checkpoint ‘CP 3’, RocksDB’s compaction has merged &lt;code&gt;sstable-(1)&lt;/code&gt;, &lt;code&gt;sstable-(2)&lt;/code&gt;, and &lt;code&gt;sstable-(3)&lt;/code&gt; into &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and deleted the original files. This merged file contains the same information as the source files, with all duplicate entries eliminated. In addition to this merged file, &lt;code&gt;sstable-(4)&lt;/code&gt; still exists and there is now a new &lt;code&gt;sstable-(5)&lt;/code&gt; file. Flink adds the new &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and &lt;code&gt;sstable-(5)&lt;/code&gt; files to stable storage, &lt;code&gt;sstable-(4)&lt;/code&gt; is re-referenced from checkpoint ‘CP 2’ and increases the counts for referenced files by 1. The older ‘CP 1’ checkpoint is now deleted as the number of retained checkpoints (2) has been reached. As part of this deletion, Flink decreases the counts for all files referenced ‘CP 1’, (&lt;code&gt;sstable-(1)&lt;/code&gt; and &lt;code&gt;sstable-(2)&lt;/code&gt;), by 1.&lt;/p&gt;
+
+&lt;p&gt;For checkpoint ‘CP-4’, RocksDB has merged &lt;code&gt;sstable-(4)&lt;/code&gt;, &lt;code&gt;sstable-(5)&lt;/code&gt;, and a new &lt;code&gt;sstable-(6)&lt;/code&gt; into &lt;code&gt;sstable-(4,5,6)&lt;/code&gt;. Flink adds this new table to stable storage and references it together with &lt;code&gt;sstable-(1,2,3)&lt;/code&gt;, it increases the counts for &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and &lt;code&gt;sstable-(4,5,6)&lt;/code&gt; by 1 and then deletes ‘CP-2’ as the number of retained checkpoints has been reached. As the counts for &lt;code&gt;sstable-(1)&lt;/code&gt;, &lt;code&gt;sstable-(2)&lt;/code&gt;, and &lt;code&gt;sstable-(3)&lt;/code&gt; have now dropped to 0, and Flink deletes them from stable storage.&lt;/p&gt;
+
+&lt;h3 id=&quot;race-conditions-and-concurrent-checkpoints&quot;&gt;Race Conditions and Concurrent Checkpoints&lt;/h3&gt;
+
+&lt;p&gt;As Flink can execute multiple checkpoints in parallel, sometimes new checkpoints start before confirming previous checkpoints as completed. Because of this, you should consider which the previous checkpoint to use as a basis for a new incremental checkpoint. Flink only references state from a checkpoint confirmed by the checkpoint coordinator so that it doesn’t unintentionally reference a deleted shared file.&lt;/p&gt;
+
+&lt;h3 id=&quot;restoring-checkpoints-and-performance-considerations&quot;&gt;Restoring Checkpoints and Performance Considerations&lt;/h3&gt;
+
+&lt;p&gt;If you enable incremental checkpointing, there are no further configuration steps needed to recover your state in case of failure. If a failure occurs, Flink’s &lt;code&gt;JobManager&lt;/code&gt; tells all tasks to restore from the last completed checkpoint, be it a full or incremental checkpoint. Each &lt;code&gt;TaskManager&lt;/code&gt; then downloads their share of the state from the checkpoint on the distributed file system.&lt;/p&gt;
+
+&lt;p&gt;Though the feature can lead to a substantial improvement in checkpoint time for users with a large state, there are trade-offs to consider with incremental checkpointing. Overall, the process reduces the checkpointing time during normal operations but can lead to a longer recovery time depending on the size of your state. If the cluster failure is particularly severe and the Flink &lt;code&gt;TaskManager&lt;/code&gt;s have to read from multiple checkpoints, recovery can be a slower operation than when using non-incremental checkpointing. You can also no longer delete old checkpoints as newer checkpoints need them, and the history of differences between checkpoints can grow indefinitely over time. You need to plan for larger distributed storage to maintain the checkpoints and the network overhead to read from it.&lt;/p&gt;
+
+&lt;p&gt;There are some strategies for improving the convenience/performance trade-off, and I recommend you read &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.4/ops/state/checkpoints.html#basics-of-incremental-checkpoints&quot;&gt;the Flink documentation&lt;/a&gt; for more details.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;This post &lt;a href=&quot;https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview&quot; target=&quot;_blank&quot;&gt; originally appeared on the data Artisans blog &lt;/a&gt;and was contributed to the Flink blog by Stefan Richter and Chris Ward.&lt;/em&gt;&lt;/p&gt;
+&lt;link rel=&quot;canonical&quot; href=&quot;https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview&quot; /&gt;
+
+</description>
+<pubDate>Tue, 30 Jan 2018 13:00:00 +0100</pubDate>
+<link>http://flink.apache.org/features/2018/01/30/incremental-checkpointing.html</link>
+<guid isPermaLink="true">/features/2018/01/30/incremental-checkpointing.html</guid>
+</item>
+
+<item>
 <title>Apache Flink in 2017: Year in Review</title>
 <description>&lt;p&gt;2017 was another exciting year for the Apache Flink® community, with 3 major version releases (&lt;a href=&quot;http://flink.apache.org/news/2017/02/06/release-1.2.0.html&quot;&gt;Flink 1.2.0 in February&lt;/a&gt;, &lt;a href=&quot;http://flink.apache.org/news/2017/06/01/release-1.3.0.html&quot;&gt;Flink 1.3.0 in June&lt;/a&gt;, and &lt;a href=&quot;http://flink.apache.org/news/2017/12/12/release-1.4.0.html&quot;&gt;Flink 1.4.0 in December&lt;/a&gt;) and the first-ever &lt;a href=&quot;https://sf-2017.flink-forward.org/&quot;&gt;Flink Forward in San Francisco&lt;/a&gt;, giving Flink community members in another corner of the globe an opportunity to connect. Users shared details about their innovative production deployments, redefining what is possible with a modern stream processing framework like Flink.&lt;/p&gt;
 
