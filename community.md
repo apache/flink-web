@@ -297,7 +297,7 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5725237?s=50"></td>
     <td class="text-center">Chesnay Schepler</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">chesnay</td>
   </tr>
   <tr>
