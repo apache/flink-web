@@ -21,15 +21,15 @@
 
 PACKAGE=quickstart
 
-mvn archetype:generate								\
-  -DarchetypeGroupId=org.apache.flink				\
-  -DarchetypeArtifactId=flink-quickstart-java		\
-  -DarchetypeVersion=1.4-SNAPSHOT					\
-  -DgroupId=org.myorg.quickstart 					\
-  -DartifactId=$PACKAGE								\
-  -Dversion=0.1										\
-  -Dpackage=org.myorg.quickstart 					\
-  -DinteractiveMode=false							\
+mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate	\
+  -DarchetypeGroupId=org.apache.flink								\
+  -DarchetypeArtifactId=flink-quickstart-java						\
+  -DarchetypeVersion=1.5-SNAPSHOT									\
+  -DgroupId=org.myorg.quickstart 									\
+  -DartifactId=$PACKAGE												\
+  -Dversion=0.1														\
+  -Dpackage=org.myorg.quickstart 									\
+  -DinteractiveMode=false											\
   -DarchetypeCatalog=https://repository.apache.org/content/repositories/snapshots/
 
 #
