@@ -61,36 +61,59 @@ layout: base
     <ul>
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" /></div>
-          <!--<span>Alibaba uses Flink for real-time search optimization.</span>-->
+         
 
         </li>
         <li>
-          <div><img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" /></div>
-          <!-- <span>Bouygues Telecom uses Flink for network monitoring.</span> -->
+          <div><img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" /></div>
+         
         </li>
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" /></div>
-          <!-- <span>Capital One uses Flink for anomaly detection.</span> -->
+         
         </li>
         <li>
-          <div><img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" /></div>
-          <!-- <span>Ericsson uses Flink for .</span> -->
+          <div><img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" width="175" alt="Uber" /></div>
+          
         </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" width="175" alt="BetterCloud" /></div>
+         
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" /></div>
+         
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" /></div>
+         
+        </li>
+        
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/king-logo.png" width="175" alt="King" /></div>
-          <!-- <span>King uses Flink to power real-time game analytics.</span> -->
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" /></div>
+        
+        </li>
+        <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/mux-logo.png" width="175" alt="Mux" /></div>        
         </li>
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" /></div>
-          <!-- <span>Otto Group uses Flink for.</span> -->
+          
         </li>
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" /></div>
-          <!-- <span>ResearchGate uses Flink for.</span>        -->
+          
+        </li>
+         <li>
+          <div><img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" /></div>
+          
         </li>
         <li>
           <div><img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /></div>
-          <!-- <span>Zalando goes big with Flink.</span> -->
+          
         </li>
     </ul>
   </div>

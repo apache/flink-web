@@ -71,10 +71,19 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" /><br />
          ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
   </div>
+   </div>
+   <div class="height col-md-3 col-sm-4 col-xs-6">
+   <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" /><br />
+         Telefónica NEXT's TÜV-certified Data Anonymization Platform is powered by Flink. <br><br><a href="https://next.telefonica.de/en/solutions/big-data-privacy-services" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Telefónica NEXT</a>
+   </div>
+  <div class="height col-md-3 col-sm-4 col-xs-6">
+   <img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" width="175" alt="Uber" /><br />
+         Uber built their internal SQL-based, open-source streaming analytics platform AthenaX on Apache Flink. <br><br><a href="https://eng.uber.com/athenax/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Uber engineering blog</a>
+   </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /><br />
          Zalando, one of the largest ecommerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://tech.zalando.de/blog/apache-showdown-flink-vs.-spark/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
-   </div>
+  
 
 </div>
 
