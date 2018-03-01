@@ -42,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.11.7"
-defaultFlinkVersion="1.3.2"
+defaultFlinkVersion="1.4.1"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -116,7 +116,7 @@ lazy val root = (project in file(\".\")).
 mainClass in assembly := Some(\"$organization.Job\")
 
 // make run command include the provided dependencies
-run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
+run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)).evaluated
 
 // exclude Scala library from assembly
 assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)" > ${directoryName}/build.sbt
@@ -128,7 +128,7 @@ echo "lazy val mainRunner = project.in(file(\"mainRunner\")).dependsOn(RootProje
   libraryDependencies := (libraryDependencies in RootProject(file(\".\"))).value.map{
     module =>
       if (module.configurations.equals(Some(\"provided\"))) {
-        module.copy(configurations = None)
+        module.withConfigurations(None)
       } else {
         module
       }
@@ -137,7 +137,7 @@ echo "lazy val mainRunner = project.in(file(\"mainRunner\")).dependsOn(RootProje
 
 # Create assembly plugin file
 
-echo "addSbtPlugin(\"com.eed3si9n\" % \"sbt-assembly\" % \"0.14.1\")" > ${directoryName}/project/assembly.sbt
+echo "addSbtPlugin(\"com.eed3si9n\" % \"sbt-assembly\" % \"0.14.6\")" > ${directoryName}/project/assembly.sbt
 
 # Create package structure
 
