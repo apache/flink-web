@@ -41,8 +41,8 @@ function mkPackage() {
 defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
-defaultScalaVersion="2.11.7"
-defaultFlinkVersion="1.4.1"
+defaultScalaVersion="2.11.12"
+defaultFlinkVersion="1.5.0"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -92,17 +92,20 @@ In order to run your application from within IntelliJ, you have to select the cl
 
 # Create the build.sbt file
 
-echo "resolvers in ThisBuild ++= Seq(\"Apache Development Snapshot Repository\" at \"https://repository.apache.org/content/repositories/snapshots/\", Resolver.mavenLocal)
+echo "ThisBuild / resolvers ++= Seq(
+  \"Apache Development Snapshot Repository\" at \"https://repository.apache.org/content/repositories/snapshots/\",
+  Resolver.mavenLocal
+)
 
-name := \"$projectName\"
+name := \"Flink Project\"
 
-version := \"$version\"
+version := \"0.1-SNAPSHOT\"
 
-organization := \"$organization\"
+organization := \"org.example\"
 
-scalaVersion in ThisBuild := \"$scalaVersion\"
+ThisBuild / scalaVersion := \"2.11.12\"
 
-val flinkVersion = \"$flinkVersion\"
+val flinkVersion = \"1.5.0\"
 
 val flinkDependencies = Seq(
   \"org.apache.flink\" %% \"flink-scala\" % flinkVersion % \"provided\",
@@ -113,25 +116,30 @@ lazy val root = (project in file(\".\")).
     libraryDependencies ++= flinkDependencies
   )
 
-mainClass in assembly := Some(\"$organization.Job\")
+assembly / mainClass := Some(\"org.example.Job\")
 
 // make run command include the provided dependencies
-run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)).evaluated
+Compile / run  := Defaults.runTask(Compile / fullClasspath,
+  Compile / run / mainClass,
+  Compile / run / runner
+).evaluated
+
+// stays inside the sbt console when we press \"ctrl-c\" while a Flink programme executes with \"run\" or \"runMain\"
+Compile / run / fork := true
+Global / cancelable := true
 
 // exclude Scala library from assembly
-assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)" > ${directoryName}/build.sbt
+assembly / assemblyOption  := (assembly / assemblyOption).value.copy(includeScala = false)" > ${directoryName}/build.sbt
 
 # Create idea.sbt file for mainRunner module for IntelliJ
 
 echo "lazy val mainRunner = project.in(file(\"mainRunner\")).dependsOn(RootProject(file(\".\"))).settings(
   // we set all provided dependencies to none, so that they are included in the classpath of mainRunner
   libraryDependencies := (libraryDependencies in RootProject(file(\".\"))).value.map{
-    module =>
-      if (module.configurations.equals(Some(\"provided\"))) {
-        module.withConfigurations(None)
-      } else {
-        module
-      }
+    module => module.configurations match {
+      case Some(\"provided\") => module.withConfigurations(None)
+      case _ => module
+    }
   }
 )" > ${directoryName}/idea.sbt
 
