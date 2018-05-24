@@ -59,6 +59,10 @@ the classpath.
    (<a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_MD5 }}">md5</a>)
 </div>
 
+## Release Notes
+
+Please have a look at the [Release Notes for Flink {{ site.FLINK_VERSION_STABLE_SHORT }}]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html) if you plan to upgrade your Flink setup from a previous version.
+
 ## Verifying Hashes and Signatures
 
 Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
