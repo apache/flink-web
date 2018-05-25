@@ -42,7 +42,7 @@ the classpath.
     {% for binary_release in site.stable_releases %}
     <tr>
     <th>{{ binary_release.name }}</th>
-    <td><a href="{{ binary_release.url }}" class="ga-track" id="{{ binary_release.id }}">Download</a> (<a href="{{ binary_release.asc_url }}">asc</a>, <a href="{{ binary_release.md5_url }}">md5</a>)</td>
+    <td><a href="{{ binary_release.url }}" class="ga-track" id="{{ binary_release.id }}">Download</a> (<a href="{{ binary_release.asc_url }}">asc</a>, <a href="{{ binary_release.sha512_url }}">sha512</a>)</td>
     </tr>
     {% endfor %}
 </tbody>
@@ -56,7 +56,7 @@ the classpath.
     <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Apache Flink® {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
     <p>Review the source code or build Flink on your own, using this package</p>
   </a>
-   (<a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_MD5 }}">md5</a>)
+   (<a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_SHA512 }}">sha512</a>)
 </div>
 
 ## Release Notes
@@ -65,7 +65,7 @@ Please have a look at the [Release Notes for Flink {{ site.FLINK_VERSION_STABLE_
 
 ## Verifying Hashes and Signatures
 
-Along our releases, we also provide MD5 hashes in `*.md5` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
+Along our releases, we also provide sha512 hashes in `*.sha512` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
 
 ## Maven Dependencies
 
