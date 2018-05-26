@@ -22,7 +22,7 @@ The documentation is located in the `docs/` subdirectory of the Flink code base.
 
 ## Before you start working on the documentation ...
 
-... please make sure there exists a [JIRA](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a JIRA issue, except for trivial fixes such as typos.
+... please make sure there exists a [Jira](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a Jira issue, except for trivial fixes such as typos.
 
 ## Update or extend the documentation
 
@@ -45,7 +45,7 @@ The Flink project accepts documentation contributions through the [GitHub Mirror
 
 To prepare and submit a pull request follow these steps.
 
-1. Commit your changes to your local git repository. The commit message should point to the corresponding JIRA issue by starting with `[FLINK-XXXX]`.
+1. Commit your changes to your local git repository. The commit message should point to the corresponding Jira issue by starting with `[FLINK-XXXX]`.
 
 2. Push your committed contribution to your fork of the Flink repository at GitHub.
 
@@ -55,4 +55,4 @@ To prepare and submit a pull request follow these steps.
 
 3. Go to the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and submit it.
 
-It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) issue.
+It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) issue.
