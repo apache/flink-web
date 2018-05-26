@@ -14,12 +14,12 @@ We welcome any contribution to improve our website. This document contains all i
 
 ## Obtain the website sources
 
-The website of Apache Flink is hosted in a dedicated [git](http://git-scm.com/) repository which is mirrored to Github at [https://github.com/apache/flink-web](https://github.com/apache/flink-web).
+The website of Apache Flink is hosted in a dedicated [git](http://git-scm.com/) repository which is mirrored to GitHub at [https://github.com/apache/flink-web](https://github.com/apache/flink-web).
 
-The easiest way to contribute website updates is to fork [the mirrored website repository on Github](https://github.com/apache/flink-web) into your own Github account by clicking on the fork button at the top right. If you have no Github account, you can create one for free.
+The easiest way to contribute website updates is to fork [the mirrored website repository on GitHub](https://github.com/apache/flink-web) into your own GitHub account by clicking on the fork button at the top right. If you have no GitHub account, you can create one for free.
 
 Next, clone your fork to your local machine.
-  
+
 ```
 git clone https://github.com/<your-user-name>/flink-web.git
 ```
@@ -64,7 +64,7 @@ To prepare and submit a pull request follow these steps.
 
 1. Commit your changes to your local git repository. **Please Make sure that your commit does not include translated files (any files in the `content/` directory).** Unless your contribution is a major rework of the website, please squash it into a single commit.
 
-2. Push the commit to a dedicated branch of your fork of the Flink repository at Github.
+2. Push the commit to a dedicated branch of your fork of the Flink repository at GitHub.
 
 	```
 	git push origin myBranch
@@ -77,7 +77,7 @@ To prepare and submit a pull request follow these steps.
 **This section is only relevant for committers.**
 
 ### ASF website git repositories
-{:.no_toc} 
+{:.no_toc}
 
 **ASF writable**: https://git-wip-us.apache.org/repos/asf/flink-web.git
 
@@ -86,7 +86,7 @@ To prepare and submit a pull request follow these steps.
 Details on how to set the credentials for the ASF git repository are [linked here](https://git-wip-us.apache.org/).
 
 ### Merging a pull request
-{:.no_toc} 
+{:.no_toc}
 
 Contributions are expected to be done on the source files only (no modifications on the compiled files in the `content/` directory.). Before pushing a website change, please run the build script
 
@@ -97,6 +97,6 @@ Contributions are expected to be done on the source files only (no modifications
 add the changes to the `content/` directory as an additional commit and push the changes to the ASF base repository.
 
 ### Updating the documentation directory
-{:.no_toc} 
+{:.no_toc}
 
 The build script does also take care of maintaining the `docs/` directory. Set the `-u` flag to update documentation. This includes fetching the Flink git repository and copying different versions of the documentation.

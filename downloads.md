@@ -25,9 +25,9 @@ An Apache Hadoop installation is
 to use Flink. If you plan to run Flink in YARN or process data stored in HDFS then
 select the version matching your installed Hadoop version.
 
-The binary releases marked with a Hadoop version come bundled with binaries for that Hadoop version,
-the binary release without bundled Hadoop can be used without Hadoop or with a Hadoop version
-that is installed in the environment, i.e. this version can pick up a Hadoop version from
+The binary releases marked with a Hadoop version come bundled with binaries for that Hadoop version.
+The binary release without bundled Hadoop can be used without Hadoop or with a Hadoop version
+that is installed in the environment, i.e., this version can pick up a Hadoop version from
 the classpath.
 
 ### Binaries
@@ -65,7 +65,7 @@ Please have a look at the [Release Notes for Flink {{ site.FLINK_VERSION_STABLE_
 
 ## Verifying Hashes and Signatures
 
-Along our releases, we also provide sha512 hashes in `*.sha512` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
+Along with our releases, we also provide sha512 hashes in `*.sha512` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
 
 ## Maven Dependencies
 
@@ -95,7 +95,7 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 
 As of March 2017, the Flink community [decided](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
 
-Note that the community is always open for discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
+Note that the community is always open to discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
 
 
 ## All releases
@@ -133,4 +133,4 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink 0.6.1-incubating - 2014-09-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/flink-0.6.1-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/))
 - Flink 0.6-incubating - 2014-08-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/))
 
-Previous Stratosphere releases are available on [Github](https://github.com/stratosphere/stratosphere/releases).
+Previous Stratosphere releases are available on [GitHub](https://github.com/stratosphere/stratosphere/releases).
