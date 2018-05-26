@@ -43,7 +43,7 @@ whereas a stream of bytes from a file is a bounded stream.
 
 Bounded streams are often more efficient to process than unbounded streams. Processing unbounded streams of events
 in (near) real-time requires the system to be able to immediately act on events and to produce intermediate
-results (often with low latency). Processing bounded streams usually does not require to produce low latency results, because the data is a while old
+results (often with low latency). Processing bounded streams usually does not require producing low latency results, because the data is a while old
 anyway (in relative terms). That allows Flink to process the data in a simple and more efficient way.
 
 The *DataStream* API captures the continuous processing of unbounded and bounded streams, with a model that supports
@@ -56,7 +56,7 @@ plans to combine these optimizations with the techniques in the DataStream API.
 
 Flink is independent of [Apache Hadoop](https://hadoop.apache.org/) and runs without any Hadoop dependencies.
 
-However, Flink integrates very well with many Hadoop components, for example *HDFS*, *YARN*, or *HBase*.
+However, Flink integrates very well with many Hadoop components, for example, *HDFS*, *YARN*, or *HBase*.
 When running together with these components, Flink can use HDFS to read data, or write results and checkpoints/snapshots.
 Flink can be easily deployed via YARN and integrates with the YARN and HDFS Kerberos security modules.
 
@@ -93,11 +93,13 @@ Because of that, all functions that you pass to the API must be serializable, as
 [java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html).
 
 If your function is an anonymous inner class, consider the following:
-  - make the function a standalone class, or a static inner class
-  - use a Java 8 lambda function.
 
-Is your function is already a static class, check the fields that you assign when you create
+  - Make the function a standalone class, or a static inner class.
+  - Use a Java 8 lambda function.
+
+If your function is already a static class, check the fields that you assign when you create
 an instance of the class. One of the fields most likely holds a non-serializable type.
+
   - In Java, use a `RichFunction` and initialize the problematic fields in the `open()` method.
   - In Scala, you can often simply use “lazy val” to defer initialization until the distributed execution happens. This may come at a minor performance cost. You can naturally also use a `RichFunction` in Scala.
 
@@ -127,12 +129,12 @@ multiple versions of the class `com.foo.X` have been loaded by different class l
 
 The reason for that can be:
 
-  - Class duplication through `child-first` classloading. That is an intended mechanism to allow users to use different versions of the same
+  - Class duplication through `child-first` classloading. That is an intentional mechanism to allow users to use different versions of the same
     dependencies that Flink uses. However, if different copies of these classes move between Flink's core and the user application code, such an exception
     can occur. To verify that this is the reason, try setting `classloader.resolve-order: parent-first` in the configuration.
     If that makes the error disappear, please write to the mailing list to check if that may be a bug.
 
-  - Caching of classes from different execution attempts, for example by utilities like Guava’s Interners, or Avro's Schema cache.
+  - Caching of classes from different execution attempts, for example, by utilities like Guava’s Interners, or Avro's Schema cache.
     Try to not use interners, or reduce the scope of the interner/cache to make sure a new cache is created whenever a new task
     execution is started.
 
@@ -146,6 +148,7 @@ by Flink's core, or other dependencies in the classpath (for example from Hadoop
 to be activated, which is the default.
 
 If you see these problems in Flink 1.4+, one of the following may be true:
+
   - You have a dependency version conflict within your application code. Make sure all your dependency versions are consistent.
   - You are conflicting with a library that Flink cannot support via `child-first` classloading. Currently these are the
     Scala standard library classes, as well as Flink's own classes, logging APIs, and any Hadoop core classes.
@@ -170,9 +173,8 @@ Please refer to the [Configuration Reference]({{ site.docs-snapshot }}/ops/confi
 
 ## My job fails with various exceptions from the HDFS/Hadoop code. What can I do?
 
-The most common cause for that is that the Hadoop version in Flink's classpath is different than the
+The most common cause for that is that the Hadoop version in Flink's classpath is different from the
 Hadoop version of the cluster you want to connect to (HDFS / YARN).
 
 The easiest way to fix that is to pick a Hadoop-free Flink version and simply export the Hadoop path and
 classpath from the cluster.
-

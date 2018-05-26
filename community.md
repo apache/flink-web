@@ -3,7 +3,7 @@ title: "Community & Project Info"
 ---
 {% toc %}
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is a [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/flink). Please remember to tag your questions with the *[flink](http://stackoverflow.com/questions/tagged/flink)* tag. Bugs and feature requests can either be discussed on *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
 
 ## Mailing Lists
 
@@ -19,7 +19,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
   <tr>
     <td>
       <strong>news</strong>@flink.apache.org<br>
-      <small>News and announcements from the Flink community.</small>
+      <small>News and announcements from the Flink community</small>
     </td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-digest-subscribe@flink.apache.org">Subscribe</a></td>
@@ -32,7 +32,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
   <tr>
     <td>
       <strong>community</strong>@flink.apache.org<br>
-      <small>Broader community discussions related to meetups, conferences, blog posts and job offers.</small>
+      <small>Broader community discussions related to meetups, conferences, blog posts and job offers</small>
     </td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community-digest-subscribe@flink.apache.org">Subscribe</a></td>
@@ -96,7 +96,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
   </tr>
 </table>
 
-<b style="color:red">Please make sure you are subscribed to the mailing list you are posting to!</b> If you are not subscribed to the mailing list, your message will either be rejected (dev@ list) or you won't receive the response (user@) list.
+<b style="color:red">Please make sure you are subscribed to the mailing list you are posting to!</b> If you are not subscribed to the mailing list, your message will either be rejected (dev@ list) or you won't receive the response (user@ list).
 
 ## IRC
 
@@ -106,7 +106,7 @@ The IRC channel can be used for online discussions about Apache Flink as communi
 
 ## Stack Overflow
 
-Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/flink) for the [flink](http://stackoverflow.com/questions/tagged/flink) tag.
+Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) for the [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) tag.
 
 Make sure to tag your questions there accordingly to get answers from the Flink community.
 
@@ -156,7 +156,7 @@ Flink Forward 2015 (October 12-13, 2015) was the first conference to bring toget
 
 The second edition of Flink Forward took place on September 12-14, 2016. All [slides and videos](http://2016.flink-forward.org/program/sessions/) are available on the Flink Forward 2016 page.
 
-In 2017, Flink Forward came to San Francisco to welcome the Apache Flink community to one day of training and one day of conference. Find all videos on our [YouTube Channel](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) and all slides on [Slideshare](https://www.slideshare.net/FlinkForward).
+In 2017, Flink Forward came to San Francisco to welcome the Apache Flink community to one day of training and one day of conference. Find all videos on our [YouTube Channel](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) and all slides on [SlideShare](https://www.slideshare.net/FlinkForward).
 
 # People
 

@@ -16,7 +16,7 @@ title: "Powered by Flink"
 </style>
 </head>
 
-<p>To demonstrate Flink's capabilities, we've collected a few examples Flink use cases inside of companies. The <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> has a comprehensive list of companies and organizations using Flink.</p>
+<p>To demonstrate Flink's capabilities, we've collected a few examples of Flink use cases inside of companies. The <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> has a comprehensive list of companies and organizations using Flink.</p>
 
 Would you like to be included on this page? Please reach out to the [Flink user mailing list]({{ site.baseurl }}/community.html#mailing-lists) and let us know.
 
@@ -40,7 +40,7 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175"  alt="Drivetribe" /><br />
-      Drivetribe, a digital community founded by the former hosts of "Top Gear", uses Flink for metrics and content recommendations. <br><br><a href="https://data-artisans.com/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
+      Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://data-artisans.com/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
    </div>
 
    <div class="height col-md-3 col-sm-4 col-xs-6">
@@ -82,8 +82,8 @@ Would you like to be included on this page? Please reach out to the [Flink user 
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" /><br />
-         Zalando, one of the largest ecommerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://tech.zalando.de/blog/apache-showdown-flink-vs.-spark/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
-  
+         Zalando, one of the largest e-commerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://tech.zalando.de/blog/apache-showdown-flink-vs.-spark/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
+
 
 </div>
 
