@@ -6,7 +6,7 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 
 This document contains everything you need to know about contributing code to Apache Flink. It describes the process of preparing, testing, and submitting a contribution, explains coding guidelines and code style of Flink's code base, and gives instructions to setup a development environment.
 
-**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a JIRA ticket and reach consensus with the community on whether this feature is needed.
+**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a Jira ticket and reach consensus with the community on whether this feature is needed.
 
 
 
@@ -16,9 +16,9 @@ This document contains everything you need to know about contributing code to Ap
 
 ### Before you start coding…
 
-…please make sure there is a JIRA issue that corresponds to your contribution. This is a *general rule* that the Flink community follows for all code contributions, including bug fixes, improvements, or new features, with an exception for *trivial* hot fixes. If you would like to fix a bug that you found or if you would like to add a new feature or improvement to Flink, please follow the [File a bug report]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) or [Propose an improvement or a new feature]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature) guidelines to open an issue in [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK) before starting with the implementation.
+…please make sure there is a Jira issue that corresponds to your contribution. This is a *general rule* that the Flink community follows for all code contributions, including bug fixes, improvements, or new features, with an exception for *trivial* hot fixes. If you would like to fix a bug that you found or if you would like to add a new feature or improvement to Flink, please follow the [File a bug report]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) or [Propose an improvement or a new feature]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature) guidelines to open an issue in [Flink's Jira](http://issues.apache.org/jira/browse/FLINK) before starting with the implementation.
 
-If the description of a JIRA issue indicates that its resolution will touch sensible parts of the code base, be sufficiently complex, or add significant amounts of new code, the Flink community might request a design document. (Most contributions should not require a design document.) The purpose of this document is to ensure that the overall approach to address the issue is sensible and agreed upon by the community. JIRA issues that require a design document are tagged with the **`requires-design-doc`** label. The label can be attached by any community member who feels that a design document is necessary. A good description helps to decide whether a JIRA issue requires a design document or not. The design document must be added or attached to or linked from the JIRA issue and cover the following aspects:
+If the description of a Jira issue indicates that its resolution will touch sensible parts of the code base, be sufficiently complex, or add significant amounts of new code, the Flink community might request a design document. (Most contributions should not require a design document.) The purpose of this document is to ensure that the overall approach to address the issue is sensible and agreed upon by the community. Jira issues that require a design document are tagged with the **`requires-design-doc`** label. The label can be attached by any community member who feels that a design document is necessary. A good description helps to decide whether a Jira issue requires a design document or not. The design document must be added or attached to or linked from the Jira issue and cover the following aspects:
 
 - Overview of the general approach.
 - List of API changes (changed interfaces, new and deprecated configuration parameters, changed behavior, …).
@@ -27,19 +27,19 @@ If the description of a JIRA issue indicates that its resolution will touch sens
 
 A design document can be added by anybody, including the reporter of the issue or the person working on it.
 
-Contributions for JIRA issues that require a design document will not be added to Flink's code base before a design document has been accepted by the community with [lazy consensus](http://www.apache.org/foundation/glossary.html#LazyConsensus). Please check if a design document is required before starting to code.
+Contributions for Jira issues that require a design document will not be added to Flink's code base before a design document has been accepted by the community with [lazy consensus](http://www.apache.org/foundation/glossary.html#LazyConsensus). Please check if a design document is required before starting to code.
 
 
 ### While coding…
 
 …please respect the following rules:
 
-- Take any discussion or requirement that is recorded in the JIRA issue into account.
+- Take any discussion or requirement that is recorded in the Jira issue into account.
 - Follow the design document (if a design document is required) as close as possible. Please update the design document and seek consensus, if your implementation deviates too much from the solution proposed by the design document. Minor variations are OK but should be pointed out when the contribution is submitted.
 - Closely follow the [coding guidelines]( {{site.base}}/contribute-code.html#coding-guidelines) and the [code style]({{ site.base }}/contribute-code.html#code-style).
 - Do not mix unrelated issues into one contribution.
 
-**Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the JIRA issue.
+**Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the Jira issue.
 
 The following instructions will help you to [setup a development environment]( {{ site.base }}/contribute-code.html#setup-a-development-environment).
 
@@ -61,7 +61,7 @@ You can build the code, run the tests, and check (parts of) the code style by ca
 mvn clean verify
 ```
 
-Please note that some tests in Flink's code base are flaky and can fail by chance. The Flink community is working hard on improving these tests but sometimes this is not possible, e.g., when tests include external dependencies. We maintain all tests that are known to be flaky in JIRA and attach the **`test-stability`** label. Please check (and extend) this list of [known flaky tests](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20test-stability%20ORDER%20BY%20priority%20DESC) if you encounter a test failure that seems to be unrelated to your changes.
+Please note that some tests in Flink's code base are flaky and can fail by chance. The Flink community is working hard on improving these tests but sometimes this is not possible, e.g., when tests include external dependencies. We maintain all tests that are known to be flaky in Jira and attach the **`test-stability`** label. Please check (and extend) this list of [known flaky tests](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20test-stability%20ORDER%20BY%20priority%20DESC) if you encounter a test failure that seems to be unrelated to your changes.
 
 Please note that we run additional build profiles for different combinations of Java, Scala, and Hadoop versions to validate your contribution. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. The [Best practices]( {{site.base}}/contribute-code.html#best-practices ) guide shows how to integrate [Travis](https://travis-ci.org/) with your GitHub repository.
 
@@ -84,7 +84,7 @@ git push origin myBranch
 
 Go to the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the *"Create Pull Request"* button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and send it.
 
-It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) issue.
+It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) issue.
 
 -----
 
@@ -93,11 +93,11 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 ### Pull requests and commit message
 {:.no_toc}
 
-- **Single change per PR**. Please do not combine various unrelated changes in a single pull request. Rather, open multiple individual pull requests where each PR refers to a JIRA issue. This ensures that pull requests are *topic related*, can be merged more easily, and typically result in topic-specific merge conflicts only.
+- **Single change per PR**. Please do not combine various unrelated changes in a single pull request. Rather, open multiple individual pull requests where each PR refers to a Jira issue. This ensures that pull requests are *topic related*, can be merged more easily, and typically result in topic-specific merge conflicts only.
 
 - **No WIP pull requests**. We consider pull requests as requests to merge the referenced code *as is* into the current *stable* master branch. Therefore, a pull request should not be "work in progress". Open a pull request if you are confident that it can be merged into the current master branch without problems. If you rather want comments on your code, post a link to your working branch.
 
-- **Commit message**. A pull request must relate to a JIRA issue; create an issue if none exists for the change you want to make. The latest commit message should reference that issue. An example commit message would be *[FLINK-633] Fix NullPointerException for empty UDF parameters*. That way, the pull request automatically gives a description of what it does, for example, what bug does it fix in what way.
+- **Commit message**. A pull request must relate to a Jira issue; create an issue if none exists for the change you want to make. The latest commit message should reference that issue. An example commit message would be *[FLINK-633] Fix NullPointerException for empty UDF parameters*. That way, the pull request automatically gives a description of what it does, for example, what bug does it fix in what way.
 
 - **Append review commits**. When you get comments on the pull request asking for changes, append commits for these changes. *Do not rebase and squash them.* It allows people to review the cleanup work independently. Otherwise reviewers have to go through the entire set of diffs again.
 

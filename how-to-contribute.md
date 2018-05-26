@@ -13,13 +13,13 @@ The Apache Flink community is eager to help and to answer your questions. We hav
 
 ## File a bug report
 
-Please let us know if you experienced a problem with Flink and file a bug report. Open [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK), log in if necessary, and click on the red **Create** button at the top. Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem. Thank you very much.
+Please let us know if you experienced a problem with Flink and file a bug report. Open [Flink's Jira](http://issues.apache.org/jira/browse/FLINK), log in if necessary, and click on the red **Create** button at the top. Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem. Thank you very much.
 
 -----
 
 ## Propose an improvement or a new feature
 
-Our community is constantly looking for feedback to improve Apache Flink. If you have an idea how to improve Flink or have a new feature in mind that would be beneficial for Flink users, please open an issue in [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK). The improvement or new feature should be described in appropriate detail and include the scope and its requirements if possible. Detailed information is important for a few reasons:
+Our community is constantly looking for feedback to improve Apache Flink. If you have an idea how to improve Flink or have a new feature in mind that would be beneficial for Flink users, please open an issue in [Flink's Jira](http://issues.apache.org/jira/browse/FLINK). The improvement or new feature should be described in appropriate detail and include the scope and its requirements if possible. Detailed information is important for a few reasons:
 
 - It ensures your requirements are met when the improvement or feature is implemented.
 - It helps to estimate the effort and to design a solution that addresses your needs.
@@ -70,7 +70,7 @@ Please do also read the [Submit a Contributor License Agreement]({{ site.baseurl
 ### Looking for an issue to work on?
 {:.no_toc}
 
-We maintain a list of all known bugs, proposed improvements, and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process.
+We maintain a list of all known bugs, proposed improvements, and suggested features in [Flink's Jira](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process.
 
 Please have a look at the list of [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC), if you are looking for an issue to work on. You can of course also choose [any other issue](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC) to work on. Feel free to ask questions about issues that you would be interested in working on.
 
@@ -80,7 +80,7 @@ Please have a look at the list of [starter issues](https://issues.apache.org/jir
 
 Good documentation is crucial for any kind of software. This is especially true for sophisticated software systems such as distributed data processing engines like Apache Flink. The Apache Flink community aims to provide concise, precise, and complete documentation and welcomes any contribution to improve Apache Flink's documentation.
 
-- Please report missing, incorrect, or outdated documentation as a [JIRA issue](http://issues.apache.org/jira/browse/FLINK).
+- Please report missing, incorrect, or outdated documentation as a [Jira issue](http://issues.apache.org/jira/browse/FLINK).
 - Flink's documentation is written in Markdown and located in the `docs` folder in [Flink's source code repository]({{ site.baseurl }}/community.html#main-source-repositories). See the [Contribute documentation]({{ site.base }}/contribute-documentation.html) guidelines for detailed instructions for how to update and improve the documentation and to contribute your changes.
 
 -----
@@ -95,7 +95,7 @@ The [Apache Flink website](http://flink.apache.org) presents Apache Flink and it
 
 We welcome any contribution to improve our website.
 
-- Please open a [JIRA issue](http://issues.apache.org/jira/browse/FLINK) if you think our website could be improved.
+- Please open a [Jira issue](http://issues.apache.org/jira/browse/FLINK) if you think our website could be improved.
 - Please follow the [Improve the website]({{ site.baseurl }}/improve-website.html) guidelines if you would like to update and improve the website.
 
 -----

@@ -3,7 +3,7 @@ title: "Community & Project Info"
 ---
 {% toc %}
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
 
 ## Mailing Lists
 
@@ -74,7 +74,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td>
       <strong>issues</strong>@flink.apache.org
       <br>
-      <small>Mirror of all JIRA activity</small>
+      <small>Mirror of all Jira activity</small>
     </td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-digest-subscribe@flink.apache.org">Subscribe</a></td>
@@ -112,7 +112,7 @@ Make sure to tag your questions there accordingly to get answers from the Flink 
 
 ## Issue Tracker
 
-We use JIRA to track all code related issues: [{{ site.jira }}]({{ site.jira }}).
+We use Jira to track all code related issues: [{{ site.jira }}]({{ site.jira }}).
 
 All issue activity is also mirrored to the issues mailing list.
 
