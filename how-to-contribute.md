@@ -13,7 +13,7 @@ The Apache Flink community is eager to help and to answer your questions. We hav
 
 ## File a bug report
 
-Please let us know if you experienced a problem with Flink and file a bug report. Open [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK) and click on the blue **Create** button at the top. Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem. Thank you very much.
+Please let us know if you experienced a problem with Flink and file a bug report. Open [Flink's JIRA](http://issues.apache.org/jira/browse/FLINK), log in if necessary, and click on the red **Create** button at the top. Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem. Thank you very much.
 
 -----
 
@@ -40,7 +40,7 @@ discussions on existing proposals.
 
 Most communication in the Apache Flink community happens on two mailing lists:
 
-- The user mailing lists `user@flink.apache.org` is the place where users of Apache Flink ask questions and seek for help or advice. Joining the user list and helping other users is a very good way to contribute to Flink's community. Furthermore, there is the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag on Stack Overflow if you'd like to help Flink users (and harvest some points) there.
+- The user mailing list `user@flink.apache.org` is the place where users of Apache Flink ask questions and seek help or advice. Joining the user list and helping other users is a very good way to contribute to Flink's community. Furthermore, there is the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag on Stack Overflow if you'd like to help Flink users (and harvest some points) there.
 - The development mailing list `dev@flink.apache.org` is the place where Flink developers exchange ideas and discuss new features, upcoming releases, and the development process in general. If you are interested in contributing code to Flink, you should join this mailing list.
 
 You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/community.html#mailing-lists). In addition to the user list, there is also a [Flink IRC]({{ site.baseurl }}/community.html#irc) channel that you can join to talk to other users and contributors.
@@ -53,7 +53,7 @@ Apache Flink is continuously improved by its active community. Every few weeks, 
 
 1. Building a new release candidate and starting a vote (usually for 72 hours).
 2. Testing the release candidate and voting (`+1` if no issues were found, `-1` if the release candidate has issues).
-3. Going back to step 1 if the release candidate had issues otherwise we publish the release.
+3. Going back to step 1 if the release candidate had issues. Otherwise we publish the release.
 
 Our wiki contains a page that summarizes the [test procedure for a release](https://cwiki.apache.org/confluence/display/FLINK/Releasing). Release testing is a big effort if done by a small group of people but can be easily scaled out to more people. The Flink community encourages everybody to participate in the testing of a release candidate. By testing a release candidate, you can ensure that the next Flink release is working properly for your setup and help to improve the quality of releases.
 
@@ -61,7 +61,7 @@ Our wiki contains a page that summarizes the [test procedure for a release](http
 
 ## Contribute code
 
-Apache Flink is maintained, improved, and extended by code contributions of volunteers. The Apache Flink community encourages anybody to contribute source code. In order to ensure a pleasant contribution experience for contributors and reviewers and to preserve the high quality of the code base, we follow a contribution process that is explained in our [Contribute code]( {{ site.base }}/contribute-code.html) guide. The guide does also include instructions to setup a development environment, our coding guidelines and code style, and explains how to submit a code contribution.
+Apache Flink is maintained, improved, and extended by code contributions of volunteers. The Apache Flink community encourages anybody to contribute source code. In order to ensure a pleasant contribution experience for contributors and reviewers and to preserve the high quality of the code base, we follow a contribution process that is explained in our [Contribute code]( {{ site.base }}/contribute-code.html) guide. The guide also includes instructions on how to setup a development environment, our coding guidelines and code style, and explains how to submit a code contribution.
 
 **Please read the [Contribute code]( {{ site.base }}/contribute-code.html) guide before you start to work on a code contribution.**
 
@@ -70,7 +70,7 @@ Please do also read the [Submit a Contributor License Agreement]({{ site.baseurl
 ### Looking for an issue to work on?
 {:.no_toc}
 
-We maintain a list of all known bugs, proposed improvements and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process.
+We maintain a list of all known bugs, proposed improvements, and suggested features in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel). Issues that we believe are good tasks for new contributors are tagged with a special "starter" tag. Those tasks are supposed to be rather easy to solve and will help you to become familiar with the project and the contribution process.
 
 Please have a look at the list of [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC), if you are looking for an issue to work on. You can of course also choose [any other issue](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC) to work on. Feel free to ask questions about issues that you would be interested in working on.
 
@@ -80,7 +80,7 @@ Please have a look at the list of [starter issues](https://issues.apache.org/jir
 
 Good documentation is crucial for any kind of software. This is especially true for sophisticated software systems such as distributed data processing engines like Apache Flink. The Apache Flink community aims to provide concise, precise, and complete documentation and welcomes any contribution to improve Apache Flink's documentation.
 
-- Please report missing, incorrect, or out-dated documentation as a [JIRA issue](http://issues.apache.org/jira/browse/FLINK).
+- Please report missing, incorrect, or outdated documentation as a [JIRA issue](http://issues.apache.org/jira/browse/FLINK).
 - Flink's documentation is written in Markdown and located in the `docs` folder in [Flink's source code repository]({{ site.baseurl }}/community.html#main-source-repositories). See the [Contribute documentation]({{ site.base }}/contribute-documentation.html) guidelines for detailed instructions for how to update and improve the documentation and to contribute your changes.
 
 -----
@@ -100,14 +100,14 @@ We welcome any contribution to improve our website.
 
 -----
 
-## More ways to contribute...
+## More ways to contribute…
 
-There are many more ways to contribute to the Flink community. For example you can
+There are many more ways to contribute to the Flink community. For example you can:
 
-- give a talk about Flink and tell others how you use it.
-- organize a local Meetup or user group.
-- talk to people about Flink.
-- ...
+- Give a talk about Flink and tell others how you use it.
+- Organize a local Meetup or user group.
+- Talk to people about Flink.
+- …
 
 -----
 
