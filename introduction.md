@@ -122,4 +122,4 @@ If you’re interested in learning more, we’ve collected [information about th
 
 In summary, Apache Flink is an open-source stream processing framework that eliminates the "performance vs. reliability" tradeoff often associated with open-source streaming engines and performs consistently in both categories. Following this introduction, we recommend you try our <a href="{{site.docs-stable}}/quickstart/setup_quickstart.html" target="_blank">quickstart</a>, [download]({{ site.baseurl }}/downloads.html) the most recent stable version of Flink, or review the <a href="{{site.docs-stable}}/index.html" target="_blank">documentation</a>.
 
-And we encourage you to join the Flink user mailing list and to share your questions with the community. We’re here to help you get the most out of Flink.
+And we encourage you to join the Flink [user mailing list]( {{ site.base }}/community.html#mailing-lists ) and to share your questions with the community. We’re here to help you get the most out of Flink.
