@@ -3,7 +3,7 @@ title: "Community & Project Info"
 ---
 {% toc %}
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/flink). Please remember to tag your questions with the *[flink](http://stackoverflow.com/questions/tagged/flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. If you want to talk with the Flink committers and users in a chat, there is an [IRC channel](#irc). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [JIRA]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
 
 ## Mailing Lists
 
@@ -106,7 +106,7 @@ The IRC channel can be used for online discussions about Apache Flink as communi
 
 ## Stack Overflow
 
-Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/flink) for the [flink](http://stackoverflow.com/questions/tagged/flink) tag.
+Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) for the [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) tag.
 
 Make sure to tag your questions there accordingly to get answers from the Flink community.
 
