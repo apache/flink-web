@@ -6,19 +6,13 @@ title: "Powered by Flink"
 <!--                Powered by Flink
 <!-- --------------------------------------------- -->
 
-----
-<head>
-<style>
-   th, td {
-   padding: 10px;
-   }
-   .height > img {min-height: 137px};
-</style>
-</head>
+<hr />
 
-<p>To demonstrate Flink's capabilities, we've collected a few examples of Flink use cases inside of companies. The <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> has a comprehensive list of companies and organizations using Flink.</p>
+Apache Flink powers business-critical applications in many companies and enterprises around the globe. On this page, we present a few notable Flink users that run interesting use cases in production and link to resources that discuss their applications in more detail.
 
-Would you like to be included on this page? Please reach out to the [Flink user mailing list]({{ site.baseurl }}/community.html#mailing-lists) and let us know.
+More Flink users are listed in the <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> in the project wiki. Please note that the list is *not* comprehensive. We only add users that explicitly ask to be listed.
+
+If you would you like to be included on this page, please reach out to the [Flink user mailing list]({{ site.baseurl }}/community.html#mailing-lists) and let us know.
 
 <div class="row-fluid">
 
