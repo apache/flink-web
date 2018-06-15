@@ -39,18 +39,17 @@ Every non-trivial streaming application is stateful, i.e., only applications tha
   <img src="{{ site.baseurl }}/img/function-state.png" width="350px" />
 </div>
 
-Application state is a first-class citizen in Flink. This is easy to see by looking at all the features that Flink provides in the context of state handling.
+Application state is a first-class citizen in Flink. You can see that by looking at all the features that Flink provides in the context of state handling.
 
-* **Keyed State** and **Operator State**: Flink provides two types of managed state, which are accessed in different contexts. Keyed state is always accessed in the context of a key, operator state is accessed in the context of an operator instance.
 * **Multiple State Primitives**: Flink provides state primitives for different data structures, such as atomic values, lists, or maps. Developers can choose the state primitive that is most efficient based on the access pattern of the function.
-* **Pluggable State Backends**: Application state is managed in and checkpointed by a pluggable state backend. Flink features different state backends that store state in memory or in RocksDB, an efficient embedded on-disk data store. Also custom state backends can be plugged in.
+* **Pluggable State Backends**: Application state is managed in and checkpointed by a pluggable state backend. Flink features different state backends that store state in memory or in [RocksDB](https://rocksdb.org/), an efficient embedded on-disk data store. Custom state backends can be plugged in as well.
 * **Exactly-once state consistency**: Flink's checkpointing and recovery algorithms guarantee the consistency of application state in case of a failure. Hence, failures are transparently handled and do not affect the correctness of an application.
 * **Very Large State**: Flink is able to maintain application state of several terabytes in size due to its asynchronous and incremental checkpoint algorithm.
 * **Scalable Applications**: Flink supports scaling of stateful applications by redistributing the state to more or fewer workers.
 
 ### Time
 
-Time is another important ingredient of streaming applications. Most event streams have inherent time semantics because each event is produced at a speicific point in time. Moreover, many common stream computations are based on time, such as windows aggregations, sessionization, pattern detection, and time-based joins. An important aspect of stream processing is how an application measures time, i.e., the difference of event-time and processing-time.
+Time is another important ingredient of streaming applications. Most event streams have inherent time semantics because each event is produced at a specific point in time. Moreover, many common stream computations are based on time, such as windows aggregations, sessionization, pattern detection, and time-based joins. An important aspect of stream processing is how an application measures time, i.e., the difference of event-time and processing-time.
 
 Flink provides a rich set of time-related features.
 
@@ -71,11 +70,11 @@ We briefly present each API, discuss its applications, and show a code example.
 
 ### The ProcessFunctions
 
-[ProcessFunctions](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/process_function.html) are the most expressive function interfaces that Flink offers. Flink provides ProcessFunctions to process individual events from one or two input streams or to processes events that were grouped in a window. ProcessFunctions provide fine-grained control over time and state. A ProcessFunction can arbitrarily modify its state and register timers that will trigger a callback function in the future. Hence, ProcessFunctions can implement complex per-event business logic as required for many [stateful event-driven applications]({{ site.baseurl }}/usecases.html#eventDrivenApps).
+[ProcessFunctions](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/process_function.html) are the most expressive function interfaces that Flink offers. Flink provides ProcessFunctions to process individual events from one or two input streams or events that were grouped in a window. ProcessFunctions provide fine-grained control over time and state. A ProcessFunction can arbitrarily modify its state and register timers that will trigger a callback function in the future. Hence, ProcessFunctions can implement complex per-event business logic as required for many [stateful event-driven applications]({{ site.baseurl }}/usecases.html#eventDrivenApps).
 
 The following example shows a `KeyedProcessFunction` that operates on a `KeyedStream` and matches `START` and `END` events. When a `START` event is received, the function remembers its timestamp in state and registers a timer in four hours. If an `END` event is received before the timer fires, the function computes the duration between `END` and `START` event, clears the state, and returns the value. Otherwise, the timer just fires and clears the state.
 
-~~~java
+{% highlight java %}
 /**
  * Matches keyed START and END events and computes the difference between 
  * both elements' timestamps. The first String field is the key attribute, 
@@ -132,7 +131,7 @@ public static class StartEndDuration
     startTime.clear();
   }
 }
-~~~
+{% endhighlight %}
 
 The example illustrates the expressive power of the `KeyedProcessFunction` but also highlights that it is a rather verbose interface.
 
@@ -142,7 +141,7 @@ The [DataStream API](https://ci.apache.org/projects/flink/flink-docs-stable/dev/
 
 The following example shows how to sessionize a clickstream and count the number of clicks per session.
 
-~~~java
+{% highlight java %}
 // a stream of website clicks
 DataStream<Click> clicks = ...
 
@@ -162,11 +161,11 @@ DataStream<Tuple2<String, Long>> result = clicks
   .window(EventTimeSessionWindows.withGap(Time.minutes(30L)))
   // count clicks per session. Define function as lambda function.
   .reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1));
-~~~
+{% endhighlight %}
 
 ### SQL &amp; Table API
 
-Flink features two relational APIs, the [Table API and SQL](https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/index.html). Both APIs are unified APIs for batch and stream processing, i.e., queries are executed with the same semantics on unbounded, real-time streams or bounded, recorded streams and produce the same results. The Table API and SQL leverage [Apache Calcite](https://calcite.apache.org) for parsing, validation, and query optimization. Both APIs can be seamlessly integrated with the DataStream and DataSet APIs and support user-defined scalar, aggregate, and table-valued functions. 
+Flink features two relational APIs, the [Table API and SQL](https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/index.html). Both APIs are unified APIs for batch and stream processing, i.e., queries are executed with the same semantics on unbounded, real-time streams or bounded, recorded streams and produce the same results. The Table API and SQL leverage [Apache Calcite](https://calcite.apache.org) for parsing, validation, and query optimization. They can be seamlessly integrated with the DataStream and DataSet APIs and support user-defined scalar, aggregate, and table-valued functions. 
 
 Flink's relational APIs are designed to ease the definition of [data analytics]({{ site.baseurl }}/usecases.html#analytics), [data pipelining, and ETL applications]({{ site.baseurl }}/usecases.html#pipelines).
 

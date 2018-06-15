@@ -96,7 +96,7 @@ The obvious advantage of continuous data pipelines over periodic ETL jobs is the
 
 ### How does Flink support data pipelines?
 
-Many common data transformation or enrichment tasks can be addressed by Flink's SQL interface (or Table API) and its support for user-defined functions. Data pipelines with more advanced requirements can be realized by using the DataStream API which is more generic. Flink also provides a rich set of connectors to various storage systems such as Kafka, Kinesis, Elasticsearch, and JDBC database systems. It also features continuous sources for file systems that monitor directories and sinks that write files in a time-bucketed fashion.
+Many common data transformation or enrichment tasks can be addressed by Flink's SQL interface (or Table API) and its support for user-defined functions. Data pipelines with more advanced requirements can be realized by using the DataStream API which is more generic. Flink provides a rich set of connectors to various storage systems such as Kafka, Kinesis, Elasticsearch, and JDBC database systems. It also features continuous sources for file systems that monitor directories and sinks that write files in a time-bucketed fashion.
 
 ### What are typical data pipeline applications?
 

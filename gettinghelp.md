@@ -12,20 +12,20 @@ The Apache Flink community answers many user questions every day. You can search
 
 ### User Mailing List
 
-Many Flink users, contributors, and committers are subscribed to Flink's user mailing list. The user mailing list is very good place to ask for help. In fact, Flink's mailing lists are among the most active project lists within the Apache Software Foundation.
+Many Flink users, contributors, and committers are subscribed to Flink's user mailing list. The user mailing list is a very good place to ask for help. 
 
-In order to post an email to Flink's user mailing list, you need to
+Before posting to the mailing list, you can search the mailing list archives for email threads that discuss issues related to yours on the following websites.
+
+- [Apache Pony Mail Archive](https://lists.apache.org/list.html?user@flink.apache.org)
+- [Nabble Archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
+
+If you'd like to post to the mailing list, you need to
 
 1. subscribe to the mailing list by sending an email to `user-subscribe@flink.apache.org`, 
 2. confirm the subscription by replying to the confirmation email, and
 3. send your email to `user@flink.apache.org`.
 
 Please note that you won't receive a respose to your mail if you are not subscribed.
-
-The user mailing list is also archived. You can use the following archive websites to search for email threads that discuss issues related to yours. 
-
-- [Apache Pony Mail Archive](https://lists.apache.org/list.html?dev@flink.apache.org)
-- [Nabble Archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
 
 ### Stack Overflow
 
