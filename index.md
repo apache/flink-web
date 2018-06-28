@@ -213,7 +213,7 @@ layout: base
 
 <div class="col-sm-3">
 
-  <h2><a href="{{ site.baseurl }}/blog.html">Latest Blog Posts</a></h2>
+  <h2><a href="{{ site.baseurl }}/blog">Latest Blog Posts</a></h2>
 
 </div>
 
