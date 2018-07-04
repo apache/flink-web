@@ -36,15 +36,30 @@ If you would you like to be included on this page, please reach out to the [Flin
       <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175"  alt="Drivetribe" /><br />
       Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://data-artisans.com/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
    </div>
-
+   <div class="height col-md-3 col-sm-4 col-xs-6">
+      <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" width="175"  alt="Ebay" /><br />
+      Ebay's monitoring platform is powered by Flink and evaluates thousands of customizable alert rules on metrics and log streams. <br><br>
+      <a href="https://vimeo.com/265025956/c7d5576622" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn more about Flink at Ebay</a>
+   </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" /><br />
       Ericsson used Flink to build a real-time anomaly detector with machine learning over large infrastructures. <br><br><a href="https://www.oreilly.com/ideas/applying-the-kappa-architecture-in-the-telco-industry" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read a detailed overview on O'Reilly Ideas</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
+   <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" width="175" alt="Huawei" />
+         <br />
+        Huawei is a leading global provider of ICT infrastructure and smart devices. Huawei Cloud provides Cloud Service based on Flink.
+       <br><br><a href="https://www.slideshare.net/FlinkForward/flink-forward-san-francisco-2018-jinkui-shi-and-radu-tudoran-flink-realtime-analysis-in-cloudstream-service-of-huawei-cloud" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small>Learn about how Flink powers Cloud Service</a>
+   </div>
+   <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/king-logo.png" width="175" alt="King" />
          <br />
          King, the creators of Candy Crush Saga, uses Flink to provide data science teams a real-time analytics dashboard. <br><br><a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about King's Flink implementation</a>
+   </div>
+   <div class="height col-md-3 col-sm-4 col-xs-6">
+   <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" width="175" alt="King" />
+         <br />
+         Lyft uses Flink as processing engine for its streaming platform, for example to consistently generate features for machine learning. <br><br><a href="https://www.slideshare.net/SeattleApacheFlinkMeetup/streaminglyft-greg-fee-seattle-apache-flink-meetup-104398613" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Streaming at Lyft</a>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
