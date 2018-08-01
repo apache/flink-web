@@ -186,7 +186,7 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/10366341?s=50" class="committer-avatar"></td>
     <td class="text-center">Shuyi Chen</td>
     <td class="text-center">Committer</td>
-    <td class="text-center">suez1224</td>
+    <td class="text-center">shuyichen</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1452518?s=50" class="committer-avatar"></td>
