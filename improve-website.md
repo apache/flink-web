@@ -79,11 +79,9 @@ To prepare and submit a pull request follow these steps.
 ### ASF website git repositories
 {:.no_toc}
 
-**ASF writable**: https://git-wip-us.apache.org/repos/asf/flink-web.git
+**ASF writable**: https://gitbox.apache.org/repos/asf/flink-web.git
 
-**ASF read-only**: git://git.apache.org/repos/asf/flink-web.git
-
-Details on how to set the credentials for the ASF git repository are [linked here](https://git-wip-us.apache.org/).
+Details on how to set the credentials for the ASF git repository are [linked here](https://gitbox.apache.org/).
 
 ### Merging a pull request
 {:.no_toc}
