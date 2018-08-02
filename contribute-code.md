@@ -309,9 +309,7 @@ Only the infrastructure team of the ASF has administrative access to the GitHub 
 ### Main source repositories
 {:.no_toc}
 
-**ASF writable**: https://git-wip-us.apache.org/repos/asf/flink.git
-
-**ASF read-only**: git://git.apache.org/repos/asf/flink.git
+**ASF writable**: https://gitbox.apache.org/repos/asf/flink.git
 
 **ASF read-only**: https://github.com/apache/flink.git
 
