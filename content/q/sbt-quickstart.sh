@@ -42,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.11.12"
-defaultFlinkVersion="1.5.0"
+defaultFlinkVersion="1.6.0"
 
 echo "This script creates a Flink project using Scala and SBT."
 
