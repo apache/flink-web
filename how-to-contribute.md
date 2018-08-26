@@ -10,7 +10,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
 
 ## Ask questions!
 
-The Apache Flink community is eager to help and to answer your questions. We have a [user mailing list]({{ site.baseurl }}/community.html#mailing-lists ), hang out in an [IRC channel]({{ site.baseurl }}/community.html#irc), and watch Stack Overflow on the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag.
+The Apache Flink community is eager to help and to answer your questions. We have a [user mailing list]({{ site.baseurl }}/community.html#mailing-lists ) and watch Stack Overflow on the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag.
 
 -----
 
@@ -46,7 +46,7 @@ Most communication in the Apache Flink community happens on two mailing lists:
 - The user mailing list `user@flink.apache.org` is the place where users of Apache Flink ask questions and seek help or advice. Joining the user list and helping other users is a very good way to contribute to Flink's community. Furthermore, there is the [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) tag on Stack Overflow if you'd like to help Flink users (and harvest some points) there.
 - The development mailing list `dev@flink.apache.org` is the place where Flink developers exchange ideas and discuss new features, upcoming releases, and the development process in general. If you are interested in contributing code to Flink, you should join this mailing list.
 
-You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/community.html#mailing-lists). In addition to the user list, there is also a [Flink IRC]({{ site.baseurl }}/community.html#irc) channel that you can join to talk to other users and contributors.
+You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/community.html#mailing-lists).
 
 -----
 
