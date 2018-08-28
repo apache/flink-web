@@ -317,30 +317,3 @@ Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
 
 If you want to build for Hadoop 1, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=1`.
 
------
-
-## Snapshots (Nightly Builds)
-
-Apache Flink `{{ site.FLINK_VERSION_LATEST }}` is our latest development version.
-
-You can download a packaged version of our nightly builds, which include
-the most recent development code. You can use them if you need a feature
-before its release. Only builds that pass all tests are published here.
-
-- **Hadoop 2 and YARN**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST }}" class="ga-track" id="download-hadoop2-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST | split:'/' | last }}</a>
-
-Add the **Apache Snapshot repository** to your Maven `pom.xml`:
-
-```xml
-<repositories>
-  <repository>
-    <id>apache.snapshots</id>
-    <name>Apache Development Snapshot Repository</name>
-    <url>https://repository.apache.org/content/repositories/snapshots/</url>
-    <releases><enabled>false</enabled></releases>
-    <snapshots><enabled>true</enabled></snapshots>
-  </repository>
-</repositories>
-```
-
-You can now include Apache Flink as a Maven dependency (see above) with version `{{ site.FLINK_VERSION_LATEST }}` (or `{{ site.FLINK_VERSION_HADOOP_1_LATEST }}` for compatibility with old Hadoop 1.x versions).

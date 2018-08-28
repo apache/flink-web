@@ -98,7 +98,7 @@ As of March 2017, the Flink community [decided](http://apache-flink-mailing-list
 Note that the community is always open to discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
 
 
-## All releases
+## All stable releases
 
 All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
 
@@ -138,4 +138,24 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink 0.6.1-incubating - 2014-09-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/flink-0.6.1-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/))
 - Flink 0.6-incubating - 2014-08-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/))
 
+## Snapshots (Nightly Builds)
+
+**Warning: These builds are not official releases. They are not endorsed in any way, they have not undergone a proper release process and have not undergone any license checks.
+The snapshot builds are only for developer convenience, to test features before an official release.**
+
+- Archive: **Apache Flink `{{ site.FLINK_VERSION_LATEST }}`**: <a href="{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST }}" class="ga-track" id="download-hadoop2-nightly">{{ site.FLINK_DOWNLOAD_URL_HADOOP_2_LATEST | split:'/' | last }}</a>
+
+- Maven: Add the **Apache Snapshot repository** to your `pom.xml` to use dependencies with `{{ site.FLINK_VERSION_LATEST }}` version.
+
+```xml
+<repositories>
+  <repository>
+    <id>apache.snapshots</id>
+    <name>Apache Development Snapshot Repository</name>
+    <url>https://repository.apache.org/content/repositories/snapshots/</url>
+    <releases><enabled>false</enabled></releases>
+    <snapshots><enabled>true</enabled></snapshots>
+  </repository>
+</repositories>
+```
 
