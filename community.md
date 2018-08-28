@@ -125,16 +125,21 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 - **ASF writable**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
-### Bahir Flink repositories
+### Flink-shaded repositories (shaded dependency libraries)
 
-- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
-- **ASF read-only**: git://git.apache.org/bahir-flink.git
-- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
+- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
+- **GitHub mirror**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
 
-### Website repositories
+### Flink Website repositories
 
 - **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
 - **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
+
+### Bahir Flink repositories (additional connectors)
+
+- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
+- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
+
 
 ## Training
 
