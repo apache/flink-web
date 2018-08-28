@@ -23,7 +23,7 @@ $( document ).ready(function() {
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 An Apache Hadoop installation is
-[not required](faq.html#do-i-have-to-install-apache-hadoop-to-use-flink)
+[not required](faq.html#how-does-flink-relate-to-the-hadoop-stack)
 to use Flink. If you plan to run Flink in YARN or process data stored in HDFS then
 select the version matching your installed Hadoop version.
 
