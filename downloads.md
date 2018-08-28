@@ -22,15 +22,13 @@ $( document ).ready(function() {
 
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
-An Apache Hadoop installation is
-[not required](faq.html#how-does-flink-relate-to-the-hadoop-stack)
-to use Flink. If you plan to run Flink in YARN or process data stored in HDFS then
-select the version matching your installed Hadoop version.
+An Apache Hadoop installation is [not required](faq.html#how-does-flink-relate-to-the-hadoop-stack) to use Apache Flink.
+For users that use Flink without any Hadoop components, we recommend the release without bundled Hadoop libraries.
 
-The binary releases marked with a Hadoop version come bundled with binaries for that Hadoop version.
-The binary release without bundled Hadoop can be used without Hadoop or with a Hadoop version
-that is installed in the environment, i.e., this version can pick up a Hadoop version from
-the classpath.
+If you plan to use Apache Flink together with Apache Hadoop (run Flink on YARN, connect to HDFS,
+connect to HBase, or use some Hadoop-based file system connector) then select the download that
+bundles the matching Hadoop version, or use the Hadoop free version and
+[export your HADOOP_CLASSPATH](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html).
 
 ### Binaries
 
