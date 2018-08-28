@@ -438,11 +438,8 @@ The following people were very kind to mentor the project while in incubation.
   </tr>
 </table>
 
-# Materials
+# Materials / Apache Flink Logos
 
-
-## Apache Flink Logos
-
-The [material page]({{ site.baseurl }}/material.html) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
+The [materials page]({{ site.baseurl }}/material.html) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
 
 
