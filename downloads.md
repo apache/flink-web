@@ -138,4 +138,4 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink 0.6.1-incubating - 2014-09-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/flink-0.6.1-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/flink-0.6.1-incubating/))
 - Flink 0.6-incubating - 2014-08-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/))
 
-Previous Stratosphere releases are available on [GitHub](https://github.com/stratosphere/stratosphere/releases).
+
