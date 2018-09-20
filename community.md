@@ -9,6 +9,14 @@ title: "Community & Project Info"
 
 There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
 
+If you send us an email with a code snippet, make sure that:
+
+1. you do not link to files in external services as such files can change, get deleted or the link might break and thus make an archived email thread useless
+2. you paste text instead of screenshots of text
+3. you keep formatting when pasting code in order to keep the code readable
+4. there are enough import statements to avoid ambiguities
+
+
 ## Mailing Lists
 
 <table class="table table-striped">
