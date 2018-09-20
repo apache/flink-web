@@ -17,6 +17,14 @@ If you send us an email with a code snippet, make sure that:
 4. there are enough import statements to avoid ambiguities
 
 
+If you send us an email with a code snippet, make sure that:
+
+1. you do not link to files in external services as such files can change, get deleted or the link might break and thus make an archived email thread useless
+2. you paste text instead of screenshots of text
+3. you keep formatting when pasting code in order to keep the code readable
+4. there are enough import statements to avoid ambiguities
+
+
 ## Mailing Lists
 
 <table class="table table-striped">
