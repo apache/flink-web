@@ -89,22 +89,22 @@ This is the detailed code review of the actual changes, covering:
 * Does the code format follow Flink’s checkstyle pattern?
 * Does the code avoid to introduce additional compiler warnings?
 
-Some code style guidelines can be found in the [Flink Code Style Page](https://flink.apache.org/contribute-code.html#code-style)
+Some code style guidelines can be found in the [Flink Code Style Page]({{ site.baseurl }}/contribute-code.html#code-style)
 
 ## Review Template
 
 The following template should be posted as a comment to every new pull request. 
 
 ```
-# Review Progress
+### Review Progress
 
-[ ] 1. The contribution is well-described.
-[ ] 2. There is consensus that the contribution should go into to Flink.
-[ ] 3. Does not need specific attention | Needs specific attention for X | Has attention for X by Y
-[ ] 4. The architectural approach is sound.
-[ ] 5. Overall code quality is good.
+* [ ] 1. The contribution is well-described.
+* [ ] 2. There is consensus that the contribution should go into to Flink.
+* [ ] 3. [Does not need specific attention | Needs specific attention for X | Has attention for X by Y]
+* [ ] 4. The architectural approach is sound.
+* [ ] 5. Overall code quality is good.
 
-Please see the [Pull Request Review Guide]() if you have questions about the review process.
+Please see the [Pull Request Review Guide](https://flink.apache.org/reviewing-prs.html) if you have questions about the review process.
 ```
 
 Reviewers should tick off the boxes to indicate the progress of the review.
