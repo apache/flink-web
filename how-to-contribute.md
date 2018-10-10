@@ -50,6 +50,14 @@ You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/com
 
 -----
 
+## Review a code contribution
+
+The Apache Flink project receives many code contributions as [Github pull requests](https://github.com/apache/flink/pulls). A great way to contribute to the Flink community is to help review pull requests.
+
+**Please read the [Review Guide]({{ site.baseurl }}/reviewing-prs.html) if you want to help review pull requests.** 
+
+-----
+
 ## Test a release candidate
 
 Apache Flink is continuously improved by its active community. Every few weeks, we release a new version of Apache Flink with bug fixes, improvements, and new features. The process of releasing a new version consists of the following steps:
