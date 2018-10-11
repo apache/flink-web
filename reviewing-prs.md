@@ -9,7 +9,7 @@ This guide is for all committers and contributors that want to help with reviewi
 * Contributors have a good contribution experience.
 * Our reviews are structured and check all important aspects of a contribution.
 * We make sure to keep a high code quality in Flink.
-* We avoid situations where contributors and reviewers spend a lot of time to refine a contribution that gets rejected later.
+* We avoid situations where contributors and reviewers spend a lot of time refining a contribution that gets rejected later.
 
 ----
 
@@ -17,7 +17,7 @@ This guide is for all committers and contributors that want to help with reviewi
 
 ## Review Checklist
 
-Every review needs to check the following five aspects. We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when there is not yet consensus that a feature or change should be actually be added.
+Every review needs to check the following five aspects. We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when there is no consensus yet whether a feature or change should actually be added.
 
 ### 1. Is the Contribution Well-Described?
 
@@ -41,7 +41,7 @@ The decision whether the change should go into Flink needs to take the following
 * Does the contribution conceptually fit well into Flink? Is it too much of a special case such that it makes things more complicated for the common case, or bloats the abstractions / APIs?
 * Does the feature fit well into Flink's architecture? Will it scale and keep Flink flexible for the future, or will the feature restrict Flink in the future?
 * Is the feature a significant new addition (rather than an improvement to an existing part)? If yes, will the Flink community commit to maintaining this feature?
-* Does the feature produce added value for Flink users or developers? Or does it introduce risk of regression without adding relevant user or developer benefit?
+* Does the feature produce added value for Flink users or developers? Or does it introduce the risk of regression without adding relevant user or developer benefit?
 * Could the contribution live in another repository, e.g., [Apache Bahir](https://bahir.apache.org) or another external repository?
 
 All of these questions should be answerable from the description/discussion in Jira and Pull Request, without looking at the code.

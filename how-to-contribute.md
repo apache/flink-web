@@ -52,9 +52,9 @@ You are very welcome to [subscribe to both mailing lists]({{ site.baseurl }}/com
 
 ## Review a code contribution
 
-The Apache Flink project receives many code contributions as [Github pull requests](https://github.com/apache/flink/pulls). A great way to contribute to the Flink community is to help reviewing pull requests.
+The Apache Flink project receives many code contributions as [Github pull requests](https://github.com/apache/flink/pulls). A great way to contribute to the Flink community is to help review pull requests.
 
-**Please read the [Review Guide]({{ site.baseurl }}/reviewing-prs.html) if you want to help reviewing pull requests.** 
+**Please read the [Review Guide]({{ site.baseurl }}/reviewing-prs.html) if you want to help review pull requests.** 
 
 -----
 
