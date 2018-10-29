@@ -50,14 +50,18 @@ bundles the matching Hadoop version, or use the Hadoop free version and
 
 ### Source
 
+{% for source_release in site.source_releases %}
 <div class="list-group">
   <!-- Source -->
-  <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE }}" class="list-group-item ga-track" id="download-source">
-    <h4><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>Apache Flink® {{ site.FLINK_VERSION_STABLE }}</strong> Source Release</h4>
+  <a href="{{ source_release.url }}" class="list-group-item ga-track" id="{{ source_release.id }}">
+    <!-- overrride margin/padding as the boxes otherwise overlap in subtle ways -->
+    <h4 style="margin-top: 0px; padding-top: 0px;"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>{{ source_release.name }}</strong> Source Release</h4>
     <p>Review the source code or build Flink on your own, using this package</p>
   </a>
-   (<a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_ASC }}">asc</a>, <a href="{{ site.FLINK_DOWNLOAD_URL_SOURCE_SHA512 }}">sha512</a>)
+   (<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
 </div>
+
+{% endfor %}
 
 ## Release Notes
 
