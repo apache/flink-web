@@ -231,9 +231,15 @@ layout: base
           </a></div>
           
         </li>
-         <li>
+        <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" width="175" alt="Yelp" />
           </a></div>
           
         </li>
