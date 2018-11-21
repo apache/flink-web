@@ -182,6 +182,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/criteo-logo.png" width="175" alt="Criteo" />
+          </a></div>
+        
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
         
