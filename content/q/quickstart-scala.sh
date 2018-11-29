@@ -24,7 +24,7 @@ PACKAGE=quickstart
 mvn archetype:generate								\
   -DarchetypeGroupId=org.apache.flink				\
   -DarchetypeArtifactId=flink-quickstart-scala		\
-  -DarchetypeVersion=${1:-1.5.0}							\
+  -DarchetypeVersion=${1:-1.7.0}							\
   -DgroupId=org.myorg.quickstart					\
   -DartifactId=$PACKAGE								\
   -Dversion=0.1										\
