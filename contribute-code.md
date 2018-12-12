@@ -261,13 +261,13 @@ For Eclipse users, we recommend using Scala IDE 3.0.3, based on Eclipse Kepler. 
 we found it to be the version that works most robustly for a complex project like Flink.
 
 Further details and a guide to newer Scala IDE versions can be found in the
-[How to setup Eclipse](https://github.com/apache/flink/blob/master/docs/internals/ide_setup.md#eclipse) docs.
+[How to setup Eclipse]({{site.docs-stable}}/flinkDev/ide_setup.html#eclipse) docs.
 
 **Note:** Before following this setup, make sure to run the build from the command line once
 (`mvn clean install -DskipTests`; see below).
 
 1. Download the Scala IDE (preferred) or install the plugin to Eclipse Kepler. See
-   [How to setup Eclipse](https://github.com/apache/flink/blob/master/docs/internals/ide_setup.md#eclipse) for download links and instructions.
+   [How to setup Eclipse]({{site.docs-stable}}/flinkDev/ide_setup.html#eclipse) for download links and instructions.
 2. Add the "macroparadise" compiler plugin to the Scala compiler.
    Open "Window" -> "Preferences" -> "Scala" -> "Compiler" -> "Advanced" and put into the "Xplugin" field the path to
    the *macroparadise* jar file (typically "/home/*-your-user-*/.m2/repository/org/scalamacros/paradise_2.10.4/2.0.1/paradise_2.10.4-2.0.1.jar").
