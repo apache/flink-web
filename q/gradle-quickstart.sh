@@ -41,8 +41,8 @@ function mkPackage() {
 defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
-defaultScalaBinaryVersion="2.11"
-defaultFlinkVersion="1.6-SNAPSHOT"
+defaultFlinkVersion="${1:-1.7.0}"
+defaultScalaBinaryVersion="${2:-2.11}"
 
 echo "This script creates a Flink project using Java and Gradle."
 
@@ -55,10 +55,10 @@ while [ $TRUE ]; do
   organization=${organization:-$defaultOrganization}
   read -p "Version ($defaultVersion): " version
   version=${version:-$defaultVersion}
-  read -p "Scala version ($defaultScalaBinaryVersion): " scalaBinaryVersion
-  scalaBinaryVersion=${scalaBinaryVersion:-$defaultScalaBinaryVersion}
   read -p "Flink version ($defaultFlinkVersion): " flinkVersion
   flinkVersion=${flinkVersion:-$defaultFlinkVersion}
+  read -p "Scala version ($defaultScalaBinaryVersion): " scalaBinaryVersion
+  scalaBinaryVersion=${scalaBinaryVersion:-$defaultScalaBinaryVersion}
 
   echo ""
   echo "-----------------------------------------------"
@@ -146,8 +146,7 @@ task wrapper(type: Wrapper) {
 
 // declare where to find the dependencies of your project
 repositories {
-    mavenCentral()
-    maven { url "https://repository.apache.org/content/repositories/snapshots/" }
+    mavenCentral()$( if [[ "${flinkVersion}" == *-SNAPSHOT ]] ; then echo -e "\n    maven { url \"https://repository.apache.org/content/repositories/snapshots/\" }" ; else echo ""; fi )
 }
 
 // NOTE: We cannot use "compileOnly" or "shadow" configurations since then we could not run code
