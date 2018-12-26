@@ -54,6 +54,12 @@ You can update and extend the website by modifying or adding Markdown files or a
 
 The script compiles the Markdown files into HTML and starts a local webserver. Open your browser at `http://localhost:4000` to view the website including your changes. The served website is automatically re-compiled and updated when you modify and save any file and refresh your browser.
 
+Alternatively you can build the web site using Docker (without augmenting your host environment):
+
+```
+docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.5 bash -c 'cd /srv/flink-web && ./build.sh -p'
+```
+
 Please feel free to ask any questions you have on the developer mailing list.
 
 ## Submit your contribution
