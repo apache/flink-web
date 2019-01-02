@@ -35,14 +35,24 @@ bundles the matching Hadoop version, or use the Hadoop free version and
 <table class="table table-striped">
 <thead>
     <tr>
-    <th></th> <th>Scala 2.11</th>
+    <th></th> <th>Scala 2.11</th> <th>Scala 2.12</th>
     </tr>
 </thead>
 <tbody>
     {% for binary_release in site.stable_releases %}
     <tr>
     <th>{{ binary_release.name }}</th>
-    <td><a href="{{ binary_release.url }}" class="ga-track" id="{{ binary_release.id }}">Download</a> (<a href="{{ binary_release.asc_url }}">asc</a>, <a href="{{ binary_release.sha512_url }}">sha512</a>)</td>
+    {% if binary_release.scala_211 %}
+    <td><a href="{{ binary_release.scala_211.url }}" class="ga-track" id="{{ binary_release.scala_211.id }}">Download</a> (<a href="{{ binary_release.scala_211.asc_url }}">asc</a>, <a href="{{ binary_release.scala_211.sha512_url }}">sha512</a>)</td>
+    {% else %}
+    <td>Not supported.</td>
+    {% endif %}
+
+    {% if binary_release.scala_212 %}
+    <td><a href="{{ binary_release.scala_212.url }}" class="ga-track" id="{{ binary_release.scala_212.id }}">Download</a> (<a href="{{ binary_release.scala_212.asc_url }}">asc</a>, <a href="{{ binary_release.scala_212.sha512_url }}">sha512</a>)</td>
+    {% else %}
+    <td>Not supported.</td>
+    {% endif %}
     </tr>
     {% endfor %}
 </tbody>
