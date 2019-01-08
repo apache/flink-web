@@ -70,7 +70,57 @@ bundles the matching Hadoop version, or use the Hadoop free version and
   </a>
    (<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
 </div>
+{% endfor %}
 
+### Optional components
+
+{% assign categories = site.optional_components | group_by: 'category' | sort: 'name' %}
+{% for category in categories %}
+
+<button class="collapsible" data-toggle="collapse" data-target="#{{category.name | slugify}}" aria-hidden="true">{{category.name}}<span class="glyphicon glyphicon-plus" style="float: right; font-size: 20px;"></span></button>
+<div id="{{category.name | slugify}}" class="collapse">
+
+{% assign components = category.items | | sort: 'name' %}
+{% for component in components %}
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th><strong>{{ component.name }}</strong></th>
+      {% if component.scala_dependent %}
+      <th>Scala 2.11</th>
+      <th>Scala 2.12</th>
+      {% else %}
+      <th></th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for version in component.versions %}
+      <tr>
+        {% if component.scala_dependent %}
+          <td>{{ version.version }}</td>
+          {% if version.scala_211 %}
+            <td><a href="{{ version.scala_211.url }}" class="ga-track" id="{{ version.scala_211.id }}">Download</a> (<a href="{{ version.scala_211.asc_url }}">asc</a>, <a href="{{ version.scala_211.sha512_url }}">sha1</a>)</td>
+          {% else %}
+            <td>Not supported.</td>
+          {% endif %}
+          {% if version.scala_212 %}
+            <td><a href="{{ version.scala_212.url }}" class="ga-track" id="{{ version.scala_212.id }}">Download</a> (<a href="{{ version.scala_212.asc_url }}">asc</a>, <a href="{{ version.scala_212.sha512_url }}">sha1</a>)</td>
+          {% else %}
+            <td>Not supported.</td>
+          {% endif %}
+        {% else %}
+          <td>{{ version.version }}</td>
+          <td><a href="{{ version.url }}" class="ga-track" id="{{ version.id }}">Download</a> (<a href="{{ version.asc_url }}">asc</a>, <a href="{{ version.sha_url }}">sha1</a>)</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endfor %}
+</div>
 {% endfor %}
 
 ## Release Notes
