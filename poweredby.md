@@ -87,13 +87,17 @@ If you would you like to be included on this page, please reach out to the [Flin
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" /><br />
          ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
-  </div>
+   </div>
    </div>
    <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" /><br />
          Telefónica NEXT's TÜV-certified Data Anonymization Platform is powered by Flink. <br><br><a href="https://next.telefonica.de/en/solutions/big-data-privacy-services" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Telefónica NEXT</a>
    </div>
-  <div class="height col-md-3 col-sm-4 col-xs-6">
+   <div class="height col-md-3 col-sm-4 col-xs-6">
+   <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" /><br />
+         Tencent, one of the largest Internet companies, built an in-house platform with Apache Flink to improve the efficiency of developing and operating real-time applications. <br><br><a href="https://data.qq.com/article?id=3853" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Tencent's platform.</a>
+   </div>
+   <div class="height col-md-3 col-sm-4 col-xs-6">
    <img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" width="175" alt="Uber" /><br />
          Uber built their internal SQL-based, open-source streaming analytics platform AthenaX on Apache Flink. <br><br><a href="https://eng.uber.com/athenax/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Uber engineering blog</a>
    </div>
