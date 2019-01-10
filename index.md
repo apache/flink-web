@@ -245,6 +245,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" width="175" alt="Yelp" />
           </a></div>
           
