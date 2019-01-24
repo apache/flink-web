@@ -91,9 +91,11 @@ This is the detailed code review of the actual changes, covering:
 
 Some code style guidelines can be found in the [Flink Code Style Page]({{ site.baseurl }}/contribute-code.html#code-style)
 
-## Review Template
+## Review with the @flinkbot
 
-The "Review Progress" section is posted at the end of the description of every new pull request.
+The Flink community is using a service called [@flinkbot](https://github.com/flinkbot) to help with the review of the pull requests.
+
+The bot automatically posts a comment tracking the review progress for each new pull request:
 
 ```
 ### Review Progress <!-- NOTE: DO NOT REMOVE THIS SECTION! -->
@@ -107,4 +109,12 @@ The "Review Progress" section is posted at the end of the description of every n
 Please see the [Pull Request Review Guide](https://flink.apache.org/reviewing-prs.html) if you have questions about the review process.
 ```
 
-Reviewers should tick off the boxes (in order) to indicate the progress of the review.
+Reviewers can instruct the bot to tick off the boxes (in order) to indicate the progress of the review.
+
+For approving the description of the contribution, mention the bot with `@flinkbot approve contribution`. This works similarly with `consensus`, `architecture` and `quality`.
+
+For approving all aspects, put a new comment with `@flinkbot approve all` into the pull request.
+
+The syntax for requiring attention is `@flinkbot attention @username1 [@username2 ..]`.
+
+
