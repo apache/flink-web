@@ -14,7 +14,7 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
   <div class="col-sm-4">
     <h4>Colored logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_color.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
+    <p><img src="/img/logo/png/200/flink_squirrel_200_color.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
 
     <p markdown="1">**Sizes (px)**:
       [50x50]({{ site.baseurl }}/img/logo/png/50/color_50.png),
@@ -27,7 +27,7 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
   <div class="col-sm-4">
     <h4>White filled logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_white.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" style="background:black;" /></p>
+    <p><img src="/img/logo/png/200/flink_squirrel_200_white.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" style="background:black;" /></p>
 
     <p markdown="1">**Sizes (px)**:
       [50x50]({{ site.baseurl }}/img/logo/png/50/white_50.png),
@@ -40,7 +40,7 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
   <div class="col-sm-4">
     <h4>Black outline logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/png/200/flink_squirrel_200_black.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
+    <p><img src="/img/logo/png/200/flink_squirrel_200_black.png" alt="Apache Flink Logo" title="Apache Flink Logo" width="200px" /></p>
 
     <p markdown="1">**Sizes (px)**:
       [50x50]({{ site.baseurl }}/img/logo/png/50/black_50.png),
@@ -63,21 +63,21 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
   <div class="col-sm-4 text-center">
     <h4>Colored logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/svg/color_black.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+    <p><img src="/img/logo/svg/color_black.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
 
     <p markdown="1">Colored logo with black text ([color_black.svg]({{ site.baseurl }}/img/logo/svg/color_black.svg))</p>
   </div>
   <div class="col-sm-4">
     <h4>White filled logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/svg/white_filled.svg" alt="Apache Flink Logo" title="Apache Flink Logo" style="background:black;" /></p>
+    <p><img src="/img/logo/svg/white_filled.svg" alt="Apache Flink Logo" title="Apache Flink Logo" style="background:black;" /></p>
 
     <p markdown="1">White filled logo ([white_filled.svg]({{ site.baseurl }}/img/logo/svg/white_filled.svg))</p>
   </div>
   <div class="col-sm-4">
     <h4>Black outline logo</h4>
 
-    <p><img src="{{ site.baseurl }}/img/logo/svg/black_outline.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
+    <p><img src="/img/logo/svg/black_outline.svg" alt="Apache Flink Logo" title="Apache Flink Logo" /></p>
 
     <p markdown="1">Black outline logo ([black_outline.svg]({{ site.baseurl }}/img/logo/svg/black_outline.svg))</p>
   </div>

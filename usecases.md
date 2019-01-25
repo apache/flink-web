@@ -24,7 +24,7 @@ In contrast, event-driven applications are based on stateful stream processing a
 
 <br>
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/usecases-eventdrivenapps.png" width="700px" />
+  <img src="/img/usecases-eventdrivenapps.png" width="700px" />
 </div>
 
 ### What are the advantages of event-driven applications?
@@ -56,7 +56,7 @@ With a sophisticated stream processing engine, analytics can also be performed i
 Apache Flink supports streaming as well as batch analytical applications as shown in the figure below.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/usecases-analytics.png" width="700px" />
+  <img src="/img/usecases-analytics.png" width="700px" />
 </div>
 
 ### What are the advantages of streaming analytics applications?
@@ -87,7 +87,7 @@ Data pipelines serve a similar purpose as ETL jobs. They transform and enrich da
 The figure below depicts the difference between periodic ETL jobs and continuous data pipelines.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/usecases-datapipelines.png" width="700px" />
+  <img src="/img/usecases-datapipelines.png" width="700px" />
 </div>
 
 ### What are the advantages of data pipelines?

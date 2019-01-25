@@ -45,7 +45,7 @@ First, let us create the stream of stock prices:
 1. Add four other sources tagged with the stock symbol.
 1. Finally, merge the streams to create a unified stream. 
 
-<img alt="Reading from multiple inputs" src="{{ site.baseurl }}/img/blog/blog_multi_input.png" width="70%" class="img-responsive center-block">
+<img alt="Reading from multiple inputs" src="/img/blog/blog_multi_input.png" width="70%" class="img-responsive center-block">
 
 <div class="codetabs" markdown="1">
 <div data-lang="scala" markdown="1">
@@ -241,7 +241,7 @@ maximum price per stock, and the third is the mean stock price
 (using a map window function). Aggregations and groupings can be
 performed on named fields of POJOs, making the code more readable.
 
-<img alt="Basic windowing aggregations" src="{{ site.baseurl }}/img/blog/blog_basic_window.png" width="70%" class="img-responsive center-block">
+<img alt="Basic windowing aggregations" src="/img/blog/blog_basic_window.png" width="70%" class="img-responsive center-block">
 
 <div class="codetabs" markdown="1">
 
@@ -329,7 +329,7 @@ compute the difference and a default value with which the first record
 is compared. We also create a `Count` data type to count the warnings
 every 30 seconds.
 
-<img alt="Data-driven windowing semantics" src="{{ site.baseurl }}/img/blog/blog_data_driven.png" width="100%" class="img-responsive center-block">
+<img alt="Data-driven windowing semantics" src="/img/blog/blog_data_driven.png" width="100%" class="img-responsive center-block">
 
 <div class="codetabs" markdown="1">
 
@@ -435,7 +435,7 @@ price stream. Flink has support for connecting to [Twitter's
 API](https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/connectors/twitter.html)
 but for the sake of this example we generate dummy tweet data.
 
-<img alt="Social media analytics" src="{{ site.baseurl }}/img/blog/blog_social_media.png" width="100%" class="img-responsive center-block">
+<img alt="Social media analytics" src="/img/blog/blog_social_media.png" width="100%" class="img-responsive center-block">
 
 <div class="codetabs" markdown="1">
 
@@ -538,7 +538,7 @@ number of mentions of a given stock in the Twitter stream. As both of
 these data streams are potentially infinite, we apply the join on a
 30-second window.
 
-<img alt="Streaming joins" src="{{ site.baseurl }}/img/blog/blog_stream_join.png" width="60%" class="img-responsive center-block"> 
+<img alt="Streaming joins" src="/img/blog/blog_stream_join.png" width="60%" class="img-responsive center-block"> 
 
 <div class="codetabs" markdown="1">
 

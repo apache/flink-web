@@ -20,7 +20,7 @@ layout: base
 
 <div class="row front-graphic">
   <hr />
-  <img src="{{ site.baseurl }}/img/flink-home-graphic.png" width="800px" />
+  <img src="/img/flink-home-graphic.png" width="800px" />
 </div>
 
 <!-- Feature grid -->
@@ -139,125 +139,125 @@ layout: base
     <ul>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" />
+            <img src="/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" />
           </a></div>
          
 
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
+            <img src="/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
           </a></div>
          
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" />
+            <img src="/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" />
           </a></div>
          
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" width="175" alt="Uber" />
+            <img src="/img/poweredby/uber-logo.png" width="175" alt="Uber" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" width="175" alt="BetterCloud" />
+            <img src="/img/poweredby/bettercloud-logo.png" width="175" alt="BetterCloud" />
           </a></div>
          
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" />
+            <img src="/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" />
           </a></div>
          
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/comcast-logo.png" width="175" alt="Comcast" />
+            <img src="/img/poweredby/comcast-logo.png" width="175" alt="Comcast" />
           </a></div>
         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/criteo-logo.png" width="175" alt="Criteo" />
+            <img src="/img/poweredby/criteo-logo.png" width="175" alt="Criteo" />
           </a></div>
         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
+            <img src="/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" width="175" alt="Ebay" />
+            <img src="/img/poweredby/ebay-logo.png" width="175" alt="Ebay" />
           </a></div>
         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" width="175" alt="Huawei" />
+            <img src="/img/poweredby/huawei-logo.png" width="175" alt="Huawei" />
           </a></div>
         
         </li>       
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" width="175" alt="Lyft" />
+            <img src="/img/poweredby/lyft-logo.png" width="175" alt="Lyft" />
           </a></div>
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/king-logo.png" width="175" alt="King" />
+            <img src="/img/poweredby/king-logo.png" width="175" alt="King" />
           </a></div>
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
+            <img src="/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
           </a></div>
         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/mux-logo.png" width="175" alt="Mux" />
+            <img src="/img/poweredby/mux-logo.png" width="175" alt="Mux" />
           </a></div>        
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
+            <img src="/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
+            <img src="/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" />
+            <img src="/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
+            <img src="/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" width="175" alt="Yelp" />
+            <img src="/img/poweredby/yelp-logo.png" width="175" alt="Yelp" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" />
+            <img src="/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" />
           </a></div>
           
         </li>

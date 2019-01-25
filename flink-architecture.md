@@ -22,7 +22,7 @@ Here, we explain important aspects of Flink's architecture.
 
 <!--
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/flink-home-graphic-update3.png" width="800px" />
+  <img src="/img/flink-home-graphic-update3.png" width="800px" />
 </div>
 -->
 
@@ -37,7 +37,7 @@ Data can be processed as *unbounded* or *bounded* streams.
 2. **Bounded streams** have a defined start and end. Bounded streams can be processed by ingesting all data before performing any computations. Ordered ingestion is not required to process bounded streams because a bounded data set can always be sorted. Processing of bounded streams is also known as batch processing.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/bounded-unbounded.png" width="600px" />
+  <img src="/img/bounded-unbounded.png" width="600px" />
 </div>
 
 **Apache Flink excels at processing unbounded and bounded data sets.** Precise control of time and state enable Flink's runtime to run any kind of application on unbounded streams. Bounded streams are internally processed by algorithms and data structures that are specifically designed for fixed sized data sets, yielding excellent performance. 
@@ -62,7 +62,7 @@ Flink features two deployment modes for applications, the *framework mode* and t
 * In the **library deployment mode**, a Flink application is packaged together with the Flink master executables into a (Docker) image. Another job-independent image contains the Flink worker executables. When a container is started from the job image, the Flink master process is started and the embedded application is automatically loaded. Containers started from the worker image, bootstrap Flink worker processes which automatically connect to the master process. A container manager such as Kubernetes monitors the running containers and automatically restarts failed containers. In this mode, you don't have to setup and maintain a Flink service in your cluster. Instead you package Flink as a library with your application. This model is very popular for deploying microservices. 
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/deployment-modes.png" width="600px" />
+  <img src="/img/deployment-modes.png" width="600px" />
 </div>
 
 -->
@@ -82,7 +82,7 @@ Flink is designed to run stateful streaming applications at any scale. Applicati
 Stateful Flink applications are optimized for local state access. Task state is always maintained in memory or, if the state size exceeds the available memory, in access-efficient on-disk data structures. Hence, tasks perform all computations by accessing local, often in-memory, state yielding very low processing latencies. Flink guarantees exactly-once state consistency in case of failures by periodically and asynchronously checkpointing the local state to durable storage.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/local-state.png" width="600px" />
+  <img src="/img/local-state.png" width="600px" />
 </div>
 
 <hr/>
