@@ -68,6 +68,19 @@ If you send us an email with a code snippet, make sure that:
       <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">Nabble Archive</a>
     </td>
   </tr>
+    <tr>
+    <td>
+      <strong>user-zh</strong>@flink.apache.org<br>
+      <small>Chinese user support and questions mailing list</small>
+    </td>
+    <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-subscribe@flink.apache.org">Subscribe</a></td>
+    <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-digest-subscribe@flink.apache.org">Subscribe</a></td>
+    <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-unsubscribe@flink.apache.org">Unsubscribe</a></td>
+    <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">Post</a></td>
+    <td class="text-center">
+      <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">Archives</a> <br>
+    </td>
+  </tr>
   <tr>
     <td>
       <strong>dev</strong>@flink.apache.org<br>
