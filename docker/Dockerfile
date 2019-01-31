@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:16.10
+FROM ubuntu:18.10
 
 RUN apt-get update && \
     apt-get install -y vim gem ruby-dev make gcc g++ python-setuptools && \
