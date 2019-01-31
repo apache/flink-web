@@ -102,13 +102,8 @@ If you would you like to be included on this page, please reach out to the [Flin
 </div>
 
 <script>
-$( document ).ready(function() {
+$(document).ready(function() {
     const poweredByTiles = $(".powered-by-tile");
-    const heights = poweredByTiles.map(function() {
-        return $(this).outerHeight();
-    }).get();
-    const maxHeight = Math.max.apply(null, heights);
-
-    poweredByTiles.height(maxHeight);
+    poweredByTiles.matchHeight();
 });
 </script>
