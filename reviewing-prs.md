@@ -98,9 +98,9 @@ The Flink community is using a service called [@flinkbot](https://github.com/fli
 The bot automatically posts a comment tracking the review progress for each new pull request:
 
 ```
-### Review Progress <!-- NOTE: DO NOT REMOVE THIS SECTION! -->
+### Review Progress
 
-* [ ] 1. The contribution is well-described.
+* [ ] 1. The description looks good.
 * [ ] 2. There is consensus that the contribution should go into to Flink.
 * [ ] 3. [Does not need specific attention | Needs specific attention for X | Has attention for X by Y]
 * [ ] 4. The architectural approach is sound.
@@ -111,7 +111,7 @@ Please see the [Pull Request Review Guide](https://flink.apache.org/reviewing-pr
 
 Reviewers can instruct the bot to tick off the boxes (in order) to indicate the progress of the review.
 
-For approving the description of the contribution, mention the bot with `@flinkbot approve contribution`. This works similarly with `consensus`, `architecture` and `quality`.
+For approving the description of the contribution, mention the bot with `@flinkbot approve description`. This works similarly with `consensus`, `architecture` and `quality`.
 
 For approving all aspects, put a new comment with `@flinkbot approve all` into the pull request.
 
