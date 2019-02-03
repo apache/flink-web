@@ -21,9 +21,11 @@ source 'https://rubygems.org'
 ruby '>=1.9.0'
 
 # Dependencies required to build the Flink docs
-gem 'jekyll', '2.5.3'
+gem 'jekyll', '3.0.5'
 gem 'kramdown', '1.10.0'
 gem 'pygments.rb', '0.6.3'
 gem 'therubyracer', '0.12.2'
 # explicitly require yajl-ruby (dependency of jekyll) in a version that works with Ruby 2.4
 gem 'yajl-ruby', '1.2.2'
+gem 'jekyll-multiple-languages', '2.0.3'
+gem 'jekyll-paginate', '1.1.0'
