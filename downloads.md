@@ -213,6 +213,7 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink 0.6-incubating - 2014-08-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/))
 
 ### Flink-shaded
+- Flink-shaded 6.0 - 2019-02-12 ([Source](https://archive.apache.org/dist/flink/flink-shaded-6.0/flink-shaded-6.0-src.tgz))
 - Flink-shaded 5.0 - 2018-10-15 ([Source](https://archive.apache.org/dist/flink/flink-shaded-5.0/flink-shaded-5.0-src.tgz))
 - Flink-shaded 4.0 - 2018-06-06 ([Source](https://archive.apache.org/dist/flink/flink-shaded-4.0/flink-shaded-4.0-src.tgz))
 - Flink-shaded 3.0 - 2018-02-28 ([Source](https://archive.apache.org/dist/flink/flink-shaded-3.0/flink-shaded-3.0-src.tgz))
