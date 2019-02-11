@@ -2,57 +2,57 @@
 title:  "贡献文档"
 ---
 
-Good documentation is crucial for any kind of software. This is especially true for sophisticated software systems such as distributed data processing engines like Apache Flink. The Apache Flink community aims to provide concise, precise, and complete documentation and welcomes any contribution to improve Apache Flink's documentation.
+良好的文档对任何类型的软件都至关重要。这对于复杂的软件系统尤其如此，例如 Apache Flink 这样的分布式数据处理引擎。Apache Flink 社区旨在提供简明、精确和完整的文档，并欢迎任何改进 Apache Flink 文档的贡献。
 
 {% toc %}
 
-## Obtain the documentation sources
+## 获取文档资源
 
-Apache Flink's documentation is maintained in the same [git](http://git-scm.com/) repository as the code base. This is done to ensure that code and documentation can be easily kept in sync.
+Apache Flink 的文档和代码保存在相同的 [git](http://git-scm.com/) 仓库中。这样做是为了确保代码和文档可以轻松保持同步。
 
-The easiest way to contribute documentation is to fork [Flink's mirrored repository on GitHub](https://github.com/apache/flink) into your own GitHub account by clicking on the fork button at the top right. If you have no GitHub account, you can create one for free.
+贡献文档的最简单方法是在 [GitHub 上 Flink 的镜像仓库](https://github.com/apache/flink) 页面，通过单击右上角的 fork 按钮讲 Flink 克隆到你自己的 GitHub 帐户中。如果你没有 GitHub 帐户，可以免费创建一个帐户。
 
-Next, clone your fork to your local machine.
+接下来，将 fork 的代码克隆到本地计算机。
 
 ```
 git clone https://github.com/<your-user-name>/flink.git
 ```
 
-The documentation is located in the `docs/` subdirectory of the Flink code base.
+文档位于 Flink 代码库的 `docs/` 子目录中。
 
-## Before you start working on the documentation ...
+## 在开始贡献文档之前...
 
-... please make sure there exists a [Jira](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a Jira issue, except for trivial fixes such as typos.
+...请确保已经有一个相对应的 [Jira](https://issues.apache.org/jira/browse/FLINK) issue 存在了。我们要求所有文档更改都需要关联一个 Jira issue，除了一些微不足道的修复，如拼写错误。
 
-## Update or extend the documentation
+## 更新或扩展文档
 
-The Flink documentation is written in [Markdown](http://daringfireball.net/projects/markdown/). Markdown is a lightweight markup language which can be translated to HTML.
+Flink 文档是用 [Markdown](http://daringfireball.net/projects/markdown/) 编写的。Markdown 是一种轻量级标记语言，可以通过工具转化成 HTML。
 
-In order to update or extend the documentation you have to modify the Markdown (`.md`) files. Please verify your changes by starting the build script in preview mode.
+为了更新或扩展文档，你必须修改 Markdown (`.md`) 文件。请通过在预览模式下启动构建脚本来验证你的更改。
 
 ```
 cd docs
 ./build_docs.sh -p
 ```
 
-The script compiles the Markdown files into static HTML pages and starts a local webserver. Open your browser at `http://localhost:4000` to view the compiled documentation including your changes. The served documentation is automatically re-compiled and updated when you modify and save Markdown files and refresh your browser.
+该脚本会将 Markdown 文件编译成静态 HTML 页面并在本地启动一个 Web 服务器。在浏览器中打开 `http://localhost:4000`，查看包含更改文档页面。当你修改并保存 Markdown 文件，然后刷新浏览器，修改过的文档将自动被重新编译和更新。
 
-Please feel free to ask any questions you have on the developer mailing list.
+如果有任何疑问，请在开发者邮件列表随时提问。
 
-## Submit your contribution
+## 提交你的贡献
 
-The Flink project accepts documentation contributions through the [GitHub Mirror](https://github.com/apache/flink) as [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are a simple way of offering a patch by providing a pointer to a code branch that contains the changes.
+Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink) 的 [Pull Request](https://help.github.com/articles/using-pull-requests) 方式接受文档的贡献。Pull request 是一种提供补丁的简单方法，它提供了一个指向包含更改的代码分支的链接。
 
-To prepare and submit a pull request follow these steps.
+请按照以下步骤准备和提交 pull request。
 
-1. Commit your changes to your local git repository. The commit message should point to the corresponding Jira issue by starting with `[FLINK-XXXX]`.
+1. 将更改提交到本地 git 仓库。提交消息应该以 `[FLINK-XXXX]` 开头，对应了相关联的 Jira issue。
 
-2. Push your committed contribution to your fork of the Flink repository at GitHub.
+2. 将你提交的贡献推送到 GitHub 上你 fork 的 Flink 仓库中。
 
 	```
 	git push origin myBranch
 	```
 
-3. Go to the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and submit it.
+3. 打开你的 fork 仓库网页（`https://github.com/<your-user-name>/flink`）并使用 “Create Pull Request” 按钮开始创建 pull request。确保 base fork 是`apache/flink master`，并且 head fork 是包含更改的分支。再为 pull request 添加一个有意义的描述并创建它。
 
-It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) issue.
+也可以将补丁（patch）附加到 [Jira]({{ site.FLINK_ISSUES_URL }}) issue 上。
