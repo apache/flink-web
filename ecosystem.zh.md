@@ -8,7 +8,7 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 
 ## Connectors
 
-<p>Connectors 提供用于与各种第三方系统连接的代码。</p>
+<p>Connectors 提供了用于与各种第三方系统连接的代码。</p>
 
 <p>目前支持这些系统：</p>
 
@@ -29,14 +29,14 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 ## 第三方项目
 
 这是基于 Flink 构建的第三方软件包（包括库，系统扩展或示例）的列表。
- Flink 社区收集这些包的链接，但不维护它们。
+ Flink 社区收集了这些包的链接，但不负责维护它们。
 因此，它们不属于 Apache Flink 项目，社区无法为它们提供任何支持。
 **是否遗漏了您的项目？**
-请通过 [user/dev mailing list](#mailing-lists) 告诉我们。
+请通过[用户或开发者邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)告诉我们。
 
 **Apache Zeppelin**
 
-[Apache Zeppelin](https://zeppelin.incubator.apache.org/) 是一个 Web 笔记形式的交互式数据查询分析工具，它可以使用 [Flink作为执行引擎](https://zeppelin.apache.org/docs/latest/interpreter/flink.html)。可以查看 Jim Dowling 在 Flink Forward 会议上关于在 Flink 上使用 Zeppelin 的[演讲](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin)。
+[Apache Zeppelin](https://zeppelin.apache.org/) 是一个 Web 笔记形式的交互式数据查询分析工具，它可以使用 [Flink作为执行引擎](https://zeppelin.apache.org/docs/latest/interpreter/flink.html)。可以查看 Jim Dowling 在 Flink Forward 会议上关于在 Flink 上使用 Zeppelin 的[演讲](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin)。
 
 **Apache Mahout**
 
@@ -61,7 +61,7 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 
 **FastR**
 
-[FastR](https://github.com/oracle/fastr) 是 Java 中 R 语言的实现。 [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) 在 Flink 之上执行 R 任务。
+[FastR](https://github.com/oracle/fastr) 是 Java 中 R 语言的实现。 [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) 可以在 Flink 之上执行 R 任务。
 
 **Apache SAMOA**
 
@@ -71,15 +71,15 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 
 [Alluxio](http://www.alluxio.org/) 是一个开源的，能匹配内存速度的虚拟分布式存储，使应用程序能够在[统一的命名空间](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html)中有效地共享数据并跨不同存储系统访问数据。以下是[使用 Flink 通过 Alluxio 访问数据的示例](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html)。
 
-**Python Examples on Flink**
+**Python示例**
 
 使用 Apache Flink 的 Python API 的[一组示例](https://github.com/wdm0006/flink-python-examples)。
 
-**WordCount Example in Clojure**
+**使用 Clojure 编写的 WordCount 示例**
 
 关于如何在 Clojure 中编写 Flink 程序的 [WordCount示例](https://github.com/mjsax/flink-external/tree/master/flink-clojure)。
 
-**Anomaly Detection and Prediction in Flink**
+**异常检测与预测**
 
 [flink-htm](https://github.com/nupic-community/flink-htm) 是 Apache Flink 中用于异常检测和预测的库。该算法基于由 Numenta 智能计算平台（NuPIC）实现的 Hierarchical Temporal Memory（HTM）。
 
@@ -87,7 +87,7 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 
 [Apache Ignite](https://ignite.apache.org) 是一个高性能，集成和分布式的内存计算和事务平台，用于实时处理大规模数据集。请参阅 [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) 以将数据写入 Ignite 缓存。
 
-**Tink temporal graph library**
+**Tink 时态图库**
 
 [Tink](https://github.com/otherwise777/Temporal_Graph_library) 
 是一个建立在 Flink 之上的时态图库。它可以分析时态图，如对最短时间路径算法的不同解释，以及诸如时间间隔和时间紧密度之类的度量。这里是 Wouter Ligtenberg 的[论文](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf)。
