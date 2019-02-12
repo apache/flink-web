@@ -37,12 +37,12 @@ This is a list of third party packages (i.e., libraries, system extensions, or e
 The Flink community collects links to these packages but does not maintain them.
 Thus, they do not belong to the Apache Flink project, and the community cannot give any support for them.
 **Is your project missing?**
-Please let us know on the [user/dev mailing list](#mailing-lists).
+Please let us know on the [user/dev mailing list]({{ site.baseurl }}/community.html#mailing-lists).
 
 **Apache Zeppelin**
 
-[Apache Zeppelin](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with
-[Flink as an execution engine](https://zeppelin.incubator.apache.org/docs/interpreter/flink.html) (next to other engines).
+[Apache Zeppelin](https://zeppelin.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with
+[Flink as an execution engine](https://zeppelin.apache.org/docs/latest/interpreter/flink.html).
 See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin) about Zeppelin on Flink.
 
 **Apache Mahout**
