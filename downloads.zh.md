@@ -18,19 +18,15 @@ $( document ).ready(function() {
 
 {% toc %}
 
-## Latest stable release (v{{ site.FLINK_VERSION_STABLE }})
+## 最新稳定版 (v{{ site.FLINK_VERSION_STABLE }})
 
-Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
+Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
-An Apache Hadoop installation is [not required](faq.html#how-does-flink-relate-to-the-hadoop-stack) to use Apache Flink.
-For users that use Flink without any Hadoop components, we recommend the release without bundled Hadoop libraries.
+使用 Apache Flink [不需要](faq.html#how-does-flink-relate-to-the-hadoop-stack)安装 Apache Hadoop。对于使用 Flink 而没有用到任何 Hadoop 组件的用户，我们建议使用不包含 Hadoop 库的包。
 
-If you plan to use Apache Flink together with Apache Hadoop (run Flink on YARN, connect to HDFS,
-connect to HBase, or use some Hadoop-based file system connector) then select the download that
-bundles the matching Hadoop version, or use the Hadoop free version and
-[export your HADOOP_CLASSPATH](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html).
+如果您计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于 Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的下载包，或使用不带 Hadoop 版本的包并[设置 HADOOP_CLASSPATH 环境变量](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html)。
 
-### Binaries
+### 二进制包
 
 <table class="table table-striped">
 <thead>
@@ -58,8 +54,8 @@ bundles the matching Hadoop version, or use the Hadoop free version and
 </tbody>
 </table>
 
-### Source
-<p>Review the source code or build Flink on your own, using one of these packages:</p>
+### 源码包
+<p>使用以下任一软件包查看源代码或自行构建 Flink：</p>
 
 {% for source_release in site.source_releases %}
 <div class="list-group">
@@ -72,7 +68,7 @@ bundles the matching Hadoop version, or use the Hadoop free version and
 </div>
 {% endfor %}
 
-### Optional components
+### 可选组件
 
 {% assign categories = site.optional_components | group_by: 'category' | sort: 'name' %}
 {% for category in categories %}
@@ -123,19 +119,19 @@ bundles the matching Hadoop version, or use the Hadoop free version and
 </div>
 {% endfor %}
 
-## Release Notes
+## 发布说明
 
-Please have a look at the [Release Notes for Flink {{ site.FLINK_VERSION_STABLE_SHORT }}]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html) if you plan to upgrade your Flink setup from a previous version.
+如果您计划从以前的版本升级 Flink，请查看 [Flink {{ site.FLINK_VERSION_STABLE_SHORT }} 的发布说明]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html)。
 
-## Verifying Hashes and Signatures
+## 验证哈希和签名
 
-Along with our releases, we also provide sha512 hashes in `*.sha512` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://www.apache.org/dist/flink/KEYS).
+随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。 Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，您可以使用这些版本签名的 [KEYS](https://www.apache.org/dist/flink/KEYS) 来校验它们。
 
-## Maven Dependencies
+## Maven 依赖
 
-You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
+您只要将以下依赖项添加到 `pom.xml` 中，就能在项目中引入 Apache Flink 。这些依赖项包含了本地执行环境，因此支持本地测试。
 
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.11` and `flink-streaming-java_2.11` with `flink-streaming-scala_2.11`.
+- **Scala API**: 为了使用 Scala API，将 `flink-java` 的 artifact id 替换为 `flink-scala_2.11`，同时将 `flink-streaming-java_2.11` 替换为 `flink-streaming-scala_2.11`。
 
 ```xml
 <dependency>
@@ -155,16 +151,13 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 </dependency>
 ```
 
-## Update Policy for old releases
+## 旧版本的更新策略
+截至2017年3月，Flink 社区[决定](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html)使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的  bugfix。
 
-As of March 2017, the Flink community [decided](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
+请注意，社区始终愿意讨论旧版本的 bugfix 版本。请在 dev@flink.apache.org 邮件列表中与开发人员联系。
 
-Note that the community is always open to discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
-
-
-## All stable releases
-
-All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
+## 所有稳定版本
+所有的 Flink 版本均可通过 [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) 获得，包括校验和加密签名。在撰写本文时，这包括以下版本：
 
 ### Flink
 
