@@ -24,6 +24,13 @@ The documentation is located in the `docs/` subdirectory of the Flink code base.
 
 ... please make sure there exists a [Jira](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a Jira issue, except for trivial fixes such as typos.
 
+## Multi-Language
+
+To draft Chinese version document or translate existing one, just add or copy that doc and name with `.zh.md` as sufffix. It will generate under `/zh` folder with same name as `html` file. 
+To add other language, please update `_config.yml` and follow the same pattern as Chinese version.
+
+In addition, [Flink translation specification](https://docs.google.com/document/d/1zhGyPU4bVJ7mCIdUTsQr9lHLn4vltejhngG_SOV6g1w/edit#heading=h.by2zo7lwgzr5) can be used to  write and modify Chinese documents.
+
 ## Update or extend the documentation
 
 The Flink documentation is written in [Markdown](http://daringfireball.net/projects/markdown/). Markdown is a lightweight markup language which can be translated to HTML.
