@@ -42,7 +42,7 @@ Please let us know on the [user/dev mailing list](#mailing-lists).
 **Apache Zeppelin**
 
 [Apache Zeppelin](https://zeppelin.incubator.apache.org/) is a web-based notebook that enables interactive data analytics and can be used with
-[Flink as an execution engine](https://zeppelin.incubator.apache.org/docs/interpreter/flink.html) (next to other engines).
+[Flink as an execution engine](https://zeppelin.apache.org/docs/latest/interpreter/flink.html).
 See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin) about Zeppelin on Flink.
 
 **Apache Mahout**
