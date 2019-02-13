@@ -24,7 +24,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
 使用 Apache Flink [不需要](faq.html#how-does-flink-relate-to-the-hadoop-stack)安装 Apache Hadoop。对于使用 Flink 而没有用到任何 Hadoop 组件的用户，我们建议使用不包含 Hadoop 库的包。
 
-如果您计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于 Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的下载包，或使用不带 Hadoop 版本的包并[设置 HADOOP_CLASSPATH 环境变量](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html)。
+如果你计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于 Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的下载包，或使用不带 Hadoop 版本的包并[设置 HADOOP_CLASSPATH 环境变量](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html)。
 
 ### 二进制包
 
@@ -121,15 +121,15 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
 ## 发布说明
 
-如果您计划从以前的版本升级 Flink，请查看 [Flink {{ site.FLINK_VERSION_STABLE_SHORT }} 的发布说明]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html)。
+如果你计划从以前的版本升级 Flink，请查看 [Flink {{ site.FLINK_VERSION_STABLE_SHORT }} 的发布说明]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html)。
 
 ## 验证哈希和签名
 
-随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。 Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，您可以使用这些版本签名的 [KEYS](https://www.apache.org/dist/flink/KEYS) 来校验它们。
+随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://www.apache.org/dist/flink/KEYS) 来校验它们。
 
 ## Maven 依赖
 
-您只要将以下依赖项添加到 `pom.xml` 中，就能在项目中引入 Apache Flink 。这些依赖项包含了本地执行环境，因此支持本地测试。
+你只要将以下依赖项添加到 `pom.xml` 中，就能在项目中引入 Apache Flink 。这些依赖项包含了本地执行环境，因此支持本地测试。
 
 - **Scala API**: 为了使用 Scala API，将 `flink-java` 的 artifact id 替换为 `flink-scala_2.11`，同时将 `flink-streaming-java_2.11` 替换为 `flink-streaming-scala_2.11`。
 
