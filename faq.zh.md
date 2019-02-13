@@ -22,69 +22,58 @@ under the License.
 
 <hr />
 
-The following questions are frequently asked with regard to the Flink project **in general**. 
+以下这些是 Flink 项目中经常会被问到的**常见**问题。
 
-If you have further questions, make sure to consult the [documentation]({{site.docs-stable}}) or [ask the community]({{ site.baseurl }}/gettinghelp.html).
+如果你还有其他问题，请先查阅[文档]({{site.docs-stable}})或[咨询社区]({{ site.baseurl }}/zh/gettinghelp.html)。
 
 {% toc %}
 
 
-# General
+# 常见问题
 
-## Is Apache Flink only for (near) real-time processing use cases?
+## Apache Flink 仅适用于（近）实时处理场景吗？
 
-Flink is a very general system for data processing and data-driven applications with *data streams* as
-the core building block. These data streams can be streams of real-time data, or stored streams of historic data.
-For example, in Flink's view a file is a stored stream of bytes. Because of that, Flink
-supports both real-time data processing and applications, as well as batch processing applications.
+Flink 是一个非常通用的系统，它以 *数据流* 为核心，用于数据处理和数据驱动的应用程序。这些数据流可以是实时数据流或存储的历史数据流。例如，Flink 认为文件是存储的字节流。因此，Flink 同时支持实时数据处理和批处理应用程序。
 
-Streams can be *unbounded* (have no end, events continuously keep coming) or be *bounded* (streams have a beginning
-and an end). For example, a Twitter feed or a stream of events from a message queue are generally unbounded streams,
-whereas a stream of bytes from a file is a bounded stream.
+流可以是 *无界的* （不会结束，源源不断地发生事件）或 *有界的* （流有开始和结束）。例如，来自消息队列的 Twitter 信息流或事件流通常是无界的流，而来自文件的字节流是有界的流。
 
-## If everything is a stream, why are there a DataStream and a DataSet API in Flink?
+## 如果一切都是流，为什么 Flink 中同时有 DataStream 和 DataSet API？
 
-Bounded streams are often more efficient to process than unbounded streams. Processing unbounded streams of events
-in (near) real-time requires the system to be able to immediately act on events and to produce intermediate
-results (often with low latency). Processing bounded streams usually does not require producing low latency results, because the data is a while old
-anyway (in relative terms). That allows Flink to process the data in a simple and more efficient way.
+处理有界流的数据通常比无界流更有效。在（近）实时要求的系统中，处理无限的事件流要求系统能够立即响应事件并产生中间结果（通常具有低延迟）。处理有界流通常不需要产生低延迟结果，因为无论如何数据都有点旧（相对而言）。这样 Flink 就能以更加简单有效的方式去处理数据。
 
-The *DataStream* API captures the continuous processing of unbounded and bounded streams, with a model that supports
-low latency results and flexible reaction to events and time (including event time).
+*DataStream* API 基于一个支持低延迟和对事件和时间（包括事件时间）灵活反应的模型，用来连续处理无界流和有界流。
 
-The *DataSet* API has techniques that often speed up the processing of bounded data streams. In the future, the community
-plans to combine these optimizations with the techniques in the DataStream API.
+*DataSet* API 具有通常可加速有界数据流处理的技术。在未来，社区计划将这些优化与 DataStream API 中的技术相结合。
 
-## How does Flink relate to the Hadoop Stack?
+## Flink 与 Hadoop 软件栈是什么关系?
 
-Flink is independent of [Apache Hadoop](https://hadoop.apache.org/) and runs without any Hadoop dependencies.
+Flink 独立于[Apache Hadoop](https://hadoop.apache.org/)，且能在没有任何 Hadoop 依赖的情况下运行。
 
-However, Flink integrates very well with many Hadoop components, for example, *HDFS*, *YARN*, or *HBase*.
-When running together with these components, Flink can use HDFS to read data, or write results and checkpoints/snapshots.
-Flink can be easily deployed via YARN and integrates with the YARN and HDFS Kerberos security modules.
+但是，Flink 可以很好的集成很多 Hadoop 组件，例如 *HDFS*、*YARN* 或 *HBase*。
+当与这些组件一起运行时，Flink 可以从 HDFS 读取数据，或写入结果和检查点（checkpoint）/快照（snapshot）数据到 HDFS 。
+Flink 还可以通过 YARN 轻松部署，并与 YARN 和 HDFS Kerberos 安全模块集成。
 
-## What other stacks does Flink run in?
+## Flink 运行的其他软件栈是什么？
 
-Users run Flink on [Kubernetes](https://kubernetes.io), [Mesos](https://mesos.apache.org/),
-[Docker](https://www.docker.com/), or even as standalone services.
+用户还可以在 [Kubernetes](https://kubernetes.io)、 [Mesos](https://mesos.apache.org/) 或 [Docker](https://www.docker.com/) 上运行 Flink，甚至可以独立部署。
 
-## What are the prerequisites to use Flink?
+## 使用Flink的先决条件是什么？
 
-  - You need *Java 8* to run Flink jobs/applications.
-  - The Scala API (optional) depends on Scala 2.11.
-  - Highly-available setups with no single point of failure require [Apache ZooKeeper](https://zookeeper.apache.org/).
-  - For highly-available stream processing setups that can recover from failures, Flink requires some form of distributed storage for checkpoints (HDFS / S3 / NFS / SAN / GFS / Kosmos / Ceph / ...).
+  - 你需要 *Java 8* 来运行 Flink 作业/应用程序。
+  - Scala API（可选）依赖 Scala 2.11。
+  - 避免单点故障的高可用性配置需要有 [Apache ZooKeeper](https://zookeeper.apache.org/)。
+  - 对于可以从故障中恢复的高可用流处理配置，Flink 需要某种形式的分布式存储用于保存检查点（HDFS / S3 / NFS / SAN / GFS / Kosmos / Ceph / ...）。
 
-## What scale does Flink support?
+## Flink支持多大的规模？
 
-Users are running Flink jobs both in very small setups (fewer than 5 nodes) and on 1000s of nodes and with TBs of state.
+用户可以同时在小集群（少于5个节点）和拥有 TB 级别状态的1000个节点上运行 Flink 任务。
 
-## Is Flink limited to in-memory data sets?
+## Flink是否仅限于内存数据集？
 
-For the DataStream API, Flink supports larger-than-memory state be configuring the RocksDB state backend.
+对于 DataStream API，Flink 通过配置 RocksDB 状态后端来支持大于内存的状态。
 
-For the DataSet API, all operations (except delta-iterations) can scale beyond main memory.
+对于 DataSet API，所有操作（除增量迭代外）都可以扩展到主内存之外。
 
-# Common Error Messages
+# 常见错误消息
 
-Common error messages are listed on the [Getting Help]({{ site.baseurl }}/gettinghelp.html#got-an-error-message) page.
+常见错误消息在[获得帮助]({{ site.baseurl }}/zh/gettinghelp.html#got-an-error-message)页面上。
