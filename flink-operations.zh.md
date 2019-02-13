@@ -16,46 +16,46 @@ title: "Apache Flink 是什么？"
 </div>
 <hr/>
 
-Apache Flink is a framework for stateful computations over unbounded and bounded data streams. Since many streaming applications are designed to run continuously with minimal downtime, a stream processor must provide excellent failure recovery, as well as, tooling to monitor and maintain applications while they are running.
+Apache Flink是针对有界（批处理）及无界（流处理）流的数据进行有状态计算的框架技术。当许多流计算应用被设计成（最小量故障的）可持续运行服务时，这就要求每一个流处理组件必须提供良好的故障恢复能力，也就意味着在他们持续运行过程中我们可以实时监控和维护他们的状态和生命周期。
 
-Apache Flink puts a strong focus on the operational aspects of stream processing. Here, we explain Flink's failure recovery mechanism and present its features to manage and supervise running applications.
+Apache Flink非常注重流数据处理的可操作性。因此在这一小节中，我们详细解释flink故障恢复机制，并且介绍flink在管理和监督运行中的应用过程 中所体现出来的特点。
 
-## Run Your Applications Non-Stop 24/7
+## 特点1：（持续稳定性）7*24小时稳定运行服务
 
-Machine and process failures are ubiquitous in distributed systems. A distributed stream processors like Flink must recover from failures in order to be able to run streaming applications 24/7. Obviously, this does not only mean to restart an application after a failure but also to ensure that its internal state remains consistent, such that the application can continue processing as if the failure had never happened.
+在分布式系统中，服务故障是常有的事，为了保证服务能够7*24小时稳定运行，像Flink这样的流处理器故障恢复机制是必须要有的。显然这就意味着，它(这类流处理器)不仅要能在服务出现故障时候能够重启服务，而且还要当故障发生时，保证能够持久化服务内部各个组件的当前状态，只有这样才能保证在故障恢复时候，服务能够继续正常运行，好像故障就没有发生过一样。
 
-Flink provides a several features to ensure that applications keep running and remain consistent:
+Flink通过几下多种机制维护应用可持续运行及其一致性:
 
-* **Consistent Checkpoints**: Flink's recovery mechanism is based on consistent checkpoints of an application's state. In case of a failure, the application is restarted and its state is loaded from the latest checkpoint. In combination with resettable stream sources, this feature can guarantee *exactly-once state consistency*.
-* **Efficient Checkpoints**: Checkpointing the state of an application can be quite expensive if the application maintains terabytes of state. Flink's can perform asynchronous and incremental checkpoints, in order to keep the impact of checkpoints on the application's latency SLAs very small.
-* **End-to-End Exactly-Once**: Flink features transactional sinks for specific storage systems that guarantee that data is only written out exactly once, even in case of failures.
-* **Integration with Cluster Managers**: Flink is tightly integrated with cluster managers, such as [Hadoop YARN](https://hadoop.apache.org), [Mesos](https://mesos.apache.org), or [Kubernetes](https://kubernetes.io). When a process fails, a new process is automatically started to take over its work. 
-* **High-Availability Setup**: Flink feature a high-availability mode that eliminates all single-points-of-failure. The HA-mode is based on [Apache ZooKeeper](https://zookeeper.apache.org), a battle-proven service for reliable distributed coordination.
+* **检查点的一致性**: Flink的故障恢复机制是通过建立分布式应用服务状态一致性检查点实现的，当有故障产生时，应用服务会重启后，再重新加载上一次成功备份的状态检查点信息。结合可重置的源数据流，从而保证无论什么情况下，源数据流只会流过一次*(exactly-once)*。 
+* **经济高效的检查点服务**: 如果一个应用要维护一个TB级的状态信息，对此应用的状态建立检查点服务的资源开销是很高的，为了减小因检查点服务对应用的延迟性（SLAs服务等级协议）的影响，Flink采用异步及增量的方式构建检查点服务。
+* **端到端的Exactly-Once(数据仅流过一次)**: Flink 通过向特定的存储系统提供流数据传输接收器的方式，即使在出现故障的状况下,也能保证数据只流过一次。
+* **集成多种集群管理服务组件**: Flink已与多种集群管理服务紧密集成，如 [Hadoop YARN](https://hadoop.apache.org), [Mesos](https://mesos.apache.org), 以及 [Kubernetes](https://kubernetes.io)。当集群中某个流程任务失败后，一个新的流程服务会自动启动并替代它继续执行。 
+* **内置的高可用性服务**: Flink内置了为解决单点故障问题的高可用性服务模块，此模块是基于[Apache ZooKeeper](https://zookeeper.apache.org),技术实现的，[Apache ZooKeeper](https://zookeeper.apache.org)是一种可靠的、交互式的、分布式协调服务组件。
 
-## Update, Migrate, Suspend, and Resume Your Applications
+## 特点2： Flink能够更方便的升级、迁移、挂起、恢复应用服务
 
-Streaming applications that power business-critical services need to be maintained. Bugs need to be fixed and improvements or new features need to be implemented. However, updating a stateful streaming application is not trivial. Often one cannot simply stop the applications and restart an fixed or improved version because one cannot afford to lose the state of the application.
+强大的关键业务服务的流应用需要良好的运维服务--系统bugs需要修复和改善，业务新功能需要实现。然而升级一个有状态的流应用并不是简单的事情，因为在我们为了升级一个改进后版本而简单停止当前流应用并重启时，我们还不能丢失掉当前流应用的所处于的状态信息。
 
-Flink's *Savepoints* are a unique and powerful feature that solves the issue of updating stateful applications and many other related challenges. A savepoint is a consistent snapshot of an application's state and therefore very similar to a checkpoint. However in contrast to checkpoints, savepoints need to be manually triggered and are not automatically removed when an application is stopped. A savepoint can be used to start a state-compatible application and initialize its state. Savepoints enable the following features:
+而Flink的 *Savepoints* 服务就是为解决升级服务过程中记录流应用状态信息及其相关难题而产生的一种唯一的、强大的组件。一个savePoint，就是一个应用服务状态的一致性快照，因此其与checkpoint组件的很相似，但是与checkpoint相比，savepoint服务需要手动触发启动，而且当流应用服务停止时候，它并不会自动删除。savepoint组件常被应用于启动一个已含有状态的流服务，并初始化其（备份时）状态。Savepoints组件有以下特点：
 
-* **Application Evolution**: Savepoints can be used to evolve applications. A fixed or improved version of an application can be restarted from a savepoint that was taken from a previous version of the application. It is also possible to start the application from an earlier point in time (given such a savepoint exists) to repair incorrect results produced by the flawed version.
-* **Cluster Migration**: Using savepoints, applications can be migrated (or cloned) to different clusters.
-* **Flink Version Updates**: An application can be migrated to run on a new Flink version using a savepoint.
-* **Application Scaling**: Savepoints can be used to increase or decrease the parallelism of an application.
-* **A/B Tests and What-If Scenarios**: The performance or quality of two (or more) different versions of an application can be compared by starting all versions from the same savepoint. 
-* **Pause and Resume**: An application can be paused by taking a savepoint and stopping it. At any later point in time, the application can be resumed from the savepoint.
-* **Archiving**: Savepoints can be archived to be able to reset the state of an application to an earlier point in time.
+* **便于升级应用服务版本**: Savepoints组件常在应用版本升级使用，当前应用的新版本更新升级时，可以根据上一个版本程序的记录的savepoint组件内的服务状态信息来重启服务。它也可能会使用更早的Savepoints还原点来重启服务，以便于修复由于有缺陷的程序版本导致的不正确的程 序运行结果。
+* **方便集群服务移植**: 通过使用Savepoints组件，流服务应用可以自由的在不同集群中迁移部署。
+* **方便Flink版本升级**: 通过使用Savepoints组件，可以使应用服务在升级Flink时，更加安全便捷。
+* **增加应用并行服务的扩展性**: Savepoints组件也常在增加或减少应用服务集群的并行度时使用。
+* **便于A/B测试及假设分析场景对比结果**: 通过把同一应用在使用不同版本的应用程 序，基于同一个Savepoints还原点启动服务时，可以测试对比2个或多个版本程序的性能及服务质量。 
+* **暂停和恢复服务**: 一个应用服务可以在新建一个SavePoint后再停止服务，以便于后面任何时间点再根据这个实时刷新的Savepoint还原点进行恢复服务。
+* **归档服务**: Savepoint还提供还原点的归档服务，以便于用户能够指定时间点的Savepoints的服务数据进行重置应用服务的状态，进行恢复服务。
 
-## Monitor and Control Your Applications
+## 特点3：监控和控制应用服务
 
-Just like any other service, continuously running streaming applications need to be supervised and integrated into the operations infrastructure, i.e., monitoring and logging services, of an organization. Monitoring helps to anticipate problems and react ahead of time. Logging enables root-cause analysis to investigate failures. Finally, easily accessible interfaces to control running applications are an important feature.
+如其它应用服务一样，持续运行的流应用服务也需要监控及集成到一些基础设施资源管理服务中，例如一个组件的监控服务及日志服务等。监控服务有助于预测问题并提前做出反应，日志服务提供日志记录能够帮助追踪、调查、分析故障发生的根本原因。最后，便捷易用的访问控制应用服务运行的接口也是Flink的一个重要的亮点特征。
 
-Flink integrates nicely with many common logging and monitoring services and provides a REST API to control applications and query information.
+Flink与许多常见的日志记录和监视服务集成得很好，并提供了一个REST API来控制应用服务和查询应用信息。具体表现如下：
 
-* **Web UI**: Flink features a web UI to inspect, monitor, and debug running applications. It can also be used to submit executions for execution or cancel them.
-* **Logging**: Flink implements the popular slf4j logging interface and integrates with the logging frameworks [log4j](https://logging.apache.org/log4j/2.x/) or [logback](https://logback.qos.ch/).
-* **Metrics**: Flink features a sophisticated metrics system to collect and report system and user-defined metrics. Metrics can be exported to several reporters, including [JMX](https://en.wikipedia.org/wiki/Java_Management_Extensions), Ganglia, [Graphite](https://graphiteapp.org/), [Prometheus](https://prometheus.io/), [StatsD](https://github.com/etsy/statsd), [Datadog](https://www.datadoghq.com/), and [Slf4j](https://www.slf4j.org/). 
-* **REST API**: Flink exposes a REST API to submit a new application, take a savepoint of a running application, or cancel an application. The REST API also exposes meta data and collected metrics of running or completed applications.
+* **Web UI方式**: Flink提供了一个web UI来观察、监视和调试正在运行的应用服务。并且还可以执行或取消组件或任务的执行。
+* **日志集成服务**:Flink实现了流行的slf4j日志接口，并与日志框架[log4j](https://logging.apache.org/log4j/2.x/)或[logback](https://logback.qos.ch/)集成。
+* **度量服务**: Flink提供了一个复杂的度量系统来收集和报告系统和用户定义的度量指标信息。度量信息可以导出到多个报表组件服务，包括 [JMX](https://en.wikipedia.org/wiki/Java_Management_Extensions), Ganglia, [Graphite](https://graphiteapp.org/), [Prometheus](https://prometheus.io/), [StatsD](https://github.com/etsy/statsd), [Datadog](https://www.datadoghq.com/), 和 [Slf4j](https://www.slf4j.org/). 
+* **标准的WEB REST API接口服务**: Flink提供多种REST API接口，有提交新应用程序、获取正在运行的应用程序的SavePoint服务信息、取消应用服务等接口。REST API还提供元数据信息和已采集的运行中或完成后的应用服务的指标信息。
 
 <hr/>
 <div class="row">
