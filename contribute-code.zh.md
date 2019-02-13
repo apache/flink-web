@@ -16,7 +16,7 @@ Apache Flink 通过志愿者贡献的代码得到维护，改进和扩展。 Apa
 
 ### 在你编码之前…
 
-...请确保有与您的贡献相对应的 Jira 问题。 这是 Flink 社区遵循所有代码贡献的一般规则*，包括错误修复，改进或新功能，但* *细小* 热修复除外。 如果您想修复发现的错误，或者想要为 Flink 添加新功能或改进，在开始实施之前请按照提交[错误报告]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) 或 [建议改进或新功能]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature)指南来在 [Flink Jira](http://issues.apache.org/jira/browse/FLINK) 中提交一个 issue。
+...请确保有与您的贡献相对应的 Jira 问题。 这是 Flink 社区遵循所有代码贡献的一般规则*，包括错误修复，改进或新功能，但* *细小* 热修复除外。 如果您想修复发现的错误，或者想要为 Flink 添加新功能或改进，在开始实施之前请按照提交[错误报告]({{ site.baseurl }}/zh/how-to-contribute.html#file-a-bug-report) 或 [建议改进或新功能]({{ site.baseurl }}/zh/how-to-contribute.html#propose-an-improvement-or-a-new-feature)指南来在 [Flink Jira](http://issues.apache.org/jira/browse/FLINK) 中提交一个 issue。
 
 如果 Jira 问题的描述表明其解析将触及代码库的敏感部分，或者问题足够复杂或需要添加大量新代码，Flink 社区可能会要求设计文档。（大多数贡献不应要求设计文档）设计文档的目的是确保解决问题的总体方法是明智的，并得到社区的一致同意。 需要设计文档的 Jira 问题使用 **`requires-design-doc`**标签进行标记， 任何社区成员都可以在认为有必要设计文档的 Jira 问题上标上此标签。 良好的描述有助于确定 Jira 问题是否需要设计文档，设计文件必须添加或附加到 Jira 问题或从 Jira 问题的链接，并涵盖以下方面：
 
@@ -39,9 +39,9 @@ Apache Flink 通过志愿者贡献的代码得到维护，改进和扩展。 Apa
 - 严格遵循[编码指南]( {{site.base}}/contribute-code.html#coding-guidelines)和[代码样式]({{ site.base }}/contribute-code.html#code-style)。
 - 不要将不相关的问题混合到一个贡献中。
 
-**请随时提出问题，**发送邮件到[dev邮件列表]({{site.base}} / community.html #fmail-list)或评论 Jira 问题。
+**请随时提出问题，**发送邮件到[dev邮件列表]({{site.base}}/community.html #fmail-list)或评论 Jira 问题。
 
-以下说明将帮助您[设置开发环境]({{site.base}} / contrib-code.html＃setup-a-development-environment)。
+以下说明将帮助您[设置开发环境]({{site.base}}/contrib-code.html＃setup-a-development-environment)。
 
 
 ### 验证代码的规范性
