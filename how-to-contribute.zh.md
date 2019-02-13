@@ -43,7 +43,7 @@ Apache Flink 社区中的大多数通信都发生在两个邮件列表中：
 - 用户邮件列表  `user@flink.apache.org ` 是 Apache Flink 用户提问和寻求帮助或建议的地方。加入用户列表并帮助其他用户是为Flink社区做出贡献的一种非常好的方式。此外，Stack Overflow 网站上还有 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签，你可以在那里帮助 Flink 用户（并获得一些积分）。
 - 开发邮件列表 `dev@flink.apache.org` 是 Flink 开发人员交流想法，讨论新功能，即将发布的版本以及开发过程的地方。 如果您有兴趣为 Flink 贡献代码，您应该加入此邮件列表。
 
-非常欢迎您[订阅这两个邮件列表]({{ site.baseurl }}/community.html#mailing-lists)。
+非常欢迎您[订阅这两个邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)。
 
 -----
 
@@ -51,7 +51,7 @@ Apache Flink 社区中的大多数通信都发生在两个邮件列表中：
 
 Apache Flink 项目以 [Github pull request](https://github.com/apache/flink/pulls) 的形式接收许多代码贡献。为 Flink 社区做出贡献的一个很好的方法是帮助审查 pull request。
 
-**如果您想帮助审查 pull request，请阅读[审查指南]({{ site.baseurl }}/reviewing-prs.html)。**
+**如果您想帮助审查 pull request，请阅读[审查指南]({{ site.baseurl }}/zh/reviewing-prs.html)。**
 
 -----
 
@@ -73,7 +73,7 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 
 **在开始贡献代码之前，请阅读[贡献代码]( {{ site.base }}/contribute-code.html)指南。**
 
-另请阅读[提交贡献者许可协议]({{ site.baseurl }}/how-to-contribute.html#submit-a-contributor-license-agreement)部分。
+另请阅读[提交贡献者许可协议]({{ site.baseurl }}/zh/how-to-contribute.html#submit-a-contributor-license-agreement)部分。
 
 ### 正在寻找一个可以参与工作的问题？
 {:.no_toc}
@@ -89,7 +89,7 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 良好的文档对任何类型的软件都至关重要。 对于复杂的软件系统尤其如此，例如 Apache Flink 等分布式数据处理引擎。 Apache Flink社区旨在提供简明，精确和完整的文档，并欢迎任何改进 Apache Flink 文档的贡献。
 
 - 如果发现文档缺失、不正确或过时的问题，可以提交一个 [Jira issue](http://issues.apache.org/jira/browse/FLINK) 。
-- Flink 文档是用 Markdown 编写的，位于[ Flink 的源代码库]({{ site.baseurl }}/community.html#main-source-repositories)的 `docs` 文件夹中。 有关如何更新和改进文档以及提供更改的详细说明，请参阅[贡献文档]({{ site.base }}/contribute-documentation.html) 指南。
+- Flink 文档是用 Markdown 编写的，位于[ Flink 的源代码库]({{ site.baseurl }}/zh/community.html#main-source-repositories)的 `docs` 文件夹中。 有关如何更新和改进文档以及提供更改的详细说明，请参阅[贡献文档]({{ site.base }}/contribute-documentation.html) 指南。
 
 -----
 
@@ -104,7 +104,7 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 我们欢迎任何改进我们网站的贡献。
 
 - 如果您认为我们的网站可以改进，请提交一个 [Jira issue](http://issues es.apache.org/jira/browse/flink) 。
-- 如果您想更新和改进网站，请按照[改进网站]({{ site.baseurl }}/improve-website.html)指南进行操作。
+- 如果您想更新和改进网站，请按照[改进网站]({{ site.baseurl }}/zh/improve-website.html)指南进行操作。
 
 -----
 
