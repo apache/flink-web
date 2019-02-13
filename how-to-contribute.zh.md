@@ -4,13 +4,13 @@ title: "如何参与贡献"
 
 <hr />
 
-Apache Flink 由一个开放友好的社区开发的。 我们诚挚地欢迎每个人加入社区并为 Apache Flink 做出贡献。 以下几种方式可以与社区互动并为 Flink 做出贡献，包括提问，提交错误报告，提出新功能，加入邮件列表上的讨论，贡献代码或文档，改进网站或测试候选版本。
+Apache Flink 社区是一个开放友好的社区。 我们诚挚地欢迎每个人加入社区并为 Apache Flink 做出贡献。有许多方式可以参与社区并为 Flink 做出贡献，包括提问，提交错误报告，提出新功能，加入邮件列表上的讨论，贡献代码或文档，改进网站，以及测试候选版本。
 
 {% toc %}
 
 ## 问问题!
 
-Apache Flink 社区非常乐意帮助并回答您的问题。 我们提供了 [用户邮件列表]({{ site.baseurl }}/community.html#mailing-lists )并在 Stack Overflow 网站上创建了 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink)标签。
+Apache Flink 社区非常乐意帮助并回答您的问题。 我们提供了 [用户邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)并在 Stack Overflow 网站上创建了 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签。
 
 -----
 
@@ -22,15 +22,17 @@ Apache Flink 社区非常乐意帮助并回答您的问题。 我们提供了 [�
 
 ## 提出改进或新功能
 
-我们的社区一直在寻找反馈来改进Apache Flink。 如果你有一个想法如何改进 Flink 或有一个新的功能，这将有利于Flink用户，请在[Flink's Jira](http://issues.apache.org/jira/browse/FLINK) 中打开一个问题。 应详细描述改进或新功能，并尽可能包括范围及其要求。 详细信息很重要，原因如下：
+我们的社区一直在寻找反馈来改进Apache Flink。如果你对如何改进 Flink 有一个想法或者想到了一个新功能，这绝对能帮到 Flink 用户，请在 [Flink Jira](http://issues.apache.org/jira/browse/FLINK) 中提交一个问题。 应详细描述改进或新功能，并尽可能包括范围及其要求。 详细信息很重要，原因如下：
 
-- 它可确保在实施改进或功能时满足您的要求。
+- 它可确保在实现改进或功能时满足您的要求。
 - 它有助于估算工作量并设计满足您需求的解决方案。
 - 它允许围绕这个问题进行建设性的讨论。
 
-如果您计划自己提供改进或功能，则还需要提供详细信息。 在这种情况下，请阅读[贡献代码]({{ site.base }}/contribute-code.html)指南。在开始实施之前，我们建议首先与社区就是否需要新功能以及如何实施新功能达成共识。 某些功能可能超出了项目的范围，最好尽早发现。
+如果您计划自己提供改进或功能，则还需要提供详细信息。 在这种情况下，请阅读[贡献代码]({{ site.base }}/contribute-code.html)指南。
 
-对于从根本上改变 Flink 的非常大的功能，我们有另一个流程：[Flink 改进建议](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals)。 如果您有兴趣，可以在那里提出新功能或遵循讨论现有提案。
+在开始实现之前，我们建议首先与社区就是否需要新功能以及如何实施新功能达成共识。 某些功能可能超出了项目的范围，最好尽早发现。
+
+对于从根本上改变 Flink 的非常大的功能，我们有另一个流程：[Flink 改进提案](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals)。 如果您有兴趣，可以在那里提出新功能或遵循讨论现有提案。
 
 -----
 
@@ -38,7 +40,7 @@ Apache Flink 社区非常乐意帮助并回答您的问题。 我们提供了 [�
 
 Apache Flink 社区中的大多数通信都发生在两个邮件列表中：
 
-- 用户邮件列表  `user@flink.apache.org ` 是 Apache Flink 用户提问和寻求帮助或建议的地方。加入用户列表并帮助其他用户是为Flink社区做出贡献的一种非常好的方式。此外，如果您想帮助 Flink 用户(并获得一些积分)，Stack Overflow 网站上还有 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签。
+- 用户邮件列表  `user@flink.apache.org ` 是 Apache Flink 用户提问和寻求帮助或建议的地方。加入用户列表并帮助其他用户是为Flink社区做出贡献的一种非常好的方式。此外，Stack Overflow 网站上还有 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签，你可以在那里帮助 Flink 用户（并获得一些积分）。
 - 开发邮件列表 `dev@flink.apache.org` 是 Flink 开发人员交流想法，讨论新功能，即将发布的版本以及开发过程的地方。 如果您有兴趣为 Flink 贡献代码，您应该加入此邮件列表。
 
 非常欢迎您[订阅这两个邮件列表]({{ site.baseurl }}/community.html#mailing-lists)。
@@ -47,9 +49,9 @@ Apache Flink 社区中的大多数通信都发生在两个邮件列表中：
 
 ## 通过审查代码来贡献
 
-Apache Flink 项目以 [Github pull 请求](https://github.com/apache/flink/pulls)的形式接收许多代码贡献。为 Flink 社区做出贡献的一个很好的方法是帮助审查拉取请求。
+Apache Flink 项目以 [Github pull request](https://github.com/apache/flink/pulls) 的形式接收许多代码贡献。为 Flink 社区做出贡献的一个很好的方法是帮助审查 pull request。
 
-**如果您想帮助审查拉取请求，请阅读[审查指南]({{ site.baseurl }}/reviewing-prs.html)。**
+**如果您想帮助审查 pull request，请阅读[审查指南]({{ site.baseurl }}/reviewing-prs.html)。**
 
 -----
 
@@ -58,27 +60,27 @@ Apache Flink 项目以 [Github pull 请求](https://github.com/apache/flink/pull
 Apache Flink 通过其活跃的社区不断改进。每隔几周，我们都会发布 Apache Flink 的新版本，其中包含了 bug 修复、改进和新特性。发布新版本的过程包括以下步骤:
 
 1. 构建一个新的发布候选版本并开始投票（通常持续72小时）。
-2. 测试候选版本并投票（如果没有发现问题，则使用“+1”;如果候选版本有问题，则使用“-1”）。
+2. 测试候选版本并投票（如果没有发现问题，则使用`+1`;如果候选版本有问题，则使用`-1`）。
 3. 如果候选发布版有问题，请返回第1步。 否则我们发布该版本。
 
-我们的 wiki 包含一个页面，其中总结了[发布的测试过程](https://cwiki.apache.org/confluence/display/FLINK/Releasing)。 如果由一小群人完成发布测试工作则很困难，更多人参与则很轻松。 Flink 社区鼓励每个人参与测试候选发布版。 通过测试候选版本，您可以确保下一个 Flink 版本正常运行，以帮助您进行设置并帮助提高版本质量。
+我们的 wiki 包含一个页面，其中总结了[发布的测试过程](https://cwiki.apache.org/confluence/display/FLINK/Releasing)。 如果由一小群人完成发布测试工作则很困难，更多人参与则很轻松。 Flink 社区鼓励每个人参与测试候选发布版。 通过测试候选版本，可以确保下一个Flink版本适用于你的设置，并帮助提高版本的质量。
 
 -----
 
 ## 贡献代码
 
-Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apache Flink 社区鼓励任何人贡献源代码。为了确保贡献者和评审者有一个愉快的贡献体验并保持高质量的代码库，我们遵循我们的[贡献代码]( {{ site.base }}/contribute-code.html)指南。 该指南还包括有关如何设置开发环境，编码指南和代码样式的说明，并说明如何提交代码贡献。
+Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apache Flink 社区鼓励任何人贡献源代码。为了确保贡献者和评审者有一个愉快的贡献体验并保持高质量的代码库，请遵循我们的[贡献代码]( {{ site.base }}/contribute-code.html)指南。 该指南还包括有关如何设置开发环境，编码指南和代码样式的说明，并说明如何提交代码贡献。
 
-**在开始处理代码贡献之前，请阅读[贡献代码]( {{ site.base }}/contribute-code.html)指南。**
+**在开始贡献代码之前，请阅读[贡献代码]( {{ site.base }}/contribute-code.html)指南。**
 
 另请阅读[提交贡献者许可协议]({{ site.baseurl }}/how-to-contribute.html#submit-a-contributor-license-agreement)部分。
 
-### 如何寻找可以解决的问题？
+### 正在寻找一个可以参与工作的问题？
 {:.no_toc}
 
-我们在 [Flink's Jira](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel) 中保留了所有已知错误，建议的改进和建议功能的列表。 我们将对于新贡献者有帮助的问题标记为特殊的 “starter” 标记。 这些任务应该很容易解决，并将帮助您熟悉项目和贡献过程。
+我们在 [Flink Jira](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel) 中保留了所有已知错误，建议的改进和建议功能的列表。 对于新贡献者友好的问题，我们将其打上了特殊的 "starter" 标记。这些任务应该很容易解决，并将帮助您熟悉项目和贡献过程。
 
-请查看[入门问题](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC)列表，如果您正在寻找可以解决的问题。 您当然也可以选择[任何其他问题](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC)继续工作。 您可以随意提出有关您有兴趣处理的问题。
+请查看 [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC) 列表，如果您正在寻找可以解决的问题。 您当然也可以选择[任何其他问题](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC)继续工作。 您可以随意提出有关您有兴趣处理的问题。
 
 -----
 
@@ -86,8 +88,8 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 
 良好的文档对任何类型的软件都至关重要。 对于复杂的软件系统尤其如此，例如 Apache Flink 等分布式数据处理引擎。 Apache Flink社区旨在提供简明，精确和完整的文档，并欢迎任何改进 Apache Flink 文档的贡献。
 
-- 请将缺失，不正确或过时的文档报告为一个 [Jira 问题](http://issues.apache.org/jira/browse/FLINK)。
-- Flink 的文档是用 Markdown 编写的，位于[ Flink 的源代码库]({{ site.baseurl }}/community.html#main-source-repositories)的 `docs` 文件夹中。 有关如何更新和改进文档以及提供更改的详细说明，请参阅[贡献文档]({{ site.base }}/contribute-documentation.html) 指南。
+- 如果发现文档缺失、不正确或过时的问题，可以提交一个 [Jira issue](http://issues.apache.org/jira/browse/FLINK) 。
+- Flink 文档是用 Markdown 编写的，位于[ Flink 的源代码库]({{ site.baseurl }}/community.html#main-source-repositories)的 `docs` 文件夹中。 有关如何更新和改进文档以及提供更改的详细说明，请参阅[贡献文档]({{ site.base }}/contribute-documentation.html) 指南。
 
 -----
 
@@ -101,7 +103,7 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 
 我们欢迎任何改进我们网站的贡献。
 
-- 如果您认为我们的网站可以改进，请打开一个 [Jira issue](http://issues es.apache.org/jira/browse/flink) 。
+- 如果您认为我们的网站可以改进，请提交一个 [Jira issue](http://issues es.apache.org/jira/browse/flink) 。
 - 如果您想更新和改进网站，请按照[改进网站]({{ site.baseurl }}/improve-website.html)指南进行操作。
 
 -----
@@ -129,9 +131,9 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 
 -----
 
-## 如何成为一个提交者
+## 如何成为一个提交者（Committer）
 
-提交者是具有对项目存储库的写访问权的社区成员，即他们可以自己修改代码，文档和网站，也接受其他贡献。
+提交者是具有对项目仓库的写权限的社区成员，即他们可以自己修改代码，文档和网站，也接受其他贡献。
 
 成为提交者没有严格的协议。新提交者的候选人通常是活跃的贡献者和社区成员。
 
