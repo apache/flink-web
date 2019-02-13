@@ -6,11 +6,11 @@ title: "Apache Flink 是什么？"
 <div class="row">
   <div class="col-sm-12" style="background-color: #f8f8f8;">
     <h2>
-      Architecture &nbsp;
+      架构 &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-applications.html">Applications</a> &nbsp;
+      <a href="{{ site.baseurl }}/zh/flink-applications.html">应用</a> &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-operations.html">Operations</a>
+      <a href="{{ site.baseurl }}/zh/flink-operations.html">运维</a>
     </h2>
   </div>
 </div>
@@ -89,11 +89,11 @@ Stateful Flink applications are optimized for local state access. Task state is 
 <div class="row">
   <div class="col-sm-12" style="background-color: #f8f8f8;">
     <h2>
-      Architecture &nbsp;
+      架构 &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-applications.html">Applications</a> &nbsp;
+      <a href="{{ site.baseurl }}/zh/flink-applications.html">应用</a> &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-operations.html">Operations</a>
+      <a href="{{ site.baseurl }}/zh/flink-operations.html">运维</a>
     </h2>
   </div>
 </div>
