@@ -6,11 +6,11 @@ title: "Apache Flink 是什么？"
 <div class="row">
   <div class="col-sm-12" style="background-color: #f8f8f8;">
     <h2>
-      <a href="{{ site.baseurl }}/flink-architecture.html">Architecture</a> &nbsp;
+      <a href="{{ site.baseurl }}/zh/flink-architecture.html">架构</a> &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      Applications &nbsp;
+      应用 &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-operations.html">Operations</a>
+      <a href="{{ site.baseurl }}/zh/flink-operations.html">运维</a>
     </h2>
   </div>
 </div>
@@ -191,11 +191,11 @@ Flink features several libraries for common data processing use cases. The libra
 <div class="row">
   <div class="col-sm-12" style="background-color: #f8f8f8;">
     <h2>
-      <a href="{{ site.baseurl }}/flink-architecture.html">Architecture</a> &nbsp;
+      <a href="{{ site.baseurl }}/zh/flink-architecture.html">架构</a> &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      Applications &nbsp;
+      应用 &nbsp;
       <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-operations.html">Operations</a>
+      <a href="{{ site.baseurl }}/zh/flink-operations.html">运维</a>
     </h2>
   </div>
 </div>
