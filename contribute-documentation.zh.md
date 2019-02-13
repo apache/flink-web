@@ -10,7 +10,7 @@ title:  "贡献文档"
 
 Apache Flink 的文档作为代码库保存在相同的 [git](http://git-scm.com/) 仓库中。 这样做是为了确保代码和文档可以轻松保持同步。
 
-提供文档的最简单方法是通过单击右上角的 fork 按钮将[Flink 的 GitHub 上的镜像仓库](https://github.com/apache/flink)分支到您自己的 GitHub 帐户中。 如果您没有 GitHub 帐户，可以免费创建一个帐户。
+提供文档的最简单方法是通过单击右上角的 fork 按钮将 [Flink 的 GitHub 上的镜像仓库](https://github.com/apache/flink)分支到您自己的 GitHub 帐户中。 如果您没有 GitHub 帐户，可以免费创建一个帐户。
 
 接下来，将 fork 的代码克隆到本地计算机。
 
