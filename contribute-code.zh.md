@@ -18,7 +18,7 @@ Apache Flink 通过志愿者的代码贡献得到维护，改进和扩展。 Apa
 
 ...请确保有与您的贡献相对应的 Jira 问题。 这是 Flink 社区遵循所有代码贡献的一般规则*，包括错误修复，改进或新功能，但* *细小* 热修复除外。 如果您想修复发现的错误，或者想要为 Flink 添加新功能或改进，在开始实施之前请按照提交[错误报告]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) 或 [建议改进或新功能]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature)指南来在 [Flink Jira](http://issues.apache.org/jira/browse/FLINK) 中提交一个 issue。
 
-如果 Jira 问题的描述表明其解析将触及代码库的敏感部分，或者问题足够复杂或需要添加大量新代码，Flink 社区可能会要求设计文档。（大多数贡献不应要求设计文件）设计文档的目的是确保解决问题的总体方法是明智的，并得到社区的一致同意。 需要设计文档的 Jira 问题使用 **`requires-design-doc`**标签进行标记， 任何社区成员都可以在认为有必要设计文档的 Jira 问题上标上此标签。 良好的描述有助于确定 Jira 问题是否需要设计文档，设计文件必须添加或附加到 Jira 问题或从 Jira 问题的链接，并涵盖以下方面：
+如果 Jira 问题的描述表明其解析将触及代码库的敏感部分，或者问题足够复杂或需要添加大量新代码，Flink 社区可能会要求设计文档。（大多数贡献不应要求设计文档）设计文档的目的是确保解决问题的总体方法是明智的，并得到社区的一致同意。 需要设计文档的 Jira 问题使用 **`requires-design-doc`**标签进行标记， 任何社区成员都可以在认为有必要设计文档的 Jira 问题上标上此标签。 良好的描述有助于确定 Jira 问题是否需要设计文档，设计文件必须添加或附加到 Jira 问题或从 Jira 问题的链接，并涵盖以下方面：
 
 - 通常方法的概述。
 - API 更改列表（已更改的接口，新的和已弃用的配置参数，已更改的行为，......）。
@@ -243,7 +243,7 @@ Apache Flink 的源代码存储在  [git](http://git-scm.com/)  仓库中，该�
 git clone https://github.com/<your-user-name>/flink.git
 ```
 
-代码被下载到一个名为`flink`的目录中。
+代码被下载到一个名为 `flink` 的目录中。
 
 
 ### 代理设置
