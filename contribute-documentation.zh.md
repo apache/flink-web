@@ -10,7 +10,7 @@ title:  "贡献文档"
 
 Apache Flink 的文档作为代码库保存在相同的 [git](http://git-scm.com/) 仓库中。 这样做是为了确保代码和文档可以轻松保持同步。
 
-提供文档的最简单方法是通过单击右上角的 fork 按钮将 [Flink 的 GitHub 上的镜像仓库](https://github.com/apache/flink)分支到您自己的 GitHub 帐户中。 如果您没有 GitHub 帐户，可以免费创建一个帐户。
+提供文档的最简单方法是通过单击右上角的 fork 按钮将 [Flink 的 GitHub 上的镜像仓库](https://github.com/apache/flink)克隆到您自己的 GitHub 帐户中。 如果您没有 GitHub 帐户，可以免费创建一个帐户。
 
 接下来，将 fork 的代码克隆到本地计算机。
 
@@ -41,13 +41,13 @@ cd docs
 
 ## 提交你的贡献
 
-Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink) 仓库以 [PR（Pull Requests）](https://help.github.com/articles/using-pull-requests) 的方式接收用户对文档的贡献。PR 是一种通过提供指向包含更改的代码分支的指针来提供补丁的简单方法。
+Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink) 仓库以 [PR（Pull Requests）](https://help.github.com/articles/using-pull-requests) 的方式接收用户对文档的贡献。PR 是一种提供补丁的简单方法，它提供一个指向包含更改的代码分支的指针。
 
 按照以下步骤准备和提交 PR 。
 
 1. 将更改提交到本地 git 仓库。 提交消息应该以 `[FLINK-XXXX]` 开头指向相应的 Jira 问题。
 
-2. 将您提交的贡献推送到GitHub上的Flink仓库的分支。
+2. 将您提交的贡献推送到 GitHub 上的 Flink 仓库的分支。
 
   ```
   git push origin myBranch
