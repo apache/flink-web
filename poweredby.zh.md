@@ -8,7 +8,7 @@ title: "Flink 用户"
 
 <hr />
 
-Apache Flink 为全球许多公司和企业的业务关键型应用程序提供支持。 在这个页面上，我们展示了一些著名的 Flink 用户，他们在生产中运行着有意思的用例，并提供了展示更详细信息的链接。
+为全球许多公司和企业的关键业务应用程序提供支持。 在这个页面上，我们展示了一些著名的 Flink 用户，他们在生产中运行着有意思的用例，并提供了展示更详细信息的链接。
 
 在项目的 wiki 页面中有一个 <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 谁在使用 Flink </a> 的页面，展示了更多的 Flink 用户。请注意，该列表*并不全面*。我们只添加明确要求列出的用户。
 
