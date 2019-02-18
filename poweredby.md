@@ -20,6 +20,10 @@ If you would you like to be included on this page, please reach out to the [Flin
       Alibaba, the world's largest retailer, uses a fork of Flink called Blink to optimize search rankings in real time. <br><br><a href="https://data-artisans.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Flink's role at Alibaba</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" alt="AWS" /><br />
+      Amazon Kinesis Data Analytics, a fully managed cloud service for stream processing, uses Apache Flink in part to power its Java application capability.
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" alt="BetterCloud" /><br />
       BetterCloud, a multi-SaaS management platform, uses Flink to surface near real-time intelligence from SaaS application activity. <br><br><a href="https://www.youtube.com/watch?v=_yHds9SvMfE&list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2&index=10" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See BetterCloud at Flink Forward SF 2017</a>
   </div>
