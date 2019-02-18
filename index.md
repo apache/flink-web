@@ -141,14 +141,13 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" />
           </a></div>
-         
 
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
+            <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" width="175"  alt="AWS" />
           </a></div>
-         
+            
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -197,6 +196,12 @@ layout: base
             <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" width="175" alt="Ebay" />
           </a></div>
         
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
+          </a></div>
+         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
