@@ -21,7 +21,7 @@ If you would you like to be included on this page, please reach out to the [Flin
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" alt="AWS" /><br />
-     Amazon Kinesis Data Analytics 是一种用于流处理的完全托管的云服务，它部分地使用 Apache Flink 来增加其 Java 应用程序功能。
+     Amazon Kinesis Data Analytics 是一种用于流处理完全托管的云服务，它部分地使用 Apache Flink 来增加其 Java 应用程序功能。
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" alt="BetterCloud" /><br />
