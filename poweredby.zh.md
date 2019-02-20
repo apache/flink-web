@@ -20,6 +20,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       全球最大的零售商阿里巴巴（Alibaba）使用 Flink 的分支版本 Blink 来优化实时搜索排名。<br><br><a href="https://data-artisans.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多有关 Flink 在阿里巴巴扮演角色的信息</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" alt="AWS" /><br />
+     Amazon Kinesis Data Analytics 是一种用于流处理完全托管的云服务，它部分地使用 Apache Flink 来增加其 Java 应用程序功能。
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" alt="BetterCloud" /><br />
      BetterCloud 是一个多 SaaS 管理平台，它使用 Flink 从 SaaS 应用程序活动中获取近乎实时的智能。<br><br><a href="https://www.youtube.com/watch?v=_yHds9SvMfE&list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2&index=10" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 请参阅 BetterCloud 在 Flink Forward SF 2017 上的分享</a>
   </div>
