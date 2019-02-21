@@ -65,7 +65,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user@flink.apache.org">发送</a></td>
     <td class="text-center">
       <a href="http://mail-archives.apache.org/mod_mbox/flink-user/">归档</a> <br>
-      <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">手动归档</a>
+      <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">Nabble 归档</a>
     </td>
   </tr>
     <tr>
@@ -92,7 +92,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev@flink.apache.org">发送</a></td>
     <td class="text-center">
       <a href="http://mail-archives.apache.org/mod_mbox/flink-dev/">归档</a> <br>
-      <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">手动归档</a>
+      <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble 归档</a>
     </td>
   </tr>
   <tr>
