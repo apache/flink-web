@@ -1,15 +1,15 @@
 ---
-title:  "如何审核一个 Pull Request"
+title:  "如何审核 Pull Request"
 ---
 
 <hr />
 
-本指南适用于希望帮助审核代码的所有提交者和贡献者。感谢你的努力 - 良好的审核是开源项目中最重要也是最关键的部分。本指南应协助社区进行审核，包括以下几个方面:
+本指南适用于希望帮助审核代码的所有提交者和贡献者。感谢你的努力 - 良好的审核是开源项目中最重要也是最关键的部分之一。本文旨在协助社区开展代码审核工作，以达到下列目的：
 
-* 贡献者有很好的贡献经验。
-* 我们的审核是有条理的，并且检查贡献的所有重要方面。
-* 我们确保在 Flink 中保持高质量的代码。
-* 我们避免了贡献者和审核者花费大量时间来完善后来会被拒绝的贡献的情况。
+* 让贡献者拥有良好的贡献体验。
+* 将审核过程结构化，以涵盖所有需要检查的重要方面。
+* 保持 Flink 代码的高质量。
+* 避免贡献者和审核者花费大量时间完善代码却最终被拒绝提交的情况。
 
 ----
 
@@ -17,9 +17,9 @@ title:  "如何审核一个 Pull Request"
 
 ## 审核清单
 
-每次审核都需要检查以下五个方面，我们鼓励大家按顺序检查以下这些方面，当是否应实际添加或更改功能尚未达成共识时，避免在代码质量的审核上花费时间。
+每次审核都需要检查以下五个方面。我们建议按照以下顺序进行检查，以避免在还没有就是否添加某项功能或需要改动达成共识之前，就花费时间进行详细的代码质量审核。
 
-### 1.贡献是否得到了很好的描述？
+### 1.贡献的描述是否清晰？
 
 检查贡献是否得到充分的描述以支持良好的审核，不重要的更改和修复不需要很长的描述，任何改变功能或行为的 pull request 都需要描述这些改变的重点, 以便知道审核什么内容(并且不必钻研代码来了解更改的作用).
 
@@ -29,17 +29,17 @@ title:  "如何审核一个 Pull Request"
 
 -----
 
-### 2.是否一致认为这一变更或者功能应该加入到 Flink？
+### 2.是否一致认为这一变更或者功能应该加入 Flink？
 
 对于错误修复，只有在需要更大的更改或可能破坏现有程序和设置时才需要检查。
 
 理想情况下, 除了错误修复和少量的添加或扩展的情况外，你可以直接回答 Jira issue 或在开发人员列表讨论这个问题。在这种情况下,此问题可以立即标记为已解决。对于未事先达成共识而创建的 pull requests，此问题需要作为审核的一部分予以回答。
 
-是否应将变更加入到 Flink 的决定需要考虑以下几个方面：
+决定变更是否进入 Flink 需要考虑以下几个方面：
 
 * 该贡献是否会以某种方式改变功能或组件的行为，从而破坏以前用户的程序和设置？如果是，则需要进行讨论并同意这种变更是可取的。
 * 这个贡献在概念上是否适合 Flink ？这是一个特殊情况，它使常见的情况更加复杂或者让抽象概念或 API 更加臃肿？
-* 该功能是否适合 Flink 的架构？未来它是否会扩展并保持 Flink 灵活性，或者该功能将来会限制 Flink 的发展吗？
+* 该功能是否适合 Flink 的架构？未来它是否会扩展并保持 Flink 的灵活性，或者该功能将来会限制 Flink 的发展吗？
 * 该功能是一项重要的新增功能（而不是对现有部件的改进）吗？如果是，Flink 社区是否会承诺维护此功能？
 * 该功能是否为 Flink 用户或开发人员带来了额外的价值？或者它是否会在不增加相关用户或开发人员权益的情况下引入回归风险？
 * 该贡献可以存在于另一个存储库中，例如 [Apache Bahir](https://bahir.apache.org) 或其他外部存储库吗？
@@ -61,7 +61,7 @@ title:  "如何审核一个 Pull Request"
 这个问题可以参考如下回答
 
 * *Does not need specific attention*
-* *Needs specific attention for X (X可以是例如 checkpointing、jobmanager 等)*
+* *Needs specific attention for X (X 可以是例如 checkpointing、jobmanager 等)*
 * *Has specific attention for X by @commiterA, @contributorB*
 
 **如果 pull request 需要特别注意，则其中一个标记的 committers 或 contributors 应该给出最终批准。**
@@ -70,7 +70,7 @@ title:  "如何审核一个 Pull Request"
 
 ### 4. 实施是否遵循正确的整体方法/架构？
 
-这是实施修复程序或功能的最佳方法，还是其他方法更容易，更强大或更易于维护？
+这是实施修复程序或功能的最佳方法，还是其他方法更容易，更健壮或更易于维护？
 这个问题应该尽可能地从 pull request 描述（或链接的 Jira ）中得到回答。
 
 我们建议你在深入了解更改的各个部分进行评论之前先检查这一点。
@@ -91,7 +91,7 @@ title:  "如何审核一个 Pull Request"
 
 可以在 [Flink代码样式页面]({{ site.baseurl }}/contribute-code.html#code-style) 中找到一些代码样式指南。
 
-## 使用@flinkbot进行审核
+## 使用 @flinkbot 进行审核
 
 Flink 社区正在使用名为 [@flinkbot]https://github.com/flinkbot) 的服务来帮助审核 pull request。
 
@@ -111,10 +111,10 @@ Please see the [Pull Request Review Guide](https://flink.apache.org/reviewing-pr
 
 审核人可以指示机器人勾选方框（按顺序）以指示审核的进度。
 
-用于批准贡献的描述，请使用`@flinkbot approve description`提及机器人。这与`consensus`、`architecture`和`quality`类似。
+用于批准贡献的描述，请使用 `@flinkbot approve description` 提及机器人。这与 `consensus`、`architecture` 和 `quality` 类似。
 
-要批准所有方面，请在 pull request 中添加一条带有`@flinkbot approve all`的新评论。
+要批准所有方面，请在 pull request 中添加一条带有 `@flinkbot approve all` 的新评论。
 
-需要注意的语法是`@flinkbot attention @username1 [@username2 ..]`。
+需要注意的语法是 `@flinkbot attention @username1 [@username2 ..]`。
 
 
