@@ -93,7 +93,7 @@ title:  "如何审核 Pull Request"
 
 ## 使用 @flinkbot 进行审核
 
-Flink 社区正在使用名为 [@flinkbot]https://github.com/flinkbot) 的服务来帮助审核 pull request。
+Flink 社区正在使用名为 [@flinkbot](https://github.com/flinkbot) 的服务来帮助审核 pull request。
 
 针对每个新的 pull request，机器人都会自动发表评论并跟踪审核进度：
 
