@@ -7,6 +7,597 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Monitoring Apache Flink Applications 101</title>
+<description>&lt;!-- improve style of tables --&gt;
+&lt;style&gt;
+  table { border: 0px solid black; table-layout: auto; width: 800px; }
+  th, td { border: 1px solid black; padding: 5px; padding-left: 10px; padding-right: 10px; }
+  th { text-align: center }
+  td { vertical-align: top }
+&lt;/style&gt;
+
+&lt;p&gt;This blog post provides an introduction to Apache Flink’s built-in monitoring
+and metrics system, that allows developers to effectively monitor their Flink
+jobs. Oftentimes, the task of picking the relevant metrics to monitor a
+Flink application can be overwhelming for a DevOps team that is just starting
+with stream processing and Apache Flink. Having worked with many organizations
+that deploy Flink at scale, I would like to share my experience and some best
+practice with the community.&lt;/p&gt;
+
+&lt;p&gt;With business-critical applications running on Apache Flink, performance monitoring
+becomes an increasingly important part of a successful production deployment. It 
+ensures that any degradation or downtime is immediately identified and resolved
+as quickly as possible.&lt;/p&gt;
+
+&lt;p&gt;Monitoring goes hand-in-hand with observability, which is a prerequisite for
+troubleshooting and performance tuning. Nowadays, with the complexity of modern
+enterprise applications and the speed of delivery increasing, an engineering
+team must understand and have a complete overview of its applications’ status at
+any given point in time.&lt;/p&gt;
+
+&lt;h2 id=&quot;flinks-metrics-system&quot;&gt;Flink’s Metrics System&lt;/h2&gt;
+
+&lt;p&gt;The foundation for monitoring Flink jobs is its &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html&quot;&gt;metrics
+system&lt;/a&gt;
+which consists of two components; &lt;code&gt;Metrics&lt;/code&gt; and &lt;code&gt;MetricsReporters&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;metrics&quot;&gt;Metrics&lt;/h3&gt;
+
+&lt;p&gt;Flink comes with a comprehensive set of built-in metrics such as:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Used JVM Heap / NonHeap / Direct Memory (per Task-/JobManager)&lt;/li&gt;
+  &lt;li&gt;Number of Job Restarts (per Job)&lt;/li&gt;
+  &lt;li&gt;Number of Records Per Second (per Operator)&lt;/li&gt;
+  &lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These metrics have different scopes and measure more general (e.g. JVM or
+operating system) as well as Flink-specific aspects.&lt;/p&gt;
+
+&lt;p&gt;As a user, you can and should add application-specific metrics to your
+functions. Typically these include counters for the number of invalid records or
+the number of records temporarily buffered in managed state. Besides counters,
+Flink offers additional metrics types like gauges and histograms. For
+instructions on how to register your own metrics with Flink’s metrics system
+please check out &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html#registering-metrics&quot;&gt;Flink’s
+documentation&lt;/a&gt;.
+In this blog post, we will focus on how to get the most out of Flink’s built-in
+metrics.&lt;/p&gt;
+
+&lt;h3 id=&quot;metricsreporters&quot;&gt;MetricsReporters&lt;/h3&gt;
+
+&lt;p&gt;All metrics can be queried via Flink’s REST API. However, users can configure
+MetricsReporters to send the metrics to external systems. Apache Flink provides
+reporters to the most common monitoring tools out-of-the-box including JMX,
+Prometheus, Datadog, Graphite and InfluxDB. For information about how to
+configure a reporter check out Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html#reporter&quot;&gt;MetricsReporter
+documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In the remaining part of this blog post, we will go over some of the most
+important metrics to monitor your Apache Flink application.&lt;/p&gt;
+
+&lt;h2 id=&quot;monitoring-general-health&quot;&gt;Monitoring General Health&lt;/h2&gt;
+
+&lt;p&gt;The first thing you want to monitor is whether your job is actually in a &lt;em&gt;RUNNING&lt;/em&gt;
+state. In addition, it pays off to monitor the number of restarts and the time
+since the last restart.&lt;/p&gt;
+
+&lt;p&gt;Generally speaking, successful checkpointing is a strong indicator of the
+general health of your application. For each checkpoint, checkpoint barriers
+need to flow through the whole topology of your Flink job and events and
+barriers cannot overtake each other. Therefore, a successful checkpoint shows
+that no channel is fully congested.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;uptime&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;The time that the job has been running without interruption.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;fullRestarts&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;The total number of full restarts since this job was submitted.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;numberOfCompletedCheckpoints&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;The number of successfully completed checkpoints.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;numberOfFailedCheckpoints&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;The number of failed checkpoints.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panels&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-1.png&quot; width=&quot;800px&quot; alt=&quot;Uptime (35 minutes), Restarting Time (3 milliseconds) and Number of Full Restarts (7)&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Uptime (35 minutes), Restarting Time (3 milliseconds) and Number of Full Restarts (7)&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-2.png&quot; width=&quot;800px&quot; alt=&quot;Completed Checkpoints (18336), Failed (14)&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Completed Checkpoints (18336), Failed (14)&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Possible Alerts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;ΔfullRestarts&lt;/code&gt; &amp;gt; &lt;code&gt;threshold&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;ΔnumberOfFailedCheckpoints&lt;/code&gt; &amp;gt; &lt;code&gt;threshold&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;monitoring-progress--throughput&quot;&gt;Monitoring Progress &amp;amp; Throughput&lt;/h2&gt;
+
+&lt;p&gt;Knowing that your application is RUNNING and checkpointing is working fine is good,
+but it does not tell you whether the application is actually making progress and
+keeping up with the upstream systems.&lt;/p&gt;
+
+&lt;h3 id=&quot;throughput&quot;&gt;Throughput&lt;/h3&gt;
+
+&lt;p&gt;Flink provides multiple metrics to measure the throughput of our application.
+For each operator or task (remember: a task can contain multiple &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;chained
+tasks&lt;/a&gt;
+Flink counts the number of records and bytes going in and out. Out of those
+metrics, the rate of outgoing records per operator is often the most intuitive
+and easiest to reason about.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;numRecordsOutPerSecond&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;task&lt;/td&gt;
+      &lt;td&gt;The number of records this operator/task sends per second.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;numRecordsOutPerSecond&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;operator&lt;/td&gt;
+      &lt;td&gt;The number of records this operator sends per second.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panels&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-3.png&quot; width=&quot;800px&quot; alt=&quot;Mean Records Out per Second per Operator&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Mean Records Out per Second per Operator&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Possible Alerts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;recordsOutPerSecond&lt;/code&gt; = &lt;code&gt;0&lt;/code&gt; (for a non-Sink operator)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;Note&lt;/em&gt;: Source operators always have zero incoming records. Sink operators
+always have zero outgoing records because the metrics only count
+Flink-internal communication. There is a &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-7286&quot;&gt;JIRA
+ticket&lt;/a&gt; to change this
+behavior.&lt;/p&gt;
+
+&lt;h3 id=&quot;progress&quot;&gt;Progress&lt;/h3&gt;
+
+&lt;p&gt;For applications, that use event time semantics, it is important that watermarks
+progress over time. A watermark of time &lt;em&gt;t&lt;/em&gt; tells the framework, that it
+should not anymore expect to receive  events with a timestamp earlier than &lt;em&gt;t&lt;/em&gt;,
+and in turn, to trigger all operations that were scheduled for a timestamp &amp;lt; &lt;em&gt;t&lt;/em&gt;.
+For example, an event time window that ends at &lt;em&gt;t&lt;/em&gt; = 30 will be closed and
+evaluated once the watermark passes 30.&lt;/p&gt;
+
+&lt;p&gt;As a consequence, you should monitor the watermark at event time-sensitive
+operators in your application, such as process functions and windows. If the
+difference between the current processing time and the watermark, known as
+even-time skew, is unusually high, then it typically implies one of two issues.
+First, it could mean that your are simply processing old events, for example
+during catch-up after a downtime or when your job is simply not able to keep up
+and events are queuing up. Second, it could mean a single upstream sub-task has
+not sent a watermark for a long time (for example because it did not receive any
+events to base the watermark on), which also prevents the watermark in
+downstream operators to progress. This &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5017&quot;&gt;JIRA
+ticket&lt;/a&gt; provides further
+information and a work around for the latter.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;currentOutputWatermark&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;operator&lt;/td&gt;
+      &lt;td&gt;The last watermark this operator has emitted.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panels&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-4.png&quot; width=&quot;800px&quot; alt=&quot;Event Time Lag per Subtask of a single operator in the topology. In this case, the watermark is lagging a few seconds behind for each subtask.&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Event Time Lag per Subtask of a single operator in the topology. In this case, the watermark is lagging a few seconds behind for each subtask.&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Possible Alerts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;currentProcessingTime - currentOutputWatermark&lt;/code&gt; &amp;gt; &lt;code&gt;threshold&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;keeping-up&quot;&gt;“Keeping Up”&lt;/h3&gt;
+
+&lt;p&gt;When consuming from a message queue, there is often a direct way to monitor if
+your application is keeping up. By using connector-specific metrics you can
+monitor how far behind the head of the message queue your current consumer group
+is. Flink forwards the underlying metrics from most sources.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;records-lag-max&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;user&lt;/td&gt;
+      &lt;td&gt;applies to &lt;code&gt;FlinkKafkaConsumer&lt;/code&gt;. The maximum lag in terms of the number of records for any partition in this window. An increasing value over time is your best indication that the consumer group is not keeping up with the producers.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;millisBehindLatest&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;user&lt;/td&gt;
+      &lt;td&gt;applies to &lt;code&gt;FlinkKinesisConsumer&lt;/code&gt;. The number of milliseconds a consumer is behind the head of the stream. For any consumer and Kinesis shard, this indicates how far it is behind the current time.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Possible Alerts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;records-lag-max&lt;/code&gt;  &amp;gt; &lt;code&gt;threshold&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;millisBehindLatest&lt;/code&gt; &amp;gt; &lt;code&gt;threshold&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;monitoring-latency&quot;&gt;Monitoring Latency&lt;/h2&gt;
+
+&lt;p&gt;Generally speaking, latency is the delay between the creation of an event and
+the time at which results based on this event become visible. Once the event is
+created it is usually stored in a persistent message queue, before it is
+processed by Apache Flink, which then writes the results to a database or calls
+a downstream system. In such a pipeline, latency can be introduced at each stage
+and for various reasons including the following:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;It might take a varying amount of time until events are persisted in the
+message queue.&lt;/li&gt;
+  &lt;li&gt;During periods of high load or during recovery, events might spend some time
+in the message queue until they are processed by Flink (see previous section).&lt;/li&gt;
+  &lt;li&gt;Some operators in a streaming topology need to buffer events for some time
+(e.g. in a time window) for functional reasons.&lt;/li&gt;
+  &lt;li&gt;Each computation in your Flink topology (framework or user code), as well as
+each network shuffle, takes time and adds to latency.&lt;/li&gt;
+  &lt;li&gt;If the application emits through a transactional sink, the sink will only
+commit and publish transactions upon successful checkpoints of Flink, adding
+latency usually up to the checkpointing interval for each record.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In practice, it has proven invaluable to add timestamps to your events at
+multiple stages (at least at creation, persistence, ingestion by Flink,
+publication by Flink, possibly sampling those to save bandwidth). The
+differences between these timestamps can be exposed as a user-defined metric in
+your Flink topology to derive the latency distribution of each stage.&lt;/p&gt;
+
+&lt;p&gt;In the rest of this section, we will only consider latency, which is introduced
+inside the Flink topology and cannot be attributed to transactional sinks or
+events being buffered for functional reasons (4.).&lt;/p&gt;
+
+&lt;p&gt;To this end, Flink comes with a feature called &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html#latency-tracking&quot;&gt;Latency
+Tracking&lt;/a&gt;.
+When enabled, Flink will insert so-called latency markers periodically at all
+sources. For each sub-task, a latency distribution from each source to this
+operator will be reported. The granularity of these histograms can be further
+controlled by setting &lt;em&gt;metrics.latency.granularity&lt;/em&gt; as desired.&lt;/p&gt;
+
+&lt;p&gt;Due to the potentially high number of histograms (in particular for
+&lt;em&gt;metrics.latency.granularity: subtask&lt;/em&gt;), enabling latency tracking can
+significantly impact the performance of the cluster. It is recommended to only
+enable it to locate sources of latency during debugging.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;latency&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;operator&lt;/td&gt;
+      &lt;td&gt;The latency from the source operator to this operator.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;restartingTime&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;The time it took to restart the job, or how long the current restart has been in progress.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panel&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-5.png&quot; width=&quot;800px&quot; alt=&quot;Latency distribution between a source and a single sink subtask.&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Latency distribution between a source and a single sink subtask.&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;jvm-metrics&quot;&gt;JVM Metrics&lt;/h2&gt;
+
+&lt;p&gt;So far we have only looked at Flink-specific metrics. As long as latency &amp;amp;
+throughput of your application are in line with your expectations and it is
+checkpointing consistently, this is probably everything you need. On the other
+hand, if you job’s performance is starting to degrade among the firstmetrics you
+want to look at are memory consumption and CPU load of your Task- &amp;amp; JobManager
+JVMs.&lt;/p&gt;
+
+&lt;h3 id=&quot;memory&quot;&gt;Memory&lt;/h3&gt;
+
+&lt;p&gt;Flink reports the usage of Heap, NonHeap, Direct &amp;amp; Mapped memory for JobManagers
+and TaskManagers.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Heap memory - as with most JVM applications - is the most volatile and important
+metric to watch. This is especially true when using Flink’s filesystem
+statebackend as it keeps all state objects on the JVM Heap. If the size of
+long-living objects on the Heap increases significantly, this can usually be
+attributed to the size of your application state (check the 
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html#checkpointing&quot;&gt;checkpointing metrics&lt;/a&gt;
+for an estimated size of the on-heap state). The possible reasons for growing
+state are very application-specific. Typically, an increasing number of keys, a
+large event-time skew between different input streams or simply missing state
+cleanup may cause growing state.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;NonHeap memory is dominated by the metaspace, the size of which is unlimited by default
+and holds class metadata as well as static content. There is a 
+&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10317&quot;&gt;JIRA Ticket&lt;/a&gt; to limit the size
+to 250 megabyte by default.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The biggest driver of Direct memory is by far the
+number of Flink’s network buffers, which can be
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/config.html#configuring-the-network-buffers&quot;&gt;configured&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Mapped memory is usually close to zero as Flink does not use memory-mapped files.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In a containerized environment you should additionally monitor the overall
+memory consumption of the Job- and TaskManager containers to ensure they don’t
+exceed their resource limits. This is particularly important, when using the
+RocksDB statebackend, since RocksDB allocates a considerable amount of
+memory off heap. To understand how much memory RocksDB might use, you can
+checkout &lt;a href=&quot;https://www.da-platform.com/blog/manage-rocksdb-memory-size-apache-flink&quot;&gt;this blog
+post&lt;/a&gt;
+by Stefan Richter.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.Memory.NonHeap.Committed&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The amount of non-heap memory guaranteed to be available to the JVM (in bytes).&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.Memory.Heap.Used&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The amount of heap memory currently used (in bytes).&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.Memory.Heap.Committed&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The amount of heap memory guaranteed to be available to the JVM (in bytes).&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.Memory.Direct.MemoryUsed&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The amount of memory used by the JVM for the direct buffer pool (in bytes).&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.Memory.Mapped.MemoryUsed&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The amount of memory used by the JVM for the mapped buffer pool (in bytes).&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.GarbageCollector.G1 Young Generation.Time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The total time spent performing G1 Young Generation garbage collection.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.GarbageCollector.G1 Old Generation.Time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The total time spent performing G1 Old Generation garbage collection.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panel&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-6.png&quot; width=&quot;800px&quot; alt=&quot;TaskManager memory consumption and garbage collection times.&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;TaskManager memory consumption and garbage collection times.&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-7.png&quot; width=&quot;800px&quot; alt=&quot;JobManager memory consumption and garbage collection times.&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;JobManager memory consumption and garbage collection times.&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Possible Alerts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;container memory limit&lt;/code&gt; &amp;lt; &lt;code&gt;container memory + safety margin&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;cpu&quot;&gt;CPU&lt;/h3&gt;
+
+&lt;p&gt;Besides memory, you should also monitor the CPU load of the TaskManagers. If
+your TaskManagers are constantly under very high load, you might be able to
+improve the overall performance by decreasing the number of task slots per
+TaskManager (in case of a Standalone setup), by providing more resources to the
+TaskManager (in case of a containerized setup), or by providing more
+TaskManagers. In general, a system already running under very high load during
+normal operations, will need much more time to catch-up after recovering from a
+downtime. During this time you will see a much higher latency (event-time skew) than
+usual.&lt;/p&gt;
+
+&lt;p&gt;A sudden increase in the CPU load might also be attributed to high garbage
+collection pressure, which should be visible in the JVM memory metrics as well.&lt;/p&gt;
+
+&lt;p&gt;If one or a few TaskManagers are constantly under very high load, this can slow
+down the whole topology due to long checkpoint alignment times and increasing
+event-time skew. A common reason is skew in the partition key of the data, which
+can be mitigated by pre-aggregating before the shuffle or keying on a more
+evenly distributed key.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key Metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Metric&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code&gt;Status.JVM.CPU.Load&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;job-/taskmanager&lt;/td&gt;
+      &lt;td&gt;The recent CPU usage of the JVM.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Example Dashboard Panel&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-02-21-monitoring-best-practices/fig-8.png&quot; width=&quot;800px&quot; alt=&quot;TaskManager &amp;amp; JobManager CPU load.&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;TaskManager &amp;amp; JobManager CPU load.&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;system-resources&quot;&gt;System Resources&lt;/h2&gt;
+
+&lt;p&gt;In addition to the JVM metrics above, it is also possible to use Flink’s metrics
+system to gather insights about system resources, i.e. memory, CPU &amp;amp;
+network-related metrics for the whole machine as opposed to the Flink processes
+alone. System resource monitoring is disabled by default and requires additional
+dependencies on the classpath. Please check out the 
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html#system-resources&quot;&gt;Flink system resource metrics documentation&lt;/a&gt; for
+additional guidance and details. System resource monitoring in Flink can be very
+helpful in setups without existing host monitoring capabilities.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This post tries to shed some light on Flink’s metrics and monitoring system. You
+can utilise it as a starting point when you first think about how to
+successfully monitor your Flink application. I highly recommend to start
+monitoring your Flink application early on in the development phase. This way
+you will be able to improve your dashboards and alerts over time and, more
+importantly, observe the performance impact of the changes to your application
+throughout the development phase. By doing so, you can ask the right questions
+about the runtime behaviour of your application, and learn much more about
+Flink’s internals early on.&lt;/p&gt;
+
+&lt;p&gt;Last but not least, this post only scratches the surface of the overall metrics
+and monitoring capabilities of Apache Flink. I highly recommend going over
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.7/monitoring/metrics.html&quot;&gt;Flink’s metrics documentation&lt;/a&gt;
+for a full reference of Flink’s metrics system.&lt;/p&gt;
+</description>
+<pubDate>Mon, 25 Feb 2019 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2019/02/25/monitoring-best-practices.html</link>
+<guid isPermaLink="true">/news/2019/02/25/monitoring-best-practices.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.6.4 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the fourth bugfix version of the Apache Flink 1.6 series.&lt;/p&gt;
 
