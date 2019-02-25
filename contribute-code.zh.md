@@ -93,7 +93,7 @@ git push origin myBranch
 
 - **单 PR 单修改**：请不要将各种不相关的更改组合在单个 PR 中。相反，创建多个单独的 PR 请求，每个 PR 关联一个 Jira issue。这确保了 PR 是与*主题相关的*，可以更容易地合并，并且通常只会与特定主题相关的 merge 冲突。
 
-- **没有WIP PR **： 我们将 PR 视为引用的代码 *就是* 将合并到当前 *稳定* master 分支中的请求。因此，pull request 不应该是“正在进行中”（Working In Process, WIP）。当你确信代码可以合并到当前 master 分支中，再创建 pull request。如果你想对代码先进行一些讨论，可以贴一个你的工作分支的链接。
+- **没有WIP PR**： 我们将 PR 视为引用的代码 *就是* 将合并到当前 *稳定* master 分支中的请求。因此，pull request 不应该是“正在进行中”（Working In Process, WIP）。当你确信代码可以合并到当前 master 分支中，再创建 pull request。如果你想对代码先进行一些讨论，可以贴一个你的工作分支的链接。
 
 - **commit message**：PR 必须有相关联的 Jira issue；如果不存在，请先创建一个 Jira issue。最新的提交消息应该引用该 issue。一个提交消息示例是 **[FLINK-633] Fix NullPointerException for empty UDF parameters**。这样，pull request 就已经描述了了它想做什么，例如，用什么方法修复了什么 bug。
 
@@ -141,7 +141,7 @@ git push origin myBranch
 - **在包声明之前和之后添加空行。**
 - **不要有未使用的导入。**
 - **不要有多余的导入。**
-- **不要使用通配符导入。**在添加代码时，甚至在重构过程中，它们都可能导致有问题。
+- **不要使用通配符导入。** 在添加代码时，甚至在重构过程中，它们都可能导致有问题。
 - **导入顺序。** 导入必须按字母顺序排列，分成以下几块，每个块之间用空行分隔:
 	- &lt;imports from org.apache.flink.*&gt;
 	- &lt;imports from org.apache.flink.shaded.*&gt;
@@ -179,16 +179,16 @@ git push origin myBranch
 
 - **所有公共/受保护的方法和类必须有一个Javadoc。**
 
-- ** Javadoc的第一句话必须以句号结束。**
+- **Javadoc 的第一句话必须以句号结束。**
 
 - **段落必须用新行隔开，并以&lt;p&gt;开头。**
 
 
 ### 修饰符
 
-- **没有多余修饰符。例如，接口方法中的 public 修饰符。
+- **没有多余修饰符。** 例如，接口方法中的 public 修饰符。
 
-- **遵循 JLS3 修饰符顺序。**修饰符必须按照以下顺序排列:public、protected、private、abstract、static、final、transient、volatile、synchronized、native、strictfp。
+- **遵循 JLS3 修饰符顺序。** 修饰符必须按照以下顺序排列:public、protected、private、abstract、static、final、transient、volatile、synchronized、native、strictfp。
 
 
 ### 文件
@@ -200,11 +200,11 @@ git push origin myBranch
 
 ### 杂项
 
-- **数组必须定义为 Java-style。**例如，`public String[] array`。
-- **使用 Flink Preconditions。**为了增加一致性，请始终使用`org.apache.flink.Preconditions`的`checkNotNull`和`checkArgument`方法，Apache Commons Validate或 Google Guava。
-- **不要使用原生的泛型类型。**不要使用原生的泛型类型，除非是必须需要（某些时候签名匹配、数组是必需的）。
-- **Suppress warnings。**如果无法避免的警告(如“unchecked”或“serial”)，则添加注解以抑制警告。
-- **注释。**在代码中添加注释。这段代码是在做什么？添加 Javadoc 或者继承它们，而不是在方法里加注释。不要自动生成注释，并避免不必要的注释，如:
+- **数组必须定义为 Java-style。** 例如，`public String[] array`。
+- **使用 Flink Preconditions。** 为了增加一致性，请始终使用`org.apache.flink.Preconditions`的`checkNotNull`和`checkArgument`方法，Apache Commons Validate或 Google Guava。
+- **不要使用原生的泛型类型。** 不要使用原生的泛型类型，除非是必须需要（某些时候签名匹配、数组是必需的）。
+- **Suppress warnings。** 如果无法避免的警告(如“unchecked”或“serial”)，则添加注解以抑制警告。
+- **注释。** 在代码中添加注释。这段代码是在做什么？添加 Javadoc 或者继承它们，而不是在方法里加注释。不要自动生成注释，并避免不必要的注释，如:
 
   ​```java
 i++; // 增加1
