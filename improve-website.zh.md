@@ -33,7 +33,7 @@ git checkout asf-site
 
 ## 目录结构和文件
 
-Flink 的官网是用 [Markdown](http://daringfireball.net/projects/markdown/) 所编写。Markdown是一种轻量级标记语言，可以翻译为 HTML。我们使用 [Jekyll](http://jekyllrb.com/) 生成静态 HTML 文件。
+Flink 的官网是用 [Markdown](http://daringfireball.net/projects/markdown/) 所编写。Markdown 是一种轻量级标记语言，可以翻译为 HTML。我们使用 [Jekyll](http://jekyllrb.com/) 生成静态 HTML 文件。
 
 官网仓库中的目录和文件组织如下：
 
@@ -64,7 +64,7 @@ docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ru
 
 ## 提交你的贡献
 
-Flink项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 作为 [Pull Requests](https://help.github.com/articles/using-pull-requests) 接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
+Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 作为 [Pull Requests](https://help.github.com/articles/using-pull-requests) 接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
 
 请按以下步骤操作准备并提交 pull request。
 
@@ -74,7 +74,7 @@ Flink项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 作为 [P
 	```
 	git push origin myBranch
 	```
-3. 打开你镜像的仓库(`https://github.com/<your-user-name>/flink-web`) 并使用 "Create Pull Request" 按钮开始创 pull request 取请求。 确保基础分支是`apache/flink-web asf-site` ，并且 head fork 选择带有更改内容的分支。 为 pull request 提供有意义的描述并提交。
+3. 打开你镜像的仓库(`https://github.com/<your-user-name>/flink-web`) 并使用 "Create Pull Request" 按钮开始创建 pull request 取请求。 确保基础分支是`apache/flink-web asf-site` ，并且 head fork 选择带有更改内容的分支。 为 pull request 提供有意义的描述并提交。
 
 ## Committer section
 
