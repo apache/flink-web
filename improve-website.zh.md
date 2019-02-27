@@ -85,7 +85,7 @@ Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 作为 [
 
 **ASF writable**: https://gitbox.apache.org/repos/asf/flink-web.git
 
-有关如何设置 ASF git 仓库凭据的详细信息可以参考 [链接]（https://gitbox.apache.org/）。
+有关如何设置 ASF git 仓库凭据的详细信息可以参考 [链接](https://gitbox.apache.org/)。
 
 ### 合并 pull request
 {:.no_toc}
