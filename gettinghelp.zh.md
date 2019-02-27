@@ -6,66 +6,62 @@ title: "获取帮助"
 
 {% toc %}
 
-## Having a Question?
+## 有问题吗?
 
-The Apache Flink community answers many user questions every day. You can search for answers and advice in the archives or reach out to the community for help and guidance.
+Apache Flink 社区每天都会回答许多用户的问题。你可以从历史存档中搜索答案和建议，也可以联系社区寻求帮助和指导。
 
-### User Mailing List
+### 用户邮件列表
 
-Many Flink users, contributors, and committers are subscribed to Flink's user mailing list. The user mailing list is a very good place to ask for help. 
+许多 Flink 用户、贡献者和提交者都订阅了 Flink 的用户邮件列表。用户邮件列表是一个寻求帮助的好地方。
 
-Before posting to the mailing list, you can search the mailing list archives for email threads that discuss issues related to yours on the following websites.
+在发送邮件到邮件列表之前，你可以搜索以下网站的邮件列表存档，从中找到你关注问题的相关讨论。
 
-- [Apache Pony Mail Archive](https://lists.apache.org/list.html?user@flink.apache.org)
-- [Nabble Archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
+- [Apache Pony 邮件存档](https://lists.apache.org/list.html?user@flink.apache.org)
+- [Nabble 存档](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
 
-If you'd like to post to the mailing list, you need to
+如果你想发送到邮件列表，你需要：
 
-1. subscribe to the mailing list by sending an email to `user-subscribe@flink.apache.org`, 
-2. confirm the subscription by replying to the confirmation email, and
-3. send your email to `user@flink.apache.org`.
+1. 发送电子邮件至 `user-subscribe@flink.apache.org` 来订阅邮件列表
+2. 通过回复确认邮件来确认订阅
+3. 发送你的电子邮件到 `user@flink.apache.org`
 
-Please note that you won't receive a respose to your mail if you are not subscribed.
+请注意，如果你没有订阅邮件列表，你将不会收到邮件的回复。
 
 ### Stack Overflow
 
-Many members of the Flink community are active on [Stack Overflow](https://stackoverflow.com). You can search for questions and answers or post your questions using the [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink) tag. 
+Flink 社区的许多成员都活跃在 [Stack Overflow](https://stackoverflow.com)。你可以在这里搜索问题和答案，或者使用 [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink)  标签来发布你的问题。
 
-## Found a Bug?
+## 发现 Bug?
 
-If you observe an unexpected behavior that might be caused by a bug, you can search for reported bugs or file a bug report in [Flink's JIRA](https://issues.apache.org/jira/issues/?jql=project %3D FLINK).
+如果你发现一个意外行为可能是由 Bug 导致的，你可以在 [Flink's JIRA](https://issues.apache.org/jira/issues/?jql=project %3D FLINK) 中搜索已经上报的 Bug 或者发布该 Bug。
 
-If you are unsure whether the unexpected behavior happend due to a bug or not, please post a question to the [user mailing list](#user-mailing-list).
+如果你不确定意外行为的发生是否由 Bug 引起的，请发送问题到 [用户邮件列表](#user-mailing-list)。
 
-## Got an Error Message?
+## 收到错误信息?
 
-Identifying the cause for an error message can be challenging. In the following, we list the most common error messages and explain how to handle them.
+找到导致错误的原因通常是比较困难的。在下文中，我们列出了最常见的错误消息并解释了如何处理它们。
 
-### I have a NotSerializableException.
+### 我有一个 NotSerializableException 异常。
 
-Flink uses Java serialization to distribute copies of the application logic (the functions and operations you implement,
-as well as the program configuration, etc.) to the parallel worker processes.
-Because of that, all functions that you pass to the API must be serializable, as defined by
-[java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html).
+Flink 使用 Java 序列化来分发应用程序逻辑（你实现的函数和操作，以及程序配置等）的副本到并行的工作进程。
+因此，传递给 API 的所有函数都必须是可序列化的，见 
+[java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html) 定义。
 
-If your function is an anonymous inner class, consider the following:
-  - make the function a standalone class, or a static inner class
-  - use a Java 8 lambda function.
+如果你使用的函数是匿名内部类，请考虑以下事项：
+  - 为函数构建独立的类或静态内部类。
+  - 使用 Java 8 lambda 函数。
 
-Is your function is already a static class, check the fields that you assign when you create
-an instance of the class. One of the fields most likely holds a non-serializable type.
-  - In Java, use a `RichFunction` and initialize the problematic fields in the `open()` method.
-  - In Scala, you can often simply use “lazy val” to defer initialization until the distributed execution happens. This may come at a minor performance cost. You can naturally also use a `RichFunction` in Scala.
+如果函数已经是静态类，则在创建该类的实例时会检查该类的字段。其中很可能包含不可序列化类型的字段。
+  - 在 Java 中，使用 `RichFunction` 并且在 `open()` 方法中初始化有问题的字段。
+  - 在 Scala 中，你通常可以简单地使用 “lazy val” 声明来推迟初始化，直到分布式执行发生。这可能是一个较小的性能成本。你当然也可以在 Scala 中使用 `RichFunction`。
 
-### Using the Scala API, I get an error about implicit values and evidence parameters.
+### 使用 Scala API，我收到有关隐式值和证据参数的错误。
 
-This error means that the implicit value for the type information could not be provided.
-Make sure that you have an `import org.apache.flink.streaming.api.scala._` (DataStream API) or an
-`import org.apache.flink.api.scala._` (DataSet API) statement in your code.
+此错误意味着无法提供类型信息的隐式值。确保在你的代码中存在 `import org.apache.flink.streaming.api.scala._` (DataStream API) 或 
+`import org.apache.flink.api.scala._` (DataSet API) 语句。
 
-If you are using Flink operations inside functions or classes that take
-generic parameters, then a TypeInformation must be available for that parameter.
-This can be achieved by using a context bound:
+如果在接受泛型参数的函数或类中使用 Flink 操作，则必须为参数提供 TypeInformation 类型参数。
+这可以通过使用上下文绑定来实现：
 
 ~~~scala
 def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
@@ -73,61 +69,47 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 }
 ~~~
 
-See [Type Extraction and Serialization]({{ site.docs-snapshot }}/dev/types_serialization.html) for
-an in-depth discussion of how Flink handles types.
+请参阅 [类型提取和序列化]({{ site.docs-snapshot }}/dev/types_serialization.html) 深入讨论 Flink 如何处理类型。
 
-### I see a ClassCastException: X cannot be cast to X.
+### 我看到一个 ClassCastException: X cannot be cast to X.
 
-When you see an exception in the style `com.foo.X` cannot be cast to `com.foo.X` (or cannot be assigned to `com.foo.X`), it means that
-multiple versions of the class `com.foo.X` have been loaded by different class loaders, and types of that class are attempted to be assigned to each other.
+当你看到 `com.foo.X` cannot be cast to `com.foo.X` ( 或者 cannot be assigned to `com.foo.X`) 样式的异常时，这意味着 `com.foo.X` 类的多个版本已经由不同的类加载器加载，并且尝试相互赋值。
 
-The reason for that can be:
+原因可能是:
 
-  - Class duplication through `child-first` classloading. That is an intended mechanism to allow users to use different versions of the same
-    dependencies that Flink uses. However, if different copies of these classes move between Flink's core and the user application code, such an exception
-    can occur. To verify that this is the reason, try setting `classloader.resolve-order: parent-first` in the configuration.
-    If that makes the error disappear, please write to the mailing list to check if that may be a bug.
+  - 通过 `child-first` 的类加载方式实现类复制。这是一种预期的机制，该机制允许用户使用相同依赖的不同版本。然而，如果这些类的不同副本在 Flink 的核心代码和用户应用程序代码之间移动，则可能发生这种异常。为了验证这个原因，请尝试在配置中设置 `classloader.resolve-order：parent-first`。如果这可以使错误消失，请写信到邮件列表以检查是否可能是 Bug。
+  
+  - 从不同的执行中尝试缓存类，例如使用像 Guava 的 Interners 或 Avro 的 Schema 等通用工具进行缓存操作。尝试不使用 Interners，或减少 interner/cache 的使用范围，以确保每当新任务开始执行时都会创建新的缓存。
 
-  - Caching of classes from different execution attempts, for example by utilities like Guava’s Interners, or Avro's Schema cache.
-    Try to not use interners, or reduce the scope of the interner/cache to make sure a new cache is created whenever a new task
-    execution is started.
+### 我有一个 AbstractMethodError 或 NoSuchFieldError 错误。
 
-### I have an AbstractMethodError or NoSuchFieldError.
+此类错误通常表示混淆了某些依赖的版本。这意味着在执行期间加载了不同版本的依赖项（库），而不是编译代码的版本。
 
-Such errors typically indicate a mix-up in some dependency version. That means a different version of a dependency (a library)
-is loaded during the execution compared to the version that code was compiled against.
+从 Flink 1.4.0 开始，在默认激活 `child-first` 类加载方式的情况下，相比 Flink core 所使用的依赖或类路径中的其他依赖（例如来自 Hadoop ）而言，应用程序 JAR 文件中的依赖更可能带有不同的版本。
 
-From Flink 1.4.0 on, dependencies in your application JAR file may have different versions compared to dependencies used
-by Flink's core, or other dependencies in the classpath (for example from Hadoop). That requires `child-first` classloading
-to be activated, which is the default.
+如果你在 Flink 1.4 以上的版本中看到这些问题，则可能是属于以下某种情况：
+  - 你的程序代码中存在依赖项版本冲突，确保所有依赖项版本都一致。
+  - 你与一个 Flink 不能支持 `child-first` 类加载的库发生了冲突。目前会产生这种情况的有 Scala 标准库类、Flink 自己的类、日志 API 和所有的 Hadoop 核心类。
 
-If you see these problems in Flink 1.4+, one of the following may be true:
-  - You have a dependency version conflict within your application code. Make sure all your dependency versions are consistent.
-  - You are conflicting with a library that Flink cannot support via `child-first` classloading. Currently these are the
-    Scala standard library classes, as well as Flink's own classes, logging APIs, and any Hadoop core classes.
+### 尽管事件正在持续发送，我的 DataStream 程序还是没有输出。
 
+如果你的 DataStream 程序使用了 *事件时间*，那么请检查你的 Watermark 是否已经更新。如果没有产生 Watermark，
+事件时间窗口可能永远不会触发，程序将不会产生任何结果。
 
-### My DataStream application produces no output, even though events are going in.
+你可以在 Flink 的 Web UI（Watermark 部分）中查看 Watermark 是否正在更新。
 
-If your DataStream application uses *Event Time*, check that your watermarks get updated. If no watermarks are produced,
-event time windows might never trigger, and the application would produce no results.
+### 我看到了一个 "Insufficient number of network buffers" 的异常报告。
 
-You can check in Flink's web UI (watermarks section) whether watermarks are making progress.
+如果你用非常高的并行度运行 Flink 程序，则可能需要增加网络缓冲区的大小。
 
-### I see an exception reporting "Insufficient number of network buffers".
+默认情况下，Flink 占用 JVM 堆的 10% 作为网络缓冲区的大小，最小为64MB，最大为1GB。
+你可以通过 `taskmanager.network.memory.fraction`、 `taskmanager.network.memory.min`和
+`taskmanager.network.memory.max` 参数调整这些值。
 
-If you run Flink with a very high parallelism, you may need to increase the number of network buffers.
+详情请参考 [配置参考]({{ site.docs-snapshot }}/ops/config.html#configuring-the-network-buffers)。
 
-By default, Flink takes 10% of the JVM heap size for network buffers, with a minimum of 64MB and a maximum of 1GB.
-You can adjust all these values via `taskmanager.network.memory.fraction`, `taskmanager.network.memory.min`, and
-`taskmanager.network.memory.max`.
+### 我的 Job 因为 HDFS/Hadoop 代码的各种异常失败了，我该怎么办？
 
-Please refer to the [Configuration Reference]({{ site.docs-snapshot }}/ops/config.html#configuring-the-network-buffers) for details.
+最常见的原因是 Flink 的类路径中的 Hadoop 版本与你要访问的 Hadoop 集群（HDFS / YARN）版本不同。
 
-### My job fails with various exceptions from the HDFS/Hadoop code. What can I do?
-
-The most common cause for that is that the Hadoop version in Flink's classpath is different than the
-Hadoop version of the cluster you want to connect to (HDFS / YARN).
-
-The easiest way to fix that is to pick a Hadoop-free Flink version and simply export the Hadoop path and
-classpath from the cluster.
+解决这个问题的最简单方法是选择一个不含 Hadoop 的 Flink 版本，并通过 export 的方式设置 Hadoop 路径和类路径即可。
