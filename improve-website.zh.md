@@ -64,7 +64,7 @@ docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ru
 
 ## 提交你的贡献
 
-Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 作为 [Pull Requests](https://help.github.com/articles/using-pull-requests) 接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
+Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提交 [Pull Requests](https://help.github.com/articles/using-pull-requests) 方式接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
 
 请按以下步骤操作准备并提交 pull request。
 
