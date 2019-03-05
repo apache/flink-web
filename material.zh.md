@@ -6,7 +6,7 @@ title: "素材"
 
 ## Apache Flink Logo
 
-我们提供不同大小和格式的 Apache Flink logo。你可以[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)或者从当前页面选择你需要的 logo。
+我们提供不同大小、不同格式的 Apache Flink logo。你可以[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)或者从当前页面选择你需要的 logo。
 
 ### 便携式网络图像格式 (PNG)
 
