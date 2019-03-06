@@ -11,7 +11,7 @@ excerpt: The third annual Flink Forward conference in San Francisco is just a fe
 categories: news
 ---
 
-The third annual Flink Forward San Francisco is just a few weeks away! As always, the Flink Forward will be the right place to meet and mingle with experienced Flink users, contributors, and committers. Attendees will hear and chat about the latest developments around Flink and learn from technical deep-dive sessions and exciting use cases that were put into production with Flink. The event will take place on April 1-2, 2019 at Hotel Nikko in San Francisco. The [program committee](https://sf-2019.flink-forward.org/program-committee) assembled an amazing [lineup of speakers](https://sf-2019.flink-forward.org/speakers) who will cover many different aspects of Apache Flink and stream processing. 
+The third annual Flink Forward San Francisco is just a few weeks away! As always, Flink Forward will be the right place to meet and mingle with experienced Flink users, contributors, and committers. Attendees will hear and chat about the latest developments around Flink and learn from technical deep-dive sessions and exciting use cases that were put into production with Flink. The event will take place on April 1-2, 2019 at Hotel Nikko in San Francisco. The [program committee](https://sf-2019.flink-forward.org/program-committee) assembled an amazing [lineup of speakers](https://sf-2019.flink-forward.org/speakers) who will cover many different aspects of Apache Flink and stream processing. 
 
 Some highlights of the program are:
 
@@ -21,7 +21,7 @@ Some highlights of the program are:
 
 * [Building production Flink jobs with Airstream at Airbnb](https://sf-2019.flink-forward.org/conference-program#building-production-flink-jobs-with-airstream-at-airbnb): Pala Muthiah and Hao Wang will reveal how *Airbnb* builds real time data pipelines with Airstream, Airbnb's computation framework that is powered by Flink SQL.
 
-* [When Table meets AI: Build Flink AI Ecosystem on Table API](https://sf-2019.flink-forward.org/conference-program#when-table-meets-ai--build-flink-ai-ecosystem-on-table-api): Weihua Jiang from *Alibaba* will discuss how they are building a solid AI ecosystem for unified batch/streaming Machine Learning data pipelines on top of Flink's Table API.
+* [When Table meets AI: Build Flink AI Ecosystem on Table API](https://sf-2019.flink-forward.org/conference-program#when-table-meets-ai--build-flink-ai-ecosystem-on-table-api): Shaoxuan Wang from *Alibaba* will discuss how they are building a solid AI ecosystem for unified batch/streaming Machine Learning data pipelines on top of Flink's Table API.
 
 * [Adventures in Scaling from Zero to 5 Billion Data Points per Day](https://sf-2019.flink-forward.org/conference-program#adventures-in-scaling-from-zero-to-5-billion-data-points-per-day): Dave Torok will take us through *Comcast's* journey in scaling the company's operationalized Machine Learning framework from the very early days in production to processing more than 5 billion data points per day.
 
