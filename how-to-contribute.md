@@ -28,7 +28,7 @@ It is also possible to attach a patch to a [JIRA]({{site.FLINK_ISSUES_URL}}) iss
 1. The first step is to create yourself a copy of the Flink code base. We suggest to fork the [Flink GitHub Mirror Repository](https://github.com/apache/flink) into your own [GitHub](https://github.com) account. You need to register on GitHub for that, if you have no account so far.
 
 2. Next, clone your repository fork to your local machine.
-  
+
    ```
 git clone https://github.com/<your-user-name>/flink.git
 ```
@@ -150,7 +150,7 @@ Only the infrastructure team of the ASF has administrative access to the GitHub 
 
 **ASF read-only**: https://github.com/apache/flink.git
 
-Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
+Note: Flink builds and runs with JDK 8.
 
 If you want to build for Hadoop 1, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=1`.
 
