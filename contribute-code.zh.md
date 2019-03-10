@@ -225,7 +225,7 @@ i++; // 增加1
 * 类 unix 环境（我们使用 Linux、Mac OS X、以及 Cygwin）
 * git
 * Maven（至少 3.0.4 版本）
-* Java 7 或 8
+* Java 8
 
 ### 克隆仓库
 {:.no_toc}
@@ -319,8 +319,7 @@ mvn -DskipTests clean package
 
 **ASF read-only**: https://github.com/apache/flink.git
 
-注意: Flink 不使用 Oracle JDK 6 构建。它可以使用 Oracle JDK 6 运行。
+注意：Flink使用JDK 8构建和运行。
 
 
 如果你想为 Hadoop 1 构建，可以通过`mvn clean package -DskipTests -Dhadoop.profile=1`来生效 build profile。
-

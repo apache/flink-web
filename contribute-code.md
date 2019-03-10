@@ -216,7 +216,7 @@ i++; // increment by one
 * Unix-like environment (We use Linux, Mac OS X, and Cygwin)
 * git
 * Maven (at least version 3.0.4)
-* Java 7 or 8
+* Java 8
 
 ### Clone the repository
 {:.no_toc}
@@ -313,7 +313,6 @@ Only the infrastructure team of the ASF has administrative access to the GitHub 
 
 **ASF read-only**: https://github.com/apache/flink.git
 
-Note: Flink does not build with Oracle JDK 6. It runs with Oracle JDK 6.
+Note: Flink builds and runs with JDK 8.
 
 If you want to build for Hadoop 1, activate the build profile via `mvn clean package -DskipTests -Dhadoop.profile=1`.
-
