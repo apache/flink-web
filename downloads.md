@@ -18,8 +18,6 @@ $( document ).ready(function() {
 
 {% toc %}
 
-## Latest stable release (v{{ site.FLINK_VERSION_STABLE }})
-
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 An Apache Hadoop installation is [not required](faq.html#how-does-flink-relate-to-the-hadoop-stack) to use Apache Flink.
@@ -27,105 +25,117 @@ For users that use Flink without any Hadoop components, we recommend the release
 
 If you plan to use Apache Flink together with Apache Hadoop (run Flink on YARN, connect to HDFS,
 connect to HBase, or use some Hadoop-based file system connector) then select the download that
-bundles the matching Hadoop version, or use the Hadoop free version and
+bundles the matching Hadoop version, download the optional pre-bundled Hadoop that matches your version and place
+it in the `lib` folder of Flink, or use the Hadoop free version and
 [export your HADOOP_CLASSPATH](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html).
 
-### Binaries
+{% for flink_release in site.flink_releases %}
 
-<table class="table table-striped">
-<thead>
-    <tr>
-    <th></th> <th>Scala 2.11</th> <th>Scala 2.12</th>
-    </tr>
-</thead>
-<tbody>
-    {% for binary_release in site.stable_releases %}
-    <tr>
-    <th>{{ binary_release.name }}</th>
-    {% if binary_release.scala_211 %}
-    <td><a href="{{ binary_release.scala_211.url }}" class="ga-track" id="{{ binary_release.scala_211.id }}">Download</a> (<a href="{{ binary_release.scala_211.asc_url }}">asc</a>, <a href="{{ binary_release.scala_211.sha512_url }}">sha512</a>)</td>
-    {% else %}
-    <td>Not supported.</td>
-    {% endif %}
+## {{ flink_release.binary_release.name }}
 
-    {% if binary_release.scala_212 %}
-    <td><a href="{{ binary_release.scala_212.url }}" class="ga-track" id="{{ binary_release.scala_212.id }}">Download</a> (<a href="{{ binary_release.scala_212.asc_url }}">asc</a>, <a href="{{ binary_release.scala_212.sha512_url }}">sha512</a>)</td>
-    {% else %}
-    <td>Not supported.</td>
-    {% endif %}
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
+{% if flink_release.binary_release.scala_211 %}
 
-### Source
-<p>Review the source code or build Flink on your own, using one of these packages:</p>
+<p>
+<a href="{{ flink_release.binary_release.scala_211.url }}" class="ga-track" id="{{ flink_release.binary_release.scala_211.id }}">{{ flink_release.binary_release.name }} for Scala 2.11</a> (<a href="{{ flink_release.binary_release.scala_211.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_211.sha512_url }}">sha512</a>)
+</p>
 
-{% for source_release in site.source_releases %}
-<div class="list-group">
-  <!-- Source -->
-  <a href="{{ source_release.url }}" class="list-group-item ga-track" id="{{ source_release.id }}">
-    <!-- overrride margin/padding as the boxes otherwise overlap in subtle ways -->
-    <h4 style="margin-top: 0px; padding-top: 0px;"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> <strong>{{ source_release.name }}</strong> Source Release</h4>
-  </a>
-   (<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
-</div>
-{% endfor %}
+{% endif %}
 
-### Optional components
+{% if flink_release.binary_release.scala_212 %}
 
-{% assign categories = site.optional_components | group_by: 'category' | sort: 'name' %}
-{% for category in categories %}
+<p>
+<a href="{{ flink_release.binary_release.scala_212.url }}" class="ga-track" id="{{ flink_release.binary_release.scala_212.id }}">{{ flink_release.binary_release.name }} for Scala 2.12</a> (<a href="{{ flink_release.binary_release.scala_212.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_212.sha512_url }}">sha512</a>)
+</p>
 
-<button class="collapsible" data-toggle="collapse" data-target="#{{category.name | slugify}}" aria-hidden="true">{{category.name}}<span class="glyphicon glyphicon-plus" style="float: right; font-size: 20px;"></span></button>
-<div id="{{category.name | slugify}}" class="collapse">
+{% endif %}
 
-{% assign components = category.items | | sort: 'name' %}
+{% if flink_release.source_release %}
+<p>
+<a href="{{ flink_release.source_release.url }}" class="ga-track" id="{{ flink_release.source_release.id }}">{{ flink_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_release.source_release.sha512_url }}">sha512</a>)
+</p>
+{% endif %}
+
+{% if flink_release.optional_components %}
+#### Optional components
+
+{% assign components = flink_release.optional_components | | sort: 'name' %}
 {% for component in components %}
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th><strong>{{ component.name }}</strong></th>
-      {% if component.scala_dependent %}
-      <th>Scala 2.11</th>
-      <th>Scala 2.12</th>
-      {% else %}
-      <th></th>
-      {% endif %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for version in component.versions %}
-      <tr>
-        {% if component.scala_dependent %}
-          <td>{{ version.version }}</td>
-          {% if version.scala_211 %}
-            <td><a href="{{ version.scala_211.url }}" class="ga-track" id="{{ version.scala_211.id }}">Download</a> (<a href="{{ version.scala_211.asc_url }}">asc</a>, <a href="{{ version.scala_211.sha512_url }}">sha1</a>)</td>
-          {% else %}
-            <td>Not supported.</td>
-          {% endif %}
-          {% if version.scala_212 %}
-            <td><a href="{{ version.scala_212.url }}" class="ga-track" id="{{ version.scala_212.id }}">Download</a> (<a href="{{ version.scala_212.asc_url }}">asc</a>, <a href="{{ version.scala_212.sha512_url }}">sha1</a>)</td>
-          {% else %}
-            <td>Not supported.</td>
-          {% endif %}
-        {% else %}
-          <td>{{ version.version }}</td>
-          <td><a href="{{ version.url }}" class="ga-track" id="{{ version.id }}">Download</a> (<a href="{{ version.asc_url }}">asc</a>, <a href="{{ version.sha_url }}">sha1</a>)</td>
-        {% endif %}
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% if component.scala_dependent %}
+
+{% if component.scala_211 %}
+<p>
+<a href="{{ component.scala_211.url }}" class="ga-track" id="{{ component.scala_211.id }}">{{ component.name }} for Scala 2.11</a> (<a href="{{ component.scala_211.asc_url }}">asc</a>, <a href="{{ component.scala_211.sha_url }}">sha1</a>)
+</p>
+{% endif %}
+
+{% if component.scala_212 %}
+<p>
+<a href="{{ component.scala_212.url }}" class="ga-track" id="{{ component.scala_212.id }}">{{ component.name }} for Scala 2.12</a> (<a href="{{ component.scala_212.asc_url }}">asc</a>, <a href="{{ component.scala_212.sha_url }}">sha1</a>)
+</p>
+{% endif %}
+
+{% else %}
+<p>
+<a href="{{ component.url }}" class="ga-track" id="{{ component.id }}">{{ component.name }}</a> (<a href="{{ component.asc_url }}">asc</a>, <a href="{{ component.sha_url }}">sha1</a>)
+</p>
+{% endif %}
 
 {% endfor %}
-</div>
+
+{% endif %}
+
+{% if flink_release.alternative_binaries %}
+#### Alternative Binaries
+
+{% assign alternatives = flink_release.alternative_binaries | | sort: 'name' %}
+{% for alternative in alternatives %}
+
+{% if alternative.scala_211 %}
+
+<p>
+<a href="{{ alternative.scala_211.url }}" class="ga-track" id="{{ alternative.scala_211.id }}">{{ alternative.name }} for Scala 2.11</a> (<a href="{{ alternative.scala_211.asc_url }}">asc</a>, <a href="{{ alternative.scala_211.sha_url }}">sha512</a>)
+</p>
+
+{% endif %}
+
+{% if alternative.scala_212 %}
+
+<p>
+<a href="{{ alternative.scala_212.url }}" class="ga-track" id="{{ alternative.scala_212.id }}">{{ alternative.name }} for Scala 2.12</a> (<a href="{{ alternative.scala_212.asc_url }}">asc</a>, <a href="{{ alternative.scala_212.sha_url }}">sha512</a>)
+</p>
+
+{% endif %}
+
 {% endfor %}
 
-## Release Notes
+{% endif %}
 
-Please have a look at the [Release Notes for Flink {{ site.FLINK_VERSION_STABLE_SHORT }}]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/release-notes/flink-{{ site.FLINK_VERSION_STABLE_SHORT }}.html) if you plan to upgrade your Flink setup from a previous version.
+#### Release Notes
+
+Please have a look at the [Release Notes for Flink {{ flink_release.version_short }}]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flink_release.version_short }}.html) if you plan to upgrade your Flink setup from a previous version.
+
+---
+
+{% endfor %}
+
+## Additional Components
+
+These are components that the Flink project develops which are not part of the
+main Flink release:
+
+{% for additional_component in site.component_releases %}
+
+{% if additional_component.source_release %}
+{% assign source_release = additional_component.source_release %}
+<p>
+<a href="{{ source_release.url }}" class="ga-track" id="{{ source_release.id }}">{{ source_release.name }}</a>
+(<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
+</p>
+{% endif %}
+
+{% endfor %}
 
 ## Verifying Hashes and Signatures
 
@@ -221,3 +231,5 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink-shaded 3.0 - 2018-02-28 ([Source](https://archive.apache.org/dist/flink/flink-shaded-3.0/flink-shaded-3.0-src.tgz))
 - Flink-shaded 2.0 - 2017-10-30 ([Source](https://archive.apache.org/dist/flink/flink-shaded-2.0/flink-shaded-2.0-src.tgz))
 - Flink-shaded 1.0 - 2017-07-27 ([Source](https://archive.apache.org/dist/flink/flink-shaded-1.0/flink-shaded-1.0-src.tgz))
+
+
