@@ -11,19 +11,105 @@ many other data processing projects and frameworks.
 
 <p>Connectors provide code for interfacing with various third-party systems.</p>
 
-<p>Currently these systems are supported:</p>
+<p>
+  The following table lists the connectors that are available in Flink ecosystem.
+  Connector authors are welcome to add your connector to this list via a Github
+  Pull Request. See <a href="{{site.docs-stable}}/improve-website.html"> Improve the Website</a>
+  for more details.
+</p>
 
-<ul>
-  <li><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a> (sink)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a> (source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
-  <li><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a> (sink)</li>
-</ul>
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last released</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
+    <td>source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+</table>
 
 To run an application using one of these connectors, additional third party
 components are usually required to be installed and launched, e.g., the servers

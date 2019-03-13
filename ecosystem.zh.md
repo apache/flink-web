@@ -10,19 +10,105 @@ Apache Flink 支持广泛的生态系统，并能与许多其他数据处理项�
 
 <p>Connector 用于与各种第三方系统进行连接。</p>
 
-<p>目前支持这些系统：</p>
+<p>
+下表中所列出的是 Flink 生态中的 Connector。我们非常欢迎 Connector 的作者将为
+Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分享。如果您希望
+将您的 Connector 加入列表，请参照 <a href="{{site.docs-stable}}/improve-website.html">改进 Flink 网站</a>
+提交 Jira Ticket 以及相应的 Github Pull Request。
+</p>
 
-<ul>
-  <li><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a> (sink)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a> (sink)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a> (source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a> (sink/source)</li>
-  <li><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a> (sink)</li>
-  <li><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a> (sink)</li>
-</ul>
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最后发布时间</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
+    <td>source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
+    <td>sink/source</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a></td>
+    <td>sink</td>
+    <td>Flink Repo</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+</table>
 
 要使用其中的某个 connector 来运行应用程序，用户通常需要额外安装和启动第三方组件，例如消息队列服务器。有关第三方组件的进一步说明，请参阅相应的小节。
 
