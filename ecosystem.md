@@ -12,7 +12,7 @@ many other data processing projects and frameworks.
 <p>Connectors provide code for interfacing with various third-party systems.</p>
 
 <p>
-  The following table lists the connectors that are available in Flink ecosystem.
+  The following table lists the connectors that are available in the Flink ecosystem.
   Connector authors are welcome to add their connector to this list via a Github
   Pull Request. See <a href="{{site.docs-stable}}/improve-website.html"> Improve the Website</a>
   for more details.
