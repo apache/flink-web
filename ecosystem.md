@@ -13,7 +13,7 @@ many other data processing projects and frameworks.
 
 <p>
   The following table lists the connectors that are available in Flink ecosystem.
-  Connector authors are welcome to add your connector to this list via a Github
+  Connector authors are welcome to add their connector to this list via a Github
   Pull Request. See <a href="{{site.docs-stable}}/improve-website.html"> Improve the Website</a>
   for more details.
 </p>
