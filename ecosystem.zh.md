@@ -23,7 +23,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>Connector 类型</th>
     <th>源代码位置</th>
     <th>License</th>
-    <th>最后发布时间</th>
+    <th>最近发布时间</th>
     <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
@@ -99,14 +99,50 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>1.7.x</td>
     <td>Apache Flink</td>
   </tr>
-  <tr>
-    <td><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a></td>
+<tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-activemq" target="_blank">Apache ActiveMQ</a></td>
     <td>sink</td>
-    <td>Flink Repo</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>05/24/2017</td>
     <td>1.7.x</td>
-    <td>Apache Flink</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-flume/" target="_blank">Apache Flume</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-netty/" target="_blank">Netty</a></td>
+    <td>source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
   </tr>
 </table>
 
@@ -128,11 +164,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
 
 [Apache Mahout](https://mahout.apache.org/) 是一个机器学习库，很快会将 Flink 作为执行引擎。可以查看 Sebastian Schelter 在 Flink Forward 会议上关于 Mahout-Samsara DSL 的[演讲](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl)。
 
-**Cascading**
-
-[Cascading](http://www.cascading.org/cascading-flink/) 使用户可以在 Flink 和其他执行引擎上轻松构建复杂的工作流。
-[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) 项目是由 [dataArtisans](http://data-artisans.com/) 和 [Driven, Inc](http://www.driven.io/) 建立。请参阅 Fabian Hueske 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink)以获取更多细节。
-
 **Apache Beam**
 
 [Apache Beam](https://beam.apache.org/) 是一种开源统一的编程模型，可用于创建数据处理管道。 Flink 是 Beam 编程模型支持的后端引擎之一。
@@ -141,21 +172,19 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
 
 [GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) 是在 Leipzig 大学开发的，用于在 Flink 之上实现可扩展的图形分析。请参阅 Martin Junghanns 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink)。
 
-**BigPetStore**
-
-[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) 是一个包含数据生成器的基准测试套件，很快就可以用于 Flink 。 请参阅 Suneel Marthi 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/suneel-marthi-bigpetstore-flink-a-comprehensive-blueprint-for-apache-flink?ref=http://flink-forward.org/?session=tbd-3)。
-
-**FastR**
-
-[FastR](https://github.com/oracle/fastr) 是 Java 中 R 语言的实现。 [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) 可以在 Flink 之上执行 R 任务。
-
-**Apache SAMOA**
-
-[Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) 是一个流式的机器学习库，很快将支持 Flink 作为执行引擎。 Albert Bifet 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink)中介绍了 SAMOA。
-
 **Alluxio**
 
 [Alluxio](http://www.alluxio.org/) 是一个开源的，能匹配内存速度的虚拟分布式存储，使应用程序能够在[统一的命名空间](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html)中有效地共享数据并跨不同存储系统访问数据。以下是[使用 Flink 通过 Alluxio 访问数据的示例](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html)。
+
+**Apache Ignite**
+
+[Apache Ignite](https://ignite.apache.org) 是一个高性能，集成和分布式的内存计算和事务平台，用于实时处理大规模数据集。请参阅 [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) 以将数据写入 Ignite 缓存。
+
+**Nussknacker**
+
+[Nussknacker](https://github.com/TouK/nussknacker/) 是一个开源的 Apache Flink 流程编写工具。Nussknacker 提供了一个简单易用的图形化界面来帮助你设计、部署和监控流处理程序。它利用 Apache Flink 的强大功能、性能和可靠性来快速准确的执行处理程序。
+
+## 非 JVM 语言的示例
 
 **Python示例**
 
@@ -164,16 +193,3 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
 **使用 Clojure 编写的 WordCount 示例**
 
 关于如何在 Clojure 中编写 Flink 程序的 [WordCount示例](https://github.com/mjsax/flink-external/tree/master/flink-clojure)。
-
-**异常检测与预测**
-
-[flink-htm](https://github.com/nupic-community/flink-htm) 是 Apache Flink 中用于异常检测和预测的库。该算法基于由 Numenta 智能计算平台（NuPIC）实现的 Hierarchical Temporal Memory（HTM）。
-
-**Apache Ignite**
-
-[Apache Ignite](https://ignite.apache.org) 是一个高性能，集成和分布式的内存计算和事务平台，用于实时处理大规模数据集。请参阅 [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) 以将数据写入 Ignite 缓存。
-
-**Tink 时态图库**
-
-[Tink](https://github.com/otherwise777/Temporal_Graph_library) 
-是一个建立在 Flink 之上的时态图库。它可以分析时态图，如对最短时间路径算法的不同解释，以及诸如时间间隔和时间紧密度之类的度量。这里是 Wouter Ligtenberg 的[论文](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf)。

@@ -31,7 +31,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -40,7 +40,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
     <td>sink</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -49,7 +49,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
     <td>sink</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -58,7 +58,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -67,7 +67,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -76,7 +76,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
     <td>source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -85,7 +85,7 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
@@ -94,20 +94,56 @@ many other data processing projects and frameworks.
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
     <td>sink</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
     <td>1.7.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
-    <td><a href="https://github.com/apache/bahir-flink" target="_blank">Redis, Flume, and ActiveMQ (via Apache Bahir)</a></td>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-activemq" target="_blank">Apache ActiveMQ</a></td>
     <td>sink</td>
-    <td>Flink Repo</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>05/24/2017</td>
     <td>1.7.x</td>
-    <td>Apache Flink</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-flume/" target="_blank">Apache Flume</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-netty/" target="_blank">Netty</a></td>
+    <td>source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
   </tr>
 </table>
 
@@ -136,12 +172,6 @@ See also Jim Dowling's [Flink Forward talk](http://www.slideshare.net/FlinkForwa
 [Apache Mahout](https://mahout.apache.org/) is a machine learning library that will feature Flink as an execution engine soon.
 Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl) about Mahout-Samsara DSL.
 
-**Cascading**
-
-[Cascading](http://www.cascading.org/cascading-flink/) enables a user to build complex workflows easily on Flink and other execution engines.
-[Cascading on Flink](https://github.com/dataArtisans/cascading-flink) is built by [dataArtisans](http://data-artisans.com/) and [Driven, Inc](http://www.driven.io/).
-See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/fabian-hueske-training-cascading-on-flink) for more details.
-
 **Apache Beam**
 
 [Apache Beam](https://beam.apache.org/) is an open-source, unified programming model that you can use to create a data processing pipeline. Flink is one of the back-ends supported by the Beam programming model.
@@ -150,23 +180,19 @@ See Fabian Hueske's [Flink Forward talk](http://www.slideshare.net/FlinkForward/
 
 [GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) enables scalable graph analytics on top of Flink and is developed at Leipzig University. Check out Martin Junghanns’ [Flink Forward talk](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink).
 
-**BigPetStore**
-
-[BigPetStore](https://github.com/apache/bigtop/tree/master/bigtop-bigpetstore) is a benchmarking suite including a data generator and will be available for Flink soon.
-See Suneel Marthi's [Flink Forward talk](http://www.slideshare.net/FlinkForward/suneel-marthi-bigpetstore-flink-a-comprehensive-blueprint-for-apache-flink?ref=http://flink-forward.org/?session=tbd-3) as preview.
-
-**FastR**
-
-[FastR](https://github.com/oracle/fastr) is an implemenation of the R language in Java. [FastR Flink](https://bitbucket.org/allr/fastr-flink/src/3535a9b7c7f208508d6afbcdaf1de7d04fa2bf79/README_FASTR_FLINK.md?at=default&fileviewer=file-view-default) executes R workloads on top of Flink.
-
-**Apache SAMOA**
-
-[Apache SAMOA (incubating)](https://samoa.incubator.apache.org/) is a streaming ML library featuring Flink as an execution engine soon. Albert Bifet introduced SAMOA on Flink at his [Flink Forward talk](http://www.slideshare.net/FlinkForward/albert-bifet-apache-samoa-mining-big-data-streams-with-apache-flink?ref=http://flink-forward.org/?session=apache-samoa-mining-big-data-streams-with-apache-flink).
-
 **Alluxio**
 
 [Alluxio](http://www.alluxio.org/) is an open-source memory-speed virtual distributed storage that enables applications to efficiently share data and access data across different storage systems in a [unified namespace](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html). Here is an example of [using Flink to access data through Alluxio](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html).
 
+**Apache Ignite**
+
+[Apache Ignite](https://ignite.apache.org) is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time. See [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) to inject data into Ignite cache.
+
+**Nussknacker**
+
+[Nussknacker](https://github.com/TouK/nussknacker/) is an open-source process authoring tool for Apache Flink. Nussknacker lets you design, deploy and monitor streaming processes using easy to use GUI. We leverage power, performance and reliability of Apache Flink to make your processes fast and accurate.
+
+## Examples of non-JVM languages
 **Python Examples on Flink**
 
 A [collection of examples](https://github.com/wdm0006/flink-python-examples) using Apache Flink's Python API.
@@ -174,15 +200,3 @@ A [collection of examples](https://github.com/wdm0006/flink-python-examples) usi
 **WordCount Example in Clojure**
 
 A small [WordCount example](https://github.com/mjsax/flink-external/tree/master/flink-clojure) on how to write a Flink program in Clojure.
-
-**Anomaly Detection and Prediction in Flink**
-
-[flink-htm](https://github.com/nupic-community/flink-htm) is a library for anomaly detection and prediction in Apache Flink. The algorithms are based on Hierarchical Temporal Memory (HTM) as implemented by the Numenta Platform for Intelligent Computing (NuPIC).
-
-**Apache Ignite**
-
-[Apache Ignite](https://ignite.apache.org) is a high-performance, integrated and distributed in-memory platform for computing and transacting on large-scale data sets in real-time. See [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) to inject data into Ignite cache.
-
-**Tink temporal graph library**
-
-[Tink](https://github.com/otherwise777/Temporal_Graph_library) is a temporal graph library built on top of Flink. It allows for temporal graph analytics like different interpretations of the shortest temporal path algorithm and metrics like temporal betweenness and temporal closeness. This library was the result of the [Thesis](http://www.win.tue.nl/~gfletche/ligtenberg2017.pdf) of Wouter Ligtenberg.
