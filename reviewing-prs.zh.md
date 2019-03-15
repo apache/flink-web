@@ -91,6 +91,14 @@ title:  "如何审核 Pull Request"
 
 可以在 [Flink代码样式页面]({{ site.baseurl }}/zh/contribute-code.html#code-style) 中找到一些代码样式指南。
 
+----
+
+### 6. 英文和中文文档是否都更新了？
+
+如果这个 pull request 引入了一个新功能，该功能应该被文档化。Flink 社区正在同时维护英文和中文文档。所以如果你想要更新或扩展文档，英文和中文文档都需要更新。如果你不熟悉中文，请创建一个用于中文文档翻译的 JIRA 并附上 `chinese-translation` 的组件名，并与当前 JIRA 关联起来。如果你熟悉中文，我们鼓励在一个 pull request 中同时更新两边的文档。
+
+阅读[如何贡献文档](https://flink.apache.org/zh/contribute-documentation.html)了解更多。
+
 ## 使用 @flinkbot 进行审核
 
 Flink 社区正在使用名为 [@flinkbot](https://github.com/flinkbot) 的服务来帮助审核 pull request。
