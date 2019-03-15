@@ -39,6 +39,14 @@ The script compiles the Markdown files into static HTML pages and starts a local
 
 Please feel free to ask any questions you have on the developer mailing list.
 
+## Chinese documentation translation
+
+The Flink community is maintaining both English and Chinese documents. So if you want to update or extend the documentation, both English and Chinese documentation should be updated. If you are not familiar with Chinese language, you can open a JIRA attached a `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, it is encouraged to update both sides in one pull request.
+
+*NOTE: The Flink community is translating Chinese documentations, some documents may not have been translated yet. If the document you are updating is not translated yet, you can just copy the English changes to the Chinese document.*
+
+All the Chinese documents are located in the file with the same name with English documents but in the `.zh.md` suffix. You can update or extend the `.zh.md` file according to the English documents changes. If the corresponding `.zh.md` file doesn't exited, just copy the existed English file and rename to `.zh.md` suffix. It will generate under `/zh` folder with same name as html file. 
+
 ## Submit your contribution
 
 The Flink project accepts documentation contributions through the [GitHub Mirror](https://github.com/apache/flink) as [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are a simple way of offering a patch by providing a pointer to a code branch that contains the changes.
