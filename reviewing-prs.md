@@ -91,6 +91,14 @@ This is the detailed code review of the actual changes, covering:
 
 Some code style guidelines can be found in the [Flink Code Style Page]({{ site.baseurl }}/contribute-code.html#code-style)
 
+----
+
+### 6. Are English and Chinese documentation updated?
+
+If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both English and Chinese documents. So both English and Chinese documentation should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
+
+See more about how to [contribute documentation](https://flink.apache.org/contribute-documentation.html).
+
 ## Review with the @flinkbot
 
 The Flink community is using a service called [@flinkbot](https://github.com/flinkbot) to help with the review of the pull requests.
