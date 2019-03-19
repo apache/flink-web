@@ -37,7 +37,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream/Table</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -47,7 +47,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -57,7 +57,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -67,7 +67,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -77,7 +77,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -101,7 +101,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataSet / Table</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -111,7 +111,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream/DataSet</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -135,7 +135,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -145,7 +145,17 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td>JDBC</td>
+    <td>sink/source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -169,7 +179,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream/Table</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -179,7 +189,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -203,7 +213,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream/Table</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -227,7 +237,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -237,7 +247,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td></td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -247,7 +257,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -257,7 +267,7 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>1.7.x</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
