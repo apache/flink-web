@@ -12,19 +12,21 @@ many other data processing projects and frameworks.
 <p>Connectors provide code for interfacing with various third-party systems.</p>
 
 <p>
-  The following table lists the connectors that are available in the Flink ecosystem.
+  The following tables list the connectors that are available in the Flink ecosystem.
   Connector authors are welcome to add their connector to this list via a Github
   Pull Request. See <a href="{{site.docs-stable}}/improve-website.html">Improve the Website</a>
   for more details.
 </p>
 
+### Message Queue
 <table class="table table-bordered">
   <tr>
     <th>System Name</th>
     <th>Connector Type</th>
     <th>Location</th>
     <th>License</th>
-    <th>Last released</th>
+    <th>Last Released</th>
+    <th>Available For</th>
     <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
@@ -34,24 +36,7 @@ many other data processing projects and frameworks.
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
-    <td>sink</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
-    <td>sink</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td></td>
+    <td>DataStream/Table</td>
     <td>1.7.x</td>
     <td>Apache Flink</td>
   </tr>
@@ -61,6 +46,7 @@ many other data processing projects and frameworks.
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
+    <td>DataStream</td>
     <td>1.7.x</td>
     <td>Apache Flink</td>
   </tr>
@@ -70,33 +56,7 @@ many other data processing projects and frameworks.
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
-    <td>source</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
-    <td>sink/source</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
-    <td>sink</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td></td>
+    <td>DataStream</td>
     <td>1.7.x</td>
     <td>Apache Flink</td>
   </tr>
@@ -106,15 +66,7 @@ many other data processing projects and frameworks.
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
-    <td>1.7.x</td>
-    <td>Apache Bahir</td>
-  </tr>
-  <tr>
-    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
-    <td>sink</td>
-    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
-    <td>Apache 2.0</td>
-    <td>05/24/2017</td>
+    <td>DataStream</td>
     <td>1.7.x</td>
     <td>Apache Bahir</td>
   </tr>
@@ -124,6 +76,177 @@ many other data processing projects and frameworks.
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### File System / Data Store
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last Released</th>
+    <th>Available For</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">File Systems (HDFS, S3, others)</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataSet / Table</td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-kudu/" target="_blank">Apache Kudu</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/DataSet</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### Database
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last Released</th>
+    <th>Available For</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-influxdb/" target="_blank">InfluxDB</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-influxdb/" target="_blank">InfluxDB</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### K-V Store
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last Released</th>
+    <th>Available For</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/Table</td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### Search Engine
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last Released</th>
+    <th>Available For</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/Table</td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+</table>
+
+### Others
+<table class="table table-bordered">
+  <tr>
+    <th>System Name</th>
+    <th>Connector Type</th>
+    <th>Location</th>
+    <th>License</th>
+    <th>Last Released</th>
+    <th>Available For</th>
+    <th>Compatible Flink Versions</th>
+    <th>Maintained By</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
+    <td>source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
+    <td>sink/source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>1.7.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
+    <td>Source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>DataStream</td>
     <td>1.7.x</td>
     <td>Apache Bahir</td>
   </tr>
@@ -133,15 +256,7 @@ many other data processing projects and frameworks.
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
-    <td>1.7.x</td>
-    <td>Apache Bahir</td>
-  </tr>
-  <tr>
-    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
-    <td>sink/source</td>
-    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
-    <td>Apache 2.0</td>
-    <td>05/24/2017</td>
+    <td>DataStream</td>
     <td>1.7.x</td>
     <td>Apache Bahir</td>
   </tr>
@@ -192,7 +307,7 @@ Check out Sebastian Schelter's [Flink Forward talk](http://www.slideshare.net/Fl
 
 [Nussknacker](https://github.com/TouK/nussknacker/) is an open-source process authoring tool for Apache Flink. Nussknacker lets you design, deploy and monitor streaming processes using easy to use GUI. We leverage power, performance and reliability of Apache Flink to make your processes fast and accurate.
 
-## Examples of non-JVM languages
+## Examples of Non-JVM Languages
 **Python Examples on Flink**
 
 A [collection of examples](https://github.com/wdm0006/flink-python-examples) using Apache Flink's Python API.
