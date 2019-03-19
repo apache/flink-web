@@ -95,7 +95,17 @@ many other data processing projects and frameworks.
     <th>Maintained By</th>
   </tr>
   <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">File Systems (HDFS, S3, others)</a></td>
+    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataSet / Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">Others File Systems (S3, others)</a></td>
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
