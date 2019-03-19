@@ -154,7 +154,7 @@ many other data processing projects and frameworks.
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>DataStream</td>
+    <td>Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
