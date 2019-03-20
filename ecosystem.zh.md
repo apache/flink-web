@@ -17,6 +17,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
 提交 Jira Ticket 以及相应的 Github Pull Request。
 </p>
 
+### 消息队列
 <table class="table table-bordered">
   <tr>
     <th>对接系统</th>
@@ -24,97 +25,48 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>源代码位置</th>
     <th>License</th>
     <th>最近发布时间</th>
+    <th>可用API</th>
     <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/kafka.html" target="_blank">Apache Kafka</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
     <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
-    <td>sink</td>
-    <td>Flink Repo</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
-    <td>sink</td>
-    <td>Flink Repo</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
+    <td>DataStream/Table</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/rabbitmq.html" target="_blank">RabbitMQ</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>1.7.x</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
     <td><a href="{{site.docs-stable}}/dev/connectors/kinesis.html" target="_blank">Amazon Kinesis Streams</a></td>
     <td>sink/source</td>
-    <td>Flink Repo</td>
+    <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td></td>
-    <td>1.7.x</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
-    <td>source</td>
-    <td>Flink Repo</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
-    <td>sink/source</td>
-    <td>Flink Repo</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
-    <td>sink</td>
-    <td>Flink Repo</td>
-    <td>Apache 2.0</td>
-    <td></td>
-    <td>1.7.x</td>
-    <td>Apache Flink</td>
-  </tr>
-<tr>
     <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-activemq" target="_blank">Apache ActiveMQ</a></td>
     <td>sink</td>
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
-    <td>1.7.x</td>
-    <td>Apache Bahir</td>
-  </tr>
-  <tr>
-    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
-    <td>sink</td>
-    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
-    <td>Apache 2.0</td>
-    <td>05/24/2017</td>
-    <td>1.7.x</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -123,7 +75,198 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
-    <td>1.7.x</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### 文件系统 / 数据存储系统
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最近发布时间</th>
+    <th>可用API</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataSet / Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">Others File Systems (S3, others)</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataSet / Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-kudu/" target="_blank">Apache Kudu</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/DataSet</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### 数据库
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最近发布时间</th>
+    <th>可用API</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-influxdb/" target="_blank">InfluxDB</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-influxdb/" target="_blank">InfluxDB</a></td>
+    <td>sink</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td>JDBC</td>
+    <td>sink/source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### 键值库
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最近发布时间</th>
+    <th>可用API</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/cassandra.html" target="_blank">Apache Cassandra</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
+    <td>sink/source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Bahir</td>
+  </tr>
+</table>
+
+### 搜索引擎
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最近发布时间</th>
+    <th>可用API</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/elasticsearch.html" target="_blank">Elasticsearch 1.x / 2.x / 5.x / 6.x</a></td>
+    <td>sink</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream/Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+</table>
+
+### 其他
+<table class="table table-bordered">
+  <tr>
+    <th>对接系统</th>
+    <th>Connector 类型</th>
+    <th>源代码位置</th>
+    <th>License</th>
+    <th>最近发布时间</th>
+    <th>可用API</th>
+    <th>兼容的 Flink 版本号</th>
+    <th>维护者</th>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/twitter.html" target="_blank">Twitter</a></td>
+    <td>source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="{{site.docs-stable}}/dev/connectors/nifi.html" target="_blank">Apache NiFi</a></td>
+    <td>sink/source</td>
+    <td>Apache Flink</td>
+    <td>Apache 2.0</td>
+    <td></td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
+  </tr>
+  <tr>
+    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-akka/" target="_blank">Akka</a></td>
+    <td>Source</td>
+    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
+    <td>Apache 2.0</td>
+    <td>05/24/2017</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -132,16 +275,8 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
-    <td>1.7.x</td>
-    <td>Apache Bahir</td>
-  </tr>
-  <tr>
-    <td><a href="http://bahir.apache.org/docs/flink/1.0/flink-streaming-redis/" target="_blank">Redis</a></td>
-    <td>sink/source</td>
-    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
-    <td>Apache 2.0</td>
-    <td>05/24/2017</td>
-    <td>1.7.x</td>
+    <td>DataStream</td>
+    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
