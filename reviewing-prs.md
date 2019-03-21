@@ -95,7 +95,7 @@ Some code style guidelines can be found in the [Flink Code Style Page]({{ site.b
 
 ### 6. Are English and Chinese documentation updated?
 
-If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both English and Chinese documents. So both English and Chinese documentation should be updated. If you are not familiar with Chinese language, you can open a JIRA attached a `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, it is encouraged to update both sides in one pull request.
+If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both English and Chinese documents. So both English and Chinese documentation should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
 
 See more about how to [contribute documentation](https://flink.apache.org/contribute-documentation.html).
 

@@ -95,7 +95,7 @@ title:  "如何审核 Pull Request"
 
 ### 6. 英文和中文文档是否都更新了？
 
-如果这个 pull request 引入了一个新功能，该功能应该被文档化。Flink 社区正在同时维护英文和中文文档。所以如果你想要更新或扩展文档，英文和中文文档都需要更新。如果你不熟悉中文，你可以创建一个用来中文文档翻译的 JIRA 并附上 `chinese-translation` 的组件名，并与当前JIRA关联起来。如果你熟悉中文，我们鼓励在一个 pull request 中同时更新两边的文档。
+如果这个 pull request 引入了一个新功能，该功能应该被文档化。Flink 社区正在同时维护英文和中文文档。所以如果你想要更新或扩展文档，英文和中文文档都需要更新。如果你不熟悉中文，请创建一个用于中文文档翻译的 JIRA 并附上 `chinese-translation` 的组件名，并与当前 JIRA 关联起来。如果你熟悉中文，我们鼓励在一个 pull request 中同时更新两边的文档。
 
 阅读[如何贡献文档](https://flink.apache.org/zh/contribute-documentation.html)了解更多。
 

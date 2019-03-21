@@ -41,11 +41,11 @@ Please feel free to ask any questions you have on the developer mailing list.
 
 ## Chinese documentation translation
 
-The Flink community is maintaining both English and Chinese documentation. If you want to update or extend the documentation, both English and Chinese documentation should be updated. If you are not familiar with Chinese language, you can open a JIRA with the `chinese-translation` component for Chinese documentation translation and link it with the current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
+The Flink community is maintaining both English and Chinese documentation. If you want to update or extend the documentation, both English and Chinese documentation should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with the current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
 
-*NOTE: The Flink community is translating Chinese documentations, some documents may not have been translated yet. If the document you are updating is not translated yet, you can just copy the English changes to the Chinese document.*
+*NOTE: The Flink community is still in the process of translating Chinese documentations, some documents may not have been translated yet. If the document you are updating is not translated yet, you can just copy the English changes to the Chinese document.*
 
-All the Chinese documents are located in the file with the same name with English documents but in the `.zh.md` suffix. You can update or extend the `.zh.md` file according to the English documents changes. If the corresponding `.zh.md` file doesn't exited, just copy the existed English file and rename to `.zh.md` suffix. It will generate under `/zh` folder with same name as html file. 
+The Chinese documents are located in the same folders as the corresponding English documents. The files for both languages have the same names except that the Chinese version have the `.zh.md` suffix. You can update or extend the `.zh.md` file according to the English documents changes. If the corresponding `.zh.md` file doesn't exited, just copy the existed English file and rename to `.zh.md` suffix. It will generate under `/zh` folder with same name as html file.
 
 ## Submit your contribution
 
