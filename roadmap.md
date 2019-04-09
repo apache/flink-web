@@ -102,7 +102,7 @@ widely-used batch processors, there are some ongoing efforts to make sure this t
     intermediate results for better resource efficiency on systems like Yarn.
     [FLIP-31](https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A+Pluggable+Shuffle+Manager).
 
-Various of these enhancements can be taken form the contributed code from the
+Various of these enhancements can be taken from the contributed code from the
 [Blink fork](https://github.com/apache/flink/tree/blink).
 
 To exploit the above optimizations for bounded streams in the DataStream API, we need
