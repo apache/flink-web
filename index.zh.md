@@ -233,6 +233,11 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" width="175" alt="OVH" />
+          </a></div>
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
           </a></div>
           
