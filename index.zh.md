@@ -133,7 +133,7 @@ layout: base
 <div class="row">
   <div class="col-sm-12">
     <br />
-    <h2><a href="{{ site.baseurl }}/zh/poweredby.html">Aapche Flink 用户</a></h2>
+    <h2><a href="{{ site.baseurl }}/zh/poweredby.html">Apache Flink 用户</a></h2>
 
   <div class="jcarousel">
     <ul>
