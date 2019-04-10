@@ -77,7 +77,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" alt="OVH" /><br />
-      OVH 使用Flink开发面向流的应用程序，比如实时商业智能系统或警报系统。<br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 OVH 如何使用 Flink</a>
+      OVH 使用 Flink 开发面向流的应用程序，比如实时商业智能系统或警报系统。<br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 OVH 如何使用 Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" alt="Otto Group" /><br />
