@@ -6,7 +6,7 @@ title: "素材"
 
 ## Apache Flink Logo
 
-我们提供不同大小、不同格式的 Apache Flink logo。你可以[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)或者从当前页面选择你需要的 logo。
+我们提供不同大小、不同格式的 Apache Flink logo。你可以[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.4 MB)或者从当前页面选择你需要的 logo。
 
 ### 便携式网络图像格式 (PNG)
 
@@ -53,7 +53,7 @@ title: "素材"
 
 <div class="panel panel-default">
   <div class="panel-body" markdown="span">
-    你可以[在这个目录]({{ site.baseurl }}/img/logo/png)寻找更多 PNG 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)。
+    你可以[在这个目录]({{ site.baseurl }}/img/logo/png)寻找更多 PNG 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.4 MB)。
   </div>
 </div>
 
@@ -85,7 +85,7 @@ title: "素材"
 
 <div class="panel panel-default">
   <div class="panel-body" markdown="span">
-    你可以[在这个目录]({{ site.baseurl }}/img/logo/svg)寻找更多 SVG 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)。
+    你可以[在这个目录]({{ site.baseurl }}/img/logo/svg)寻找更多 SVG 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.4 MB)。
   </div>
 </div>
 
@@ -99,7 +99,7 @@ title: "素材"
 - **彩色 logo**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_squirrel_1000.psd).
 - **带文字的黑色轮廓 logo**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_1000.psd), [5000x5000]({{ site.baseurl }}/img/logo/psd/flink_5000.psd).
 
-你可以[在这个目录]({{ site.baseurl }}/img/logo/psd)寻找更多 PSD 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.7 MB)。
+你可以[在这个目录]({{ site.baseurl }}/img/logo/psd)寻找更多 PSD 格式的 logo 或者[下载所有 logo]({{ site.baseurl }}/img/logo.zip) (7.4 MB)。
 </div>
 </div>
 
