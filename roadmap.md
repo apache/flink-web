@@ -160,10 +160,6 @@ Support for additional connectors and formats is a continuous process.
 
 # Miscellaneous
 
-  - We are changing the build setup to not bundle Hadoop by default, but rather offer pre-packaged Hadoop
-    libraries for the use with Yarn, HDFS, etc. as convenience downloads
-    [FLINK-11266](https://issues.apache.org/jira/browse/FLINK-11266).
-
   - The Flink code base is being updates to support Java 9, 10, and 11
     [FLINK-8033](https://issues.apache.org/jira/browse/FLINK-8033),
     [FLINK-10725](https://issues.apache.org/jira/browse/FLINK-10725).
