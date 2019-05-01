@@ -100,5 +100,5 @@ Flink 为持续流式分析和批量分析都提供了良好的支持。具体�
 
 ### 典型的数据管道应用实例
 
-* 电子商务中的<a href="https://data-artisans.com/blog/blink-flink-alibaba-search">实时查询索引构建</a>
+* 电子商务中的<a href="https://ververica.com/blog/blink-flink-alibaba-search">实时查询索引构建</a>
 * 电子商务中的<a href="https://jobs.zalando.com/tech/blog/apache-showdown-flink-vs.-spark/">持续 ETL</a>

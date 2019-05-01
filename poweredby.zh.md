@@ -17,7 +17,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
 <div class="row-fluid">
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" alt="Alibaba" /><br />
-      全球最大的零售商阿里巴巴（Alibaba）使用 Flink 的分支版本 Blink 来优化实时搜索排名。<br><br><a href="https://data-artisans.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多有关 Flink 在阿里巴巴扮演角色的信息</a>
+      全球最大的零售商阿里巴巴（Alibaba）使用 Flink 的分支版本 Blink 来优化实时搜索排名。<br><br><a href="https://ververica.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多有关 Flink 在阿里巴巴扮演角色的信息</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" alt="AWS" /><br />
@@ -45,7 +45,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" alt="Drivetribe" /><br />
-     Drivetribe是由前“Top Gear”主持人创建的数字社区，它使用 Flink 作为指标和内容推荐。<br><br><a href="https://data-artisans.com/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 Flink 在 Drivetribe stack 的应用</a>
+     Drivetribe是由前“Top Gear”主持人创建的数字社区，它使用 Flink 作为指标和内容推荐。<br><br><a href="https://ververica.com/blog/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 Flink 在 Drivetribe stack 的应用</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" alt="Ebay" /><br />
@@ -101,7 +101,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" alt="Yelp" /><br />
-      Yelp 利用 Flink 为其数据连接器生态系统和流处理基础架构提供支持。<br><br><a href="https://data-artisans.com/flink-forward/resources/powering-yelps-data-pipeline-infrastructure-with-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 请参阅 Flink Forward 上的演讲</a>
+      Yelp 利用 Flink 为其数据连接器生态系统和流处理基础架构提供支持。<br><br><a href="https://ververica.com/flink-forward/resources/powering-yelps-data-pipeline-infrastructure-with-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 请参阅 Flink Forward 上的演讲</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" alt="Zalando" /><br />
