@@ -113,7 +113,8 @@ plugins {
     id 'java'
     id 'application'
     // shadow plugin to produce fat JARs
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    // If gradle version is greater than 4.4, then this will produce error: No value has been specified for property 'mainClassName'.
+    // id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 
@@ -122,6 +123,8 @@ group = '${organization}'
 version = '${version}'
 mainClassName = '${organization}.StreamingJob'
 description = """Flink Quickstart Job"""
+
+apply plugin: 'com.github.johnrengelman.shadow'
 
 ext {
     javaVersion = '1.8'
@@ -141,7 +144,7 @@ tasks.withType(JavaCompile) {
 applicationDefaultJvmArgs = ["-Dlog4j.configuration=log4j.properties"]
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
+    gradleVersion = '5.4'
 }
 
 // declare where to find the dependencies of your project
