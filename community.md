@@ -164,7 +164,7 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 ## Training
 
-[dataArtisans](http://data-artisans.com) currently maintains free Apache Flink training. Their [training website](http://training.data-artisans.com/) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
+[Ververica](http://ververica.com) currently maintains free Apache Flink training. Their [training website](http://training.ververica.com/) has slides and exercises with solutions. The slides are also available on [SlideShare](http://www.slideshare.net/dataArtisans/presentations).
 
 ## Project Wiki
 
