@@ -17,7 +17,7 @@ If you would you like to be included on this page, please reach out to the [Flin
 <div class="row-fluid">
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" alt="Alibaba" /><br />
-      Alibaba, the world's largest retailer, uses a fork of Flink called Blink to optimize search rankings in real time. <br><br><a href="https://data-artisans.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Flink's role at Alibaba</a>
+      Alibaba, the world's largest retailer, uses a fork of Flink called Blink to optimize search rankings in real time. <br><br><a href="https://ververica.com/blog/blink-flink-alibaba-search" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Flink's role at Alibaba</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" alt="AWS" /><br />
@@ -45,7 +45,7 @@ If you would you like to be included on this page, please reach out to the [Flin
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" alt="Drivetribe" /><br />
-      Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://data-artisans.com/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
+      Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://ververica.com/blog/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" alt="Ebay" /><br />
@@ -101,7 +101,7 @@ If you would you like to be included on this page, please reach out to the [Flin
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" alt="Yelp" /><br />
-      Yelp utilizes Flink to power its data connectors ecosystem and stream processing infrastructure. <br><br><a href="https://data-artisans.com/flink-forward/resources/powering-yelps-data-pipeline-infrastructure-with-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Find out more watching a Flink Forward talk</a>
+      Yelp utilizes Flink to power its data connectors ecosystem and stream processing infrastructure. <br><br><a href="https://ververica.com/flink-forward/resources/powering-yelps-data-pipeline-infrastructure-with-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Find out more watching a Flink Forward talk</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" alt="Zalando" /><br />
