@@ -175,183 +175,123 @@ under the License.
 
 <div class="page-toc">
 <ul id="markdown-toc">
-  <li><a href="#analytics-applications-an-the-roles-of-datastream-dataset-and-table-api" id="markdown-toc-analytics-applications-an-the-roles-of-datastream-dataset-and-table-api">Analytics, Applications, an the roles of DataStream, DataSet, and Table API</a></li>
-  <li><a href="#batch-and-streaming-unification" id="markdown-toc-batch-and-streaming-unification">Batch and Streaming Unification</a></li>
-  <li><a href="#fast-batch-bounded-streams" id="markdown-toc-fast-batch-bounded-streams">Fast Batch (Bounded Streams)</a></li>
-  <li><a href="#stream-processing-use-cases" id="markdown-toc-stream-processing-use-cases">Stream Processing Use Cases</a></li>
-  <li><a href="#deployment-scaling-security" id="markdown-toc-deployment-scaling-security">Deployment, Scaling, Security</a></li>
-  <li><a href="#ecosystem" id="markdown-toc-ecosystem">Ecosystem</a></li>
+  <li><a href="#datastreamdataset--table-api-" id="markdown-toc-datastreamdataset--table-api-">分析与应用程序，DataStream、DataSet 和 Table API 的角色</a></li>
+  <li><a href="#section" id="markdown-toc-section">批流统一</a></li>
+  <li><a href="#section-1" id="markdown-toc-section-1">快速批处理（有界流）</a></li>
+  <li><a href="#section-2" id="markdown-toc-section-2">流处理案例</a></li>
+  <li><a href="#section-3" id="markdown-toc-section-3">部署，扩展，安全</a></li>
+  <li><a href="#section-4" id="markdown-toc-section-4">生态系统</a></li>
   <li><a href="#connectors--formats" id="markdown-toc-connectors--formats">Connectors &amp; Formats</a></li>
-  <li><a href="#miscellaneous" id="markdown-toc-miscellaneous">Miscellaneous</a></li>
+  <li><a href="#section-5" id="markdown-toc-section-5">其他</a></li>
 </ul>
 
 </div>
 
-<p><strong>Preamble:</strong> This is not an authoritative roadmap in the sense of a strict plan with a specific
-timeline. Rather, we, the community, share our vision for the future and give an overview of the bigger
-initiatives that are going on and are receiving attention. This roadmap shall give users and
-contributors an understanding where the project is going and what they can expect to come.</p>
+<p><strong>前言：</strong> 从具有时间表的严格计划来说，这并不是一个权威的路线图。相反，我们，社区，会分享我们对未来的愿景，并总结了正在进行和正在受到关注的提议。此路线图将为用户和贡献者更好地了解项目的发展方向以及他们可以期待的内容。</p>
 
-<p>The roadmap is continuously updated. New features and efforts should be added to the roadmap once
-there is consensus that they will happen and what they will roughly look like for the user.</p>
+<p>路线图会不断更新。一旦达成共识，新的特性和工作都会添加到路线图中。共识是指这些特性和工作将来确定会发生，以及对于用户来说大致是什么样的。</p>
 
-<h1 id="analytics-applications-an-the-roles-of-datastream-dataset-and-table-api">Analytics, Applications, an the roles of DataStream, DataSet, and Table API</h1>
+<h1 id="datastreamdataset--table-api-">分析与应用程序，DataStream、DataSet 和 Table API 的角色</h1>
 
-<p>Flink views stream processing as a <a href="/flink-architecture.html">unifying paradigm for data processing</a>
-(batch and real-time) and event-driven applications. The APIs are evolving to reflect that view:</p>
+<p>Flink将流处理视为<a href="/zh/flink-architecture.html">统一数据处理范式</a>（批与实时）和事件驱动的应用程序。而 API 的不断演进正反映了这一点：</p>
+
+<ul>
+  <li><strong>Table API / SQL</strong> 正在以流批统一的方式成为分析型用例的主要 API。为了以更精简的方式支持分析型用例，API 将会扩展很多新的功能（<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739">FLIP-29</a>）。</li>
+</ul>
+
+<p>与 SQL 一样，Table API 是<em>声明式的</em>，在<em>逻辑 schema</em>上操作，并且应用了许多<em>自动优化</em>。由于这些特性，该 API 不提供直接访问时间和状态的接口。</p>
+
+<ul>
+  <li><strong>DataStream API</strong> 是数据驱动应用程序和数据管道的主要API。使用<em>物理数据类型</em>（Java/Scala类），没有自动改写和优化。
+  应用程序可以显式控制 <em>时间</em> 和 <em>状态</em>（state，triggers，proc. fun.）。</li>
+</ul>
+
+<p>从长远来看，DataStream API应该通过<em>有界数据流</em>完全包含DataSet API。</p>
+
+<h1 id="section">批流统一</h1>
+
+<p>Flink 在一个流式运行时之上，通过同样的 API 同时支持了批处理和流处理。<a href="/news/2019/02/13/unified-batch-streaming-blink.html">此博文</a> 介绍了这种批流统一的方式。</p>
+
+<p>目前正在进行的面向用户的最大改动是:</p>
 
 <ul>
   <li>
-    <p>The <strong>Table API / SQL</strong> is becoming the primary API for analytical use cases, in a unified way
-across batch and streaming. To support analytical use cases in a more streamlined fashion,
-the API is extended with additional functions (<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739">FLIP-29</a>).</p>
-
-    <p>Like SQL, the Table API is <em>declarative</em>, operates on a <em>logical schema</em>, and applies <em>automatic optimization</em>.
-Because of these properties, that API does not give direct access to time and state.</p>
+    <p>Table API 重构 <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions">FLIP-32</a> 将 Table API 从特定的流/批环境和依赖中解耦出来。</p>
   </li>
   <li>
-    <p>The <strong>DataStream API</strong> is the primary API for data-driven applications and data pipelines.
-It uses <em>physical data types</em> (Java/Scala classes) and there is no automatic rewriting.
-The applications have explicit control over <em>time</em> and <em>state</em> (state, triggers, proc. fun.).</p>
-
-    <p>In the long run, the DataStream API should fully subsume the DataSet API through <em>bounded streams</em>.</p>
+    <p>新的数据源接口 <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a> 进一步推广了跨批处理和流处理传输，使每个连接器都可以作为批处理和流处理的数据源。</p>
+  </li>
+  <li>
+    <p>引入 <em>upsert-</em> 或者说 <em>changelog-</em> 源 <a href="https://issues.apache.org/jira/browse/FLINK-8545">FLINK-8545</a> 将支持更强大的流输入到 Table API 中。</p>
   </li>
 </ul>
 
-<h1 id="batch-and-streaming-unification">Batch and Streaming Unification</h1>
+<p>在运行时级别，扩展了 streaming operator 以支持某些批处理操作所需的数据消费模式（<a href="https://lists.apache.org/thread.html/cb1633d10d17b0c639c3d59b2283e9e01ecda3e54ba860073c124878@%3Cdev.flink.apache.org%3E">讨论主题</a>）。</p>
 
-<p>Flink’s approach is to cover batch and streaming by the same APIs, on a streaming runtime.
-<a href="/news/2019/02/13/unified-batch-streaming-blink.html">This blog post</a>
-gives an introduction to the unification effort.</p>
+<h1 id="section-1">快速批处理（有界流）</h1>
 
-<p>The biggest user-facing parts currently ongoing are:</p>
+<p>社区的目标是使 Flink 在有界流（批处理用例）上的性能表现与其他批处理引擎相比具有竞争力。 虽然 Flink 已被证明是在某些批处理应用场景要比广泛使用的批处理引擎更快，不过仍然有许多正在进行的工作使得这些场景能更广泛：</p>
 
 <ul>
   <li>
-    <p>Table API restructuring <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions">FLIP-32</a>
-that decouples the Table API from batch/streaming specific environments and dependencies.</p>
+    <p>更快更完整的 SQL 和 Table API：社区正在合并 Blink 的查询处理器，对当前的查询处理器加了许多的改进，比如提供更丰富的运行时算子、优化规则、代码生成等。新的查询处理器将具有完整的 TPC-DS 支持，并且比当前查询处理器相比具有 10 倍性能提升 (<a href="https://issues.apache.org/jira/browse/FLINK-11439">FLINK-11439</a>).</p>
   </li>
   <li>
-    <p>The new source interfaces <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>
-generalize across batch and streaming, making every connector usable as a batch and
-streaming data source.</p>
+    <p>利用有界流来减少容错范围：当输入数据有界时，它完全可以在 shuffle 期间将数据完整地缓存下来（内存或磁盘），以便在失败后重放这些数据。这也使得作业恢复更加细粒度，也因此更加高效 (<a href="https://issues.apache.org/jira/browse/FLINK-10288">FLINK-10288</a>)。</p>
   </li>
   <li>
-    <p>The introduction of <em>upsert-</em> or <em>changelog-</em> sources <a href="https://issues.apache.org/jira/browse/FLINK-8545">FLINK-8545</a>
-will support more powerful streaming inputs to the Table API.</p>
+    <p>基于有界数据的应用程序可以调度一个接一个的操作，这取决于算子如何消费数据（例如，首先构建哈希表，然后探测哈希表）。关于有界数据，我们将调度策略从执行图中分离出来，以支持不同的策略(<a href="https://issues.apache.org/jira/browse/FLINK-10429">FLINK-10429</a>)。</p>
+  </li>
+  <li>
+    <p>在有界数据集上缓存中间结果，以支持交互式数据探索等用例。缓存通常有助于客户端提交一系列构建的作业的应用程序相互重叠并重复使用彼此的结果。<a href="https://issues.apache.org/jira/browse/FLINK-11199">FLINK-11199</a></p>
+  </li>
+  <li>
+    <p>外部 Shuffle 服务（主要是有界流）以支持从计算和中间结果中解耦出来，从而获得在 Yarn 等系统上更高的资源利用率。</p>
   </li>
 </ul>
 
-<p>On the runtime level, the streaming operators are extended to also support the data consumption
-patterns required for some batch operations (<a href="https://lists.apache.org/thread.html/cb1633d10d17b0c639c3d59b2283e9e01ecda3e54ba860073c124878@%3Cdev.flink.apache.org%3E">discussion thread</a>).
-This is also groundwork for features like efficient <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-17+Side+Inputs+for+DataStream+API">side inputs</a>.</p>
+<p>上文的许多增强和改进都可以从 <a href="https://github.com/apache/flink/tree/blink">Blink fork</a> 贡献的源码中获得。</p>
 
-<h1 id="fast-batch-bounded-streams">Fast Batch (Bounded Streams)</h1>
+<p>要利用上述针对DataStream API中有界流的优化，我们需要断开API的一部分并显式地对有界流建模。</p>
 
-<p>The community’s goal is to make Flink’s performance on bounded streams (batch use cases) competitive with that
-of dedicated batch processors. While Flink has been shown to handle some batch processing use cases faster than
-widely-used batch processors, there are some ongoing efforts to make sure this the case for broader use cases:</p>
+<h1 id="section-2">流处理案例</h1>
 
-<ul>
-  <li>
-    <p>Faster and more complete SQL/Table API: The community is merging the Blink query processor which improves on
-the current query processor by adding a much richer set of runtime operators, optimizer rules, and code generation.
-The new query processor will have full TPC-DS support and up to 10x performance improvement over the current
-query processor (<a href="https://issues.apache.org/jira/browse/FLINK-11439">FLINK-11439</a>).</p>
-  </li>
-  <li>
-    <p>Exploiting bounded streams to reduce the scope of fault tolerance: When input data is bounded, it is
-possible to completely buffer data during shuffles (memory or disk) and replay that data after a
-failure. This makes recovery more fine grained and thus much more efficient
-(<a href="https://issues.apache.org/jira/browse/FLINK-10288">FLINK-10288</a>).</p>
-  </li>
-  <li>
-    <p>An application on bounded data can schedule operations after another, depending on how the operators
-consume data (e.g., first build hash table, then probe hash table).
-We are separating the scheduling strategy from the ExecutionGraph to support different strategies
-on bounded data (<a href="https://issues.apache.org/jira/browse/FLINK-10429">FLINK-10429</a>).</p>
-  </li>
-  <li>
-    <p>Caching of intermediate results on bounded data, to support use cases like interactive data exploration.
-The caching generally helps with applications where the client submits a series of jobs that build on
-top of one another and reuse each others’ results.
-<a href="https://issues.apache.org/jira/browse/FLINK-11199">FLINK-11199</a></p>
-  </li>
-  <li>
-    <p>External Shuffle Services (mainly bounded streams) to support decoupling from computation and
-intermediate results for better resource efficiency on systems like Yarn.
-<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A+Pluggable+Shuffle+Manager">FLIP-31</a>.</p>
-  </li>
-</ul>
+<p>Flink将获得新的模式来停止正在运行的应用程序，同时确保输出和副作用是一致的，并在关闭前提交。<em>SUSPEND</em> 会提交输出和副作用，但是保留状态。而 <em>TERMINATE</em> 则清除完状态并提交输出和副作用。<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=103090212">FLIP-34</a>有详细信息。</p>
 
-<p>Various of these enhancements can be taken from the contributed code from the
-<a href="https://github.com/apache/flink/tree/blink">Blink fork</a>.</p>
+<p><em>新的源接口</em> (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>)旨在为事件时间和源的水印生成提供更简单的开箱即用支持。源可以选择以事件时间对齐消费速度，以减少在重新处理大数据量时空中（in-flight）状态的大小。（<a href="https://issues.apache.org/jira/browse/FLINK-10886">FLINK-10887</a>）。</p>
 
-<p>To exploit the above optimizations for bounded streams in the DataStream API, we need
-break parts of the API and explicitly model bounded streams.</p>
+<p>为了简化流状态的升级， 我们计划高优支持 <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a>，支持方式类似于 Flink 深度支持 Avro 状态升级 (<a href="https://issues.apache.org/jira/browse/FLINK-11333">FLINK-11333</a>)。</p>
 
-<h1 id="stream-processing-use-cases">Stream Processing Use Cases</h1>
+<h1 id="section-3">部署，扩展，安全</h1>
 
-<p>Flink will get the new modes to stop a running application while ensuring that output and
-side-effects are consistent and committed prior to shutdown. <em>SUSPEND</em> commit output/side-effects,
-but keep state, while <em>TERMINATE</em> drains state and commits the outputs and side effects.
-<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=103090212">FLIP-34</a> has the details.</p>
+<p>有一个巨大的工作是设计了一种新的方式使 Flink 与动态资源池交互并能自动调整资源的可用性和负载。其中一部分会变成<em>响应式（reactive）</em>方式来适应不断变化的资源（像容器或 pods 被启动和删除）<a href="https://issues.apache.org/jira/browse/FLINK-10407">FLINK-10407</a>。另一部分会变成<em>活跃式（active）</em>扩缩容策略，Flink 会基于内部指标来决定是否添加或删除 TaskManagers。</p>
 
-<p>The <em>new source interface</em> effort (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>)
-aims to give simpler out-of-the box support for event time and watermark generation for sources.
-Sources will have the option to align their consumption speed in event time, to reduce the
-size of in-flight state when re-processing large data volumes in streaming
-(<a href="https://issues.apache.org/jira/browse/FLINK-10886">FLINK-10887</a>).</p>
+<p>为了支持Kubernetes中的动态资源管理，我们还添加了Kubernetes资源管理器<a href="https://issues.apache.org/jira/browse/FLINK-9953">FLINK-9953</a>。</p>
 
-<p>To make evolution of streaming state simpler, we plan to add first class support for
-<a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a>, similar to the way
-Flink deeply supports Avro state evolution (<a href="https://issues.apache.org/jira/browse/FLINK-11333">FLINK-11333</a>).</p>
+<p>Flink Web UI 正在移植到更新的框架中并获得其他功能并更好地去跑作业 <a href="https://issues.apache.org/jira/browse/FLINK-10705">FLINK-10705</a>.</p>
 
-<h1 id="deployment-scaling-security">Deployment, Scaling, Security</h1>
+<p>社区正致力于扩展与身份验证和授权服务的互操作性。正在讨论的是对<a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-security-improvements-td21068.html">安全模块抽象</a>的扩展以及<a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-Kerberos-Improvement-td25983.html">增强对 Kerberos 的支持</a>。</p>
 
-<p>There is a big effort to design a new way for Flink to interact with dynamic resource
-pools and automatically adjust to resource availability and load.
-Part of this is  becoming a <em>reactive</em> way of adjusting to changing resources (like
-containers/pods being started or removed) <a href="https://issues.apache.org/jira/browse/FLINK-10407">FLINK-10407</a>,
-while other parts are resulting in <em>active</em> scaling policies where Flink decides to add
-or remove TaskManagers, based on internal metrics.</p>
+<h1 id="section-4">生态系统</h1>
 
-<p>To support the active resource management also in Kubernetes, we are adding a Kubernetes Resource Manager
-<a href="https://issues.apache.org/jira/browse/FLINK-9953">FLINK-9953</a>.</p>
+<p>社区正在努力支持 catalog、schema registries、以及 metadata stores，包括 API 和 SQL 客户端的支持（<a href="https://issues.apache.org/jira/browse/FLINK-11275">FLINK-11275</a>）。并且我们正在添加 DDL（数据定义语言，Data Definition Language）支持，以便能方便的添加表和流到 catalog 中（<a href="https://issues.apache.org/jira/browse/FLINK-10232">FLINK-10232</a>）。</p>
 
-<p>The Flink Web UI is being ported to a newer framework and getting additional features for
-better introspection of running jobs <a href="https://issues.apache.org/jira/browse/FLINK-10705">FLINK-10705</a>.</p>
-
-<p>The community is working on extending the interoperability with authentication and authorization services.
-Under discussion are general extensions to the <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-security-improvements-td21068.html">security module abstraction</a>
-as well as specific <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-Kerberos-Improvement-td25983.html">enhancements to the Kerberos support</a>.</p>
-
-<h1 id="ecosystem">Ecosystem</h1>
-
-<p>The community is working on extending the support for catalogs, schema registries, and
-metadata stores, including support in the APIs and the SQL client (<a href="https://issues.apache.org/jira/browse/FLINK-11275">FLINK-11275</a>).
-We are adding DDL (Data Definition Language) support to make it easy to add tables and streams to
-the catalogs (<a href="https://issues.apache.org/jira/browse/FLINK-10232">FLINK-10232</a>).</p>
-
-<p>There is a broad effort to integrate Flink with the Hive Ecosystem, including
-metastore and Hive UDF support <a href="https://issues.apache.org/jira/browse/FLINK-10556">FLINK-10556</a>.</p>
+<p>还有一个巨大的工作是将 Flink 与 Hive 生态系统集成。包括 Metastore 和 Hive UDF 支持 <a href="https://issues.apache.org/jira/browse/FLINK-10556">FLINK-10556</a>。</p>
 
 <h1 id="connectors--formats">Connectors &amp; Formats</h1>
 
-<p>Support for additional connectors and formats is a continuous process.</p>
+<p>支持额外的 connectors 和 formats 是一个持续的过程。</p>
 
-<h1 id="miscellaneous">Miscellaneous</h1>
+<h1 id="section-5">其他</h1>
 
 <ul>
   <li>
-    <p>The Flink code base is being updates to support Java 9, 10, and 11
+    <p>Flink代码库正在进行更新以支持Java 9、10 和 11
 <a href="https://issues.apache.org/jira/browse/FLINK-8033">FLINK-8033</a>,
 <a href="https://issues.apache.org/jira/browse/FLINK-10725">FLINK-10725</a>.</p>
   </li>
   <li>
-    <p>To reduce compatibility issues with different Scala versions, we are working using Scala
-only in the Scala APIs, but not in the runtime. That removes any Scala dependency for all
-Java-only users, and makes it easier for Flink to support different Scala versions
+    <p>为了减少与不同 Scala 版本的兼容性问题，我们努力只在 Scala API 中使用 Scala，而不是运行时。对于所有的 Java 用户可以删除所有 Scala 依赖项，使 Flink 可以更容易支持不同的 Scala 版本
 <a href="https://issues.apache.org/jira/browse/FLINK-11063">FLINK-11063</a>.</p>
   </li>
 </ul>
