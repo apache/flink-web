@@ -34,7 +34,7 @@ Flink将流处理视为[数据处理的统一范例]({{site。baseurl}} / flink-
 
   -  **Table API / SQL** 正在以流批统一的方式成为分析用例的主要API。为了以更精简的方式支持分析用例，API通过添加函数([FLIP-29](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739)进行了扩展。
 
-    与SQL一样，Table API是*声明的*，在*逻辑模式*上运行，并且*自动优化* 应用。由于这些属性，该API不能直接访问时间和状态。
+  与SQL一样，Table API是*声明的*，在*逻辑模式*上运行，并且*自动优化* 应用。由于这些属性，该API不能直接访问时间和状态。
 
   - **DataStream API** 是数据驱动的应用程序和数据管道的主要API。使用*物理数据类型*（Java/Scala类），没有自动重写。
     应用程序可以明确控制* time *和* state *（state，triggers，proc.fun）。  
