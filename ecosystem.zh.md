@@ -34,7 +34,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -44,7 +44,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -54,7 +54,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -98,7 +98,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataSet / Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -108,7 +108,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataSet / Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -118,7 +118,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>N/A</td>
     <td>DataStream/DataSet</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
@@ -142,17 +142,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink</td>
     <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
     <td>Apache 2.0</td>
-    <td></td>
-    <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
-    <td>Apache Bahir</td>
-  </tr>
-  <tr>
-    <td><a href="http://bahir.apache.org/docs/flink/current/flink-streaming-influxdb/" target="_blank">InfluxDB</a></td>
-    <td>sink</td>
-    <td><a href="https://github.com/apache/bahir-flink">Apache Bahir</a></td>
-    <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
@@ -162,10 +152,10 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
-    <td>Table</td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
+    <td>Table / DataSet</td>
     <td>{{site.stable}}.x</td>
-    <td>Apache Bahir</td>
+    <td>Apache Flink</td>
   </tr>
 </table>
 
@@ -186,7 +176,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -200,6 +190,16 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
+  </tr>
+  <tr>
+    <td>HBase</td>
+    <td>source</td>
+    <td><a href="https://github.com/apache/flink/tree/master/flink-connectors/flink-hbase">Apache Flink</a></td>
+    <td>Apache 2.0</td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
+    <td>DataSet / Table</td>
+    <td>{{site.stable}}.x</td>
+    <td>Apache Flink</td>
   </tr>
 </table>
 
@@ -220,7 +220,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -244,7 +244,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -254,7 +254,7 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>sink/source</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
-    <td></td>
+    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
     <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
@@ -291,29 +291,29 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
 **是否遗漏了您的项目？**
 请通过[用户或开发者邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)告诉我们。
 
-**Apache Zeppelin**
+**Alluxio**
 
-[Apache Zeppelin](https://zeppelin.apache.org/) 是一个 Web 笔记形式的交互式数据查询分析工具，它可以使用 [Flink作为执行引擎](https://zeppelin.apache.org/docs/latest/interpreter/flink.html)。可以查看 Jim Dowling 在 Flink Forward 会议上关于在 Flink 上使用 Zeppelin 的[演讲](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin)。
-
-**Apache Mahout**
-
-[Apache Mahout](https://mahout.apache.org/) 是一个机器学习库，很快会将 Flink 作为执行引擎。可以查看 Sebastian Schelter 在 Flink Forward 会议上关于 Mahout-Samsara DSL 的[演讲](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl)。
+[Alluxio](http://www.alluxio.org/) 是一个开源的，能匹配内存速度的虚拟分布式存储，使应用程序能够在[统一的命名空间](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html)中有效地共享数据并跨不同存储系统访问数据。以下是[使用 Flink 通过 Alluxio 访问数据的示例](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html)。
 
 **Apache Beam**
 
 [Apache Beam](https://beam.apache.org/) 是一种开源统一的编程模型，可用于创建数据处理管道。 Flink 是 Beam 编程模型支持的后端引擎之一。
 
-**GRADOOP**
-
-[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) 是在 Leipzig 大学开发的，用于在 Flink 之上实现可扩展的图形分析。请参阅 Martin Junghanns 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink)。
-
-**Alluxio**
-
-[Alluxio](http://www.alluxio.org/) 是一个开源的，能匹配内存速度的虚拟分布式存储，使应用程序能够在[统一的命名空间](http://www.alluxio.org/docs/master/en/Unified-and-Transparent-Namespace.html)中有效地共享数据并跨不同存储系统访问数据。以下是[使用 Flink 通过 Alluxio 访问数据的示例](http://www.alluxio.org/docs/master/en/Running-Flink-on-Alluxio.html)。
-
 **Apache Ignite**
 
 [Apache Ignite](https://ignite.apache.org) 是一个高性能，集成和分布式的内存计算和事务平台，用于实时处理大规模数据集。请参阅 [Flink sink streaming connector](https://github.com/apache/ignite/tree/master/modules/flink) 以将数据写入 Ignite 缓存。
+
+**Apache Mahout**
+
+[Apache Mahout](https://mahout.apache.org/) 是一个机器学习库，很快会将 Flink 作为执行引擎。可以查看 Sebastian Schelter 在 Flink Forward 会议上关于 Mahout-Samsara DSL 的[演讲](http://www.slideshare.net/FlinkForward/sebastian-schelter-distributed-machine-learing-with-the-samsara-dsl)。
+
+**Apache Zeppelin**
+
+[Apache Zeppelin](https://zeppelin.apache.org/) 是一个 Web 笔记形式的交互式数据查询分析工具，它可以使用 [Flink作为执行引擎](https://zeppelin.apache.org/docs/latest/interpreter/flink.html)。可以查看 Jim Dowling 在 Flink Forward 会议上关于在 Flink 上使用 Zeppelin 的[演讲](http://www.slideshare.net/FlinkForward/jim-dowling-interactive-flink-analytics-with-hopsworks-and-zeppelin)。
+
+**GRADOOP**
+
+[GRADOOP](http://dbs.uni-leipzig.de/en/research/projects/gradoop) 是在 Leipzig 大学开发的，用于在 Flink 之上实现可扩展的图形分析。请参阅 Martin Junghanns 在 [Flink Forward 会议上的演讲](http://www.slideshare.net/FlinkForward/martin-junghans-gradoop-scalable-graph-analytics-with-apache-flink)。
 
 **Nussknacker**
 
