@@ -100,6 +100,13 @@ Flink Web UI 正在移植到更新的框架中并获得其他功能并更好地�
 
 还有一个巨大的工作是将 Flink 与 Hive 生态系统集成。包括 Metastore 和 Hive UDF 支持 [FLINK-10556](https://issues.apache.org/jira/browse/FLINK-10556)。
 
+社区在Table API支持Python方面也做出了很多的努力 [FLIP-38](https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API)。
+我们将工作分为以下几个阶段:
+
+- 首先以将Python Table API 直译为Java Table API的方式支持用户编写没有UDFs(标量函数/表值函数/聚合函数)的Python Table API程序。
+- 增加对UDFs(标量函数/表值函数/聚合函数)在Python Table API的支持。
+- 最后将Pandas与Python Table API进行集成，Pandas中的函数可以在Python Table API中直接使用。
+
 # Connectors & Formats
 
 支持额外的 connectors 和 formats 是一个持续的过程。
