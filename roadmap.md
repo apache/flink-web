@@ -154,7 +154,7 @@ the catalogs ([FLINK-10232](https://issues.apache.org/jira/browse/FLINK-10232)).
 There is a broad effort to integrate Flink with the Hive Ecosystem, including
 metastore and Hive UDF support [FLINK-10556](https://issues.apache.org/jira/browse/FLINK-10556).
 
-There also a big effort to support Python for Table API [FLIP-38](https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API).
+There is also a big effort to support Python for Table API [FLIP-38](https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API).
 We will divide the work into following stages:
 
 - Translate Python Table API queries without UDFs to Java and run them completely in Java for the first step.
