@@ -6,15 +6,9 @@ title: "Community & Project Info"
 
 {% toc %}
 
+## How do I get help from Apache Flink?
 
 There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
-
-If you send us an email with a code snippet, make sure that:
-
-1. you do not link to files in external services as such files can change, get deleted or the link might break and thus make an archived email thread useless
-2. you paste text instead of screenshots of text
-3. you keep formatting when pasting code in order to keep the code readable
-4. there are enough import statements to avoid ambiguities
 
 
 ## Mailing Lists
@@ -123,6 +117,23 @@ If you send us an email with a code snippet, make sure that:
 
 <b style="color:red">Please make sure you are subscribed to the mailing list you are posting to!</b> If you are not subscribed to the mailing list, your message will either be rejected (dev@ list) or you won't receive the response (user@ list).
 
+### How to subscribe to a mailing list
+
+Before you can post a message to a mailing list, you need to subscribe to the list first. 
+
+1. Send an email without any contents or subject to subscribe-*listname*@flink.apache.org. (replace *listname* with dev, user, user-zh, ..)
+2. Wait till you receive an email with the subject "confirm subscribe to *listname*@flink.apache.org". Reply to that email, without editing the subject or including any contents
+3. Wait till you receive an email with the subject "WELCOME to *listname*@flink.apache.org".
+
+
+If you send us an email with a code snippet, make sure that:
+
+1. you do not link to files in external services as such files can change, get deleted or the link might break and thus make an archived email thread useless
+2. you paste text instead of screenshots of text
+3. you keep formatting when pasting code in order to keep the code readable
+4. there are enough import statements to avoid ambiguities
+
+
 ## Stack Overflow
 
 Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) for the [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) tag.
@@ -172,11 +183,9 @@ The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 ## Flink Forward
 
-Flink Forward 2015 (October 12-13, 2015) was the first conference to bring together the Apache Flink developer and user community. You can find [slides and videos](http://2015.flink-forward.org/?post_type=session) of all talks on the Flink Forward 2015 page.
+Flink Forward is a conference happening yearly in different locations around the world. Up to date information about the conference is available on <a href="https://www.flink-forward.org/">Flink-Forward.org</a>.
 
-The second edition of Flink Forward took place on September 12-14, 2016. All [slides and videos](http://2016.flink-forward.org/program/sessions/) are available on the Flink Forward 2016 page.
 
-In 2017, Flink Forward came to San Francisco to welcome the Apache Flink community to one day of training and one day of conference. Find all videos on our [YouTube Channel](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) and all slides on [SlideShare](https://www.slideshare.net/FlinkForward).
 
 # People
 

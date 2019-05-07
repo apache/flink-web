@@ -4,6 +4,11 @@ title:  "How to Review a Pull Request"
 
 <hr />
 
+TODO:
+- LICENSE files
+- documentation
+- 
+
 This guide is for all committers and contributors that want to help with reviewing code contributions. Thank you for your effort - good reviews are one the most important and crucial parts of an open source project. This guide should help the community to make reviews such that:
 
 * Contributors have a good contribution experience.
