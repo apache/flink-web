@@ -2,11 +2,11 @@
 title:  "Contributing Code"
 ---
 
-Apache Flink is maintained, improved, and extended by code contributions of volunteers. The Apache Flink community encourages anybody to contribute source code. In order to ensure a pleasant contribution experience for contributors and reviewers and to preserve the high quality of the code base, we follow a contribution process that is explained in this document.
+Apache Flink is maintained, improved, and extended by code contributions of volunteers. We welcome contributions to Flink, but due to the size of the project and to preserve the high quality of the code base, we follow a contribution process that is explained in this document.
 
-This document contains everything you need to know about contributing code to Apache Flink. It describes the process of preparing, testing, and submitting a contribution, explains coding guidelines and code style of Flink's code base, and gives instructions to setup a development environment.
+**Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the Jira issue you are working on.
 
-**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. It is important to follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a Jira ticket and reach consensus with the community on whether this feature is needed.
+**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. Follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a Jira ticket and reach consensus with the community on whether this feature is needed.
 
 
 
@@ -14,81 +14,129 @@ This document contains everything you need to know about contributing code to Ap
 
 ## Code Contribution Process
 
-### Before you start coding…
+<style>
+.process-box {
+	border: 1px solid #dee2e6!important;
+    border-radius: .5rem!important;
+    margin: 2px;
+    margin-bottom: 5px;
+    padding: 10px;
+    width: 24%;
+    height: 300px;
+}
+</style>
 
-…please make sure there is a Jira issue that corresponds to your contribution. This is a *general rule* that the Flink community follows for all code contributions, including bug fixes, improvements, or new features, with an exception for *trivial* hot fixes. If you would like to fix a bug that you found or if you would like to add a new feature or improvement to Flink, please follow the [File a bug report]({{ site.baseurl }}/how-to-contribute.html#file-a-bug-report) or [Propose an improvement or a new feature]({{ site.baseurl }}/how-to-contribute.html#propose-an-improvement-or-a-new-feature) guidelines to open an issue in [Flink's Jira](http://issues.apache.org/jira/browse/FLINK) before starting with the implementation.
+<div class="row">
+	<div class="col-sm-3 process-box">
+	  <h2><a href="#consensus">1. JIRA Ticket: Get Consensus</a></h2>
+	  Agree on importance, relevance, scope of the ticket, discuss the implementation approach and find a committer willing to review and merge the change.<br>
+	  <b>Only committers can assign a Jira ticket</b>.
+	</div>
+	<div class="col-sm-3 process-box">
+	  <h2><a href="#implement">2. Implement</a></h2>
+	  Implement the change according to the <a href="">Code Style and Quality Guide</a> and the approach agreed upon in the JIRA ticket.
+	</div>
+	<div class="col-sm-3 process-box">
+	  <h2><a href="#review">3. Review</a></h2>
+	  Open a pull request and work with the reviewer. <br /><br />
+	  <b>Pull requests belonging to unassigned Jira tickets will not be reviewed or merged by the community</b> 
+	</div>
+	<div class="col-sm-3 process-box">
+	  <h2><a href="#merge">4. Merge</a></h2>
+	  A committer of Flink checks if the contribution fulfills the requirements and merges the code to the codebase.
+	</div>
+</div>
+<div class="row">
+	<div class="col-sm-12 process-box" style="height:inherit; width:inherit;">
+		Note: <i>trivial</i> hot fixes such as typos or syntax errors can be opened as a <code>[hotfix]</code> pull request, without a JIRA ticket.
+	</div>
+</div>
 
-If the description of a Jira issue indicates that its resolution will touch sensitive parts of the code base, be sufficiently complex, or add significant amounts of new code, the Flink community might request a design document. (Most contributions should not require a design document.) The purpose of this document is to ensure that the overall approach to address the issue is sensible and agreed upon by the community. Jira issues that require a design document are tagged with the **`requires-design-doc`** label. The label can be attached by any community member who feels that a design document is necessary. A good description helps to decide whether a Jira issue requires a design document or not. The design document must be added or attached to or linked from the Jira issue and cover the following aspects:
 
-- Overview of the general approach.
-- List of API changes (changed interfaces, new and deprecated configuration parameters, changed behavior, …).
-- Main components and classes to be touched.
-- Known limitations of the proposed approach.
+<a name="consensus"></a>
 
-A design document can be added by anybody, including the reporter of the issue or the person working on it.
-
-Contributions for Jira issues that require a design document will not be added to Flink's code base before a design document has been accepted by the community with [lazy consensus](http://www.apache.org/foundation/glossary.html#LazyConsensus). Please check if a design document is required before starting to code.
+### 1. Jira Ticket: Get Consensus
 
 
-### While coding…
+The first step for making a contribution to Apache Flink is to reach consensus in [Flink's bug tracker: Jira](https://issues.apache.org/jira/projects/FLINK/summary).
+This means agreeing on the scope and implementation approach of a change.
 
-…please respect the following rules:
+**Requirements for a Jira ticket to get consensus:**
 
-- Take any discussion or requirement that is recorded in the Jira issue into account.
-- Follow the design document (if a design document is required) as close as possible. Please update the design document and seek consensus, if your implementation deviates too much from the solution proposed by the design document. Minor variations are OK but should be pointed out when the contribution is submitted.
-- Closely follow the [coding guidelines]( {{site.base}}/contribute-code.html#coding-guidelines) and the [code style]({{ site.base }}/contribute-code.html#code-style).
+  - Formal requirements
+     - The *Title* describes the problem concisely.
+     - The *Description* gives all the details needed to understand the problem or feature request.
+     - The *Component* field is set: Many committers and contributors only focus on certain subsystems of Flink. Setting the appropriate component is important for getting their attention.
+  - There is **agreement** that the ticket solves a valid problem, and that it is a **good fit** for Flink. 
+    The Flink community considers the following aspects:
+     - Does the contribution alter the behavior of features or components in a way that it may break previous users’ programs and setups? If yes, there needs to be a discussion and agreement that this change is desirable.
+     - Does the contribution conceptually fit well into Flink? Is it too much of a special case such that it makes things more complicated for the common case, or bloats the abstractions / APIs?
+     - Does the feature fit well into Flink’s architecture? Will it scale and keep Flink flexible for the future, or will the feature restrict Flink in the future?
+     - Is the feature a significant new addition (rather than an improvement to an existing part)? If yes, will the Flink community commit to maintaining this feature?
+     - Does this feature align well with Flink's roadmap and currently ongoing efforts?
+     - Does the feature produce added value for Flink users or developers? Or does it introduce the risk of regression without adding relevant user or developer benefit?
+     - Could the contribution live in another repository, e.g., Apache Bahir or another external repository?
+     - Is this a contribution just for the sake of getting a commit in an open source project (fixing typos, style changes merely for taste reasons)
+  - There is **consensus** on how to solve the problem. This includes considerations such as
+    - API and data backwards compatibility and migration strategies
+    - testing strategies
+    - impact on Flink's build time
+    - dependencies and their licenses
+
+Large changes might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) to reach agreement or consensus.
+
+Once all requirements for the ticket are met, a committer will assign somebody to the *`Assignee`* field of the ticket to work on it.
+Only committers have the permission to assign somebody.
+
+**Pull requests belonging to unassigned Jira tickets will not be reviewed or merged by the community**.
+
+
+<a name="implement"></a>
+
+### 2. Implement your change
+
+- Follow the [Code Style and Quality Guide]() of Flink
+- Take any discussions and requirements from the Jira issue or design document into account.
 - Do not mix unrelated issues into one contribution.
 
-**Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the Jira issue.
 
-The following instructions will help you to [setup a development environment]( {{ site.base }}/contribute-code.html#setup-a-development-environment).
+<a name="review"></a>
+
+### 3. Open a Pull Request
+
+Code changes in Flink are reviewed and accepted through [GitHub pull requests](https://help.github.com/en/articles/creating-a-pull-request).
+
+There is a separate guide on [how to review a pull request]({{ site.base }}/reviewing-prs.html), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
+
+Considerations before opening a pull request:
+
+ - Make sure that **`mvn clean verify`** is passing on your changes to ensure that all checks pass, the code builds and that all tests pass.
+ - Execute the [End to End tests of Flink](https://github.com/apache/flink/tree/master/flink-end-to-end-tests#running-tests).
+ - Make sure no unrelated or unnecessary reformatting changes are included.
+ - Make sure your commit history adheres to the requirements.
+ - Make sure your change has been rebased to the latest commits in your base branch.
 
 
+Considerations before or right after opening a pull request:
 
-
-### Verifying the compliance of your code
-
-It is very important to verify the compliance of changes before submitting your contribution. This includes:
-
-- Making sure the code builds.
-- Verifying that all existing and new tests pass.
-- Checking that the code style is not violated.
-- Making sure no unrelated or unnecessary reformatting changes are included.
-
-You can build the code, run the tests, and check (parts of) the code style by calling:
-
-```
-mvn clean verify
-```
-
-Please note that some tests in Flink's code base are flaky and can fail by chance. The Flink community is working hard on improving these tests but sometimes this is not possible, e.g., when tests include external dependencies. We maintain all tests that are known to be flaky in Jira and attach the **`test-stability`** label. Please check (and extend) this list of [known flaky tests](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20test-stability%20ORDER%20BY%20priority%20DESC) if you encounter a test failure that seems to be unrelated to your changes.
-
-Please note that we run additional build profiles for different combinations of Java, Scala, and Hadoop versions to validate your contribution. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. The [Best practices]( {{site.base}}/contribute-code.html#best-practices ) guide shows how to integrate [Travis](https://travis-ci.org/) with your GitHub repository.
-
-In addition to the automated tests, please check the diff of your changes and remove all unrelated changes such as unnecessary reformatting.
+ - Make sure that the branch is building successfully on [Travis](https://travis-ci.org/).
 
 
 
+<a name="merge"></a>
 
-### Preparing and submitting your contribution
+### 4. Merge change
 
-To make the changes easily mergeable, please rebase them to the latest version of the main repository's master branch. Please also respect the [commit message guidelines]( {{ site.base }}/contribute-code.html#coding-guidelines ), clean up your commit history, and squash your commits to an appropriate set. Please verify your contribution one more time after rebasing and commit squashing as described above.
+The code will be merged by a committer of Flink once the review is finished. The Jira ticket will be closed afterwards.
 
-The Flink project accepts code contributions through the [GitHub Mirror](https://github.com/apache/flink), in the form of [Pull Requests](https://help.github.com/articles/using-pull-requests). Pull requests are a simple way to offer a patch, by providing a pointer to a code branch that contains the change.
 
-To open a pull request, push your contribution back into your fork of the Flink repository.
 
-```
-git push origin myBranch
-```
-
-Go to the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the *"Create Pull Request"* button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and send it.
-
-It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) issue.
 
 -----
 
-## Coding guidelines
+## Coding guidelines (OUTDATED)
+
+*Note: These guidelines are outdated and will be updated soon.*
 
 ### Pull requests and commit message
 {:.no_toc}
@@ -137,69 +185,6 @@ It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) iss
 
 ## Code style
 
-### License
-- **Apache license headers.** Make sure you have Apache License headers in your files. The RAT plugin is checking for that when you build the code.
-
-### Imports
-- **Empty line before and after package declaration.**
-- **No unused imports.**
-- **No redundant imports.**
-- **No wildcard imports.** They can cause problems when adding to the code and in some cases even during refactoring.
-- **Import order.** Imports must be ordered alphabetically, grouped into the following blocks, with each block separated by an empty line:
-	- &lt;imports from org.apache.flink.*&gt;
-	- &lt;imports from org.apache.flink.shaded.*&gt;
-	- &lt;imports from other libraries&gt;
-	- &lt;imports from javax.*&gt;
-	- &lt;imports from java.*&gt;
-	- &lt;imports from scala.*&gt;
-	- &lt;static imports&gt;
-
-### Naming
-- **Package names must start with a letter, and must not contain upper-case letters or special characters.**
-- **Non-private static final fields must be upper-case, with words being separated by underscores.** (`MY_STATIC_VARIABLE`)
-- **Non-static fields/methods must be in lower camel case.** (`myNonStaticField`)
-
-### Whitespace
-- **Tabs vs. spaces.** We are using tabs for indentation, not spaces. We are not religious there; it just happened to be that we started with tabs, and it is important to not mix them (merge/diff conflicts).
-- **No trailing whitespace.**
-- **Spaces around operators/keywords.** Operators (`+`, `=`, `>`, …) and keywords (`if`, `for`, `catch`, …) must have a space before and after them, provided they are not at the start or end of the line.
-
-### Braces
-- **Left curly braces (`{`) must not be placed on a new line.**
-- **Right curly braces (`}`) must always be placed at the beginning of the line.**
-- **Blocks.** All statements after `if`, `for`, `while`, `do`, … must always be encapsulated in a block with curly braces (even if the block contains one statement).
-
-  ```java
-for (…) {
- …
-}
-```
-
-	If you are wondering why, recall the famous [*goto bug*](https://www.imperialviolet.org/2014/02/22/applebug.html) in Apple's SSL library.
-
-### Javadocs
-- **All public/protected methods and classes must have a Javadoc.**
-- **The first sentence of the Javadoc must end with a period.**
-- **Paragraphs must be separated with a new line, and started with &lt;p&gt;.**
-
-### Modifiers
-- **No redundant modifiers.** For example, public modifiers in interface methods.
-- **Follow JLS3 modifier order.** Modifiers must be ordered in the following order: public, protected, private, abstract, static, final, transient, volatile, synchronized, native, strictfp.
-
-### Files
-- **All files must end with `\n`.**
-- **File length must not exceed 3000 lines.**
-
-### Misc
-- **Arrays must be defined Java-style.** For example, `public String[] array`.
-- **Use Flink Preconditions.** To increase homogeneity, consistently use the `org.apache.flink.Preconditions` methods `checkNotNull` and `checkArgument` rather than Apache Commons Validate or Google Guava.
-- **No raw generic types.** Do not use raw generic types, unless strictly necessary (sometime necessary for signature matches, arrays).
-- **Suppress warnings.** Add annotations to suppress warnings, if they cannot be avoided (such as "unchecked", or "serial").
-- **Comments.** Add comments to your code. What is it doing? Add Javadocs or inherit them by not adding any comments to the methods. Do not automatically generate comments, and avoid unnecessary comments like:
-
-  ```java
-i++; // increment by one
-```
 
 -----
 
@@ -208,6 +193,18 @@ i++; // increment by one
 - Travis: Flink is pre-configured for [Travis CI](http://docs.travis-ci.com/), which can be easily enabled for your personal repository fork (it uses GitHub for authentication, so you do not need an additional account). Simply add the *Travis CI* hook to your repository (*Settings --> Integrations & services --> Add service*) and enable tests for the `flink` repository on [Travis](https://travis-ci.org/profile).
 
 -----
+
+--- 
+
+
+
+Please note that some tests in Flink's code base are flaky and can fail by chance. The Flink community is working hard on improving these tests but sometimes this is not possible, e.g., when tests include external dependencies. We maintain all tests that are known to be flaky in Jira and attach the **`test-stability`** label. Please check (and extend) this list of [known flaky tests](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20test-stability%20ORDER%20BY%20priority%20DESC) if you encounter a test failure that seems to be unrelated to your changes.
+
+Please note that we run additional build profiles for different combinations of Java, Scala, and Hadoop versions to validate your contribution. We encourage every contributor to use a *continuous integration* service that will automatically test the code in your repository whenever you push a change. The [Best practices]( {{site.base}}/contribute-code.html#best-practices ) guide shows how to integrate [Travis](https://travis-ci.org/) with your GitHub repository.
+
+In addition to the automated tests, please check the diff of your changes and remove all unrelated changes such as unnecessary reformatting.
+
+
 
 ## Setup a development environment
 
