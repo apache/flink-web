@@ -32,6 +32,8 @@ contributors an understanding where the project is going and what they can expec
 The roadmap is continuously updated. New features and efforts should be added to the roadmap once
 there is consensus that they will happen and what they will roughly look like for the user.
 
+**Last Update:** 2019-05-08
+
 # Analytics, Applications, an the roles of DataStream, DataSet, and Table API
 
 Flink views stream processing as a [unifying paradigm for data processing]({{ site.baseurl }}/flink-architecture.html)
