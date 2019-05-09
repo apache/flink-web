@@ -363,6 +363,12 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
     <td class="text-center">ktzoumas</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1892692?s=50" class="committer-avatar"></td>
+    <td class="text-center">Bowen Li</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">bli</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/9048995?s=50" class="committer-avatar"></td>
     <td class="text-center">Theodore Vasiloudis</td>
     <td class="text-center">Committer</td>

@@ -362,6 +362,12 @@ Flink Forward 2015 (2015 年 10 月 12-13 日) 是第一届把 Apache Flink 开�
     <td class="text-center">ktzoumas</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1892692?s=50" class="committer-avatar"></td>
+    <td class="text-center">Bowen Li</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">bli</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/9048995?s=50" class="committer-avatar"></td>
     <td class="text-center">Theodore Vasiloudis</td>
     <td class="text-center">Committer</td>
