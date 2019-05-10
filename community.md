@@ -247,12 +247,11 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">fhueske</td>
   </tr>
-    <tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/498957?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Vasia Kalavri</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">vasia</td>
-  </tr>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50" class="committer-avatar"></td>
@@ -271,6 +270,12 @@ In 2017, Flink Forward came to San Francisco to welcome the Apache Flink communi
     <td class="text-center">Nico Kruber</td>
     <td class="text-center">Committer</td>
     <td class="text-center">nkruber</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1892692?s=50" class="committer-avatar"></td>
+    <td class="text-center">Bowen Li</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">bli</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4425616?s=50" class="committer-avatar"></td>
