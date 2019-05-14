@@ -7,6 +7,118 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL</title>
+<description>&lt;p&gt;Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of &lt;strong&gt;temporal data&lt;/strong&gt;, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables1.png&quot; width=&quot;500px&quot; alt=&quot;Taxi Fares and Conversion Rates&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;For example:&lt;/strong&gt; given a stream with Taxi Fare events tied to the local currency of the ride location, we might want to convert the fare price to a common currency for further processing. As conversion rates excel at fluctuating over time, each Taxi Fare event would need to be matched to the rate that was valid at the time the event occurred in order to produce a reliable result.&lt;/p&gt;
+
+&lt;h2 id=&quot;modelling-temporal-data-with-flink&quot;&gt;Modelling Temporal Data with Flink&lt;/h2&gt;
+
+&lt;p&gt;In the 1.7 release, Flink has introduced the concept of &lt;strong&gt;temporal tables&lt;/strong&gt; into its streaming SQL and Table API: parameterized views on append-only tables — or, any table that only allows records to be inserted, never updated or deleted — that are interpreted as a changelog and keep data closely tied to time context, so that it can be interpreted as valid only within a specific period of time. Transforming a stream into a temporal table requires:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Defining a &lt;strong&gt;primary key&lt;/strong&gt; and a &lt;strong&gt;versioning field&lt;/strong&gt; that can be used to keep track of the changes that happen over time;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Exposing the stream as a &lt;strong&gt;temporal table function&lt;/strong&gt; that maps each point in time to a static relation.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/udfs.html#table-functions&quot;&gt;table function&lt;/a&gt; class and can be defined in the same straightforward way to be used with the Table API or SQL parser.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.table.functions.TemporalTableFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ 
+&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;
+ 
+&lt;span class=&quot;c1&quot;&gt;// Get the stream and table environments.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;c1&quot;&gt;// Provide a sample static data set of the rates history table.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;();&lt;/span&gt;
+ 
+&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;USD&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;EUR&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;114L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;YEN&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;EUR&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;116L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;USD&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;105L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+ 
+&lt;span class=&quot;c1&quot;&gt;// Create and register an example table using the sample data set.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistoryStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromCollection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;n&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromDataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;r_currency, r_rate, r_proctime.proctime&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;RatesHistory&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;c1&quot;&gt;// Create and register the temporal table function &amp;quot;rates&amp;quot;.&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Define &amp;quot;r_proctime&amp;quot; as the versioning field and &amp;quot;r_currency&amp;quot; as the primary key.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TemporalTableFunction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rates&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;createTemporalTableFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;r_proctime&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;r_currency&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Rates&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rates&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ 
+&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;What does this &lt;strong&gt;Rates&lt;/strong&gt; function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;11:00&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables2.png&quot; width=&quot;650px&quot; alt=&quot;Point-in-time Querying&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Even though Flink does not yet support querying temporal table functions with a constant time attribute parameter, these functions can be used to cover a much more interesting scenario: temporal table joins.&lt;/p&gt;
+
+&lt;h2 id=&quot;streaming-joins-using-temporal-tables&quot;&gt;Streaming Joins using Temporal Tables&lt;/h2&gt;
+
+&lt;p&gt;Temporal tables reach their full potential when used in combination — erm, joined — with streaming data, for instance to power applications that must continuously whitelist against a reference dataset that changes over time for auditing or regulatory compliance. While efficient joins have long been an enduring challenge for query processors due to computational cost and resource consumption, joins over streaming data carry some additional challenges:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The &lt;strong&gt;unbounded&lt;/strong&gt; nature of streams means that inputs are continuously evaluated and intermediate join results can consume memory resources indefinitely. Flink gracefully manages its memory consumption out-of-the-box (even for heavier cases where joins require spilling to disk) and supports time-windowed joins to bound the amount of data that needs to be kept around as state;&lt;/li&gt;
+  &lt;li&gt;Streaming data might be &lt;strong&gt;out-of-order&lt;/strong&gt; and &lt;strong&gt;late&lt;/strong&gt;, so it is not possible to enforce an ordering upfront and time handling requires some thinking to avoid unnecessary outputs and retractions.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In the particular case of temporal data, time-windowed joins are not enough (well, at least not without getting into some expensive tweaking): sooner or later, each reference record will fall outside of the window and be wiped from state, no longer being considered for future join results. To address this limitation, Flink has introduced support for temporal table joins to cover time-varying relations.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables3.png&quot; width=&quot;500px&quot; alt=&quot;Temporal Table Join between Taxi Fares and Conversion Rates&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each record from the append-only table on the probe side (&lt;code&gt;Taxi Fare&lt;/code&gt;) is joined with the version of the record from the temporal table on the build side (&lt;code&gt;Conversion Rate&lt;/code&gt;) that most closely matches the probe side record time attribute (&lt;code&gt;time&lt;/code&gt;) for the same value of the primary key (&lt;code&gt;currency&lt;/code&gt;). Remember the temporal table function (&lt;code&gt;Rates&lt;/code&gt;) we registered earlier? It can now be used to express this join as a simple SQL statement that would otherwise require a heavier statement with a subquery.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables4.png&quot; width=&quot;700px&quot; alt=&quot;Regular Join vs. Temporal Table Join&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Temporal table joins support both &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins&quot;&gt;processing&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins&quot;&gt;event time&lt;/a&gt; semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Narrowing the &lt;strong&gt;scope&lt;/strong&gt; of the join: only the time-matching version of &lt;code&gt;ratesHistory&lt;/code&gt; is visible for a given &lt;code&gt;taxiFare.time&lt;/code&gt;;&lt;/li&gt;
+  &lt;li&gt;Pruning &lt;strong&gt;unneeded records&lt;/strong&gt; from state: for cases using event time, records between current time and the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks&quot;&gt;watermark&lt;/a&gt; delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;All this means it is now possible to express continuous stream enrichment in relational and time-varying terms using Flink without dabbling into syntactic patchwork or compromising performance. In other words: stream time-travelling minus the flux capacitor. Extending this syntax to batch processing for enriching historic data with proper (event) time semantics is also part of the Flink roadmap!&lt;/p&gt;
+
+&lt;p&gt;If you’d like to get some &lt;strong&gt;hands-on practice in joining streams with Flink SQL&lt;/strong&gt; (and Flink SQL in general), checkout this &lt;a href=&quot;https://github.com/ververica/sql-training/wiki&quot;&gt;free training for Flink SQL&lt;/a&gt;. The training environment is based on Docker and set up in just a few minutes.&lt;/p&gt;
+
+&lt;p&gt;Subscribe to the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Apache Flink mailing lists&lt;/a&gt; to stay up-to-date with the latest developments in this space.&lt;/p&gt;
+</description>
+<pubDate>Tue, 14 May 2019 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/05/14/temporal-tables.html</link>
+<guid isPermaLink="true">/2019/05/14/temporal-tables.html</guid>
+</item>
+
+<item>
 <title>When Flink &amp; Pulsar Come Together</title>
 <description>&lt;p&gt;The open source data technology frameworks &lt;a href=&quot;https://flink.apache.org/&quot;&gt;Apache Flink&lt;/a&gt; and &lt;a href=&quot;https://pulsar.apache.org/en/&quot;&gt;Apache Pulsar&lt;/a&gt; can integrate in different ways to provide elastic data processing at large scale. I recently gave a talk at &lt;a href=&quot;https://www.flink-forward.org/&quot;&gt;Flink Forward&lt;/a&gt; San Francisco 2019 and presented some of the integrations between the two frameworks for batch and streaming applications. In this post, I will give a short introduction to Apache Pulsar and its differentiating elements from other messaging systems and describe the ways that Pulsar and Flink can work together to provide a seamless developer experience for elastic data processing at scale.&lt;/p&gt;
 
