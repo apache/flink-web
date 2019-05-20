@@ -21,11 +21,11 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
   <tbody>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> Contribute Code</td>
-      <td>Read the <a href="{{ site.baseurl }}/contribute-code.html">Code Contribution Guide</a></td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Help With Code Reviews</td>
-      <td>Read the <a href="{{ site.baseurl }}/reviewing-prs.html">Code Review Guide</a></td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/reviewing-prs.html">Code Review Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Review a Release Candidate</td>
@@ -41,7 +41,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Contribute Documentation</td>
-      <td>Read the <a href="{{ site.baseurl }}/contribute-documentation.html">Documentation Contribution Guide</a></td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-documentation.html">Documentation Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Support Flink Users</td>
@@ -55,7 +55,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> Contribute To The Website</td>
-      <td>Read the <a href="{{ site.baseurl }}/improve-website.html">Website Contribution Guide</a></td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/improve-website.html">Website Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> Contribute Evangelism</td>
@@ -69,7 +69,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td colspan="2">
-        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Any other question? Reach out to the <a href="https://flink.apache.org/community.html#mailing-lists">community@flink.apache.org mailing list</a> to get help!
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Any other question? Reach out to the <a href="https://flink.apache.org/community.html#mailing-lists">dev@flink.apache.org mailing list</a> to get help!
       </td>
     </tr>
   </tbody>
@@ -86,7 +86,7 @@ Our community is constantly looking for feedback to improve Apache Flink. If you
 - It helps to estimate the effort and to design a solution that addresses your needs.
 - It allow for constructive discussions that might arise around this issue.
 
-Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contribute-code.html) guide in this case as well.
+Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contributing/contribute-code.html) guide in this case as well.
 
 
 We recommend to first reach consensus with the community on whether a new feature is required and how to implement a new feature, before starting with the implementation. Some features might be out of scope of the project, and it's best to discover this early.
