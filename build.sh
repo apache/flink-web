@@ -54,7 +54,7 @@ JEKYLL_CMD="build"
 while getopts ":p" opt; do
     case $opt in
         p)
-        JEKYLL_CMD="serve --baseurl= --watch --trace"
+        JEKYLL_CMD="serve --baseurl= --watch --trace --incremental"
         ;;
         i)
         [[ `${RUBY} -v` =~ 'ruby 1' ]] && echo "Error: building the docs with the incremental option requires at least ruby 2.0" && exit 1
