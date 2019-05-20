@@ -106,7 +106,7 @@ Only committers have the permission to assign somebody.
 
 Code changes in Flink are reviewed and accepted through [GitHub pull requests](https://help.github.com/en/articles/creating-a-pull-request).
 
-There is a separate guide on [how to review a pull request]({{ site.base }}/reviewing-prs.html), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
+There is a separate guide on [how to review a pull request]({{ site.base }}/contributing/reviewing-prs.html), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
 
 Considerations before opening a pull request:
 
