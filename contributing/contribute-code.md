@@ -15,41 +15,113 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 ## Code Contribution Process
 
 <style>
-.process-box {
-	border: 1px solid #dee2e6!important;
-    border-radius: .5rem!important;
-    margin: 2px;
-    margin-bottom: 5px;
-    padding: 10px;
-    width: 24%;
-    height: 300px;
+.contribute-grid {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  margin-left: -2px;
+  margin-right: -2px;
+}
+
+.contribute-grid .column {
+  margin-top: 4px;
+  padding: 0 2px;
+}
+
+@media only screen and (min-width: 480px) {
+  .contribute-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .contribute-grid .column {
+    flex: 0 0 50%;
+  }
+
+  .contribute-grid .column {
+    margin-top: 4px;
+  }
+}
+
+@media only screen and (min-width: 960px) {
+  .contribute-grid {
+    flex-wrap: nowrap;
+  }
+
+  .contribute-grid .column {
+    flex: 0 0 25%;
+  }
+
+}
+
+.contribute-grid .panel {
+  height: 100%;
+  margin: 0;
+}
+
+.contribute-grid .panel-body {
+  padding: 10px;
+}
+
+.contribute-grid h2 {
+  margin: 0 0 10px 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.contribute-grid .number {
+  margin-right: 0.25em;
+  font-size: 1.5em;
+  line-height: 0.9;
 }
 </style>
 
-<div class="row">
-	<div class="col-sm-3 process-box">
-	  <h2><a href="#consensus">1. JIRA Ticket: Get Consensus</a></h2>
-	  Agree on importance, relevance, scope of the ticket, discuss the implementation approach and find a committer willing to review and merge the change.<br>
-	  <b>Only committers can assign a Jira ticket</b>.
-	</div>
-	<div class="col-sm-3 process-box">
-	  <h2><a href="#implement">2. Implement</a></h2>
-	  Implement the change according to the <a href="">Code Style and Quality Guide</a> and the approach agreed upon in the JIRA ticket.
-	</div>
-	<div class="col-sm-3 process-box">
-	  <h2><a href="#review">3. Review</a></h2>
-	  Open a pull request and work with the reviewer. <br /><br />
-	  <b>Pull requests belonging to unassigned Jira tickets will not be reviewed or merged by the community</b> 
-	</div>
-	<div class="col-sm-3 process-box">
-	  <h2><a href="#merge">4. Merge</a></h2>
-	  A committer of Flink checks if the contribution fulfills the requirements and merges the code to the codebase.
-	</div>
+<div class="contribute-grid">
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">1</span><a href="#consensus">JIRA Ticket: <br /> Get Consensus</a></h2>
+        <p>Agree on importance, relevance, scope of the ticket, discuss the implementation approach and find a committer willing to review and merge the change.</p>
+        <p><b>Only committers can assign a Jira ticket.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">2</span><a href="#implement">Implement</a></h2>
+        <p>Implement the change according to the <a href="">Code Style and Quality Guide</a> and the approach agreed upon in the JIRA ticket.</p>
+      </div>
+    </div>
+  </div>
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">3</span><a href="#review">Review</a></h2>
+        <p>Open a pull request and work with the reviewer.</p>
+        <p><b>Pull requests belonging to unassigned Jira tickets will not be reviewed or merged by the community.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">4</span><a href="#merge">Merge</a></h2>
+        <p>A committer of Flink checks if the contribution fulfills the requirements and merges the code to the codebase.</p>
+      </div>
+    </div>
+  </div>
 </div>
+
 <div class="row">
-	<div class="col-sm-12 process-box" style="height:inherit; width:inherit;">
-		Note: <i>trivial</i> hot fixes such as typos or syntax errors can be opened as a <code>[hotfix]</code> pull request, without a JIRA ticket.
-	</div>
+  <div class="col-sm-12">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        Note: <i>trivial</i> hot fixes such as typos or syntax errors can be opened as a <code>[hotfix]</code> pull request, without a JIRA ticket.
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -72,7 +144,7 @@ This means agreeing on the scope and implementation approach of a change.
      - The *Title* describes the problem concisely.
      - The *Description* gives all the details needed to understand the problem or feature request.
      - The *Component* field is set: Many committers and contributors only focus on certain subsystems of Flink. Setting the appropriate component is important for getting their attention.
-  - There is **agreement** that the ticket solves a valid problem, and that it is a **good fit** for Flink. 
+  - There is **agreement** that the ticket solves a valid problem, and that it is a **good fit** for Flink.
     The Flink community considers the following aspects:
      - Does the contribution alter the behavior of features or components in a way that it may break previous users’ programs and setups? If yes, there needs to be a discussion and agreement that this change is desirable.
      - Does the contribution conceptually fit well into Flink? Is it too much of a special case such that it makes things more complicated for the common case, or bloats the abstractions / APIs?
