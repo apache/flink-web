@@ -4,11 +4,6 @@ title:  "How to Review a Pull Request"
 
 <hr />
 
-TODO:
-- LICENSE files
-- documentation
-- 
-
 This guide is for all committers and contributors that want to help with reviewing code contributions. Thank you for your effort - good reviews are one the most important and crucial parts of an open source project. This guide should help the community to make reviews such that:
 
 * Contributors have a good contribution experience.
@@ -22,7 +17,7 @@ This guide is for all committers and contributors that want to help with reviewi
 
 ## Review Checklist
 
-Every review needs to check the following five aspects. We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when there is no consensus yet whether a feature or change should actually be added.
+Every review needs to check the following five aspects. **We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when there is no consensus yet whether a feature or change should actually be added.**
 
 ### 1. Is the Contribution Well-Described?
 
@@ -36,24 +31,11 @@ Changes that require longer descriptions are ideally based on a prior design dis
 
 ### 2. Is There Consensus that the Change or Feature Should Go into Flink?
 
-For bug fixes, this needs to be checked only in case it requires bigger changes or might break existing programs and setups.
+This question can be directly answered from the linked Jira issue. For pull requests that are created without prior consensus, a [discussion in Jira to seek consensus]({{ site.base }}/contributing/contribute-code.html#consensus) will be needed.
 
-Ideally, this question can be directly answered from a Jira issue or a dev-list discussion, except in cases of bug fixes and small lightweight additions/extensions. In that case, this question can be immediately marked as resolved. For pull requests that are created without prior consensus, this question needs to be answered as part of the review.
 
-The decision whether the change should go into Flink needs to take the following aspects into consideration:
+For `[hotfix]` pull requests, consensus needs to be checked in the pull request.
 
-* Does the contribution alter the behavior of features or components in a way that it may break previous users’ programs and setups? If yes, there needs to be a discussion and agreement that this change is desirable.
-* Does the contribution conceptually fit well into Flink? Is it too much of a special case such that it makes things more complicated for the common case, or bloats the abstractions / APIs?
-* Does the feature fit well into Flink's architecture? Will it scale and keep Flink flexible for the future, or will the feature restrict Flink in the future?
-* Is the feature a significant new addition (rather than an improvement to an existing part)? If yes, will the Flink community commit to maintaining this feature?
-* Does the feature produce added value for Flink users or developers? Or does it introduce the risk of regression without adding relevant user or developer benefit?
-* Could the contribution live in another repository, e.g., [Apache Bahir](https://bahir.apache.org) or another external repository?
-
-All of these questions should be answerable from the description/discussion in Jira and Pull Request, without looking at the code.
-
-**A feature, improvement, or bug fix is approved once one committer accepts it and no committer disagrees (lazy consensus).** 
-
-In case of diverging opinions, the discussion should be moved to the respective Jira issue or to the dev mailing list and continued until consensus is reached. If the change is proposed by a committer, it is best-practice to seek the approval of another committer. 
 
 -----
 
@@ -86,23 +68,24 @@ We recommend to check this before diving into the details of commenting on indiv
 
 This is the detailed code review of the actual changes, covering:
 
-* Are the changes doing what is described in the design document or PR description?
+* Are the changes doing what is described in the Jira ticket or design document?
 * Does the code follow the right software engineering practices? Is the code correct, robust, maintainable, testable?
 * Are the changes performance aware, when changing a performance sensitive part?
 * Are the changes sufficiently covered by tests?
 * Are the tests executing fast, i.e., are heavy-weight integration tests only used when necessary?
 * Does the code format follow Flink’s checkstyle pattern?
 * Does the code avoid to introduce additional compiler warnings?
+* If dependencies have been changed, were the NOTICE files updated?
 
-Some code style guidelines can be found in the [Flink Code Style Page]({{ site.baseurl }}/contribute-code.html#code-style)
+Code guidelines can be found in the [Flink Code Style and Quality Guide]({{ site.baseurl }}/contributing/code-style-and-quality.html).
 
 ----
 
-### 6. Are English and Chinese documentation updated?
+### 6. Are the English and Chinese documentation updated?
 
-If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both English and Chinese documents. So both English and Chinese documentation should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
+If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both an English and a Chinese documentation. So both documentations should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
 
-See more about how to [contribute documentation](https://flink.apache.org/contribute-documentation.html).
+See more about how to [contribute documentation]({{ site.baseurl }}/contributing/contribute-documentation.html).
 
 ## Review with the @flinkbot
 
