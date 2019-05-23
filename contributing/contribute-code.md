@@ -156,11 +156,11 @@ This means agreeing on the scope and implementation approach of a change.
      - Is this a contribution just for the sake of getting a commit in an open source project (fixing typos, style changes merely for taste reasons)
   - There is **consensus** on how to solve the problem. This includes considerations such as
     - API and data backwards compatibility and migration strategies
-    - testing strategies
-    - impact on Flink's build time
-    - dependencies and their licenses
+    - Testing strategies
+    - Impact on Flink's build time
+    - Dependencies and their licenses
 
-Large changes might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) to reach agreement or consensus.
+Large or controversial changes might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) to reach agreement or consensus.
 
 Once all requirements for the ticket are met, a committer will assign somebody to the *`Assignee`* field of the ticket to work on it.
 Only committers have the permission to assign somebody.
