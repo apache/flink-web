@@ -7,6 +7,352 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>A Deep-Dive into Flink&#39;s Network Stack</title>
+<description>&lt;p&gt;Flink’s network stack is one of the core components that make up the &lt;code&gt;flink-runtime&lt;/code&gt; module and sit at the heart of every Flink job. It connects individual work units (subtasks) from all TaskManagers. This is where your streamed-in data flows through and it is therefore crucial to the performance of your Flink job for both the throughput as well as latency you observe. In contrast to the coordination channels between TaskManagers and JobManagers which are using RPCs via Akka, the network stack between TaskManagers relies on a much lower-level API using Netty.&lt;/p&gt;
+
+&lt;p&gt;This blog post is the first in a series of posts about the network stack. In the sections below, we will first have a high-level look at what abstractions are exposed to the stream operators and then go into detail on the physical implementation and various optimisations Flink did. We will briefly present the result of these optimisations and Flink’s trade-off between throughput and latency. Future blog posts in this series will elaborate more on monitoring and metrics, tuning parameters, and common anti-patterns.&lt;/p&gt;
+
+&lt;h1 id=&quot;logical-view&quot;&gt;Logical View&lt;/h1&gt;
+
+&lt;p&gt;Flink’s network stack provides the following logical view to the subtasks when communicating with each other, for example during a network shuffle as required by a &lt;code&gt;keyBy()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack1.png&quot; width=&quot;400px&quot; alt=&quot;Logical View on Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;It abstracts over the different settings of the following three concepts:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Subtask output type (&lt;code&gt;ResultPartitionType&lt;/code&gt;):
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;pipelined (bounded or unbounded):&lt;/strong&gt;
+  Sending data downstream as soon as it is produced, potentially one-by-one, either as a bounded or unbounded stream of records.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;blocking:&lt;/strong&gt;
+  Sending data downstream only when the full result was produced.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Scheduling type:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;all at once (eager):&lt;/strong&gt;
+  Deploy all subtasks of the job at the same time (for streaming applications).&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;next stage on first output (lazy):&lt;/strong&gt;
+  Deploy downstream tasks as soon as any of their producers generated output.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;next stage on complete output:&lt;/strong&gt;
+  Deploy downstream tasks when any or all of their producers have generated their full output set.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Transport:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;high throughput:&lt;/strong&gt;
+  Instead of sending each record one-by-one, Flink buffers a bunch of records into its network buffers and sends them altogether. This reduces the costs per record and leads to higher throughput.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;low latency via buffer timeout:&lt;/strong&gt;
+  By reducing the timeout of sending an incompletely filled buffer, you may sacrifice throughput for latency.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We will have a look at the throughput and low latency optimisations in the sections below which look at the physical layers of the network stack. For this part, let us elaborate a bit more on the output and scheduling types. First of all, it is important to know that the subtask output type and the scheduling type are closely intertwined making only specific combinations of the two valid.&lt;/p&gt;
+
+&lt;p&gt;Pipelined result partitions are streaming-style outputs which need a live target subtask to send data to. The target can be scheduled before results are produced or at first output. Batch jobs produce bounded result partitions while streaming jobs produce unbounded results.&lt;/p&gt;
+
+&lt;p&gt;Batch jobs may also produce results in a blocking fashion, depending on the operator and connection pattern that is used. In that case, the complete result must be produced first before the receiving task can be scheduled. This allows batch jobs to work more efficiently and with lower resource usage.&lt;/p&gt;
+
+&lt;p&gt;The following table summarises the valid combinations:
+&lt;br /&gt;&lt;/p&gt;
+&lt;center&gt;
+&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 30px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 30px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg .tg-wwp9{font-size:15px;background-color:#9b9b9b;border-color:#343434;text-align:left}
+.tg .tg-sogj{font-size:15px;text-align:left}
+.tg .tg-cbs6{font-size:15px;text-align:left;vertical-align:top}
+&lt;/style&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-wwp9&quot;&gt;Output Type&lt;/th&gt;
+    &lt;th class=&quot;tg-wwp9&quot;&gt;Scheduling Type&lt;/th&gt;
+    &lt;th class=&quot;tg-wwp9&quot;&gt;Applies to…&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-sogj&quot; rowspan=&quot;2&quot;&gt;pipelined, unbounded&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;all at once&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;Streaming jobs&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;next stage on first output&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;n/a¹&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-sogj&quot; rowspan=&quot;2&quot;&gt;pipelined, bounded&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;all at once&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;n/a²&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;next stage on first output&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;Batch jobs&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-cbs6&quot;&gt;blocking&lt;/td&gt;
+    &lt;td class=&quot;tg-cbs6&quot;&gt;next stage on complete output&lt;/td&gt;
+    &lt;td class=&quot;tg-cbs6&quot;&gt;Batch jobs&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;1&lt;/sup&gt; Currently not used by Flink. &lt;br /&gt;
+&lt;sup&gt;2&lt;/sup&gt; This may become applicable to streaming jobs once the &lt;a href=&quot;https://flink.apache.org/roadmap.html#batch-and-streaming-unification&quot;&gt;Batch/Streaming unification&lt;/a&gt; is done.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Additionally, for subtasks with more than one input, scheduling start in two ways: after &lt;em&gt;all&lt;/em&gt; or after &lt;em&gt;any&lt;/em&gt; input producers to have produced a record/their complete dataset. For tuning the output types and scheduling decisions in batch jobs, please have a look at &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setExecutionMode-org.apache.flink.api.common.ExecutionMode-&quot;&gt;ExecutionConfig#setExecutionMode()&lt;/a&gt; - and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionMode.html#enum.constant.detail&quot;&gt;ExecutionMode&lt;/a&gt; in particular - as well as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setDefaultInputDependencyConstraint-org.apache.flink.api.common.InputDependencyConstraint-&quot;&gt;ExecutionConfig#setDefaultInputDependencyConstraint()&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;physical-transport&quot;&gt;Physical Transport&lt;/h1&gt;
+
+&lt;p&gt;In order to understand the physical data connections, please recall that, in Flink, different tasks may share the same slot via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;slot sharing groups&lt;/a&gt;. TaskManagers may also provide more than one slot to allow multiple subtasks of the same task to be scheduled onto the same TaskManager.&lt;/p&gt;
+
+&lt;p&gt;For the example pictured below, we will assume a parallelism of 4 and a deployment with two task managers offering 2 slots each. TaskManager 1 executes subtasks A.1, A.2, B.1, and B.2 and TaskManager 2 executes subtasks A.3, A.4, B.3, and B.4. In a shuffle-type connection between task A and task B, for example from a &lt;code&gt;keyBy()&lt;/code&gt;, there are 2x4 logical connections to handle on each TaskManager, some of which are local, some remote:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:10;}
+.tg td{font-family:Arial, sans-serif;font-size:15px;padding:10px 80px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg th{font-family:Arial, sans-serif;font-size:15px;font-weight:normal;padding:10px 80px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg .tg-266k{background-color:#9b9b9b;border-color:inherit;text-align:left;vertical-align:center}
+.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:center}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:center}
+&lt;/style&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-266k&quot;&gt;&lt;/th&gt;
+    &lt;th class=&quot;tg-266k&quot;&gt;B.1&lt;/th&gt;
+    &lt;th class=&quot;tg-266k&quot;&gt;B.2&lt;/th&gt;
+    &lt;th class=&quot;tg-266k&quot;&gt;B.3&lt;/th&gt;
+    &lt;th class=&quot;tg-266k&quot;&gt;B.4&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-0pky&quot;&gt;A.1&lt;/td&gt;
+    &lt;td class=&quot;tg-c3ow&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;local&lt;/td&gt;
+    &lt;td class=&quot;tg-c3ow&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;remote&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-0pky&quot;&gt;A.2&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-0pky&quot;&gt;A.3&lt;/td&gt;
+    &lt;td class=&quot;tg-c3ow&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;remote&lt;/td&gt;
+    &lt;td class=&quot;tg-c3ow&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;local&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-0pky&quot;&gt;A.4&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each (remote) network connection between different tasks will get its own TCP channel in Flink’s network stack. However, if different subtasks of the same task are scheduled onto the same TaskManager, their network connections towards the same TaskManagers will be multiplexed and share a single TCP channel for reduced resource usage. In our example, this would apply to A.1 → B.3, A.1 → B.4, as well as A.2 → B.3, and A.2 → B.4 as pictured below:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack2.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The results of each subtask are called &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/partition/ResultPartition.html&quot;&gt;ResultPartition&lt;/a&gt;, each split into separate &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/partition/ResultSubpartition.html&quot;&gt;ResultSubpartitions&lt;/a&gt; — one for each logical channel. At this point in the stack, Flink is not dealing with individual records anymore but instead with a group of serialised records assembled together into network buffers. The number of buffers available to each subtask in its own local buffer pool (one per sending and receiving side each) is limited to at most&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;#channels * buffers-per-channel + floating-buffers-per-gate
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The total number of buffers on a single TaskManager usually does not need configuration. See the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#configuring-the-network-buffers&quot;&gt;Configuring the Network Buffers&lt;/a&gt; documentation for details on how to do so if needed.&lt;/p&gt;
+
+&lt;h2 id=&quot;inflicting-backpressure-1&quot;&gt;Inflicting Backpressure (1)&lt;/h2&gt;
+
+&lt;p&gt;Whenever a subtask’s sending buffer pool is exhausted — buffers reside in either a result subpartition’s buffer queue or inside the lower, Netty-backed network stack — the producer is blocked, cannot continue, and experiences backpressure. The receiver works in a similar fashion: any incoming Netty buffer in the lower network stack needs to be made available to Flink via a network buffer. If there is no network buffer available in the appropriate subtask’s buffer pool, Flink will stop reading from this channel until a buffer becomes available. This would effectively backpressure all sending subtasks on this multiplex and therefore also throttle other receiving subtasks. The following picture illustrates this for an overloaded subtask B.4 which would cause backpressure on the multiplex and also stop subtask B.3 from receiving and processing further buffers, even though it still has capacity.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack3.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-backpressure-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;To prevent this situation from even happening, Flink 1.5 introduced its own flow control mechanism.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;credit-based-flow-control&quot;&gt;Credit-based Flow Control&lt;/h1&gt;
+
+&lt;p&gt;Credit-based flow control makes sure that whatever is “on the wire” will have capacity at the receiver to handle. It is based on the availability of network buffers as a natural extension of the mechanisms Flink had before. Instead of only having a shared local buffer pool, each remote input channel now has its own set of &lt;strong&gt;exclusive buffers&lt;/strong&gt;. Conversely, buffers in the local buffer pool are called &lt;strong&gt;floating buffers&lt;/strong&gt; as they will float around and are available to every input channel.&lt;/p&gt;
+
+&lt;p&gt;Receivers will announce the availability of buffers as &lt;strong&gt;credits&lt;/strong&gt; to the sender (1 buffer = 1 credit). Each result subpartition will keep track of its &lt;strong&gt;channel credits&lt;/strong&gt;. Buffers are only forwarded to the lower network stack if credit is available and each sent buffer reduces the credit score by one. In addition to the buffers, we also send information about the current &lt;strong&gt;backlog&lt;/strong&gt; size which specifies how many buffers are waiting in this subpartition’s queue. The receiver will use this to ask for an appropriate number of floating buffers for faster backlog processing. It will try to acquire as many floating buffers as the backlog size but this may not always be possible and we may get some or no buffers at all. The receiver will make use of the retrieved buffers and will listen for further buffers becoming available to continue.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack4.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-credit-flow-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Credit-based flow control will use &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; to specify how many buffers are exclusive (mandatory) and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-floating-buffers-per-gate&quot;&gt;floating-buffers-per-gate&lt;/a&gt; for the local buffer pool (optional&lt;sup&gt;3&lt;/sup&gt;) thus achieving the same buffer limit as without flow control. The default values for these two parameters have been chosen so that the maximum (theoretical) throughput with flow control is at least as good as without flow control, given a healthy network with usual latencies. You may need to adjust these depending on your actual round-trip-time and bandwidth.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;3&lt;/sup&gt;If there are not enough buffers available, each buffer pool will get the same share of the globally available ones (± 1).&lt;/p&gt;
+
+&lt;h2 id=&quot;inflicting-backpressure-2&quot;&gt;Inflicting Backpressure (2)&lt;/h2&gt;
+
+&lt;p&gt;As opposed to the receiver’s backpressure mechanisms without flow control, credits provide a more direct control: If a receiver cannot keep up, its available credits will eventually hit 0 and stop the sender from forwarding buffers to the lower network stack. There is backpressure on this logical channel only and there is no need to block reading from a multiplexed TCP channel. Other receivers are therefore not affected in processing available buffers.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-do-we-gain-where-is-the-catch&quot;&gt;What do we Gain? Where is the Catch?&lt;/h2&gt;
+
+&lt;p&gt;&lt;img align=&quot;right&quot; src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack5.png&quot; width=&quot;300&quot; height=&quot;200&quot; alt=&quot;Physical-transport-credit-flow-checkpoints-Flink&#39;s Network Stack&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Since, with flow control, a channel in a multiplex cannot block another of its logical channels, the overall resource utilisation should increase. In addition, by having full control over how much data is “on the wire”, we are also able to improve &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/internals/stream_checkpointing.html#checkpointing&quot;&gt;checkpoint alignments&lt;/a&gt;: without flow control, it would take a while for the channel to fill the network stack’s internal buffers and propagate that the receiver is not reading anymore. During that time, a lot of buffers could be sitting around. Any checkpoint barrier would have to queue up behind these buffers and would thus have to wait until all of those have been processed before it can start (“Barriers never overtake records!”).&lt;/p&gt;
+
+&lt;p&gt;However, the additional announce messages from the receiver may come at some additional costs, especially in setup using SSL-encrypted channels. Also, a single input channel cannot make use of all buffers in the buffer pool because exclusive buffers are not shared. It can also not start right away with sending as much data as is available so that during ramp-up (if you are producing data faster than announcing credits in return) it may take longer to send data through. While this may affect your job’s performance, it is usually better to have flow control because of all its advantages. You may want to increase the number of exclusive buffers via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; at the cost of using more memory. The overall memory use compared to the previous implementation, however, may still be lower because lower network stacks do not need to buffer much data any more since we can always transfer that to Flink immediately.&lt;/p&gt;
+
+&lt;p&gt;There is one more thing you may notice when using credit-based flow control: since we buffer less data between the sender and receiver, you may experience backpressure earlier. This is, however, desired and you do not really get any advantage by buffering more data. If you want to buffer more but keep flow control, you could consider increasing the number of floating buffers via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-floating-buffers-per-gate&quot;&gt;floating-buffers-per-gate&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 30px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 30px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg .tg-0vnf{font-size:15px;text-align:center}
+.tg .tg-rc1r{font-size:15px;background-color:#9b9b9b;text-align:left}
+.tg .tg-sogj{font-size:15px;text-align:left}
+&lt;/style&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-rc1r&quot;&gt;Advantages&lt;/th&gt;
+    &lt;th class=&quot;tg-rc1r&quot;&gt;Disadvantages&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;• better resource utilisation with data skew in multiplexed connections &lt;br /&gt;&lt;br /&gt;• improved checkpoint alignment&lt;br /&gt;&lt;br /&gt;• reduced memory use (less data in lower network layers)&lt;/td&gt;
+    &lt;td class=&quot;tg-sogj&quot;&gt;• additional credit-announce messages&lt;br /&gt;&lt;br /&gt;• additional backlog-announce messages (piggy-backed with buffer messages, almost no overhead)&lt;br /&gt;&lt;br /&gt;• potential round-trip latency&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-0vnf&quot; colspan=&quot;2&quot;&gt;• backpressure appears earlier&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;em&gt;NOTE:&lt;/em&gt; If you need to turn off credit-based flow control, you can add this to your &lt;code&gt;flink-conf.yaml&lt;/code&gt;: &lt;code&gt;taskmanager.network.credit-model: false&lt;/code&gt;. 
+This parameter, however, is deprecated and will eventually be removed along with the non-credit-based flow control code.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;writing-records-into-network-buffers-and-reading-them-again&quot;&gt;Writing Records into Network Buffers and Reading them again&lt;/h1&gt;
+
+&lt;p&gt;The following picture extends the slightly more high-level view from above with further details of the network stack and its surrounding components, from the collection of a record in your sending operator to the receiving operator getting it:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack6.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-complete-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;After creating a record and passing it along, for example via &lt;code&gt;Collector#collect()&lt;/code&gt;, it is given to the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/writer/RecordWriter.html&quot;&gt;RecordWriter&lt;/a&gt; which serialises the record from a Java object into a sequence of bytes which eventually ends up in a network buffer that is handed along as described above. The RecordWriter first serialises the record to a flexible on-heap byte array using the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/serialization/SpanningRecordSerializer.html&quot;&gt;SpanningRecordSerializer&lt;/a&gt;. Afterwards, it tries to write these bytes into the associated network buffer of the target network channel. We will come back to this last part in the section below.&lt;/p&gt;
+
+&lt;p&gt;On the receiver’s side, the lower network stack (netty) is writing received buffers into the appropriate input channels. The (stream) tasks’s thread eventually reads from these queues and tries to deserialise the accumulated bytes into Java objects with the help of the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/reader/RecordReader.html&quot;&gt;RecordReader&lt;/a&gt; and going through the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/serialization/SpillingAdaptiveSpanningRecordDeserializer.html&quot;&gt;SpillingAdaptiveSpanningRecordDeserializer&lt;/a&gt;. Similar to the serialiser, this deserialiser must also deal with special cases like records spanning multiple network buffers, either because the record is just bigger than a network buffer (32KiB by default, set via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-memory-segment-size&quot;&gt;taskmanager.memory.segment-size&lt;/a&gt;) or because the serialised record was added to a network buffer which did not have enough remaining bytes. Flink will nevertheless use these bytes and continue writing the rest to a new network buffer.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;flushing-buffers-to-netty&quot;&gt;Flushing Buffers to Netty&lt;/h2&gt;
+
+&lt;p&gt;In the picture above, the credit-based flow control mechanics actually sit inside the “Netty Server” (and “Netty Client”) components and the buffer the RecordWriter is writing to is always added to the result subpartition in an empty state and then gradually filled with (serialised) records. But when does Netty actually get the buffer? Obviously, it cannot take bytes whenever they become available since that would not only add substantial costs due to cross-thread communication and synchronisation, but also make the whole buffering obsolete.&lt;/p&gt;
+
+&lt;p&gt;In Flink, there are three situations that make a buffer available for consumption by the Netty server:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;a buffer becomes full when writing a record to it, or&lt;br /&gt;&lt;/li&gt;
+  &lt;li&gt;the buffer timeout hits, or&lt;br /&gt;&lt;/li&gt;
+  &lt;li&gt;a special event such as a checkpoint barrier is sent.&lt;br /&gt;
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;flush-after-buffer-full&quot;&gt;Flush after Buffer Full&lt;/h3&gt;
+
+&lt;p&gt;The RecordWriter works with a local serialisation buffer for the current record and will gradually write these bytes to one or more network buffers sitting at the appropriate result subpartition queue. Although a RecordWriter can work on multiple subpartitions, each subpartition has only one RecordWriter writing data to it. The Netty server, on the other hand, is reading from multiple result subpartitions and multiplexing the appropriate ones into a single channel as described above. This is a classical producer-consumer pattern with the network buffers in the middle and as shown by the next picture. After (1) serialising and (2) writing data to the buffer, the RecordWriter updates the buffer’s writer index accordingly. Once the buffer is completely filled, the record writer will (3) acquire a new buffer from its local buffer pool for any remaining bytes of the current record - or for the next one - and add the new one to the subpartition queue. This will (4) notify the Netty server of data being available if it is not aware yet&lt;sup&gt;4&lt;/sup&gt;. Whenever Netty has capacity to handle this notification, it will (5) take the buffer and send it along the appropriate TCP channel.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack7.png&quot; width=&quot;500px&quot; alt=&quot;Record-writer-to-network-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;4&lt;/sup&gt;We can assume it already got the notification if there are more finished buffers in the queue.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;flush-after-buffer-timeout&quot;&gt;Flush after Buffer Timeout&lt;/h3&gt;
+
+&lt;p&gt;In order to support low-latency use cases, we cannot only rely on buffers being full in order to send data downstream. There may be cases where a certain communication channel does not have too many records flowing through and unnecessarily increase the latency of the few records you actually have. Therefore, a periodic process will flush whatever data is available down the stack: the output flusher. The periodic interval can be configured via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html#setBufferTimeout-long-&quot;&gt;StreamExecutionEnvironment#setBufferTimeout&lt;/a&gt; and acts as an upper bound on the latency&lt;sup&gt;5&lt;/sup&gt; (for low-throughput channels). The following picture shows how it interacts with the other components: the RecordWriter serialises and writes into network buffers as before but concurrently, the output flusher may (3,4) notify the Netty server of data being available if Netty is not already aware (similar to the “buffer full” scenario above). When Netty handles this notification (5) it will consume the available data from the buffer and update the buffer’s reader index. The buffer stays in the queue - any further operation on this buffer from the Netty server side will continue reading from the reader index next time.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack8.png&quot; width=&quot;500px&quot; alt=&quot;Record-writer-to-network-with-flusher-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;5&lt;/sup&gt;Strictly speaking, the output flusher does not give any guarantees - it only sends a notification to Netty which can pick it up at will / capacity. This also means that the output flusher has no effect if the channel is backpressured.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;flush-after-special-event&quot;&gt;Flush after special event&lt;/h3&gt;
+
+&lt;p&gt;Some special events also trigger immediate flushes if being sent through the RecordWriter. The most important ones are checkpoint barriers or end-of-partition events which obviously should go quickly and not wait for the output flusher to kick in.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;further-remarks&quot;&gt;Further remarks&lt;/h3&gt;
+
+&lt;p&gt;In contrast to Flink &amp;lt; 1.5, please note that (a) network buffers are now placed in the subpartition queues directly and (b) we are not closing the buffer on each flush. This gives us a few advantages:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;less synchronisation overhead (output flusher and RecordWriter are independent)&lt;/li&gt;
+  &lt;li&gt;in high-load scenarios where Netty is the bottleneck (either through backpressure or directly), we can still accumulate data in incomplete buffers&lt;/li&gt;
+  &lt;li&gt;significant reduction of Netty notifications&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, you may notice an increased CPU use and TCP packet rate during low load scenarios. This is because, with the changes, Flink will use any &lt;em&gt;available&lt;/em&gt; CPU cycles to try to maintain the desired latency. Once the load increases, this will self-adjust by buffers filling up more. High load scenarios are not affected and even get a better throughput because of the reduced synchronisation overhead.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;buffer-builder--buffer-consumer&quot;&gt;Buffer Builder &amp;amp; Buffer Consumer&lt;/h2&gt;
+
+&lt;p&gt;If you want to dig deeper into how the producer-consumer mechanics are implemented in Flink, please take a closer look at the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/buffer/BufferBuilder.html&quot;&gt;BufferBuilder&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/buffer/BufferConsumer.html&quot;&gt;BufferConsumer&lt;/a&gt; classes which have been introduced in Flink 1.5. While reading is potentially only &lt;em&gt;per buffer&lt;/em&gt;, writing to it is &lt;em&gt;per record&lt;/em&gt; and thus on the hot path for all network communication in Flink. Therefore, it was very clear to us that we needed a lightweight connection between the task’s thread and the Netty thread which does not imply too much synchronisation overhead. For further details, we suggest to check out the &lt;a href=&quot;https://github.com/apache/flink/tree/release-1.8/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/buffer&quot;&gt;source code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;latency-vs-throughput&quot;&gt;Latency vs. Throughput&lt;/h1&gt;
+
+&lt;p&gt;Network buffers were introduced to get higher resource utilisation and higher throughput at the cost of having some records wait in buffers a little longer. Although an upper limit to this wait time can be given via the buffer timeout, you may be curious to find out more about the trade-off between these two dimensions: latency and throughput, as, obviously, you cannot get both. The following plot shows various values for the buffer timeout starting at 0 (flush with every record) to 100ms (the default) and shows the resulting throughput rates on a cluster with 100 nodes and 8 slots each running a job that has no business logic and thus only tests the network stack. For comparison, we also plot Flink 1.4 before the low-latency improvements (as described above) were added.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack9.png&quot; width=&quot;650px&quot; alt=&quot;Network-buffertimeout-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see, with Flink 1.5+, even very low buffer timeouts such as 1ms (for low-latency scenarios) provide a maximum throughput as high as 75% of the default timeout where more data is buffered before being sent over the wire.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;Now you know about result partitions, the different network connections and scheduling types for both batch and streaming. You also know about credit-based flow control and how the network stack works internally, in order to reason about network-related tuning parameters and about certain job behaviours. Future blog posts in this series will build upon this knowledge and go into more operational details including relevant metrics to look at, further network stack tuning, and common antipatterns to avoid. Stay tuned for more.&lt;/p&gt;
+
+</description>
+<pubDate>Wed, 05 Jun 2019 10:45:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/06/05/flink-network-stack.html</link>
+<guid isPermaLink="true">/2019/06/05/flink-network-stack.html</guid>
+</item>
+
+<item>
 <title>State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink</title>
 <description>&lt;p&gt;A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.&lt;/p&gt;
 
