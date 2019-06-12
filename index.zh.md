@@ -232,15 +232,21 @@ layout: base
           </a></div>        
         </li>
         <li>
-          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" width="175" alt="OVH" />
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+             <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" width="175" alt="OPPO" />
           </a></div>
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
           </a></div>
           
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" width="175" alt="OVH" />
+          </a></div>
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
