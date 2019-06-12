@@ -277,6 +277,12 @@ layout: base
           </a></div>
           
         </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" width="175" alt="OPPO" />
+          </a></div>
+
+        </li>
     </ul>
   </div>
 

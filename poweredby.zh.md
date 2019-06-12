@@ -107,6 +107,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
     <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" alt="Zalando" /><br />
       Zalando 是欧洲最大的电子商务公司之一，它使用 Flink 进行实时过程监控和 ETL。<br><br><a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 更多信息请访问 Zalando 技术博客</a>
   </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" alt="OPPO" /><br />
+      OPPO, 作为中国最大的手机厂商之一，利用 Apache Flink 构建了实时数据仓库，用于即时分析运营活动效果及用户短期兴趣。<br><br><a href="https://mp.weixin.qq.com/s/DPLJA8Q2gDXLZF17FOcczw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 OPPO 如何使用 Flink</a>
+  </div>
 </div>
 
 

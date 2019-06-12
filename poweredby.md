@@ -111,6 +111,10 @@ If you would you like to be included on this page, please reach out to the [Flin
     <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" alt="Zalando" /><br />
       Zalando, one of the largest e-commerce companies in Europe, uses Flink for real-time process monitoring and ETL. <br><br><a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Zalando Tech Blog</a>
   </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+      <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" alt="OPPO" /><br />
+        OPPO, one of the largest mobile phone manufacturers in China, build a real-time data warehouse with Flink to analyze the effects of operating activities and short-term interests of users. <br><br><a href="https://mp.weixin.qq.com/s/DPLJA8Q2gDXLZF17FOcczw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how OPPO is using Flink</a>
+  </div>
 </div>
 
 <script>
