@@ -1,20 +1,9 @@
 ---
-title: "What is Apache Flink?"
+title: "What is Apache Flink? — Operations"
 ---
 
 <hr/>
-<div class="row">
-  <div class="col-sm-12" style="background-color: #f8f8f8;">
-    <h2>
-      <a href="{{ site.baseurl }}/flink-architecture.html">Architecture</a> &nbsp;
-      <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      <a href="{{ site.baseurl }}/flink-applications.html">Applications</a> &nbsp;
-      <span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-      Operations
-    </h2>
-  </div>
-</div>
-<hr/>
+
 
 Apache Flink is a framework for stateful computations over unbounded and bounded data streams. Since many streaming applications are designed to run continuously with minimal downtime, a stream processor must provide excellent failure recovery, as well as, tooling to monitor and maintain applications while they are running.
 
