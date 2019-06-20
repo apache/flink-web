@@ -20,6 +20,11 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
   </thead>
   <tbody>
     <tr>
+      <td><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> Report a Bug</td>
+      <td>To report a problem with Flink, open <a href="http://issues.apache.org/jira/browse/FLINK">Flink’s Jira</a>, log in if necessary, and click on the red Create button at the top. <br/>
+      Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem.</td>
+    </tr>
+    <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> Contribute Code</td>
       <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a></td>
     </tr>
@@ -28,7 +33,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
       <td>Read the <a href="{{ site.baseurl }}/contributing/reviewing-prs.html">Code Review Guide</a></td>
     </tr>
     <tr>
-      <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Review a Release Candidate</td>
+      <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Help Preparing a Release</td>
       <td>
         Releasing a new version consists of the following steps:
         <ol>
@@ -48,22 +53,22 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
       <td>
         <ul class="contribute-card-list">
           <li>Reply to questions on the <a href="https://flink.apache.org/community.html#mailing-lists">user mailing list</a></li>
-          <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with  the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a> tag</li>
+          <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>, <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> or <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> tag</li>
           <li>Check the latest issues in <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20created%20DESC%2C%20priority%20DESC%2C%20updated%20DESC">Jira</a> for tickets which are actually user questions</li>
         </ul>
       </td>
     </tr>
     <tr>
-      <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> Contribute To The Website</td>
+      <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> Improve The Website</td>
       <td>Read the <a href="{{ site.baseurl }}/contributing/improve-website.html">Website Contribution Guide</a></td>
     </tr>
     <tr>
-      <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> Contribute Evangelism</td>
+      <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> Spread the Word About Flink</td>
       <td>
         <ul class="contribute-card-list">
         <li>Organize or attend a <a href="https://www.meetup.com/topics/apache-flink/">Flink Meetup</a></li>
         <li>Contribute to the <a href="https://flink.apache.org/blog/">Flink blog</a></li>
-        <li>Submit a talk to conference. <a href="https://flink.apache.org/community.html#mailing-lists">Contact the community@flink.apache.org mailing list</a> to learn about relevant conferences near you.</li>
+        <li>Share your conference, meetup or blog post on the <a href="https://flink.apache.org/community.html#mailing-lists">community@flink.apache.org mailing list</a>, or tweet about it, tagging the <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a> handle.</li>
       </ul>
       </td>
     </tr>
@@ -76,29 +81,10 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
 </table>
 
 
------
 
-## Propose an improvement or a new feature
+## Further reading
 
-Our community is constantly looking for feedback to improve Apache Flink. If you have an idea how to improve Flink or have a new feature in mind that would be beneficial for Flink users, please open an issue in [Flink's Jira](http://issues.apache.org/jira/browse/FLINK). The improvement or new feature should be described in appropriate detail and include the scope and its requirements if possible. Detailed information is important for a few reasons:
-
-- It ensures your requirements are met when the improvement or feature is implemented.
-- It helps to estimate the effort and to design a solution that addresses your needs.
-- It allow for constructive discussions that might arise around this issue.
-
-Detailed information is also required, if you plan to contribute the improvement or feature you proposed yourself. Please read the [Contribute code]({{ site.base }}/contributing/contribute-code.html) guide in this case as well.
-
-
-We recommend to first reach consensus with the community on whether a new feature is required and how to implement a new feature, before starting with the implementation. Some features might be out of scope of the project, and it's best to discover this early.
-
-For very big features that change Flink in a fundamental way we have another process in place:
-[Flink Improvement Proposals](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals). If you are interested you can propose a new feature there or follow the
-discussions on existing proposals.
-
-
------
-
-## Submit a Contributor License Agreement
+### Submit a Contributor License Agreement
 
 Please submit a contributor license agreement to the Apache Software Foundation (ASF) if you are contributing a lot of code to Apache Flink. The following quote from [http://www.apache.org/licenses](http://www.apache.org/licenses/#clas) gives more information about the ICLA and CCLA and why they are necessary.
 
@@ -110,9 +96,9 @@ Please submit a contributor license agreement to the Apache Software Foundation 
 
 -----
 
-## Becoming a Flink Committer and PMC member
+### Becoming a Flink Committer and PMC member
 
-### How to become a committer
+#### How to become a committer
 
 Committers are community members that have write access to the project's repositories, i.e., they can modify the code, documentation, and website by themselves and also accept other contributions.
 
@@ -122,7 +108,7 @@ Candidates for new committers are suggested by current committers or PMC members
 
 If you would like to become a committer, you should engage with the community and start contributing to Apache Flink in any of the above ways. You might also want to talk to other committers and ask for their advice and guidance.
 
-### What are we looking for in Committers
+#### What are we looking for in Committers
 
 Being a committer means being recognized as a significant contributor to the project (community or technology), and having the tools to help with the development. Committer candidates are community members who have made good contributions over an extended period of time and want to continue their contributions.
 
@@ -139,7 +125,7 @@ While the prior points give ways to identify promising candidates, the following
   - They have shown to be respectful towards other community members and constructive in discussions.
 
 
-### What are we looking for in PMC members
+#### What are we looking for in PMC members
 
 The PMC is the official controlling body of the project. PMC members "must" be able to perform the official responsibilities of the PMC (verify releases and growth of committers/PMC). We "want" them to be people that have a vision for Flink, technology and community wise.
 
