@@ -6,7 +6,7 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 
 **Please feel free to ask questions at any time.** Either send a mail to the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) or comment on the Jira issue you are working on.
 
-**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. Follow the process and guidelines explained below. Otherwise, your pull request might not be accepted or might require substantial rework. In particular, before opening a pull request that implements a **new feature**, you need to open a Jira ticket and reach consensus with the community on whether this feature is needed.
+**IMPORTANT**: Please read this document carefully before starting to work on a code contribution. Follow the process and guidelines explained below. Contributing to Apache Flink does not start with opening a pull request. We expect contributors to reach out to us first to discuss the overall approach together. Without consensus with the Flink committers, contributions might require substantial rework or will not be reviewed.
 
 
 
@@ -77,11 +77,18 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 }
 </style>
 
+
+<div class="alert alert-warning" role="alert">
+    <b>Note:</b> The code contribution process has changed recently (June 2019). The community <a href="https://lists.apache.org/thread.html/1e2b85d0095331606ad0411ca028f061382af08138776146589914f8@%3Cdev.flink.apache.org%3E">decided</a> to shift the "backpressure" from pull requests to Jira, by requiring contributors to get consensus (indicated by being assigned to the ticket) before opening a pull request.
+</div>
+
+
 <div class="contribute-grid">
   <div class="column">
     <div class="panel panel-default">
       <div class="panel-body">
-        <h2><span class="number">1</span><a href="#consensus">JIRA Ticket: <br /> Get Consensus</a></h2>
+        <h2><span class="number">1</span><a href="#consensus">Discuss</a></h2>
+        <p>Create a Jira ticket or mailing list discussion and reach consensus</p>
         <p>Agree on importance, relevance, scope of the ticket, discuss the implementation approach and find a committer willing to review and merge the change.</p>
         <p><b>Only committers can assign a Jira ticket.</b></p>
       </div>
@@ -91,7 +98,8 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">Implement</a></h2>
-        <p>Implement the change according to the <a href="">Code Style and Quality Guide</a> and the approach agreed upon in the JIRA ticket.</p>
+        <p>Implement the change according to the <a href="">Code Style and Quality Guide</a> and the approach agreed upon in the Jira ticket.</p> <br />
+        <p><b>Only start working on the implementation if there is consensus on the approach (e.g. you are assigned to the ticket)</b></p>
       </div>
     </div>
   </div>
@@ -118,25 +126,33 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
   <div class="col-sm-12">
     <div class="panel panel-default">
       <div class="panel-body">
-        Note: <i>trivial</i> hot fixes such as typos or syntax errors can be opened as a <code>[hotfix]</code> pull request, without a JIRA ticket.
+        Note: <i>trivial</i> hot fixes such as typos or syntax errors can be opened as a <code>[hotfix]</code> pull request, without a Jira ticket.
       </div>
     </div>
   </div>
 </div>
 
 
-<div class="alert alert-warning" role="alert">
-    <b>Note:</b> The code contribution process has changed recently (May 2019). The community <a href="https://lists.apache.org/thread.html/1e2b85d0095331606ad0411ca028f061382af08138776146589914f8@%3Cdev.flink.apache.org%3E">decided</a> to shift the "backpressure" from pull requests to Jira, by requiring contributors to get consensus (indicated by being assigned to the ticket) before opening a pull request.
-</div>
-
 
 <a name="consensus"></a>
 
-### 1. Jira Ticket: Get Consensus
+### 1. Create Jira Ticket and Reach Consensus
 
 
-The first step for making a contribution to Apache Flink is to reach consensus in [Flink's bug tracker: Jira](https://issues.apache.org/jira/projects/FLINK/summary).
-This means agreeing on the scope and implementation approach of a change.
+The first step for making a contribution to Apache Flink is to reach consensus with the Flink community. This means agreeing on the scope and implementation approach of a change.
+
+In most cases, the discussion should happen in [Flink's bug tracker: Jira](https://issues.apache.org/jira/projects/FLINK/summary). 
+
+The following types of changes require a `[DISCUSS]` thread on the dev@flink.a.o Flink mailing list:
+
+ - big changes (major new feature; big refactorings, involving multiple components)
+ - potentially controversial changes or issues
+ - changes with very unclear approaches or multiple equal approaches
+
+ Do not open a Jira ticket for these types of changes before the discussion has come to a conclusion.
+ Jira tickets based on a dev@ discussion need to link to that discussion and should summarize the outcome.
+
+
 
 **Requirements for a Jira ticket to get consensus:**
 
@@ -160,7 +176,10 @@ This means agreeing on the scope and implementation approach of a change.
     - Impact on Flink's build time
     - Dependencies and their licenses
 
-Large or controversial changes might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists ) to reach agreement or consensus.
+If a change is identified as a large or controversial change in the discussion on Jira, it might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists) to reach agreement and consensus.
+
+Contributors can expect to get a first reaction from a committer within a few days after opening the ticket. If a ticket doesn't get any attention, we recommend reaching out to the [developer mailing list]( {{ site.base }}/community.html#mailing-lists). Note that the Flink community sometimes does not have the capacity to accept all incoming contributions.
+
 
 Once all requirements for the ticket are met, a committer will assign somebody to the *`Assignee`* field of the ticket to work on it.
 Only committers have the permission to assign somebody.
@@ -172,6 +191,10 @@ Only committers have the permission to assign somebody.
 
 ### 2. Implement your change
 
+Once you've been assigned to a Jira issue, you may start to implement the required changes.
+
+Here are some further points to keep in mind while implementing:
+
 - [Set up a Flink development environment](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
 - Follow the [Code Style and Quality Guide]({{ site.base }}/contributing/code-style-and-quality.html) of Flink
 - Take any discussions and requirements from the Jira issue or design document into account.
@@ -182,10 +205,6 @@ Only committers have the permission to assign somebody.
 
 ### 3. Open a Pull Request
 
-Code changes in Flink are reviewed and accepted through [GitHub pull requests](https://help.github.com/en/articles/creating-a-pull-request).
-
-There is a separate guide on [how to review a pull request]({{ site.base }}/contributing/reviewing-prs.html), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
-
 Considerations before opening a pull request:
 
  - Make sure that **`mvn clean verify`** is passing on your changes to ensure that all checks pass, the code builds and that all tests pass.
@@ -193,11 +212,19 @@ Considerations before opening a pull request:
  - Make sure no unrelated or unnecessary reformatting changes are included.
  - Make sure your commit history adheres to the requirements.
  - Make sure your change has been rebased to the latest commits in your base branch.
-
-
-Considerations before or right after opening a pull request:
+ - Make sure the pull request refers to the respective Jira, and that each Jira issue is assigned to exactly one pull request (in case of multiple pull requests for one Jira; resolve that situation first)
+ 
+ Considerations before or right after opening a pull request:
 
  - Make sure that the branch is building successfully on [Travis](https://travis-ci.org/).
+
+Code changes in Flink are reviewed and accepted through [GitHub pull requests](https://help.github.com/en/articles/creating-a-pull-request).
+
+There is a separate guide on [how to review a pull request]({{ site.base }}/contributing/reviewing-prs.html), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
+
+
+
+
 
 
 

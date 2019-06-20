@@ -15,15 +15,19 @@ This guide is for all committers and contributors that want to help with reviewi
 
 {% toc %}
 
+
+
 ## Review Checklist
 
-Every review needs to check the following five aspects. **We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when there is no consensus yet whether a feature or change should actually be added.**
+Every review needs to check the following six aspects. **We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when formal requirements are not met or there is no consensus in the community to accept the change.**
 
 ### 1. Is the Contribution Well-Described?
 
-Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. Any pull request that changes functionality or behavior needs to describe the big picture of these changes, so that reviews know what to look for (and don’t have to dig through the code to hopefully understand what the change does).
+Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly [according to a prior discussion on Jira or the development mainling list]({{ site.base }}/contributing/contribute-code.html#consensus), only a short reference to that discussion is needed.
+If the implementation is different from the agreed approach in the consensus discussion, a detailed description of the implementation is required for any further review of the contribution.
 
-Changes that require longer descriptions are ideally based on a prior design discussion in the mailing list or in Jira and can simply link to there or copy the description from there. 
+Any pull request that changes functionality or behavior needs to describe the big picture of these changes, so that reviews know what to look for (and don’t have to dig through the code to hopefully understand what the change does).
+
 
 **A contribution is well-described if the following questions 2, 3, and 4 can be answered without looking at the code.**
 
@@ -55,9 +59,10 @@ This question can be answered with
 
 ----
 
-### 4. Does the Implementation Follow the Right Overall Approach/Architecture?
+### 4. Does the Implementation Follow the Agreed Upon Overall Approach/Architecture?
 
-Is this the best approach to implement the fix or feature, or are there other approaches that would be easier, more robust, or more maintainable?
+In this step, we check if a contribution folllows the agreed upon approach from the previous discussion in Jira or the mailing lists.
+
 This question should be answerable from the Pull Request description (or the linked Jira) as much as possible.
 
 We recommend to check this before diving into the details of commenting on individual parts of the change.
@@ -83,7 +88,7 @@ Code guidelines can be found in the [Flink Code Style and Quality Guide]({{ site
 
 ### 6. Are the English and Chinese documentation updated?
 
-If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both an English and a Chinese documentation. So both documentations should be updated. If you are not familiar with Chinese language, please open a JIRA tagged with the `chinese-translation` component for Chinese documentation translation and link it with current JIRA issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
+If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both an English and a Chinese documentation. So both documentations should be updated. If you are not familiar with the Chinese language, please open a Jira assigned to the `chinese-translation` component for Chinese documentation translation and link it with current Jira issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
 
 See more about how to [contribute documentation]({{ site.baseurl }}/contributing/contribute-documentation.html).
 
