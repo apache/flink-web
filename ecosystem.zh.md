@@ -26,7 +26,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
@@ -36,7 +35,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -46,7 +44,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -56,7 +53,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -66,7 +62,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -76,7 +71,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -90,27 +84,15 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">File Systems</a> (S3, <a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a>, others)</td>
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
-    <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">Others File Systems (S3, others)</a></td>
-    <td>sink</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
-    <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
+    <td>DataSet / Table / DataStream (仅source)</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -120,7 +102,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>N/A</td>
     <td>DataStream/DataSet</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -134,7 +115,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
@@ -144,7 +124,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -154,7 +133,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>Table / DataSet</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -168,7 +146,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
@@ -178,7 +155,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -188,7 +164,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -198,7 +173,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -212,7 +186,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
@@ -222,7 +195,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -236,7 +208,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <th>License</th>
     <th>最近发布时间</th>
     <th>可用API</th>
-    <th>兼容的 Flink 版本号</th>
     <th>维护者</th>
   </tr>
   <tr>
@@ -246,7 +217,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -256,7 +226,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -266,7 +235,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -276,7 +244,6 @@ Flink 编写的 Connector 也加入到下表中与更多 Flink 用户进行分�
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
