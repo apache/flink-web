@@ -27,7 +27,6 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
@@ -37,7 +36,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -47,7 +45,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -57,7 +54,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -67,7 +63,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -77,7 +72,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -91,27 +85,15 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a></td>
+    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">File Systems</a> (S3, <a href="{{site.docs-stable}}/dev/connectors/filesystem_sink.html" target="_blank">HDFS</a>, others)</td>
     <td>sink</td>
     <td>Apache Flink</td>
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
-    <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
-    <td>Apache Flink</td>
-  </tr>
-  <tr>
-    <td><a href="{{site.docs-stable}}/dev/connectors/streamfile_sink.html" target="_blank">Others File Systems (S3, others)</a></td>
-    <td>sink</td>
-    <td>Apache Flink</td>
-    <td>Apache 2.0</td>
-    <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
-    <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
+    <td>DataSet / Table / DataStream (source only)</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -121,7 +103,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>N/A</td>
     <td>DataStream/DataSet</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
@@ -135,7 +116,6 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
@@ -145,7 +125,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -155,7 +134,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>Table / DataSet</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -169,7 +147,6 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
@@ -179,7 +156,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -189,7 +165,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -199,7 +174,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataSet / Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -213,7 +187,6 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
@@ -223,7 +196,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream/Table</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
 </table>
@@ -237,7 +209,6 @@ many other data processing projects and frameworks.
     <th>License</th>
     <th>Last Released</th>
     <th>Available For</th>
-    <th>Compatible Flink Versions</th>
     <th>Maintained By</th>
   </tr>
   <tr>
@@ -247,7 +218,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -257,7 +227,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>{{site.FLINK_VERSION_STABLE_RELEASE_DATE}}</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Flink</td>
   </tr>
   <tr>
@@ -267,7 +236,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
   <tr>
@@ -277,7 +245,6 @@ many other data processing projects and frameworks.
     <td>Apache 2.0</td>
     <td>05/24/2017</td>
     <td>DataStream</td>
-    <td>{{site.stable}}.x</td>
     <td>Apache Bahir</td>
   </tr>
 </table>
