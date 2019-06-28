@@ -52,7 +52,7 @@ Flink 的官网是用 [Markdown](http://daringfireball.net/projects/markdown/) �
 ./build.sh -p
 ```
 
-该脚本会把所有 Markdown 文件转换为 HTML 文件，并启动一个本地 web 服务器。打开浏览器并访问 `http://localhost:4000` 查看你的修改。当你重新修改并保存文件后，刷新浏览器可以看到最新的内容。
+该脚本会把所有 Markdown 文件转换为 HTML 文件，并启动一个本地 web 服务器。打开浏览器并访问 `http://localhost:4000/zh` 查看你的修改。当你重新修改并保存文件后，刷新浏览器可以看到最新的内容。
 
 或者你可以使用 Docker 进行网站的构建（不增加主机环境）：
 
