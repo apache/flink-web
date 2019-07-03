@@ -64,6 +64,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       King，Candy Crush Saga的创建者，使用 Flink 为数据科学团队提供实时分析仪表板。<br><br><a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读 King 的 Flink 实现</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" alt="Klaviyo" /><br />
+      Klaviyo使用 Apache Flink 扩展其实时分析系统，该系统每秒对超过一百万个事件进行重复数据删除和聚合。<br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读 Klaviyo 的实时分析</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="King" /><br />
       Lyft 使用 Flink 作为其流媒体平台的处理引擎，例如为机器学习持续生成特征。<br><br><a href="https://www.slideshare.net/SeattleApacheFlinkMeetup/streaminglyft-greg-fee-seattle-apache-flink-meetup-104398613" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多关于 Lyft 的流媒体</a>
   </div>
