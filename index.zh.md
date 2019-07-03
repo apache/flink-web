@@ -219,6 +219,11 @@ layout: base
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/king-logo.png" width="175" alt="King" />
           </a></div>
+        </li> 
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" width="175" alt="Klaviyo" />
+          </a></div>
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
