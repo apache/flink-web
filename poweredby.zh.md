@@ -65,7 +65,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" alt="Klaviyo" /><br />
-      Klaviyo使用 Apache Flink 扩展其实时分析系统，该系统每秒对超过一百万个事件进行重复数据删除和聚合。<br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about real-time analytics at Klaviyo</a>
+      Klaviyo使用 Apache Flink 扩展其实时分析系统，该系统每秒对超过一百万个事件进行重复数据删除和聚合。<br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读 Klaviyo 的实时分析</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="King" /><br />
