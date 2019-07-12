@@ -351,7 +351,7 @@ Flink Forward 2015 (2015 年 10 月 12-13 日) 是第一届把 Apache Flink 开�
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/22488084?s=50" class="committer-avatar"></td>
     <td class="text-center">Jincheng Sun</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">jincheng</td>
   </tr>
   <tr>
