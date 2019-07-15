@@ -5,8 +5,6 @@ title:  "Apache Flink Code Style and Quality Guide — Preamble"
 {% include code-style-navbar.md %}
 
 
-_Preamble_
-
 This is an attempt to capture the code and quality standard that we want to maintain.
 
 A code contribution (or any piece of code) can be evaluated in various ways: One set of properties is whether the code is correct and efficient. This requires solving the _logical or algorithmic problem_ correctly and well.
