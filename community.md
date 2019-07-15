@@ -121,7 +121,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
 
 Before you can post a message to a mailing list, you need to subscribe to the list first. 
 
-1. Send an email without any contents or subject to subscribe-*listname*@flink.apache.org. (replace *listname* with dev, user, user-zh, ..)
+1. Send an email without any contents or subject to *listname*-subscribe@flink.apache.org. (replace *listname* with dev, user, user-zh, ..)
 2. Wait till you receive an email with the subject "confirm subscribe to *listname*@flink.apache.org". Reply to that email, without editing the subject or including any contents
 3. Wait till you receive an email with the subject "WELCOME to *listname*@flink.apache.org".
 
