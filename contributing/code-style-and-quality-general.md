@@ -153,7 +153,7 @@ For fields and parameters, `Optional` is disputed in Java and most parts of the 
 
 Code that is easily testable typically has good separation of concerns and is structured to be reusable outside the original context (by being easily reusable in tests).
 
-A good summary or problems / symptoms and recommended refactoring is in this PDF. 
+A good summary or problems / symptoms and recommended refactoring is in the PDF linked below. 
 Please note that while the examples in the PDF often use a dependency injection framework (Guice), it works in the same way without such a framework.[^1]
 
 [http://misko.hevery.com/attachments/Guide-Writing%20Testable%20Code.pdf](http://misko.hevery.com/attachments/Guide-Writing%20Testable%20Code.pdf)
@@ -340,7 +340,7 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
 
 * Java’s Reflection API can be a very useful tool in certain cases but in all cases it is a hack and one should research for alternatives. The only cases where Flink should use reflection are
     * Dynamically loading implementations from another module (like webUI, additional serializers, pluggable query processors).
-    * Extracting types inside the TypeExtractor class. This is fragile enough any should not be done outside the TypeExtractor class.
+    * Extracting types inside the TypeExtractor class. This is fragile enough and should not be done outside the TypeExtractor class.
     * Some cases of cross-JDK version features, where we need to use reflection because we cannot assume a class/method to be present in all versions.
 * If you need reflection for accessing methods or fields in tests, it usually indicates some deeper architectural issues, like wrong scoping, bad separation of concerns, or that there is no clean way to provide components / dependencies to the class that is tested
 
@@ -505,7 +505,7 @@ How to name config keys:
 
 Connectors are historically hard to implement and need to deal with many aspects of threading, concurrency, and checkpointing.
 
-As part of [[FLIP-27]](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) we are working on making this much simpler for sources. New sources should not have to deal with any aspect of concurrency/threading and checkpointing any more.
+As part of [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) we are working on making this much simpler for sources. New sources should not have to deal with any aspect of concurrency/threading and checkpointing any more.
 
 A similar FLIP can be expected for sinks in the near future.
 
