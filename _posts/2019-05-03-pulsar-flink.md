@@ -41,7 +41,7 @@ Finally, Pulsar’s flexible messaging framework unifies the streaming and queui
 
 ## Pulsar’s view on data: Segmented data streams
 
-Apache Flink is a streaming-first computation framework that perceives [batch processing as a special case of streaming](https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html). Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.
+Apache Flink is a streaming-first computation framework that perceives [batch processing as a special case of streaming]({{ site.baseurl }}/news/2019/02/13/unified-batch-streaming-blink.html). Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.
 
 Apache Pulsar has a similar perspective to that of Apache Flink with regards to the data layer. The framework also uses streams as a unified view on all data, while its layered architecture allows traditional pub-sub messaging for streaming workloads and continuous data processing or usage of *Segmented Streams* and bounded data stream for batch and static workloads. 
 
@@ -155,4 +155,4 @@ wc.output(pulsarOutputFormat);
 
 ## Conclusion
 
-Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be *“streaming-first”* with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the [Apache Flink](https://flink.apache.org/community.html#mailing-lists) and [Apache Pulsar](https://lists.apache.org/list.html?dev@pulsar.apache.org) mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.
+Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be *“streaming-first”* with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the [Apache Flink]({{ site.baseurl }}/community.html#mailing-lists) and [Apache Pulsar](https://lists.apache.org/list.html?dev@pulsar.apache.org) mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.
