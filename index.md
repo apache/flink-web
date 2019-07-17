@@ -226,6 +226,11 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/kuaishou-logo.jpg" width="175" alt="Kuaishou" />
+          </a></div>
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
           </a></div>
         
