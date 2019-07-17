@@ -27,7 +27,7 @@ In the 1.7 release, Flink has introduced the concept of **temporal tables** into
 
 * Exposing the stream as a **temporal table function** that maps each point in time to a static relation.
 
-Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic [table function](https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/udfs.html#table-functions) class and can be defined in the same straightforward way to be used with the Table API or SQL parser.
+Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic [table function]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/udfs.html#table-functions) class and can be defined in the same straightforward way to be used with the Table API or SQL parser.
 
 ```java
 import org.apache.flink.table.functions.TemporalTableFunction;
@@ -97,10 +97,10 @@ Each record from the append-only table on the probe side (```Taxi Fare```) is jo
 </center>
 <br>
 
-Temporal table joins support both [processing](https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins) and [event time](https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins) semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:
+Temporal table joins support both [processing]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins) and [event time]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins) semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:
 
 * Narrowing the **scope** of the join: only the time-matching version of ```ratesHistory``` is visible for a given ```taxiFare.time```;
-* Pruning **unneeded records** from state: for cases using event time, records between current time and the [watermark](https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks) delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.
+* Pruning **unneeded records** from state: for cases using event time, records between current time and the [watermark]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks) delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.
 
 ## Conclusion
 
@@ -108,4 +108,4 @@ All this means it is now possible to express continuous stream enrichment in rel
 
 If you'd like to get some **hands-on practice in joining streams with Flink SQL** (and Flink SQL in general), checkout this [free training for Flink SQL](https://github.com/ververica/sql-training/wiki). The training environment is based on Docker and set up in just a few minutes.
 
-Subscribe to the [Apache Flink mailing lists](https://flink.apache.org/community.html#mailing-lists) to stay up-to-date with the latest developments in this space.
+Subscribe to the [Apache Flink mailing lists]({{ site.baseurl }}/community.html#mailing-lists) to stay up-to-date with the latest developments in this space.
