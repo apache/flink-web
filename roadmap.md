@@ -34,7 +34,7 @@ there is consensus that they will happen and what they will roughly look like fo
 
 **Last Update:** 2019-05-08
 
-# Analytics, Applications, an the roles of DataStream, DataSet, and Table API
+# Analytics, Applications, and the roles of DataStream, DataSet, and Table API
 
 Flink views stream processing as a [unifying paradigm for data processing]({{ site.baseurl }}/flink-architecture.html)
 (batch and real-time) and event-driven applications. The APIs are evolving to reflect that view:
