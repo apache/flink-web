@@ -187,6 +187,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" width="175" alt="Didi" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
         
