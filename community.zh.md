@@ -6,16 +6,9 @@ title: "社区 & 项目信息"
 
 {% toc %}
 
+## 如何从 Apache Flink 获得帮助？
 
 我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](how-to-contribute.html)。
-
-如果你的邮件中包含代码，请根据如下要求进行检查：
-
-1. 请确认你所使用的外链不会被修改、删除等，这些操作会使得归档后的邮件变得无效
-2. 粘贴文字而不是文字的截图
-3. 对代码进行格式化操作，以提高可读性
-4. 添加足够的上下文，确保代码没有模棱两可的地方
-
 
 ## 邮件列表
 
@@ -123,6 +116,22 @@ title: "社区 & 项目信息"
 
 <b style="color:red">在给邮件列表发邮件之前，请确认已经订阅了该邮件列表！</b> 如果你没有订阅对应的邮件列表的话，对于 dev 邮件列表，你的消息会被拒收，对于 user 邮件列表，你则收不到相应的回复。
 
+### 如何订阅邮件列表
+
+在往邮件列表中发送消息前，需要先订阅邮件列表。
+
+1. 发送一封不包含任何内容或主题的邮件到 subscribe-*listname*@flink.apache.org（替换 *listname* 为 dev, user, user-zh 等等）
+2. 等待直到收到一封主题为 "confirm subscribe to *listname*@flink.apache.org" 的邮件。回复该邮件，不用修改主题和添加邮件内容。
+3. 等待直到收到一封主题为 "WELCOME to *listname*@flink.apache.org" 的邮件。
+
+如果你的邮件中包含代码，请根据如下要求进行检查：
+
+1. 请确认你所使用的外链不会被修改、删除等，这些操作会使得归档后的邮件变得无效
+2. 粘贴文字而不是文字的截图
+3. 对代码进行格式化操作，以提高可读性
+4. 添加足够的上下文，确保代码没有模棱两可的地方
+
+
 ## Stack Overflow
 
 Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) 上 [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) 相关标签的问题。
@@ -171,11 +180,7 @@ Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 ## Flink Forward
 
-Flink Forward 2015 (2015 年 10 月 12-13 日) 是第一届把 Apache Flink 开发者和用户聚集起来的大会。可以在 [演示文档以及视频](http://2015.flink-forward.org/?post_type=session) 页面中找到 2015 年 Flink Forward 的所有资料
-
-第二届 Flink Forward 大会举办于 2016 年 9 月 12-14 日。 可以在 Flink Forward 2016 页面中找到所有的 [演讲文稿和视频](http://2016.flink-forward.org/program/sessions/).
-
-2017 年，Flink Forward 来到旧金山，举办了一天的会议以及一天的培训。可以在 [YouTube 频道](https://www.youtube.com/playlist?list=PLDX4T_cnKjD2UC6wJr_wRbIvtlMtkc-n2) 上找到所有的视频，以及在 [SlideShare](https://www.slideshare.net/FlinkForward) 上找到所有的演示文档。
+Flink Forward 大会每年都会在世界的不同地方举办。关于大会最新的信息可以到 <a href="https://www.flink-forward.org/">Flink-Forward.org</a> 网站获取到。
 
 # PMC 和 Commiter 列表
 

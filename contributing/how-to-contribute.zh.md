@@ -4,143 +4,136 @@ title: "如何参与贡献"
 
 <hr />
 
-Apache Flink 社区是一个开放友好的社区。我们诚挚地欢迎每个人加入社区并为 Apache Flink 做出贡献。有许多方式可以参与社区并为 Flink 做出贡献，包括提问、提交错误报告、提出新功能、加入邮件列表上的讨论、贡献代码或文档、改进网站、以及测试候选版本。
+Apache Flink is developed by an open and friendly community. Everybody is cordially welcome to join the community and contribute to Apache Flink. There are several ways to interact with the community and to contribute to Flink including asking questions, filing bug reports, proposing new features, joining discussions on the mailing lists, contributing code or documentation, improving the website, or testing release candidates.
 
-{% toc %}
 
-## 问问题!
+<h1>What do you want to do?</h1>
+<p>Contributing to Apache Flink goes beyond writing code for the project. Below, we list different opportunities to help the project:</p>
 
-Apache Flink 社区非常乐意帮助并回答你的问题。我们提供了[用户邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)并在 Stack Overflow 网站上创建了 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签。
 
------
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Area</th>
+      <th>Further information</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> Report a Bug</td>
+      <td>To report a problem with Flink, open <a href="http://issues.apache.org/jira/browse/FLINK">Flink’s Jira</a>, log in if necessary, and click on the red Create button at the top. <br/>
+      Please give detailed information about the problem you encountered and, if possible, add a description that helps to reproduce the problem.</td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> Contribute Code</td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a></td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Help With Code Reviews</td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/reviewing-prs.html">Code Review Guide</a></td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Help Preparing a Release</td>
+      <td>
+        Releasing a new version consists of the following steps:
+        <ol>
+          <li>Building a new release candidate and starting a vote (usually for 72 hours) on the dev@flink.apache.org list</li>
+          <li>Testing the release candidate and voting (+1 if no issues were found, -1 if the release candidate has issues).</li>
+          <li>Going back to step 1 if the release candidate had issues. Otherwise we publish the release.</li>
+        </ol>
+        Read the <a href="https://cwiki.apache.org/confluence/display/FLINK/Releasing">test procedure for a release</a>.
+      </td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Contribute Documentation</td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-documentation.html">Documentation Contribution Guide</a></td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Support Flink Users</td>
+      <td>
+        <ul class="contribute-card-list">
+          <li>Reply to questions on the <a href="https://flink.apache.org/community.html#mailing-lists">user mailing list</a></li>
+          <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>, <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> or <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> tag</li>
+          <li>Check the latest issues in <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20created%20DESC%2C%20priority%20DESC%2C%20updated%20DESC">Jira</a> for tickets which are actually user questions</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> Improve The Website</td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/improve-website.html">Website Contribution Guide</a></td>
+    </tr>
+    <tr>
+      <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> Spread the Word About Flink</td>
+      <td>
+        <ul class="contribute-card-list">
+        <li>Organize or attend a <a href="https://www.meetup.com/topics/apache-flink/">Flink Meetup</a></li>
+        <li>Contribute to the <a href="https://flink.apache.org/blog/">Flink blog</a></li>
+        <li>Share your conference, meetup or blog post on the <a href="https://flink.apache.org/community.html#mailing-lists">community@flink.apache.org mailing list</a>, or tweet about it, tagging the <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a> handle.</li>
+      </ul>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Any other question? Reach out to the <a href="https://flink.apache.org/community.html#mailing-lists">dev@flink.apache.org mailing list</a> to get help!
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-## 提交错误报告
 
-如果你在使用 Flink 时遇到了问题，请告知我们并提交错误报告。打开 [Flink Jira](http://issues.apache.org/jira/browse/FLINK)，登录并点击顶部红色的 **Create** 按钮。请提供你遇到的问题的详细信息，如果可能，请添加有助于重现问题的描述。非常感谢。
 
------
+## Further reading
 
-## 提出改进或新功能
+### Submit a Contributor License Agreement
 
-我们的社区一直在寻找反馈来改进 Apache Flink。如果你对如何改进 Flink 有一个想法或者想到了一个新功能，这绝对能帮到 Flink 用户，请在 [Flink Jira](http://issues.apache.org/jira/browse/FLINK) 中提交一个问题。改进或新功能最好能详细描述下，并尽可能地加上支持的范围和需求。详细信息很重要，原因如下：
+Please submit a contributor license agreement to the Apache Software Foundation (ASF) if you are contributing a lot of code to Apache Flink. The following quote from [http://www.apache.org/licenses](http://www.apache.org/licenses/#clas) gives more information about the ICLA and CCLA and why they are necessary.
 
-- 它可确保在实现改进或功能时满足你的需求。
-- 它有助于估算工作量并设计满足你需求的解决方案。
-- 它允许围绕这个问题展开建设性的讨论。
-
-如果你计划自己贡献改进或功能，也需要提供详细信息。在这种情况下，请阅读[贡献代码]({{ site.base }}/zh/contribute-code.html)指南。
-
-在开始实现之前，我们建议首先与社区就是否需要新功能以及如何实现新功能达成共识。某些功能可能超出了项目的范围，最好尽早发现。
-
-对于从根本上改变 Flink 的非常大的功能，我们有另一个流程：[Flink 改进提案（Flink Improvement Proposals, FLIP）](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals)。如果你有兴趣，可以在那里提出新功能，或者加入现有提案的讨论。
-
------
-
-## 帮助他人并加入讨论
-
-Apache Flink 社区中的大多数通信都发生在两个邮件列表中：
-
-- 用户邮件列表  `user@flink.apache.org ` 是 Apache Flink 用户提问和寻求帮助或建议的地方。加入用户列表并帮助其他用户是为Flink社区做出贡献的一种非常好的方式。此外，Stack Overflow 网站上还有 [[apache-flink]](http://stackoverflow.com/questions/tagged/apache-flink) 标签，你可以在那里帮助 Flink 用户（并获得一些积分）。
-- 开发邮件列表 `dev@flink.apache.org` 是 Flink 开发人员交流想法、讨论新功能、发布新版本以及开发过程的地方。如果你有兴趣为 Flink 贡献代码，你应该加入此邮件列表。
-
-非常欢迎你[订阅这两个邮件列表]({{ site.baseurl }}/zh/community.html#mailing-lists)。
-
------
-
-## 通过审查代码来贡献
-
-Apache Flink 项目以 [Github pull request](https://github.com/apache/flink/pulls) 的形式接收许多代码贡献。为 Flink 社区做出贡献的一个很好的方法是帮助审查 pull request。
-
-**如果你想帮助审查 pull request，请阅读[审查指南]({{ site.baseurl }}/zh/reviewing-prs.html)。**
-
------
-
-## 测试一个候选版本
-
-Apache Flink 通过其活跃的社区不断改进。每隔几周，我们都会发布 Apache Flink 的新版本，其中包含了 bug 修复、改进和新特性。发布新版本的过程包括以下步骤:
-
-1. 构建一个新的发布候选版本并开始投票（通常持续72小时）。
-2. 测试候选版本并投票（如果没有发现问题，则使用`+1`；如果候选版本有问题，则使用`-1`）。
-3. 如果候选发布版有问题，请返回第1步。否则我们发布该版本。
-
-我们的 wiki 包含一个页面，其中总结了[发布的测试过程](https://cwiki.apache.org/confluence/display/FLINK/Releasing)。如果由一小群人完成发布测试工作会很困难，更多人参与则很轻松。Flink 社区鼓励每个人参与测试候选发布版。通过测试候选版本，可以确保下一个 Flink 版本适用于你的环境，并帮助提高版本的质量。
-
------
-
-## 贡献代码
-
-Apache Flink 通过志愿者的代码贡献得到维护、改进和扩展。Apache Flink 社区鼓励任何人贡献源代码。为了确保贡献者和评审者有一个愉快的贡献体验并保持高质量的代码库，请遵循我们的[贡献代码]({{ site.base }}/zh/contribute-code.html)指南。该指南还包括有关如何设置开发环境、编码指南和代码样式的说明，并说明如何提交代码贡献。
-
-**在开始贡献代码之前，请阅读[贡献代码]({{ site.base }}/zh/contribute-code.html)指南。**
-
-另请阅读[提交贡献者许可协议]({{ site.baseurl }}/zh/how-to-contribute.html#submit-a-contributor-license-agreement)部分。
-
-### 正在寻找一个可以参与贡献的 issue ？
-{:.no_toc}
-
-我们在 [Flink Jira](https://issues.apache.org/jira/browse/FLINK/?selectedTab=com.atlassian.jira.jira-projects-plugin:issues-panel) 中维护了所有已知 bug，改进建议和功能需求的列表。对于新贡献者友好的问题，我们将其打上了特殊的 "starter" 标记。这些任务应该很容易解决，并将帮助你熟悉项目和贡献过程。
-
-如果你正在寻找可以参与贡献的 issue，请查看 [starter issues](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20AND%20labels%20%3D%20starter%20ORDER%20BY%20priority%20DESC) 列表。你当然也可以选择[任何其他问题](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20priority%20DESC)继续工作。如果你对感兴趣的 issue 有问题的话，也可以随时提问。
-
------
-
-## 贡献文档
-
-良好的文档对任何类型的软件都至关重要。对于复杂的软件系统尤其如此，例如 Apache Flink 等分布式数据处理引擎。Apache Flink社区旨在提供简明，精确和完整的文档，并欢迎任何改进 Apache Flink 文档的贡献。
-
-- 如果发现文档缺失、不正确或过时的问题，可以提交一个 [Jira issue](http://issues.apache.org/jira/browse/FLINK) 。
-- Flink 文档是用 Markdown 编写的，位于[Flink 源码库]({{ site.baseurl }}/zh/community.html#main-source-repositories)的`docs`文件夹中。有关如何更新和改进文档以及提供贡献的详细说明，请参阅[贡献文档]({{ site.base }}/zh/contribute-documentation.html) 指南。
-
------
-
-## 改进网站
-
-[Apache Flink 网站](http://flink.apache.org)展示了 Apache Flink 及其社区。它有几个用途，包括:
-
-- 向访问者介绍 Apache Flink 及其功能。
-- 鼓励访问者下载和使用 Flink 。
-- 鼓励访客与社区互动。
-
-我们欢迎任何改进我们网站的贡献。
-
-- 如果你认为我们的网站可以改进，请提交一个 [Jira issue](http://issues.apache.org/jira/browse/FLINK) 。
-- 如果你想更新和改进网站，请按照[改进网站]({{ site.baseurl }}/zh/improve-website.html)指南进行操作。
-
------
-
-## 更多的贡献方式...
-
-还有很多方法可以为 Flink 社区做出贡献。例如，你可以：
-
-- 做一个关于 Flink 的演讲，告诉别人你是如何使用它的。
-- 组织本地 Meetup 或用户组。
-- 与人们谈论 Flink 。
-- ...
-
------
-
-## 提交贡献者许可协议
-
-如果你想为 Apache Flink 做出贡献，请向 Apache Software Foundation (ASF)提交贡献者许可协议。以下引用[http://www.apache.org/licenses](http://www.apache.org/licenses/#clas)提供了关于 ICLA 和 CCLA 的更多信息，以及为什么需要它们。
-
-> ASF希望Apache项目的所有思想、代码或文档的贡献者完成、签署并提交(通过邮政邮件、传真或电子邮件)[Individual Contributor License Agreement](http://www.apache.org/licenses/icla.txt) (CLA) [[PDF 表单](http://www.apache.org/licenses/icla.pdf)]。本协议的目的是明确界定向 ASF 提供知识产权的条款，从而使我们能够在未来某个时间就软件发生法律纠纷时为该项目辩护。在个人被授予对 ASF 项目的提交权限之前，需要将签名类存档。
+> The ASF desires that all contributors of ideas, code, or documentation to the Apache projects complete, sign, and submit (via postal mail, fax or email) an [Individual Contributor License Agreement](http://www.apache.org/licenses/icla.txt) (CLA) [ [PDF form](http://www.apache.org/licenses/icla.pdf) ]. The purpose of this agreement is to clearly define the terms under which intellectual property has been contributed to the ASF and thereby allow us to defend the project should there be a legal dispute regarding the software at some future time. A signed CLA is required to be on file before an individual is given commit rights to an ASF project.
 >
-> 对于指派员工参与 Apache 项目的企业，可以通过公司提供[企业 CLA](http://www.apache.org/licenses/cla-corporate.txt) (Corporate CLA，CCLA)来贡献知识产权，该知识产权可能是作为雇佣协议的一部分分配的。请注意，企业 CLA 并不免除每个开发人员作为个人签署他们自己的 CLA 的需要，以覆盖那些不属于签署 CCLA 企业的贡献。
+> For a corporation that has assigned employees to work on an Apache project, a [Corporate CLA](http://www.apache.org/licenses/cla-corporate.txt) (CCLA) is available for contributing intellectual property via the corporation, that may have been assigned as part of an employment agreement. Note that a Corporate CLA does not remove the need for every developer to sign their own CLA as an individual, to cover any of their contributions which are not owned by the corporation signing the CCLA.
 >
-> ...
+>  ...
 
 -----
 
-## 如何成为一个提交者（Committer）
+### Becoming a Flink Committer and PMC member
 
-提交者是具有对项目仓库写权限的社区成员，即他们可以修改代码、文档和网站、也接受其他贡献。
+#### How to become a committer
 
-成为提交者没有严格的协议。新提交者的候选人通常是活跃的贡献者和社区成员。
+Committers are community members that have write access to the project's repositories, i.e., they can modify the code, documentation, and website by themselves and also accept other contributions.
 
-成为活跃的社区成员意味着参与邮件列表讨论、帮助回答问题、验证候选发布版本、尊重他人、以及遵循社区管理的精英原则。由于 “Apache Way” 非常关注项目社区，因此这部分非常重要。
+There is no strict protocol for becoming a committer or PMC member. Candidates for new committers are typically people that are active contributors and community members.
 
-当然，为项目提供代码和文档也很重要。一个好的开端是提供改进、新功能或错误修复。你需要证明你对所贡献的代码负责，添加测试和文档，并帮助维护它。
+Candidates for new committers are suggested by current committers or PMC members, and voted upon by the PMC.
 
-新提交者的候选人由当前的提交者或 PMC 成员提出，并由 PMC 投票。
+If you would like to become a committer, you should engage with the community and start contributing to Apache Flink in any of the above ways. You might also want to talk to other committers and ask for their advice and guidance.
 
-如果你想成为提交者，你应该与社区互动并开始以上述任何方式为 Apache Flink 做出贡献。你可能还想与其他提交者交谈并询问他们的建议和指导。
+#### What are we looking for in Committers
+
+Being a committer means being recognized as a significant contributor to the project (community or technology), and having the tools to help with the development. Committer candidates are community members who have made good contributions over an extended period of time and want to continue their contributions.
+
+Community contributions include helping to answer user questions on the mailing list, verifying release candidates, giving talks, organizing community events, and other forms of evangelism and community building. The "Apache Way" has a strong focus on the project community, and committers can be recognized for outstanding community contributions even without any code contributions.
+
+Code/technology contributions include contributed pull requests (patches), design discussions, reviews, testing, and other help in identifying and fixing bugs. Especially constructive and high quality design discussions, as well as helping other contributors, are strong indicators.
+
+While the prior points give ways to identify promising candidates, the following are "must haves" for any committer candidate:
+
+  - Being community minded: The candidate understands the meritocratic principles of community management. They do not always optimize for as much as possible personal contribution, but will help and empower others where it makes sense.
+
+  - We trust that a committer candidate will use their write access to the repositories responsibly, an if in doubt, conservatively. Flink is a big system, and it is important that committers are aware of what they know and what they don't know. In doubt, committers should ask for a second pair of eyes rather than commit to parts that they are not well familiar with. (Even the most seasoned committers follow this practice.)
+
+  - They have shown to be respectful towards other community members and constructive in discussions.
+
+
+#### What are we looking for in PMC members
+
+The PMC is the official controlling body of the project. PMC members "must" be able to perform the official responsibilities of the PMC (verify releases and growth of committers/PMC). We "want" them to be people that have a vision for Flink, technology and community wise.
+
+For the avoidance of doubt, not every PMC member needs to know all details of how exactly Flink's release process works (it is okay to understand the gist and how to find the details). Likewise, not every PMC member needs to be a visionary. We strive to build a PMC that covers all parts well, understanding that each member brings different strengths.
+
+Ideally, we find candidates among active community members that have shown initiative to shape the direction of Flink (technology and community) and have shown willingness to learn the official processes, such as how to create or verify for releases.
+
+A PMC member is also a committer. Candidates are already committers or will automatically become also a committer when joining the PMC. Hence, the "What are we looking for in committers?" also applies to PMC candidates.
+
+A PMC member has a lot of power in a project. A single PMC member can block many decisions and generally stall and harm the project in many ways. We hence must trust the PMC candidates to be level-headed, constructive, supportive, and willing to "disagree and commit" at times.
+
