@@ -44,6 +44,11 @@ If you would you like to be included on this page, please reach out to the [Flin
       Criteo is the advertising platform for the open internet and uses Flink for real-time revenue monitoring and near-real-time event processing. <br><br><a href="https://medium.com/criteo-labs/criteo-streaming-flink-31816c08da50" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about Criteo's Flink use case</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" alt="Didi" /><br />
+        Didi Chuxing (“DiDi”), the world's leading mobile transportation platform, uses Apache Flink for real-time monitoring, feature extraction, and ETL.
+        <br><br><a href="https://blog.didiyun.com/index.php/2018/12/05/realtime-compute/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about Didi's Flink use case</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" alt="Drivetribe" /><br />
       Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://ververica.com/blog/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
   </div>

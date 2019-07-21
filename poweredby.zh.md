@@ -44,6 +44,11 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       Criteo 是开放互联网的广告平台，使用 Flink 进行实时收入监控和近实时事件处理。<br><br><a href="https://medium.com/criteo-labs/criteo-streaming-flink-31816c08da50" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 Criteo 的 Flink 用例</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" alt="Didi" /><br />
+        滴滴出行是全球卓越的移动出行平台，使用 Apache Flink支持了实时监控、实时特征抽取、实时ETL等业务。
+        <br><br><a href="https://blog.didiyun.com/index.php/2018/12/05/realtime-compute/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解滴滴如何使用 Flink 的。</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" alt="Drivetribe" /><br />
      Drivetribe是由前“Top Gear”主持人创建的数字社区，它使用 Flink 作为指标和内容推荐。<br><br><a href="https://ververica.com/blog/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 Flink 在 Drivetribe stack 的应用</a>
   </div>
