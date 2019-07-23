@@ -7,6 +7,366 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure Thing</title>
+<description>&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;}
+.tg .tg-wide{padding:10px 30px;}
+.tg .tg-top{vertical-align:top}
+.tg .tg-topcenter{text-align:center;vertical-align:top}
+.tg .tg-center{text-align:center;vertical-align:center}
+&lt;/style&gt;
+
+&lt;p&gt;In a &lt;a href=&quot;/2019/06/05/flink-network-stack.html&quot;&gt;previous blog post&lt;/a&gt;, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post. If you are unfamiliar with the network stack we highly recommend reading the &lt;a href=&quot;/2019/06/05/flink-network-stack.html&quot;&gt;network stack deep-dive&lt;/a&gt; first and then continuing here.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#monitoring&quot; id=&quot;markdown-toc-monitoring&quot;&gt;Monitoring&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#backpressure-monitor&quot; id=&quot;markdown-toc-backpressure-monitor&quot;&gt;Backpressure Monitor&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#network-metrics&quot; id=&quot;markdown-toc-network-metrics&quot;&gt;Network Metrics&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#backpressure&quot; id=&quot;markdown-toc-backpressure&quot;&gt;Backpressure&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#resource-usage--throughput&quot; id=&quot;markdown-toc-resource-usage--throughput&quot;&gt;Resource Usage / Throughput&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#latency-tracking&quot; id=&quot;markdown-toc-latency-tracking&quot;&gt;Latency Tracking&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot; id=&quot;markdown-toc-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;monitoring&quot;&gt;Monitoring&lt;/h2&gt;
+
+&lt;p&gt;Probably the most important part of network monitoring is &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/back_pressure.html&quot;&gt;monitoring backpressure&lt;/a&gt;, a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The receiver is slow.&lt;br /&gt;
+This can happen because the receiver is backpressured itself, is unable to keep processing at the same rate as the sender, or is temporarily blocked by garbage collection, lack of system resources, or I/O.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The network channel is slow.&lt;br /&gt;
+  Even though in such case the receiver is not (directly) involved, we call the sender backpressured due to a potential oversubscription on network bandwidth shared by all subtasks running on the same machine. Beware that, in addition to Flink’s network stack, there may be more network users, such as sources and sinks, distributed file systems (checkpointing, network-attached storage), logging, and metrics. A previous &lt;a href=&quot;https://www.ververica.com/blog/how-to-size-your-apache-flink-cluster-general-guidelines&quot;&gt;capacity planning blog post&lt;/a&gt; provides some more insights.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;sup&gt;1&lt;/sup&gt; In case you are unfamiliar with backpressure and how it interacts with Flink, we recommend reading through &lt;a href=&quot;https://www.ververica.com/blog/how-flink-handles-backpressure&quot;&gt;this blog post on backpressure&lt;/a&gt; from 2015.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+If backpressure occurs, it will bubble upstream and eventually reach your sources and slow them down. This is not a bad thing per-se and merely states that you lack resources for the current load. However, you may want to improve your job so that it can cope with higher loads without using more resources. In order to do so, you need to find (1) where (at which task/operator) the bottleneck is and (2) what is causing it. Flink offers two mechanisms for identifying where the bottleneck is:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;directly via Flink’s web UI and its backpressure monitor, or&lt;/li&gt;
+  &lt;li&gt;indirectly through some of the network metrics.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Flink’s web UI is likely the first entry point for a quick troubleshooting but has some disadvantages that we will explain below. On the other hand, Flink’s network metrics are better suited for continuous monitoring and reasoning about the exact nature of the bottleneck causing backpressure. We will cover both in the sections below. In both cases, you need to identify the origin of backpressure from the sources to the sinks. Your starting point for the current and future investigations will most likely be the operator after the last one that is experiencing backpressure. This specific operator is also highly likely to cause the backpressure in the first place.&lt;/p&gt;
+
+&lt;h3 id=&quot;backpressure-monitor&quot;&gt;Backpressure Monitor&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/back_pressure.html&quot;&gt;backpressure monitor&lt;/a&gt; is only exposed via Flink’s web UI². Since it’s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks’ threads on all TaskManagers via &lt;code&gt;Thread.getStackTrace()&lt;/code&gt; and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;span style=&quot;color:green&quot;&gt;OK&lt;/span&gt; for &lt;code&gt;ratio ≤ 0.10&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;&lt;span style=&quot;color:orange&quot;&gt;LOW&lt;/span&gt; for &lt;code&gt;0.10 &amp;lt; Ratio ≤ 0.5&lt;/code&gt;, and&lt;/li&gt;
+  &lt;li&gt;&lt;span style=&quot;color:red&quot;&gt;HIGH&lt;/span&gt; for &lt;code&gt;0.5 &amp;lt; Ratio ≤ 1&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Although you can tune things like the refresh-interval, the number of samples, or the delay between samples, normally, you would not need to touch these since the defaults already give good-enough results.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-07-23-network-stack-2/back_pressure_sampling_high.png&quot; width=&quot;600px&quot; alt=&quot;Backpressure sampling:high&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;sup&gt;2&lt;/sup&gt; You may also access the backpressure monitor via the REST API: &lt;code&gt;/jobs/:jobid/vertices/:vertexid/backpressure&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+The backpressure monitor can help you find where (at which task/operator) backpressure originates from. However, it does not support you in further reasoning about the causes of it. Additionally, for larger jobs or higher parallelism, the backpressure monitor becomes too crowded to use and may also take some time to gather all information from all TaskManagers. Please also note that sampling may affect your running job’s performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;network-metrics&quot;&gt;Network Metrics&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#network&quot;&gt;Network&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#io&quot;&gt;task I/O&lt;/a&gt; metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt;, &lt;code&gt;inPoolUsage&lt;/code&gt;&lt;br /&gt;
+An estimate on the ratio of buffers used vs. buffers available in the respective local buffer pools.
+While interpreting &lt;code&gt;inPoolUsage&lt;/code&gt; in Flink 1.5 - 1.8 with credit-based flow control, please note that this only relates to floating buffers (exclusive buffers are not part of the pool).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt;, &lt;code&gt;inPoolUsage&lt;/code&gt;, &lt;code&gt;floatingBuffersUsage&lt;/code&gt;, &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;&lt;br /&gt;
+An estimate on the ratio of buffers used vs. buffers available in the respective local buffer pools.
+Starting with Flink 1.9, &lt;code&gt;inPoolUsage&lt;/code&gt; is the sum of &lt;code&gt;floatingBuffersUsage&lt;/code&gt; and &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numRecordsOut&lt;/code&gt;, &lt;code&gt;numRecordsIn&lt;/code&gt;&lt;br /&gt;
+Each metric comes with two scopes: one scoped to the operator and one scoped to the subtask. For network monitoring, the subtask-scoped metric is relevant and shows the total number of records it has sent/received. You may need to further look into these figures to extract the number of records within a certain time span or use the equivalent &lt;code&gt;…PerSecond&lt;/code&gt; metrics.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numBytesOut&lt;/code&gt;, &lt;code&gt;numBytesInLocal&lt;/code&gt;, &lt;code&gt;numBytesInRemote&lt;/code&gt;&lt;br /&gt;
+The total number of bytes this subtask has emitted or read from a local/remote source. These are also available as meters via &lt;code&gt;…PerSecond&lt;/code&gt; metrics.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numBuffersOut&lt;/code&gt;, &lt;code&gt;numBuffersInLocal&lt;/code&gt;, &lt;code&gt;numBuffersInRemote&lt;/code&gt;&lt;br /&gt;
+Similar to &lt;code&gt;numBytes…&lt;/code&gt; but counting the number of network buffers.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt;
+For the sake of completeness and since they have been used in the past, we will briefly look at the &lt;code&gt;outputQueueLength&lt;/code&gt; and &lt;code&gt;inputQueueLength&lt;/code&gt; metrics. These are somewhat similar to the &lt;code&gt;[out,in]PoolUsage&lt;/code&gt; metrics but show the number of buffers sitting in a sender subtask’s output queues and in a receiver subtask’s input queues, respectively. Reasoning about absolute numbers of buffers, however, is difficult and there is also a special subtlety with local channels: since a local input channel does not have its own queue (it works with the output queue directly), its value will always be &lt;code&gt;0&lt;/code&gt; for that channel (see &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12576&quot;&gt;FLINK-12576&lt;/a&gt;) and for the case where you only have local input channels, then &lt;code&gt;inputQueueLength = 0&lt;/code&gt;.&lt;/p&gt;
+
+  &lt;p&gt;Overall, &lt;strong&gt;we discourage the use of&lt;/strong&gt; &lt;code&gt;outputQueueLength&lt;/code&gt; &lt;strong&gt;and&lt;/strong&gt; &lt;code&gt;inputQueueLength&lt;/code&gt; because their interpretation highly depends on the current parallelism of the operator and the configured numbers of exclusive and floating buffers. Instead, we recommend using the various &lt;code&gt;*PoolUsage&lt;/code&gt; metrics which even reveal more detailed insight.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+ If you reason about buffer usage, please keep the following in mind:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Any outgoing channel which has been used at least once will always occupy one buffer (since Flink 1.5).
+      &lt;ul&gt;
+        &lt;li&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; This buffer (even if empty!) was always counted as a backlog of 1 and thus receivers tried to reserve a floating buffer for it.&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; A buffer is only counted in the backlog if it is ready for consumption, i.e. it is full or was flushed (see FLINK-11082)&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;The receiver will only release a received buffer after deserialising the last record in it.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The following sections make use of and combine these metrics to reason about backpressure and resource usage / efficiency with respect to throughput. A separate section will detail latency related metrics.&lt;/p&gt;
+
+&lt;h3 id=&quot;backpressure&quot;&gt;Backpressure&lt;/h3&gt;
+
+&lt;p&gt;Backpressure may be indicated by two different sets of metrics: (local) buffer pool usages as well as input/output queue lengths. They provide a different level of granularity but, unfortunately, none of these are exhaustive and there is room for interpretation. Because of the inherent problems with interpreting these queue lengths we will focus on the usage of input and output pools below which also provides more detail.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;If a subtask’s&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt; &lt;strong&gt;is 100%&lt;/strong&gt;, it is backpressured. Whether the subtask is already blocking or still writing records into network buffers depends on how full the buffers are, that the &lt;code&gt;RecordWriters&lt;/code&gt; are currently writing into.&lt;br /&gt;
+&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;&quot;&gt;&lt;/span&gt; This is different to what the backpressure monitor is showing!&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;An &lt;code&gt;inPoolUsage&lt;/code&gt; of 100% means that all floating buffers are assigned to channels and eventually backpressure will be exercised upstream. These floating buffers are in either of the following conditions: they are reserved for future use on a channel due to an exclusive buffer being utilised (remote input channels always try to maintain &lt;code&gt;#exclusive buffers&lt;/code&gt; credits), they are reserved for a sender’s backlog and wait for data, they may contain data and are enqueued in an input channel, or they may contain data and are being read by the receiver’s subtask (one record at a time).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; Due to &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11082&quot;&gt;FLINK-11082&lt;/a&gt;, an &lt;code&gt;inPoolUsage&lt;/code&gt; of 100% is quite common even in normal situations.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; If &lt;code&gt;inPoolUsage&lt;/code&gt; is constantly around 100%, this is a strong indicator for exercising backpressure upstream.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The following table summarises all combinations and their interpretation. Bear in mind, though, that backpressure may be minor or temporary (no need to look into it), on particular channels only, or caused by other JVM processes on a particular TaskManager, such as GC, synchronisation, I/O, resource shortage, instead of a specific subtask.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;&lt;/th&gt;
+    &lt;th class=&quot;tg-center&quot;&gt;&lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;th class=&quot;tg-center&quot;&gt;&lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot;&gt;&lt;code&gt;inPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-ok-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:green;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressured, temporary situation: upstream is not backpressured yet or not anymore)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; rowspan=&quot;2&quot;&gt;
+      &lt;code&gt;inPoolUsage&lt;/code&gt; high&lt;br /&gt;
+      (&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9+&lt;/span&gt;&lt;/strong&gt;)&lt;/th&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      if all upstream tasks’&lt;code&gt;outPoolUsage&lt;/code&gt; are low: &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (may eventually cause backpressure)&lt;/td&gt;
+    &lt;td class=&quot;tg-topcenter&quot; rowspan=&quot;2&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressured by downstream task(s) or network, probably forwarding backpressure upstream)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;if any upstream task’s&lt;code&gt;outPoolUsage&lt;/code&gt; is high: &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (may exercise backpressure upstream and may be the source of backpressure)&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;
+We may even reason more about the cause of backpressure by looking at the network metrics of the subtasks of two consecutive tasks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If all subtasks of the receiver task have low &lt;code&gt;inPoolUsage&lt;/code&gt; values and any upstream subtask’s &lt;code&gt;outPoolUsage&lt;/code&gt; is high, then there may be a network bottleneck causing backpressure.
+Since network is a shared resource among all subtasks of a TaskManager, this may not directly originate from this subtask, but rather from various concurrent operations, e.g. checkpoints, other streams, external connections, or other TaskManagers/processes on the same machine.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Backpressure can also be caused by all parallel instances of a task or by a single task instance. The first usually happens because the task is performing some time consuming operation that applies to all input partitions. The latter is usually the result of some kind of skew, either data skew or resource availability/allocation skew. In either case, you can find some hints on how to handle such situations in the &lt;a href=&quot;#span-classlabel-label-info-styledisplay-inline-blockspan-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-what-to-do-with-backpressurespan&quot;&gt;What to do with backpressure?&lt;/a&gt; box below.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;h3 class=&quot;no_toc&quot; id=&quot;span-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-flink-19-and-above&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Flink 1.9 and above&lt;/h3&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;If &lt;code&gt;floatingBuffersUsage&lt;/code&gt; is not 100%, it is unlikely that there is backpressure. If it is 100% and any upstream task is backpressured, it suggests that this input is exercising backpressure on either a single, some or all input channels. To differentiate between those three situations you can use &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;:
+      &lt;ul&gt;
+        &lt;li&gt;Assuming that &lt;code&gt;floatingBuffersUsage&lt;/code&gt; is around 100%, the higher the &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; the more input channels are backpressured. In an extreme case of &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; being close to 100%, it means that all channels are backpressured.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+The relation between &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;, &lt;code&gt;floatingBuffersUsage&lt;/code&gt;, and the upstream tasks’ &lt;code&gt;outPoolUsage&lt;/code&gt; is summarised in the following table and extends on the table above with &lt;code&gt;inPoolUsage = floatingBuffersUsage + exclusiveBuffersUsage&lt;/code&gt;:&lt;/p&gt;
+
+  &lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;&lt;/th&gt;
+    &lt;th&gt;&lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;th&gt;&lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; high&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; low +&lt;br /&gt;
+      &lt;em&gt;all&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-ok-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:green;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;-&lt;sup&gt;3&lt;/sup&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; low +&lt;br /&gt;
+      &lt;em&gt;any&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (potential network bottleneck)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;-&lt;sup&gt;3&lt;/sup&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; high +&lt;br /&gt;
+      &lt;em&gt;all&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure eventually appears on only some of the input channels)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure eventually appears on most or all of the input channels)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; high +&lt;br /&gt;
+      any upstream &lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure on only some of the input channels)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure on most or all of the input channels)&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+  &lt;p&gt;&lt;sup&gt;3&lt;/sup&gt; this should not happen&lt;/p&gt;
+
+&lt;/div&gt;
+
+&lt;h3 id=&quot;resource-usage--throughput&quot;&gt;Resource Usage / Throughput&lt;/h3&gt;
+
+&lt;p&gt;Besides the obvious use of each individual metric mentioned above, there are also a few combinations providing useful insight into what is happening in the network stack:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Low throughput with frequent &lt;code&gt;outPoolUsage&lt;/code&gt; values around 100% but low &lt;code&gt;inPoolUsage&lt;/code&gt; on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; parameter or try disabling credit-based flow control to verify.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Combining &lt;code&gt;numRecordsOut&lt;/code&gt; and &lt;code&gt;numBytesOut&lt;/code&gt; helps identifying average serialised record sizes which supports you in capacity planning for peak scenarios.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;If you want to reason about buffer fill rates and the influence of the output flusher, you may combine &lt;code&gt;numBytesInRemote&lt;/code&gt; with &lt;code&gt;numBuffersInRemote&lt;/code&gt;. When tuning for throughput (and not latency!), low buffer fill rates may indicate reduced network efficiency. In such cases, consider increasing the buffer timeout.
+Please note that, as of Flink 1.8 and 1.9, &lt;code&gt;numBuffersOut&lt;/code&gt; only increases for buffers getting full or for an event cutting off a buffer (e.g. a checkpoint barrier) and may lag behind. Please also note that reasoning about buffer fill rates on local channels is unnecessary since buffering is an optimisation technique for remote channels with limited effect on local channels.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;You may also separate local from remote traffic using numBytesInLocal and numBytesInRemote but in most cases this is unnecessary.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;h3 class=&quot;no_toc&quot; id=&quot;span-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-what-to-do-with-backpressure&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; What to do with Backpressure?&lt;/h3&gt;
+
+  &lt;p&gt;Assuming that you identified where the source of backpressure — a bottleneck — is located, the next step is to analyse why this is happening. Below, we list some potential causes of backpressure from the more basic to the more complex ones. We recommend to check the basic causes first, before diving deeper on the more complex ones and potentially drawing false conclusions.&lt;/p&gt;
+
+  &lt;p&gt;Please also recall that backpressure might be temporary and the result of a load spike, checkpointing, or a job restart with a data backlog waiting to be processed. If backpressure is temporary, you should simply ignore it. Alternatively, keep in mind that the process of analysing and solving the issue can be affected by the intermittent nature of your bottleneck. Having said that, here are a couple of things to check.&lt;/p&gt;
+
+  &lt;h4 id=&quot;system-resources&quot;&gt;System Resources&lt;/h4&gt;
+
+  &lt;p&gt;Firstly, you should check the incriminated machines’ basic resource usage like CPU, network, or disk I/O. If some resource is fully or heavily utilised you can do one of the following:&lt;/p&gt;
+
+  &lt;ol&gt;
+    &lt;li&gt;Try to optimise your code. Code profilers are helpful in this case.&lt;/li&gt;
+    &lt;li&gt;Tune Flink for that specific resource.&lt;/li&gt;
+    &lt;li&gt;Scale out by increasing the parallelism and/or increasing the number of machines in the cluster.&lt;/li&gt;
+  &lt;/ol&gt;
+
+  &lt;h4 id=&quot;garbage-collection&quot;&gt;Garbage Collection&lt;/h4&gt;
+
+  &lt;p&gt;Oftentimes, performance issues arise from long GC pauses. You can verify whether you are in such a situation by either printing debug GC logs (via -&lt;code&gt;XX:+PrintGCDetails&lt;/code&gt;) or by using some memory/GC profilers. Since dealing with GC issues is highly application-dependent and independent of Flink, we will not go into details here (&lt;a href=&quot;https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html&quot;&gt;Oracle’s Garbage Collection Tuning Guide&lt;/a&gt; or &lt;a href=&quot;https://plumbr.io/java-garbage-collection-handbook&quot;&gt;Plumbr’s Java Garbage Collection handbook&lt;/a&gt; seem like a good start).&lt;/p&gt;
+
+  &lt;h4 id=&quot;cputhread-bottleneck&quot;&gt;CPU/Thread Bottleneck&lt;/h4&gt;
+
+  &lt;p&gt;Sometimes a CPU bottleneck might not be visible at first glance if one or a couple of threads are causing the CPU bottleneck while the CPU usage of the overall machine remains relatively low. For instance, a single CPU-bottlenecked thread on a 48-core machine would result in only 2% CPU use. Consider using code profilers for this as they can identify hot threads by showing each threads’ CPU usage, for example.&lt;/p&gt;
+
+  &lt;h4 id=&quot;thread-contention&quot;&gt;Thread Contention&lt;/h4&gt;
+
+  &lt;p&gt;Similarly to the CPU/thread bottleneck issue above, a subtask may be bottlenecked due to high thread contention on shared resources. Again, CPU profilers are your best friend here! Consider looking for synchronisation overhead / lock contention in user code — although adding synchronisation in user code should be avoided and may even be dangerous! Also consider investigating shared system resources. The default JVM’s SSL implementation, for example, can become contented around the shared &lt;code&gt;/dev/urandom&lt;/code&gt; resource.&lt;/p&gt;
+
+  &lt;h4 id=&quot;load-imbalance&quot;&gt;Load Imbalance&lt;/h4&gt;
+
+  &lt;p&gt;If your bottleneck is caused by data skew, you can try to remove it or mitigate its impact by changing the data partitioning to separate heavy keys or by implementing local/pre-aggregation.&lt;/p&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+This list is far from exhaustive. Generally, in order to reduce a bottleneck and thus backpressure, first analyse where it is happening and then find out why. The best place to start reasoning about the “why” is by checking what resources are fully utilised.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;latency-tracking&quot;&gt;Latency Tracking&lt;/h3&gt;
+
+&lt;p&gt;Tracking latencies at the various locations they may occur is a topic of its own. In this section, we will focus on the time records wait inside Flink’s network stack — including the system’s network connections. In low throughput scenarios, these latencies are influenced directly by the output flusher via the buffer timeout parameter or indirectly by any application code latencies. When processing a record takes longer than expected or when (multiple) timers fire at the same time — and block the receiver from processing incoming records — the time inside the network stack for following records is extended dramatically. We highly recommend adding your own metrics to your Flink job  for better latency tracking in your job’s components and a broader view on the cause of delays.&lt;/p&gt;
+
+&lt;p&gt;Flink offers some support for &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#latency-tracking&quot;&gt;tracking the latency&lt;/a&gt; of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-interval&quot;&gt;configuration via &lt;code&gt;metrics.latency.interval&lt;/code&gt;&lt;/a&gt; or via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-&quot;&gt;ExecutionConfig#setLatencyTrackingInterval()&lt;/a&gt;. Once enabled, Flink will collect latency histograms based on the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-granularity&quot;&gt;granularity defined via &lt;code&gt;metrics.latency.granularity&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;single&lt;/code&gt;: one histogram for each operator subtask&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;operator&lt;/code&gt; (default): one histogram for each combination of source task and operator subtask&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;subtask&lt;/code&gt;: one histogram for each combination of source subtask and operator subtask (quadratic in the parallelism!)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These metrics are collected through special “latency markers”: each source subtask will periodically emit a special record containing the timestamp of its creation. The latency markers then flow alongside normal records while not overtaking them on the wire or inside a buffer queue. However, &lt;em&gt;a latency marker does not enter application logic&lt;/em&gt; and is overtaking records there. Latency markers therefore only measure the waiting time between the user code and not a full “end-to-end” latency. User code indirectly influences these waiting times, though!&lt;/p&gt;
+
+&lt;p&gt;Since &lt;code&gt;LatencyMarkers&lt;/code&gt; sit in network buffers just like normal records, they will also wait for the buffer to be full or flushed due to buffer timeouts. When a channel is on high load, there is no added latency by the network buffering data. However, as soon as one channel is under low load, records and latency markers will experience an expected average delay of at most &lt;code&gt;buffer_timeout / 2&lt;/code&gt;. This delay will add to each network connection towards a subtask and should be taken into account when analysing a subtask’s latency metric.&lt;/p&gt;
+
+&lt;p&gt;By looking at the exposed latency tracking metrics for each subtask, for example at the 95th percentile, you should nevertheless be able to identify subtasks which are adding substantially to the overall source-to-sink latency and continue with optimising there.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Flink’s latency markers assume that the clocks on all machines in the cluster are in sync. We recommend setting up an automated clock synchronisation service (like NTP) to avoid false latency results.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt;
+Enabling latency metrics can significantly impact the performance of the cluster (in particular for &lt;code&gt;subtask&lt;/code&gt; granularity) due to the sheer amount of metrics being added as well as the use of histograms which are quite expensive to maintain. It is highly recommended to only use them for debugging purposes.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In the previous sections we discussed how to monitor Flink’s network stack which primarily involves identifying backpressure: where it occurs, where it originates from, and (potentially) why it occurs. This can be executed in two ways: for simple cases and debugging sessions by using the backpressure monitor; for continuous monitoring, more in-depth analysis, and less runtime overhead by using Flink’s task and network stack metrics. Backpressure can be caused by the network layer itself but, in most cases, is caused by some subtask under high load. These two scenarios can be distinguished from one another by analysing the metrics as described above. We also provided some hints at monitoring resource usage and tracking network latencies that may add up from sources to sinks.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned for the third blog post in the series of network stack posts that will focus on tuning techniques and anti-patterns to avoid.&lt;/p&gt;
+
+</description>
+<pubDate>Tue, 23 Jul 2019 17:30:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/07/23/flink-network-stack-2.html</link>
+<guid isPermaLink="true">/2019/07/23/flink-network-stack-2.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.8.1 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
 
