@@ -64,6 +64,10 @@ If you would you like to be included on this page, please reach out to the [Flin
       King, the creators of Candy Crush Saga, uses Flink to provide data science teams a real-time analytics dashboard. <br><br><a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about King's Flink implementation</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" alt="Klaviyo" /><br />
+      Klaviyo leverages Apache Flink to scale its real-time analytics system that deduplicates and aggregates over a million events per second. <br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about real-time analytics at Klaviyo</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="King" /><br />
       Lyft uses Flink as processing engine for its streaming platform, for example to consistently generate features for machine learning. <br><br><a href="https://www.slideshare.net/SeattleApacheFlinkMeetup/streaminglyft-greg-fee-seattle-apache-flink-meetup-104398613" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Streaming at Lyft</a>
   </div>
@@ -76,12 +80,16 @@ If you would you like to be included on this page, please reach out to the [Flin
       Mux, an analytics company for streaming video providers, uses Flink for real-time anomaly detection and alerting. <br><br><a href="https://mux.com/blog/discovering-anomalies-in-real-time-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how Mux is using Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
-    <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" alt="OVH" /><br />
-      OVH leverages Flink to develop streaming-oriented applications such as real-time Business Intelligence or alerting systems. <br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how OVH is using Flink</a>
+      <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" alt="OPPO" /><br />
+        OPPO, one of the largest mobile phone manufacturers in China, build a real-time data warehouse with Flink to analyze the effects of operating activities and short-term interests of users. <br><br><a href="https://mp.weixin.qq.com/s/DPLJA8Q2gDXLZF17FOcczw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how OPPO is using Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" alt="Otto Group" /><br />
       Otto Group, the world's second-largest online retailer, uses Flink for business intelligence stream processing. <br><br><a href="http://2016.flink-forward.org/kb_sessions/flinkspector-taming-the-squirrel/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See Otto at Flink Forward 2016</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" alt="OVH" /><br />
+      OVH leverages Flink to develop streaming-oriented applications such as real-time Business Intelligence or alerting systems. <br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how OVH is using Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" alt="ResearchGate" /><br />

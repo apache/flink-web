@@ -176,7 +176,8 @@ Note that the community is always open to discussing bugfix releases for even ol
 All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
 
 ### Flink
-
+- Flink 1.8.1 - 2019-07-02 ([Source](https://archive.apache.org/dist/flink/flink-1.8.1/flink-1.8.1-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.8.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/api/scala/index.html))
+- Flink 1.8.0 - 2019-04-09 ([Source](https://archive.apache.org/dist/flink/flink-1.8.0/flink-1.8.0-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.8.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.8/api/scala/index.html))
 - Flink 1.7.2 - 2019-02-15 ([Source](https://archive.apache.org/dist/flink/flink-1.7.2/flink-1.7.2-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.7.2/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/scala/index.html))
 - Flink 1.7.1 - 2018-12-21 ([Source](https://archive.apache.org/dist/flink/flink-1.7.1/flink-1.7.1-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.7.1/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/scala/index.html))
 - Flink 1.7.0 - 2018-11-30 ([Source](https://archive.apache.org/dist/flink/flink-1.7.0/flink-1.7.0-src.tgz), [Binaries](https://archive.apache.org/dist/flink/flink-1.7.0/), [Docs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/), [Javadocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/java), [ScalaDocs]({{site.DOCS_BASE_URL}}flink-docs-release-1.7/api/scala/index.html))
@@ -224,6 +225,7 @@ All Flink releases are available via [https://archive.apache.org/dist/flink/](ht
 - Flink 0.6-incubating - 2014-08-26 ([Source](https://archive.apache.org/dist/incubator/flink/flink-0.6-incubating-src.tgz), [Binaries](https://archive.apache.org/dist/incubator/flink/))
 
 ### Flink-shaded
+- Flink-shaded 7.0 - 2019-05-30 ([Source](https://archive.apache.org/dist/flink/flink-shaded-7.0/flink-shaded-7.0-src.tgz))
 - Flink-shaded 6.0 - 2019-02-12 ([Source](https://archive.apache.org/dist/flink/flink-shaded-6.0/flink-shaded-6.0-src.tgz))
 - Flink-shaded 5.0 - 2018-10-15 ([Source](https://archive.apache.org/dist/flink/flink-shaded-5.0/flink-shaded-5.0-src.tgz))
 - Flink-shaded 4.0 - 2018-06-06 ([Source](https://archive.apache.org/dist/flink/flink-shaded-4.0/flink-shaded-4.0-src.tgz))

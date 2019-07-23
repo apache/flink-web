@@ -64,6 +64,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       King，Candy Crush Saga的创建者，使用 Flink 为数据科学团队提供实时分析仪表板。<br><br><a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读 King 的 Flink 实现</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" alt="Klaviyo" /><br />
+      Klaviyo使用 Apache Flink 扩展其实时分析系统，该系统每秒对超过一百万个事件进行重复数据删除和聚合。<br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读 Klaviyo 的实时分析</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="King" /><br />
       Lyft 使用 Flink 作为其流媒体平台的处理引擎，例如为机器学习持续生成特征。<br><br><a href="https://www.slideshare.net/SeattleApacheFlinkMeetup/streaminglyft-greg-fee-seattle-apache-flink-meetup-104398613" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多关于 Lyft 的流媒体</a>
   </div>
@@ -76,12 +80,16 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       Mux 是一家流媒体视频提供商的分析公司，它使用 Flink 进行实时异常检测和报警。<br><br><a href="https://mux.com/blog/discovering-anomalies-in-real-time-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 Mux 如何使用 Flink </a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
-    <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" alt="OVH" /><br />
-      OVH 使用 Flink 开发面向流的应用程序，比如实时商业智能系统或警报系统。<br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 OVH 如何使用 Flink</a>
+    <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" alt="OPPO" /><br />
+      OPPO, 作为中国最大的手机厂商之一，利用 Apache Flink 构建了实时数据仓库，用于即时分析运营活动效果及用户短期兴趣。<br><br><a href="https://mp.weixin.qq.com/s/DPLJA8Q2gDXLZF17FOcczw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解 OPPO 如何使用 Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" alt="Otto Group" /><br />
       全球第二大在线零售商奥托集团（Otto Group）使用 Flink 进行商业智能流处理。<br><br><a href="http://2016.flink-forward.org/kb_sessions/flinkspector-taming-the-squirrel/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 请参阅 Otto 在 Flink Forward 2016 上的分享</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" alt="OVH" /><br />
+      OVH 使用 Flink 开发面向流的应用程序，比如实时商业智能系统或警报系统。<br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 OVH 如何使用 Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" alt="ResearchGate" /><br />

@@ -7,6 +7,1212 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure Thing</title>
+<description>&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;}
+.tg .tg-wide{padding:10px 30px;}
+.tg .tg-top{vertical-align:top}
+.tg .tg-topcenter{text-align:center;vertical-align:top}
+.tg .tg-center{text-align:center;vertical-align:center}
+&lt;/style&gt;
+
+&lt;p&gt;In a &lt;a href=&quot;/2019/06/05/flink-network-stack.html&quot;&gt;previous blog post&lt;/a&gt;, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post. If you are unfamiliar with the network stack we highly recommend reading the &lt;a href=&quot;/2019/06/05/flink-network-stack.html&quot;&gt;network stack deep-dive&lt;/a&gt; first and then continuing here.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#monitoring&quot; id=&quot;markdown-toc-monitoring&quot;&gt;Monitoring&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#backpressure-monitor&quot; id=&quot;markdown-toc-backpressure-monitor&quot;&gt;Backpressure Monitor&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#network-metrics&quot; id=&quot;markdown-toc-network-metrics&quot;&gt;Network Metrics&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#backpressure&quot; id=&quot;markdown-toc-backpressure&quot;&gt;Backpressure&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#resource-usage--throughput&quot; id=&quot;markdown-toc-resource-usage--throughput&quot;&gt;Resource Usage / Throughput&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#latency-tracking&quot; id=&quot;markdown-toc-latency-tracking&quot;&gt;Latency Tracking&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot; id=&quot;markdown-toc-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;monitoring&quot;&gt;Monitoring&lt;/h2&gt;
+
+&lt;p&gt;Probably the most important part of network monitoring is &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/back_pressure.html&quot;&gt;monitoring backpressure&lt;/a&gt;, a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The receiver is slow.&lt;br /&gt;
+This can happen because the receiver is backpressured itself, is unable to keep processing at the same rate as the sender, or is temporarily blocked by garbage collection, lack of system resources, or I/O.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The network channel is slow.&lt;br /&gt;
+  Even though in such case the receiver is not (directly) involved, we call the sender backpressured due to a potential oversubscription on network bandwidth shared by all subtasks running on the same machine. Beware that, in addition to Flink’s network stack, there may be more network users, such as sources and sinks, distributed file systems (checkpointing, network-attached storage), logging, and metrics. A previous &lt;a href=&quot;https://www.ververica.com/blog/how-to-size-your-apache-flink-cluster-general-guidelines&quot;&gt;capacity planning blog post&lt;/a&gt; provides some more insights.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;sup&gt;1&lt;/sup&gt; In case you are unfamiliar with backpressure and how it interacts with Flink, we recommend reading through &lt;a href=&quot;https://www.ververica.com/blog/how-flink-handles-backpressure&quot;&gt;this blog post on backpressure&lt;/a&gt; from 2015.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+If backpressure occurs, it will bubble upstream and eventually reach your sources and slow them down. This is not a bad thing per-se and merely states that you lack resources for the current load. However, you may want to improve your job so that it can cope with higher loads without using more resources. In order to do so, you need to find (1) where (at which task/operator) the bottleneck is and (2) what is causing it. Flink offers two mechanisms for identifying where the bottleneck is:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;directly via Flink’s web UI and its backpressure monitor, or&lt;/li&gt;
+  &lt;li&gt;indirectly through some of the network metrics.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Flink’s web UI is likely the first entry point for a quick troubleshooting but has some disadvantages that we will explain below. On the other hand, Flink’s network metrics are better suited for continuous monitoring and reasoning about the exact nature of the bottleneck causing backpressure. We will cover both in the sections below. In both cases, you need to identify the origin of backpressure from the sources to the sinks. Your starting point for the current and future investigations will most likely be the operator after the last one that is experiencing backpressure. This specific operator is also highly likely to cause the backpressure in the first place.&lt;/p&gt;
+
+&lt;h3 id=&quot;backpressure-monitor&quot;&gt;Backpressure Monitor&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/back_pressure.html&quot;&gt;backpressure monitor&lt;/a&gt; is only exposed via Flink’s web UI². Since it’s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks’ threads on all TaskManagers via &lt;code&gt;Thread.getStackTrace()&lt;/code&gt; and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;span style=&quot;color:green&quot;&gt;OK&lt;/span&gt; for &lt;code&gt;ratio ≤ 0.10&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;&lt;span style=&quot;color:orange&quot;&gt;LOW&lt;/span&gt; for &lt;code&gt;0.10 &amp;lt; Ratio ≤ 0.5&lt;/code&gt;, and&lt;/li&gt;
+  &lt;li&gt;&lt;span style=&quot;color:red&quot;&gt;HIGH&lt;/span&gt; for &lt;code&gt;0.5 &amp;lt; Ratio ≤ 1&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Although you can tune things like the refresh-interval, the number of samples, or the delay between samples, normally, you would not need to touch these since the defaults already give good-enough results.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-07-23-network-stack-2/back_pressure_sampling_high.png&quot; width=&quot;600px&quot; alt=&quot;Backpressure sampling:high&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;sup&gt;2&lt;/sup&gt; You may also access the backpressure monitor via the REST API: &lt;code&gt;/jobs/:jobid/vertices/:vertexid/backpressure&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+The backpressure monitor can help you find where (at which task/operator) backpressure originates from. However, it does not support you in further reasoning about the causes of it. Additionally, for larger jobs or higher parallelism, the backpressure monitor becomes too crowded to use and may also take some time to gather all information from all TaskManagers. Please also note that sampling may affect your running job’s performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;network-metrics&quot;&gt;Network Metrics&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#network&quot;&gt;Network&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#io&quot;&gt;task I/O&lt;/a&gt; metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt;, &lt;code&gt;inPoolUsage&lt;/code&gt;&lt;br /&gt;
+An estimate on the ratio of buffers used vs. buffers available in the respective local buffer pools.
+While interpreting &lt;code&gt;inPoolUsage&lt;/code&gt; in Flink 1.5 - 1.8 with credit-based flow control, please note that this only relates to floating buffers (exclusive buffers are not part of the pool).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt;, &lt;code&gt;inPoolUsage&lt;/code&gt;, &lt;code&gt;floatingBuffersUsage&lt;/code&gt;, &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;&lt;br /&gt;
+An estimate on the ratio of buffers used vs. buffers available in the respective local buffer pools.
+Starting with Flink 1.9, &lt;code&gt;inPoolUsage&lt;/code&gt; is the sum of &lt;code&gt;floatingBuffersUsage&lt;/code&gt; and &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numRecordsOut&lt;/code&gt;, &lt;code&gt;numRecordsIn&lt;/code&gt;&lt;br /&gt;
+Each metric comes with two scopes: one scoped to the operator and one scoped to the subtask. For network monitoring, the subtask-scoped metric is relevant and shows the total number of records it has sent/received. You may need to further look into these figures to extract the number of records within a certain time span or use the equivalent &lt;code&gt;…PerSecond&lt;/code&gt; metrics.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numBytesOut&lt;/code&gt;, &lt;code&gt;numBytesInLocal&lt;/code&gt;, &lt;code&gt;numBytesInRemote&lt;/code&gt;&lt;br /&gt;
+The total number of bytes this subtask has emitted or read from a local/remote source. These are also available as meters via &lt;code&gt;…PerSecond&lt;/code&gt; metrics.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;numBuffersOut&lt;/code&gt;, &lt;code&gt;numBuffersInLocal&lt;/code&gt;, &lt;code&gt;numBuffersInRemote&lt;/code&gt;&lt;br /&gt;
+Similar to &lt;code&gt;numBytes…&lt;/code&gt; but counting the number of network buffers.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt;
+For the sake of completeness and since they have been used in the past, we will briefly look at the &lt;code&gt;outputQueueLength&lt;/code&gt; and &lt;code&gt;inputQueueLength&lt;/code&gt; metrics. These are somewhat similar to the &lt;code&gt;[out,in]PoolUsage&lt;/code&gt; metrics but show the number of buffers sitting in a sender subtask’s output queues and in a receiver subtask’s input queues, respectively. Reasoning about absolute numbers of buffers, however, is difficult and there is also a special subtlety with local channels: since a local input channel does not have its own queue (it works with the output queue directly), its value will always be &lt;code&gt;0&lt;/code&gt; for that channel (see &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12576&quot;&gt;FLINK-12576&lt;/a&gt;) and for the case where you only have local input channels, then &lt;code&gt;inputQueueLength = 0&lt;/code&gt;.&lt;/p&gt;
+
+  &lt;p&gt;Overall, &lt;strong&gt;we discourage the use of&lt;/strong&gt; &lt;code&gt;outputQueueLength&lt;/code&gt; &lt;strong&gt;and&lt;/strong&gt; &lt;code&gt;inputQueueLength&lt;/code&gt; because their interpretation highly depends on the current parallelism of the operator and the configured numbers of exclusive and floating buffers. Instead, we recommend using the various &lt;code&gt;*PoolUsage&lt;/code&gt; metrics which even reveal more detailed insight.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+ If you reason about buffer usage, please keep the following in mind:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Any outgoing channel which has been used at least once will always occupy one buffer (since Flink 1.5).
+      &lt;ul&gt;
+        &lt;li&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; This buffer (even if empty!) was always counted as a backlog of 1 and thus receivers tried to reserve a floating buffer for it.&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; A buffer is only counted in the backlog if it is ready for consumption, i.e. it is full or was flushed (see FLINK-11082)&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;The receiver will only release a received buffer after deserialising the last record in it.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The following sections make use of and combine these metrics to reason about backpressure and resource usage / efficiency with respect to throughput. A separate section will detail latency related metrics.&lt;/p&gt;
+
+&lt;h3 id=&quot;backpressure&quot;&gt;Backpressure&lt;/h3&gt;
+
+&lt;p&gt;Backpressure may be indicated by two different sets of metrics: (local) buffer pool usages as well as input/output queue lengths. They provide a different level of granularity but, unfortunately, none of these are exhaustive and there is room for interpretation. Because of the inherent problems with interpreting these queue lengths we will focus on the usage of input and output pools below which also provides more detail.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;If a subtask’s&lt;/strong&gt; &lt;code&gt;outPoolUsage&lt;/code&gt; &lt;strong&gt;is 100%&lt;/strong&gt;, it is backpressured. Whether the subtask is already blocking or still writing records into network buffers depends on how full the buffers are, that the &lt;code&gt;RecordWriters&lt;/code&gt; are currently writing into.&lt;br /&gt;
+&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;&quot;&gt;&lt;/span&gt; This is different to what the backpressure monitor is showing!&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;An &lt;code&gt;inPoolUsage&lt;/code&gt; of 100% means that all floating buffers are assigned to channels and eventually backpressure will be exercised upstream. These floating buffers are in either of the following conditions: they are reserved for future use on a channel due to an exclusive buffer being utilised (remote input channels always try to maintain &lt;code&gt;#exclusive buffers&lt;/code&gt; credits), they are reserved for a sender’s backlog and wait for data, they may contain data and are enqueued in an input channel, or they may contain data and are being read by the receiver’s subtask (one record at a time).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:orange&quot;&gt;up to Flink 1.8:&lt;/span&gt;&lt;/strong&gt; Due to &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11082&quot;&gt;FLINK-11082&lt;/a&gt;, an &lt;code&gt;inPoolUsage&lt;/code&gt; of 100% is quite common even in normal situations.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9 and above:&lt;/span&gt;&lt;/strong&gt; If &lt;code&gt;inPoolUsage&lt;/code&gt; is constantly around 100%, this is a strong indicator for exercising backpressure upstream.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The following table summarises all combinations and their interpretation. Bear in mind, though, that backpressure may be minor or temporary (no need to look into it), on particular channels only, or caused by other JVM processes on a particular TaskManager, such as GC, synchronisation, I/O, resource shortage, instead of a specific subtask.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;&lt;/th&gt;
+    &lt;th class=&quot;tg-center&quot;&gt;&lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;th class=&quot;tg-center&quot;&gt;&lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot;&gt;&lt;code&gt;inPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-ok-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:green;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressured, temporary situation: upstream is not backpressured yet or not anymore)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; rowspan=&quot;2&quot;&gt;
+      &lt;code&gt;inPoolUsage&lt;/code&gt; high&lt;br /&gt;
+      (&lt;strong&gt;&lt;span style=&quot;color:green&quot;&gt;Flink 1.9+&lt;/span&gt;&lt;/strong&gt;)&lt;/th&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;
+      if all upstream tasks’&lt;code&gt;outPoolUsage&lt;/code&gt; are low: &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (may eventually cause backpressure)&lt;/td&gt;
+    &lt;td class=&quot;tg-topcenter&quot; rowspan=&quot;2&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressured by downstream task(s) or network, probably forwarding backpressure upstream)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-topcenter&quot;&gt;if any upstream task’s&lt;code&gt;outPoolUsage&lt;/code&gt; is high: &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (may exercise backpressure upstream and may be the source of backpressure)&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;
+We may even reason more about the cause of backpressure by looking at the network metrics of the subtasks of two consecutive tasks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If all subtasks of the receiver task have low &lt;code&gt;inPoolUsage&lt;/code&gt; values and any upstream subtask’s &lt;code&gt;outPoolUsage&lt;/code&gt; is high, then there may be a network bottleneck causing backpressure.
+Since network is a shared resource among all subtasks of a TaskManager, this may not directly originate from this subtask, but rather from various concurrent operations, e.g. checkpoints, other streams, external connections, or other TaskManagers/processes on the same machine.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Backpressure can also be caused by all parallel instances of a task or by a single task instance. The first usually happens because the task is performing some time consuming operation that applies to all input partitions. The latter is usually the result of some kind of skew, either data skew or resource availability/allocation skew. In either case, you can find some hints on how to handle such situations in the &lt;a href=&quot;#span-classlabel-label-info-styledisplay-inline-blockspan-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-what-to-do-with-backpressurespan&quot;&gt;What to do with backpressure?&lt;/a&gt; box below.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;h3 class=&quot;no_toc&quot; id=&quot;span-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-flink-19-and-above&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Flink 1.9 and above&lt;/h3&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;If &lt;code&gt;floatingBuffersUsage&lt;/code&gt; is not 100%, it is unlikely that there is backpressure. If it is 100% and any upstream task is backpressured, it suggests that this input is exercising backpressure on either a single, some or all input channels. To differentiate between those three situations you can use &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;:
+      &lt;ul&gt;
+        &lt;li&gt;Assuming that &lt;code&gt;floatingBuffersUsage&lt;/code&gt; is around 100%, the higher the &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; the more input channels are backpressured. In an extreme case of &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; being close to 100%, it means that all channels are backpressured.&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+The relation between &lt;code&gt;exclusiveBuffersUsage&lt;/code&gt;, &lt;code&gt;floatingBuffersUsage&lt;/code&gt;, and the upstream tasks’ &lt;code&gt;outPoolUsage&lt;/code&gt; is summarised in the following table and extends on the table above with &lt;code&gt;inPoolUsage = floatingBuffersUsage + exclusiveBuffersUsage&lt;/code&gt;:&lt;/p&gt;
+
+  &lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;&lt;/th&gt;
+    &lt;th&gt;&lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;th&gt;&lt;code&gt;exclusiveBuffersUsage&lt;/code&gt; high&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; low +&lt;br /&gt;
+      &lt;em&gt;all&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-ok-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:green;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;-&lt;sup&gt;3&lt;/sup&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; low +&lt;br /&gt;
+      &lt;em&gt;any&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (potential network bottleneck)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;-&lt;sup&gt;3&lt;/sup&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; high +&lt;br /&gt;
+      &lt;em&gt;all&lt;/em&gt; upstream &lt;code&gt;outPoolUsage&lt;/code&gt; low&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure eventually appears on only some of the input channels)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:orange;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure eventually appears on most or all of the input channels)&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-top&quot; style=&quot;min-width:33%;&quot;&gt;
+      &lt;code&gt;floatingBuffersUsage&lt;/code&gt; high +&lt;br /&gt;
+      any upstream &lt;code&gt;outPoolUsage&lt;/code&gt; high&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure on only some of the input channels)&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot;&gt;
+      &lt;span class=&quot;glyphicon glyphicon-remove-sign&quot; aria-hidden=&quot;true&quot; style=&quot;color:red;font-size:1.5em;&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+      (backpressure on most or all of the input channels)&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+  &lt;p&gt;&lt;sup&gt;3&lt;/sup&gt; this should not happen&lt;/p&gt;
+
+&lt;/div&gt;
+
+&lt;h3 id=&quot;resource-usage--throughput&quot;&gt;Resource Usage / Throughput&lt;/h3&gt;
+
+&lt;p&gt;Besides the obvious use of each individual metric mentioned above, there are also a few combinations providing useful insight into what is happening in the network stack:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Low throughput with frequent &lt;code&gt;outPoolUsage&lt;/code&gt; values around 100% but low &lt;code&gt;inPoolUsage&lt;/code&gt; on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; parameter or try disabling credit-based flow control to verify.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Combining &lt;code&gt;numRecordsOut&lt;/code&gt; and &lt;code&gt;numBytesOut&lt;/code&gt; helps identifying average serialised record sizes which supports you in capacity planning for peak scenarios.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;If you want to reason about buffer fill rates and the influence of the output flusher, you may combine &lt;code&gt;numBytesInRemote&lt;/code&gt; with &lt;code&gt;numBuffersInRemote&lt;/code&gt;. When tuning for throughput (and not latency!), low buffer fill rates may indicate reduced network efficiency. In such cases, consider increasing the buffer timeout.
+Please note that, as of Flink 1.8 and 1.9, &lt;code&gt;numBuffersOut&lt;/code&gt; only increases for buffers getting full or for an event cutting off a buffer (e.g. a checkpoint barrier) and may lag behind. Please also note that reasoning about buffer fill rates on local channels is unnecessary since buffering is an optimisation technique for remote channels with limited effect on local channels.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;You may also separate local from remote traffic using numBytesInLocal and numBytesInRemote but in most cases this is unnecessary.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;h3 class=&quot;no_toc&quot; id=&quot;span-classglyphicon-glyphicon-info-sign-aria-hiddentruespan-what-to-do-with-backpressure&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; What to do with Backpressure?&lt;/h3&gt;
+
+  &lt;p&gt;Assuming that you identified where the source of backpressure — a bottleneck — is located, the next step is to analyse why this is happening. Below, we list some potential causes of backpressure from the more basic to the more complex ones. We recommend to check the basic causes first, before diving deeper on the more complex ones and potentially drawing false conclusions.&lt;/p&gt;
+
+  &lt;p&gt;Please also recall that backpressure might be temporary and the result of a load spike, checkpointing, or a job restart with a data backlog waiting to be processed. If backpressure is temporary, you should simply ignore it. Alternatively, keep in mind that the process of analysing and solving the issue can be affected by the intermittent nature of your bottleneck. Having said that, here are a couple of things to check.&lt;/p&gt;
+
+  &lt;h4 id=&quot;system-resources&quot;&gt;System Resources&lt;/h4&gt;
+
+  &lt;p&gt;Firstly, you should check the incriminated machines’ basic resource usage like CPU, network, or disk I/O. If some resource is fully or heavily utilised you can do one of the following:&lt;/p&gt;
+
+  &lt;ol&gt;
+    &lt;li&gt;Try to optimise your code. Code profilers are helpful in this case.&lt;/li&gt;
+    &lt;li&gt;Tune Flink for that specific resource.&lt;/li&gt;
+    &lt;li&gt;Scale out by increasing the parallelism and/or increasing the number of machines in the cluster.&lt;/li&gt;
+  &lt;/ol&gt;
+
+  &lt;h4 id=&quot;garbage-collection&quot;&gt;Garbage Collection&lt;/h4&gt;
+
+  &lt;p&gt;Oftentimes, performance issues arise from long GC pauses. You can verify whether you are in such a situation by either printing debug GC logs (via -&lt;code&gt;XX:+PrintGCDetails&lt;/code&gt;) or by using some memory/GC profilers. Since dealing with GC issues is highly application-dependent and independent of Flink, we will not go into details here (&lt;a href=&quot;https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html&quot;&gt;Oracle’s Garbage Collection Tuning Guide&lt;/a&gt; or &lt;a href=&quot;https://plumbr.io/java-garbage-collection-handbook&quot;&gt;Plumbr’s Java Garbage Collection handbook&lt;/a&gt; seem like a good start).&lt;/p&gt;
+
+  &lt;h4 id=&quot;cputhread-bottleneck&quot;&gt;CPU/Thread Bottleneck&lt;/h4&gt;
+
+  &lt;p&gt;Sometimes a CPU bottleneck might not be visible at first glance if one or a couple of threads are causing the CPU bottleneck while the CPU usage of the overall machine remains relatively low. For instance, a single CPU-bottlenecked thread on a 48-core machine would result in only 2% CPU use. Consider using code profilers for this as they can identify hot threads by showing each threads’ CPU usage, for example.&lt;/p&gt;
+
+  &lt;h4 id=&quot;thread-contention&quot;&gt;Thread Contention&lt;/h4&gt;
+
+  &lt;p&gt;Similarly to the CPU/thread bottleneck issue above, a subtask may be bottlenecked due to high thread contention on shared resources. Again, CPU profilers are your best friend here! Consider looking for synchronisation overhead / lock contention in user code — although adding synchronisation in user code should be avoided and may even be dangerous! Also consider investigating shared system resources. The default JVM’s SSL implementation, for example, can become contented around the shared &lt;code&gt;/dev/urandom&lt;/code&gt; resource.&lt;/p&gt;
+
+  &lt;h4 id=&quot;load-imbalance&quot;&gt;Load Imbalance&lt;/h4&gt;
+
+  &lt;p&gt;If your bottleneck is caused by data skew, you can try to remove it or mitigate its impact by changing the data partitioning to separate heavy keys or by implementing local/pre-aggregation.&lt;/p&gt;
+
+  &lt;p&gt;&lt;br /&gt;
+This list is far from exhaustive. Generally, in order to reduce a bottleneck and thus backpressure, first analyse where it is happening and then find out why. The best place to start reasoning about the “why” is by checking what resources are fully utilised.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;latency-tracking&quot;&gt;Latency Tracking&lt;/h3&gt;
+
+&lt;p&gt;Tracking latencies at the various locations they may occur is a topic of its own. In this section, we will focus on the time records wait inside Flink’s network stack — including the system’s network connections. In low throughput scenarios, these latencies are influenced directly by the output flusher via the buffer timeout parameter or indirectly by any application code latencies. When processing a record takes longer than expected or when (multiple) timers fire at the same time — and block the receiver from processing incoming records — the time inside the network stack for following records is extended dramatically. We highly recommend adding your own metrics to your Flink job  for better latency tracking in your job’s components and a broader view on the cause of delays.&lt;/p&gt;
+
+&lt;p&gt;Flink offers some support for &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/monitoring/metrics.html#latency-tracking&quot;&gt;tracking the latency&lt;/a&gt; of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-interval&quot;&gt;configuration via &lt;code&gt;metrics.latency.interval&lt;/code&gt;&lt;/a&gt; or via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-&quot;&gt;ExecutionConfig#setLatencyTrackingInterval()&lt;/a&gt;. Once enabled, Flink will collect latency histograms based on the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-granularity&quot;&gt;granularity defined via &lt;code&gt;metrics.latency.granularity&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;single&lt;/code&gt;: one histogram for each operator subtask&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;operator&lt;/code&gt; (default): one histogram for each combination of source task and operator subtask&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;subtask&lt;/code&gt;: one histogram for each combination of source subtask and operator subtask (quadratic in the parallelism!)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These metrics are collected through special “latency markers”: each source subtask will periodically emit a special record containing the timestamp of its creation. The latency markers then flow alongside normal records while not overtaking them on the wire or inside a buffer queue. However, &lt;em&gt;a latency marker does not enter application logic&lt;/em&gt; and is overtaking records there. Latency markers therefore only measure the waiting time between the user code and not a full “end-to-end” latency. User code indirectly influences these waiting times, though!&lt;/p&gt;
+
+&lt;p&gt;Since &lt;code&gt;LatencyMarkers&lt;/code&gt; sit in network buffers just like normal records, they will also wait for the buffer to be full or flushed due to buffer timeouts. When a channel is on high load, there is no added latency by the network buffering data. However, as soon as one channel is under low load, records and latency markers will experience an expected average delay of at most &lt;code&gt;buffer_timeout / 2&lt;/code&gt;. This delay will add to each network connection towards a subtask and should be taken into account when analysing a subtask’s latency metric.&lt;/p&gt;
+
+&lt;p&gt;By looking at the exposed latency tracking metrics for each subtask, for example at the 95th percentile, you should nevertheless be able to identify subtasks which are adding substantially to the overall source-to-sink latency and continue with optimising there.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Flink’s latency markers assume that the clocks on all machines in the cluster are in sync. We recommend setting up an automated clock synchronisation service (like NTP) to avoid false latency results.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt;
+Enabling latency metrics can significantly impact the performance of the cluster (in particular for &lt;code&gt;subtask&lt;/code&gt; granularity) due to the sheer amount of metrics being added as well as the use of histograms which are quite expensive to maintain. It is highly recommended to only use them for debugging purposes.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In the previous sections we discussed how to monitor Flink’s network stack which primarily involves identifying backpressure: where it occurs, where it originates from, and (potentially) why it occurs. This can be executed in two ways: for simple cases and debugging sessions by using the backpressure monitor; for continuous monitoring, more in-depth analysis, and less runtime overhead by using Flink’s task and network stack metrics. Backpressure can be caused by the network layer itself but, in most cases, is caused by some subtask under high load. These two scenarios can be distinguished from one another by analysing the metrics as described above. We also provided some hints at monitoring resource usage and tracking network latencies that may add up from sources to sinks.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned for the third blog post in the series of network stack posts that will focus on tuning techniques and anti-patterns to avoid.&lt;/p&gt;
+
+</description>
+<pubDate>Tue, 23 Jul 2019 17:30:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/07/23/flink-network-stack-2.html</link>
+<guid isPermaLink="true">/2019/07/23/flink-network-stack-2.html</guid>
+</item>
+
+<item>
+<title>Apache Flink 1.8.1 Released</title>
+<description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
+
+&lt;p&gt;This release includes more than 40 fixes and minor improvements for Flink 1.8.1. The list below includes a detailed list of all improvements, sub-tasks and bug fixes.&lt;/p&gt;
+
+&lt;p&gt;We highly recommend all users to upgrade to Flink 1.8.1.&lt;/p&gt;
+
+&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;List of resolved issues:&lt;/p&gt;
+
+&lt;h2&gt;        Sub-task
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10921&quot;&gt;FLINK-10921&lt;/a&gt;] -         Prioritize shard consumers in Kinesis Consumer by event time 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12617&quot;&gt;FLINK-12617&lt;/a&gt;] -         StandaloneJobClusterEntrypoint should default to random JobID for non-HA setups 
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Bug
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9445&quot;&gt;FLINK-9445&lt;/a&gt;] -         scala-shell uses plain java command
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10455&quot;&gt;FLINK-10455&lt;/a&gt;] -         Potential Kafka producer leak in case of failures
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10941&quot;&gt;FLINK-10941&lt;/a&gt;] -         Slots prematurely released which still contain unconsumed data 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11059&quot;&gt;FLINK-11059&lt;/a&gt;] -         JobMaster may continue using an invalid slot if releasing idle slot meet a timeout
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11107&quot;&gt;FLINK-11107&lt;/a&gt;] -         Avoid memory stateBackend to create arbitrary folders under HA path when no checkpoint path configured
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11897&quot;&gt;FLINK-11897&lt;/a&gt;] -         ExecutionGraphSuspendTest does not wait for all tasks to be submitted
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11915&quot;&gt;FLINK-11915&lt;/a&gt;] -         DataInputViewStream skip returns wrong value
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11987&quot;&gt;FLINK-11987&lt;/a&gt;] -         Kafka producer occasionally throws NullpointerException
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12009&quot;&gt;FLINK-12009&lt;/a&gt;] -         Wrong check message about heartbeat interval for HeartbeatServices
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12042&quot;&gt;FLINK-12042&lt;/a&gt;] -         RocksDBStateBackend mistakenly uses default filesystem
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12112&quot;&gt;FLINK-12112&lt;/a&gt;] -         AbstractTaskManagerProcessFailureRecoveryTest process output logging does not work properly
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12132&quot;&gt;FLINK-12132&lt;/a&gt;] -         The example in /docs/ops/deployment/yarn_setup.md should be updated due to the change FLINK-2021
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12184&quot;&gt;FLINK-12184&lt;/a&gt;] -         HistoryServerArchiveFetcher isn&amp;#39;t compatible with old version
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12219&quot;&gt;FLINK-12219&lt;/a&gt;] -         Yarn application can&amp;#39;t stop when flink job failed in per-job yarn cluster mode
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12247&quot;&gt;FLINK-12247&lt;/a&gt;] -         fix NPE when writing an archive file to a FileSystem
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12260&quot;&gt;FLINK-12260&lt;/a&gt;] -         Slot allocation failure by taskmanager registration timeout and race
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12296&quot;&gt;FLINK-12296&lt;/a&gt;] -         Data loss silently in RocksDBStateBackend when more than one operator(has states) chained in a single task 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12297&quot;&gt;FLINK-12297&lt;/a&gt;] -         Make ClosureCleaner recursive
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12301&quot;&gt;FLINK-12301&lt;/a&gt;] -         Scala value classes inside case classes cannot be serialized anymore in Flink 1.8.0
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12342&quot;&gt;FLINK-12342&lt;/a&gt;] -         Yarn Resource Manager Acquires Too Many Containers
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12375&quot;&gt;FLINK-12375&lt;/a&gt;] -         flink-container job jar does not have read permissions
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12416&quot;&gt;FLINK-12416&lt;/a&gt;] -         Docker build script fails on symlink creation ln -s
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12544&quot;&gt;FLINK-12544&lt;/a&gt;] -         Deadlock while releasing memory and requesting segment concurrent in SpillableSubpartition
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12547&quot;&gt;FLINK-12547&lt;/a&gt;] -         Deadlock when the task thread downloads jars using BlobClient
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12646&quot;&gt;FLINK-12646&lt;/a&gt;] -         Use reserved IP as unrouteable IP in RestClientTest
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12688&quot;&gt;FLINK-12688&lt;/a&gt;] -         Make serializer lazy initialization thread safe in StateDescriptor
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12740&quot;&gt;FLINK-12740&lt;/a&gt;] -         SpillableSubpartitionTest deadlocks on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12835&quot;&gt;FLINK-12835&lt;/a&gt;] -         Time conversion is wrong in ManualClock
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12863&quot;&gt;FLINK-12863&lt;/a&gt;] -         Race condition between slot offerings and AllocatedSlotReport
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12865&quot;&gt;FLINK-12865&lt;/a&gt;] -         State inconsistency between RM and TM on the slot status
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12871&quot;&gt;FLINK-12871&lt;/a&gt;] -         Wrong SSL setup examples in docs
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12895&quot;&gt;FLINK-12895&lt;/a&gt;] -         TaskManagerProcessFailureBatchRecoveryITCase.testTaskManagerProcessFailure failed on travis 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12896&quot;&gt;FLINK-12896&lt;/a&gt;] -         TaskCheckpointStatisticDetailsHandler uses wrong value for JobID when archiving
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Improvement
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11126&quot;&gt;FLINK-11126&lt;/a&gt;] -         Filter out AMRMToken in the TaskManager credentials
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12137&quot;&gt;FLINK-12137&lt;/a&gt;] -         Add more proper explanation on flink streaming connectors 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12169&quot;&gt;FLINK-12169&lt;/a&gt;] -         Improve Javadoc of MessageAcknowledgingSourceBase
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12378&quot;&gt;FLINK-12378&lt;/a&gt;] -         Consolidate FileSystem Documentation
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12391&quot;&gt;FLINK-12391&lt;/a&gt;] -         Add timeout to transfer.sh
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12539&quot;&gt;FLINK-12539&lt;/a&gt;] -         StreamingFileSink: Make the class extendable to customize for different usecases
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Test
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12350&quot;&gt;FLINK-12350&lt;/a&gt;] -         RocksDBStateBackendTest doesn&amp;#39;t cover the incremental checkpoint code path
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Task
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12460&quot;&gt;FLINK-12460&lt;/a&gt;] -         Change taskmanager.tmp.dirs to io.tmp.dirs in configuration docs
+&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+<pubDate>Tue, 02 Jul 2019 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2019/07/02/release-1.8.1.html</link>
+<guid isPermaLink="true">/news/2019/07/02/release-1.8.1.html</guid>
+</item>
+
+<item>
+<title>A Practical Guide to Broadcast State in Apache Flink</title>
+<description>&lt;p&gt;Since version 1.5.0, Apache Flink features a new type of state which is called Broadcast State. In this post, we explain what Broadcast State is, and show an example of how it can be applied to an application that evaluates dynamic patterns on an event stream. We walk you through the processing steps and the source code to implement this application in practice.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-broadcast-state&quot;&gt;What is Broadcast State?&lt;/h2&gt;
+
+&lt;p&gt;The Broadcast State can be used to combine and jointly process two streams of events in a specific way. The events of the first stream are broadcasted to all parallel instances of an operator, which maintains them as state. The events of the other stream are not broadcasted but sent to individual instances of the same operator and processed together with the events of the broadcasted stream. 
+The new broadcast state is a natural fit for applications that need to join a low-throughput and a high-throughput stream or need to dynamically update their processing logic. We will use a concrete example of the latter use case to explain the broadcast state and show its API in more detail in the remainder of this post.&lt;/p&gt;
+
+&lt;h2 id=&quot;dynamic-pattern-evaluation-with-broadcast-state&quot;&gt;Dynamic Pattern Evaluation with Broadcast State&lt;/h2&gt;
+
+&lt;p&gt;Imagine an e-commerce website that captures the interactions of all users as a stream of user actions. The company that operates the website is interested in analyzing the interactions to increase revenue, improve the user experience, and detect and prevent malicious behavior. 
+The website implements a streaming application that detects a pattern on the stream of user events. However, the company wants to avoid modifying and redeploying the application every time the pattern changes. Instead, the application ingests a second stream of patterns and updates its active pattern when it receives a new pattern from the pattern stream. In the following, we discuss this application step-by-step and show how it leverages the broadcast state feature in Apache Flink.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig1.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Our example application ingests two data streams. The first stream provides user actions on the website and is illustrated on the top left side of the above figure. A user interaction event consists of the type of the action (user login, user logout, add to cart, or complete payment) and the id of the user, which is encoded by color. The user action event stream in our illustration contains a logout action of User 1001 followed by a payment-complete event for User 1003, and an “add-to-cart” action of User 1002.&lt;/p&gt;
+
+&lt;p&gt;The second stream provides action patterns that the application will evaluate. A pattern consists of two consecutive actions. In the figure above, the pattern stream contains the following two:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Pattern #1: A user logs in and immediately logs out without browsing additional pages on the e-commerce website.&lt;/li&gt;
+  &lt;li&gt;Pattern #2: A user adds an item to the shopping cart and logs out without completing the purchase.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Such patterns help a business in better analyzing user behavior, detecting malicious actions, and improving the website experience. For example, in the case of items being added to a shopping cart with no follow up purchase, the website team can take appropriate actions to understand better the reasons why users don’t complete a purchase and initiate specific programs to improve the website conversion (such as providing discount codes, limited free shipping offers etc.)&lt;/p&gt;
+
+&lt;p&gt;On the right-hand side, the figure shows three parallel tasks of an operator that ingest the pattern and user action streams, evaluate the patterns on the action stream, and emit pattern matches downstream. For the sake of simplicity, the operator in our example only evaluates a single pattern with exactly two subsequent actions. The currently active pattern is replaced when a new pattern is received from the pattern stream. In principle, the operator could also be implemented to evaluate more complex patterns or multiple patterns concurrently which could be individually added or removed.&lt;/p&gt;
+
+&lt;p&gt;We will describe how the pattern matching application processes the user action and pattern streams.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig2.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;First a pattern is sent to the operator. The pattern is broadcasted to all three parallel tasks of the operator. The tasks store the pattern in their broadcast state. Since the broadcast state should only be updated using broadcasted data, the state of all tasks is always expected to be the same.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig3.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, the first user actions are partitioned on the user id and shipped to the operator tasks. The partitioning ensures that all actions of the same user are processed by the same task. The figure above shows the state of the application after the first pattern and the first three action events were consumed by the operator tasks.&lt;/p&gt;
+
+&lt;p&gt;When a task receives a new user action, it evaluates the currently active pattern by looking at the user’s latest and previous actions. For each user, the operator stores the previous action in the keyed state. Since the tasks in the figure above only received a single action for each user so far (we just started the application), the pattern does not need to be evaluated. Finally, the previous action in the user’s keyed state is updated to the latest action, to be able to look it up when the next action of the same user arrives.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig4.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;After the first three actions are processed, the next event, the logout action of User 1001, is shipped to the task that processes the events of User 1001. When the task receives the actions, it looks up the current pattern from the broadcast state and the previous action of User 1001. Since the pattern matches both actions, the task emits a pattern match event. Finally, the task updates its keyed state by overriding the previous event with the latest action.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig5.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;When a new pattern arrives in the pattern stream, it is broadcasted to all tasks and each task updates its broadcast state by replacing the current pattern with the new one.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/broadcastState/fig6.png&quot; width=&quot;600px&quot; alt=&quot;Broadcast State in Apache Flink.&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Once the broadcast state is updated with a new pattern, the matching logic continues as before, i.e., user action events are partitioned by key and evaluated by the responsible task.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-to-implement-an-application-with-broadcast-state&quot;&gt;How to Implement an Application with Broadcast State?&lt;/h2&gt;
+
+&lt;p&gt;Until now, we conceptually discussed the application and explained how it uses broadcast state to evaluate dynamic patterns over event streams. Next, we’ll show how to implement the example application with Flink’s DataStream API and the broadcast state feature.&lt;/p&gt;
+
+&lt;p&gt;Let’s start with the input data of the application. We have two data streams, actions, and patterns. At this point, we don’t really care where the streams come from. The streams could be ingested from Apache Kafka or Kinesis or any other system. Action and Pattern are Pojos with two fields each:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;???&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;patterns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;???&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;Action&lt;/code&gt; and &lt;code&gt;Pattern&lt;/code&gt; are Pojos with two fields each:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;Action: Long userId, String action&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code&gt;Pattern: String firstAction, String secondAction&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As a first step, we key the action stream on the &lt;code&gt;userId&lt;/code&gt; attribute.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;KeyedStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actionsByUser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actions&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KeySelector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Next, we prepare the broadcast state. Broadcast state is always represented as &lt;code&gt;MapState&lt;/code&gt;, the most versatile state primitive that Flink provides.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bcStateDescriptor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+  &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;patterns&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VOID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;POJO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Since our application only evaluates and stores a single &lt;code&gt;Pattern&lt;/code&gt; at a time, we configure the broadcast state as a &lt;code&gt;MapState&lt;/code&gt; with key type &lt;code&gt;Void&lt;/code&gt; and value type &lt;code&gt;Pattern&lt;/code&gt;. The &lt;code&gt;Pattern&lt;/code&gt; is always stored in the &lt;code&gt;MapState&lt;/code&gt; with &lt;code&gt;null&lt;/code&gt; as key.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;BroadcastStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bcedPatterns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;patterns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bcStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Using the &lt;code&gt;MapStateDescriptor&lt;/code&gt; for the broadcast state, we apply the &lt;code&gt;broadcast()&lt;/code&gt; transformation on the patterns stream and receive a &lt;code&gt;BroadcastStream bcedPatterns&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;matches&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actionsByUser&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bcedPatterns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PatternEvaluator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After we obtained the keyed &lt;code&gt;actionsByUser&lt;/code&gt; stream and the broadcasted &lt;code&gt;bcedPatterns&lt;/code&gt; stream, we &lt;code&gt;connect()&lt;/code&gt; both streams and apply a &lt;code&gt;PatternEvaluator&lt;/code&gt; on the connected streams. &lt;code&gt;PatternEvaluator&lt;/code&gt; is a custom function that implements the &lt;code&gt;KeyedBroadcastProcessFunction&lt;/code&gt; interface. It applies the pattern matching logic that we discussed before and emits &lt;code&gt;Tuple2&amp;lt;Long, Pattern&amp;gt;&lt;/code&gt; records which contain the user id and the matched pattern.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PatternEvaluator&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedBroadcastProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ 
+  &lt;span class=&quot;c1&quot;&gt;// handle for keyed state (per user)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ValueState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prevActionState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// broadcast state descriptor&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;patternDesc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ 
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Configuration&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// initialize keyed state&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;prevActionState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRuntimeContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;lastAction&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;patternDesc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;patterns&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VOID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;POJO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;cm&quot;&gt;/**&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;   * Called for each user action.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;   * Evaluates the current pattern against the previous and&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;   * current action of the user.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;   */&lt;/span&gt;
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;Action&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+     &lt;span class=&quot;n&quot;&gt;ReadOnlyContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+     &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;// get current pattern from broadcast state&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;patternDesc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;// access MapState with null as VOID default value&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;// get previous action of current user from keyed state&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prevAction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prevActionState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prevAction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;// user had an action before, check if pattern matches&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;firstAction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;equals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;prevAction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; 
+         &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;secondAction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;equals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+       &lt;span class=&quot;c1&quot;&gt;// MATCH&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getCurrentKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;// update keyed state and remember action for next pattern evaluation&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;prevActionState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+ &lt;span class=&quot;cm&quot;&gt;/**&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;  * Called for each new pattern.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;  * Overwrites the current pattern with the new pattern.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;  */&lt;/span&gt;
+ &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processBroadcastElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+     &lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
+     &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;// store the new pattern by updating the broadcast state&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;BroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bcState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;patternDesc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;// storing in MapState with null as VOID default value&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;bcState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;KeyedBroadcastProcessFunction&lt;/code&gt; interface provides three methods to process records and emit results.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;processBroadcastElement()&lt;/code&gt; is called for each record of the broadcasted stream. In our &lt;code&gt;PatternEvaluator&lt;/code&gt; function, we simply put the received &lt;code&gt;Pattern&lt;/code&gt; record in to the broadcast state using the &lt;code&gt;null&lt;/code&gt; key (remember, we only store a single pattern in the &lt;code&gt;MapState&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;processElement()&lt;/code&gt; is called for each record of the keyed stream. It provides read-only access to the broadcast state to prevent modification that result in different broadcast states across the parallel instances of the function. The &lt;code&gt;processElement()&lt;/code&gt; method of the &lt;code&gt;PatternEvaluator&lt;/code&gt; retrieves the current pattern from the broadcast state and the previous action of the user from the keyed state. If both are present, it checks whether the previous and current action match with the pattern and emits a pattern match record if that is the case. Finally, it updates the keyed state to the current user action.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;onTimer()&lt;/code&gt; is called when a previously registered timer fires. Timers can be registered in the &lt;code&gt;processElement&lt;/code&gt; method and are used to perform computations or to clean up state in the future. We did not implement this method in our example to keep the code concise. However, it could be used to remove the last action of a user when the user was not active for a certain period of time to avoid growing state due to inactive users.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You might have noticed the context objects of the &lt;code&gt;KeyedBroadcastProcessFunction&lt;/code&gt;’s processing method. The context objects give access to additional functionality such as:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The broadcast state (read-write or read-only, depending on the method),&lt;/li&gt;
+  &lt;li&gt;A &lt;code&gt;TimerService&lt;/code&gt;, which gives access to the record’s timestamp, the current watermark, and which can register timers,&lt;/li&gt;
+  &lt;li&gt;The current key (only available in &lt;code&gt;processElement()&lt;/code&gt;), and&lt;/li&gt;
+  &lt;li&gt;A method to apply a function the keyed state of each registered key (only available in &lt;code&gt;processBroadcastElement()&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The &lt;code&gt;KeyedBroadcastProcessFunction&lt;/code&gt; has full access to Flink state and time features just like any other ProcessFunction and hence can be used to implement sophisticated application logic. Broadcast state was designed to be a versatile feature that adapts to different scenarios and use cases. Although we only discussed a fairly simple and restricted application, you can use broadcast state in many ways to implement the requirements of your application.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this blog post, we walked you through an example application to explain what Apache Flink’s broadcast state is and how it can be used to evaluate dynamic patterns on event streams. We’ve also discussed the API and showed the source code of our example application.&lt;/p&gt;
+
+&lt;p&gt;We invite you to check the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/broadcast_state.html&quot;&gt;documentation&lt;/a&gt; of this feature and provide feedback or suggestions for further improvements through our &lt;a href=&quot;http://mail-archives.apache.org/mod_mbox/flink-community/&quot;&gt;mailing list&lt;/a&gt;.&lt;/p&gt;
+</description>
+<pubDate>Wed, 26 Jun 2019 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/06/26/broadcast-state.html</link>
+<guid isPermaLink="true">/2019/06/26/broadcast-state.html</guid>
+</item>
+
+<item>
+<title>A Deep-Dive into Flink&#39;s Network Stack</title>
+<description>&lt;style type=&quot;text/css&quot;&gt;
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{padding:10px 20px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{padding:10px 20px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;}
+.tg .tg-wide{padding:10px 30px;}
+.tg .tg-top{vertical-align:top}
+.tg .tg-center{text-align:center;vertical-align:center}
+&lt;/style&gt;
+
+&lt;p&gt;Flink’s network stack is one of the core components that make up the &lt;code&gt;flink-runtime&lt;/code&gt; module and sit at the heart of every Flink job. It connects individual work units (subtasks) from all TaskManagers. This is where your streamed-in data flows through and it is therefore crucial to the performance of your Flink job for both the throughput as well as latency you observe. In contrast to the coordination channels between TaskManagers and JobManagers which are using RPCs via Akka, the network stack between TaskManagers relies on a much lower-level API using Netty.&lt;/p&gt;
+
+&lt;p&gt;This blog post is the first in a series of posts about the network stack. In the sections below, we will first have a high-level look at what abstractions are exposed to the stream operators and then go into detail on the physical implementation and various optimisations Flink did. We will briefly present the result of these optimisations and Flink’s trade-off between throughput and latency. Future blog posts in this series will elaborate more on monitoring and metrics, tuning parameters, and common anti-patterns.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#logical-view&quot; id=&quot;markdown-toc-logical-view&quot;&gt;Logical View&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#physical-transport&quot; id=&quot;markdown-toc-physical-transport&quot;&gt;Physical Transport&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#inflicting-backpressure-1&quot; id=&quot;markdown-toc-inflicting-backpressure-1&quot;&gt;Inflicting Backpressure (1)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#credit-based-flow-control&quot; id=&quot;markdown-toc-credit-based-flow-control&quot;&gt;Credit-based Flow Control&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#inflicting-backpressure-2&quot; id=&quot;markdown-toc-inflicting-backpressure-2&quot;&gt;Inflicting Backpressure (2)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#what-do-we-gain-where-is-the-catch&quot; id=&quot;markdown-toc-what-do-we-gain-where-is-the-catch&quot;&gt;What do we Gain? Where is the Catch?&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#writing-records-into-network-buffers-and-reading-them-again&quot; id=&quot;markdown-toc-writing-records-into-network-buffers-and-reading-them-again&quot;&gt;Writing Records into Network Buffers and Reading them again&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#flushing-buffers-to-netty&quot; id=&quot;markdown-toc-flushing-buffers-to-netty&quot;&gt;Flushing Buffers to Netty&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#buffer-builder--buffer-consumer&quot; id=&quot;markdown-toc-buffer-builder--buffer-consumer&quot;&gt;Buffer Builder &amp;amp; Buffer Consumer&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#latency-vs-throughput&quot; id=&quot;markdown-toc-latency-vs-throughput&quot;&gt;Latency vs. Throughput&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot; id=&quot;markdown-toc-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;logical-view&quot;&gt;Logical View&lt;/h2&gt;
+
+&lt;p&gt;Flink’s network stack provides the following logical view to the subtasks when communicating with each other, for example during a network shuffle as required by a &lt;code&gt;keyBy()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack1.png&quot; width=&quot;400px&quot; alt=&quot;Logical View on Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;It abstracts over the different settings of the following three concepts:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Subtask output type (&lt;code&gt;ResultPartitionType&lt;/code&gt;):
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;pipelined (bounded or unbounded):&lt;/strong&gt;
+  Sending data downstream as soon as it is produced, potentially one-by-one, either as a bounded or unbounded stream of records.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;blocking:&lt;/strong&gt;
+  Sending data downstream only when the full result was produced.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Scheduling type:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;all at once (eager):&lt;/strong&gt;
+  Deploy all subtasks of the job at the same time (for streaming applications).&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;next stage on first output (lazy):&lt;/strong&gt;
+  Deploy downstream tasks as soon as any of their producers generated output.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;next stage on complete output:&lt;/strong&gt;
+  Deploy downstream tasks when any or all of their producers have generated their full output set.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Transport:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;high throughput:&lt;/strong&gt;
+  Instead of sending each record one-by-one, Flink buffers a bunch of records into its network buffers and sends them altogether. This reduces the costs per record and leads to higher throughput.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;low latency via buffer timeout:&lt;/strong&gt;
+  By reducing the timeout of sending an incompletely filled buffer, you may sacrifice throughput for latency.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We will have a look at the throughput and low latency optimisations in the sections below which look at the physical layers of the network stack. For this part, let us elaborate a bit more on the output and scheduling types. First of all, it is important to know that the subtask output type and the scheduling type are closely intertwined making only specific combinations of the two valid.&lt;/p&gt;
+
+&lt;p&gt;Pipelined result partitions are streaming-style outputs which need a live target subtask to send data to. The target can be scheduled before results are produced or at first output. Batch jobs produce bounded result partitions while streaming jobs produce unbounded results.&lt;/p&gt;
+
+&lt;p&gt;Batch jobs may also produce results in a blocking fashion, depending on the operator and connection pattern that is used. In that case, the complete result must be produced first before the receiving task can be scheduled. This allows batch jobs to work more efficiently and with lower resource usage.&lt;/p&gt;
+
+&lt;p&gt;The following table summarises the valid combinations:
+&lt;br /&gt;&lt;/p&gt;
+&lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Output Type&lt;/th&gt;
+    &lt;th&gt;Scheduling Type&lt;/th&gt;
+    &lt;th&gt;Applies to…&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td rowspan=&quot;2&quot;&gt;pipelined, unbounded&lt;/td&gt;
+    &lt;td&gt;all at once&lt;/td&gt;
+    &lt;td&gt;Streaming jobs&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;next stage on first output&lt;/td&gt;
+    &lt;td&gt;n/a¹&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td rowspan=&quot;2&quot;&gt;pipelined, bounded&lt;/td&gt;
+    &lt;td&gt;all at once&lt;/td&gt;
+    &lt;td&gt;n/a²&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;next stage on first output&lt;/td&gt;
+    &lt;td&gt;Batch jobs&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;blocking&lt;/td&gt;
+    &lt;td&gt;next stage on complete output&lt;/td&gt;
+    &lt;td&gt;Batch jobs&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;1&lt;/sup&gt; Currently not used by Flink. &lt;br /&gt;
+&lt;sup&gt;2&lt;/sup&gt; This may become applicable to streaming jobs once the &lt;a href=&quot;/roadmap.html#batch-and-streaming-unification&quot;&gt;Batch/Streaming unification&lt;/a&gt; is done.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Additionally, for subtasks with more than one input, scheduling start in two ways: after &lt;em&gt;all&lt;/em&gt; or after &lt;em&gt;any&lt;/em&gt; input producers to have produced a record/their complete dataset. For tuning the output types and scheduling decisions in batch jobs, please have a look at &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setExecutionMode-org.apache.flink.api.common.ExecutionMode-&quot;&gt;ExecutionConfig#setExecutionMode()&lt;/a&gt; - and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionMode.html#enum.constant.detail&quot;&gt;ExecutionMode&lt;/a&gt; in particular - as well as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setDefaultInputDependencyConstraint-org.apache.flink.api.common.InputDependencyConstraint-&quot;&gt;ExecutionConfig#setDefaultInputDependencyConstraint()&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;physical-transport&quot;&gt;Physical Transport&lt;/h2&gt;
+
+&lt;p&gt;In order to understand the physical data connections, please recall that, in Flink, different tasks may share the same slot via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;slot sharing groups&lt;/a&gt;. TaskManagers may also provide more than one slot to allow multiple subtasks of the same task to be scheduled onto the same TaskManager.&lt;/p&gt;
+
+&lt;p&gt;For the example pictured below, we will assume a parallelism of 4 and a deployment with two task managers offering 2 slots each. TaskManager 1 executes subtasks A.1, A.2, B.1, and B.2 and TaskManager 2 executes subtasks A.3, A.4, B.3, and B.4. In a shuffle-type connection between task A and task B, for example from a &lt;code&gt;keyBy()&lt;/code&gt;, there are 2x4 logical connections to handle on each TaskManager, some of which are local, some remote:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;&lt;/th&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;B.1&lt;/th&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;B.2&lt;/th&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;B.3&lt;/th&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;B.4&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;A.1&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;local&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;remote&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;A.2&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;A.3&lt;/th&gt;
+    &lt;td class=&quot;tg-center&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;remote&lt;/td&gt;
+    &lt;td class=&quot;tg-center&quot; colspan=&quot;2&quot; rowspan=&quot;2&quot;&gt;local&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tg-wide&quot;&gt;A.4&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each (remote) network connection between different tasks will get its own TCP channel in Flink’s network stack. However, if different subtasks of the same task are scheduled onto the same TaskManager, their network connections towards the same TaskManagers will be multiplexed and share a single TCP channel for reduced resource usage. In our example, this would apply to A.1 → B.3, A.1 → B.4, as well as A.2 → B.3, and A.2 → B.4 as pictured below:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack2.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The results of each subtask are called &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/partition/ResultPartition.html&quot;&gt;ResultPartition&lt;/a&gt;, each split into separate &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/partition/ResultSubpartition.html&quot;&gt;ResultSubpartitions&lt;/a&gt; — one for each logical channel. At this point in the stack, Flink is not dealing with individual records anymore but instead with a group of serialised records assembled together into network buffers. The number of buffers available to each subtask in its own local buffer pool (one per sending and receiving side each) is limited to at most&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;#channels * buffers-per-channel + floating-buffers-per-gate
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The total number of buffers on a single TaskManager usually does not need configuration. See the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#configuring-the-network-buffers&quot;&gt;Configuring the Network Buffers&lt;/a&gt; documentation for details on how to do so if needed.&lt;/p&gt;
+
+&lt;h3 id=&quot;inflicting-backpressure-1&quot;&gt;Inflicting Backpressure (1)&lt;/h3&gt;
+
+&lt;p&gt;Whenever a subtask’s sending buffer pool is exhausted — buffers reside in either a result subpartition’s buffer queue or inside the lower, Netty-backed network stack — the producer is blocked, cannot continue, and experiences backpressure. The receiver works in a similar fashion: any incoming Netty buffer in the lower network stack needs to be made available to Flink via a network buffer. If there is no network buffer available in the appropriate subtask’s buffer pool, Flink will stop reading from this channel until a buffer becomes available. This would effectively backpressure all sending subtasks on this multiplex and therefore also throttle other receiving subtasks. The following picture illustrates this for an overloaded subtask B.4 which would cause backpressure on the multiplex and also stop subtask B.3 from receiving and processing further buffers, even though it still has capacity.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack3.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-backpressure-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;To prevent this situation from even happening, Flink 1.5 introduced its own flow control mechanism.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;credit-based-flow-control&quot;&gt;Credit-based Flow Control&lt;/h2&gt;
+
+&lt;p&gt;Credit-based flow control makes sure that whatever is “on the wire” will have capacity at the receiver to handle. It is based on the availability of network buffers as a natural extension of the mechanisms Flink had before. Instead of only having a shared local buffer pool, each remote input channel now has its own set of &lt;strong&gt;exclusive buffers&lt;/strong&gt;. Conversely, buffers in the local buffer pool are called &lt;strong&gt;floating buffers&lt;/strong&gt; as they will float around and are available to every input channel.&lt;/p&gt;
+
+&lt;p&gt;Receivers will announce the availability of buffers as &lt;strong&gt;credits&lt;/strong&gt; to the sender (1 buffer = 1 credit). Each result subpartition will keep track of its &lt;strong&gt;channel credits&lt;/strong&gt;. Buffers are only forwarded to the lower network stack if credit is available and each sent buffer reduces the credit score by one. In addition to the buffers, we also send information about the current &lt;strong&gt;backlog&lt;/strong&gt; size which specifies how many buffers are waiting in this subpartition’s queue. The receiver will use this to ask for an appropriate number of floating buffers for faster backlog processing. It will try to acquire as many floating buffers as the backlog size but this may not always be possible and we may get some or no buffers at all. The receiver will make use of the retrieved buffers and will listen for further buffers becoming available to continue.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack4.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-credit-flow-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Credit-based flow control will use &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; to specify how many buffers are exclusive (mandatory) and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-floating-buffers-per-gate&quot;&gt;floating-buffers-per-gate&lt;/a&gt; for the local buffer pool (optional&lt;sup&gt;3&lt;/sup&gt;) thus achieving the same buffer limit as without flow control. The default values for these two parameters have been chosen so that the maximum (theoretical) throughput with flow control is at least as good as without flow control, given a healthy network with usual latencies. You may need to adjust these depending on your actual round-trip-time and bandwidth.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;3&lt;/sup&gt;If there are not enough buffers available, each buffer pool will get the same share of the globally available ones (± 1).&lt;/p&gt;
+
+&lt;h3 id=&quot;inflicting-backpressure-2&quot;&gt;Inflicting Backpressure (2)&lt;/h3&gt;
+
+&lt;p&gt;As opposed to the receiver’s backpressure mechanisms without flow control, credits provide a more direct control: If a receiver cannot keep up, its available credits will eventually hit 0 and stop the sender from forwarding buffers to the lower network stack. There is backpressure on this logical channel only and there is no need to block reading from a multiplexed TCP channel. Other receivers are therefore not affected in processing available buffers.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-do-we-gain-where-is-the-catch&quot;&gt;What do we Gain? Where is the Catch?&lt;/h3&gt;
+
+&lt;p&gt;&lt;img align=&quot;right&quot; src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack5.png&quot; width=&quot;300&quot; height=&quot;200&quot; alt=&quot;Physical-transport-credit-flow-checkpoints-Flink&#39;s Network Stack&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Since, with flow control, a channel in a multiplex cannot block another of its logical channels, the overall resource utilisation should increase. In addition, by having full control over how much data is “on the wire”, we are also able to improve &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/internals/stream_checkpointing.html#checkpointing&quot;&gt;checkpoint alignments&lt;/a&gt;: without flow control, it would take a while for the channel to fill the network stack’s internal buffers and propagate that the receiver is not reading anymore. During that time, a lot of buffers could be sitting around. Any checkpoint barrier would have to queue up behind these buffers and would thus have to wait until all of those have been processed before it can start (“Barriers never overtake records!”).&lt;/p&gt;
+
+&lt;p&gt;However, the additional announce messages from the receiver may come at some additional costs, especially in setup using SSL-encrypted channels. Also, a single input channel cannot make use of all buffers in the buffer pool because exclusive buffers are not shared. It can also not start right away with sending as much data as is available so that during ramp-up (if you are producing data faster than announcing credits in return) it may take longer to send data through. While this may affect your job’s performance, it is usually better to have flow control because of all its advantages. You may want to increase the number of exclusive buffers via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel&quot;&gt;buffers-per-channel&lt;/a&gt; at the cost of using more memory. The overall memory use compared to the previous implementation, however, may still be lower because lower network stacks do not need to buffer much data any more since we can always transfer that to Flink immediately.&lt;/p&gt;
+
+&lt;p&gt;There is one more thing you may notice when using credit-based flow control: since we buffer less data between the sender and receiver, you may experience backpressure earlier. This is, however, desired and you do not really get any advantage by buffering more data. If you want to buffer more but keep flow control, you could consider increasing the number of floating buffers via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-floating-buffers-per-gate&quot;&gt;floating-buffers-per-gate&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table class=&quot;tg&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Advantages&lt;/th&gt;
+    &lt;th&gt;Disadvantages&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-top&quot;&gt;
+    • better resource utilisation with data skew in multiplexed connections &lt;br /&gt;&lt;br /&gt;
+    • improved checkpoint alignment&lt;br /&gt;&lt;br /&gt;
+    • reduced memory use (less data in lower network layers)&lt;/td&gt;
+    &lt;td class=&quot;tg-top&quot;&gt;
+    • additional credit-announce messages&lt;br /&gt;&lt;br /&gt;
+    • additional backlog-announce messages (piggy-backed with buffer messages, almost no overhead)&lt;br /&gt;&lt;br /&gt;
+    • potential round-trip latency&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td class=&quot;tg-center&quot; colspan=&quot;2&quot;&gt;• backpressure appears earlier&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+If you need to turn off credit-based flow control, you can add this to your &lt;code&gt;flink-conf.yaml&lt;/code&gt;:&lt;/p&gt;
+
+  &lt;p&gt;&lt;code&gt;taskmanager.network.credit-model: false&lt;/code&gt;&lt;/p&gt;
+
+  &lt;p&gt;This parameter, however, is deprecated and will eventually be removed along with the non-credit-based flow control code.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;writing-records-into-network-buffers-and-reading-them-again&quot;&gt;Writing Records into Network Buffers and Reading them again&lt;/h2&gt;
+
+&lt;p&gt;The following picture extends the slightly more high-level view from above with further details of the network stack and its surrounding components, from the collection of a record in your sending operator to the receiving operator getting it:
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack6.png&quot; width=&quot;700px&quot; alt=&quot;Physical-transport-complete-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;After creating a record and passing it along, for example via &lt;code&gt;Collector#collect()&lt;/code&gt;, it is given to the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/writer/RecordWriter.html&quot;&gt;RecordWriter&lt;/a&gt; which serialises the record from a Java object into a sequence of bytes which eventually ends up in a network buffer that is handed along as described above. The RecordWriter first serialises the record to a flexible on-heap byte array using the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/serialization/SpanningRecordSerializer.html&quot;&gt;SpanningRecordSerializer&lt;/a&gt;. Afterwards, it tries to write these bytes into the associated network buffer of the target network channel. We will come back to this last part in the section below.&lt;/p&gt;
+
+&lt;p&gt;On the receiver’s side, the lower network stack (netty) is writing received buffers into the appropriate input channels. The (stream) tasks’s thread eventually reads from these queues and tries to deserialise the accumulated bytes into Java objects with the help of the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/reader/RecordReader.html&quot;&gt;RecordReader&lt;/a&gt; and going through the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/api/serialization/SpillingAdaptiveSpanningRecordDeserializer.html&quot;&gt;SpillingAdaptiveSpanningRecordDeserializer&lt;/a&gt;. Similar to the serialiser, this deserialiser must also deal with special cases like records spanning multiple network buffers, either because the record is just bigger than a network buffer (32KiB by default, set via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/config.html#taskmanager-memory-segment-size&quot;&gt;taskmanager.memory.segment-size&lt;/a&gt;) or because the serialised record was added to a network buffer which did not have enough remaining bytes. Flink will nevertheless use these bytes and continue writing the rest to a new network buffer.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;flushing-buffers-to-netty&quot;&gt;Flushing Buffers to Netty&lt;/h3&gt;
+
+&lt;p&gt;In the picture above, the credit-based flow control mechanics actually sit inside the “Netty Server” (and “Netty Client”) components and the buffer the RecordWriter is writing to is always added to the result subpartition in an empty state and then gradually filled with (serialised) records. But when does Netty actually get the buffer? Obviously, it cannot take bytes whenever they become available since that would not only add substantial costs due to cross-thread communication and synchronisation, but also make the whole buffering obsolete.&lt;/p&gt;
+
+&lt;p&gt;In Flink, there are three situations that make a buffer available for consumption by the Netty server:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;a buffer becomes full when writing a record to it, or&lt;br /&gt;&lt;/li&gt;
+  &lt;li&gt;the buffer timeout hits, or&lt;br /&gt;&lt;/li&gt;
+  &lt;li&gt;a special event such as a checkpoint barrier is sent.&lt;br /&gt;
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;flush-after-buffer-full&quot;&gt;Flush after Buffer Full&lt;/h4&gt;
+
+&lt;p&gt;The RecordWriter works with a local serialisation buffer for the current record and will gradually write these bytes to one or more network buffers sitting at the appropriate result subpartition queue. Although a RecordWriter can work on multiple subpartitions, each subpartition has only one RecordWriter writing data to it. The Netty server, on the other hand, is reading from multiple result subpartitions and multiplexing the appropriate ones into a single channel as described above. This is a classical producer-consumer pattern with the network buffers in the middle and as shown by the next picture. After (1) serialising and (2) writing data to the buffer, the RecordWriter updates the buffer’s writer index accordingly. Once the buffer is completely filled, the record writer will (3) acquire a new buffer from its local buffer pool for any remaining bytes of the current record - or for the next one - and add the new one to the subpartition queue. This will (4) notify the Netty server of data being available if it is not aware yet&lt;sup&gt;4&lt;/sup&gt;. Whenever Netty has capacity to handle this notification, it will (5) take the buffer and send it along the appropriate TCP channel.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack7.png&quot; width=&quot;500px&quot; alt=&quot;Record-writer-to-network-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;4&lt;/sup&gt;We can assume it already got the notification if there are more finished buffers in the queue.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;flush-after-buffer-timeout&quot;&gt;Flush after Buffer Timeout&lt;/h4&gt;
+
+&lt;p&gt;In order to support low-latency use cases, we cannot only rely on buffers being full in order to send data downstream. There may be cases where a certain communication channel does not have too many records flowing through and unnecessarily increase the latency of the few records you actually have. Therefore, a periodic process will flush whatever data is available down the stack: the output flusher. The periodic interval can be configured via &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html#setBufferTimeout-long-&quot;&gt;StreamExecutionEnvironment#setBufferTimeout&lt;/a&gt; and acts as an upper bound on the latency&lt;sup&gt;5&lt;/sup&gt; (for low-throughput channels). The following picture shows how it interacts with the other components: the RecordWriter serialises and writes into network buffers as before but concurrently, the output flusher may (3,4) notify the Netty server of data being available if Netty is not already aware (similar to the “buffer full” scenario above). When Netty handles this notification (5) it will consume the available data from the buffer and update the buffer’s reader index. The buffer stays in the queue - any further operation on this buffer from the Netty server side will continue reading from the reader index next time.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack8.png&quot; width=&quot;500px&quot; alt=&quot;Record-writer-to-network-with-flusher-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;sup&gt;5&lt;/sup&gt;Strictly speaking, the output flusher does not give any guarantees - it only sends a notification to Netty which can pick it up at will / capacity. This also means that the output flusher has no effect if the channel is backpressured.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;flush-after-special-event&quot;&gt;Flush after special event&lt;/h4&gt;
+
+&lt;p&gt;Some special events also trigger immediate flushes if being sent through the RecordWriter. The most important ones are checkpoint barriers or end-of-partition events which obviously should go quickly and not wait for the output flusher to kick in.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;further-remarks&quot;&gt;Further remarks&lt;/h4&gt;
+
+&lt;p&gt;In contrast to Flink &amp;lt; 1.5, please note that (a) network buffers are now placed in the subpartition queues directly and (b) we are not closing the buffer on each flush. This gives us a few advantages:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;less synchronisation overhead (output flusher and RecordWriter are independent)&lt;/li&gt;
+  &lt;li&gt;in high-load scenarios where Netty is the bottleneck (either through backpressure or directly), we can still accumulate data in incomplete buffers&lt;/li&gt;
+  &lt;li&gt;significant reduction of Netty notifications&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, you may notice an increased CPU use and TCP packet rate during low load scenarios. This is because, with the changes, Flink will use any &lt;em&gt;available&lt;/em&gt; CPU cycles to try to maintain the desired latency. Once the load increases, this will self-adjust by buffers filling up more. High load scenarios are not affected and even get a better throughput because of the reduced synchronisation overhead.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;buffer-builder--buffer-consumer&quot;&gt;Buffer Builder &amp;amp; Buffer Consumer&lt;/h3&gt;
+
+&lt;p&gt;If you want to dig deeper into how the producer-consumer mechanics are implemented in Flink, please take a closer look at the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/buffer/BufferBuilder.html&quot;&gt;BufferBuilder&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/api/java/org/apache/flink/runtime/io/network/buffer/BufferConsumer.html&quot;&gt;BufferConsumer&lt;/a&gt; classes which have been introduced in Flink 1.5. While reading is potentially only &lt;em&gt;per buffer&lt;/em&gt;, writing to it is &lt;em&gt;per record&lt;/em&gt; and thus on the hot path for all network communication in Flink. Therefore, it was very clear to us that we needed a lightweight connection between the task’s thread and the Netty thread which does not imply too much synchronisation overhead. For further details, we suggest to check out the &lt;a href=&quot;https://github.com/apache/flink/tree/release-1.8/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/buffer&quot;&gt;source code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;latency-vs-throughput&quot;&gt;Latency vs. Throughput&lt;/h2&gt;
+
+&lt;p&gt;Network buffers were introduced to get higher resource utilisation and higher throughput at the cost of having some records wait in buffers a little longer. Although an upper limit to this wait time can be given via the buffer timeout, you may be curious to find out more about the trade-off between these two dimensions: latency and throughput, as, obviously, you cannot get both. The following plot shows various values for the buffer timeout starting at 0 (flush with every record) to 100ms (the default) and shows the resulting throughput rates on a cluster with 100 nodes and 8 slots each running a job that has no business logic and thus only tests the network stack. For comparison, we also plot Flink 1.4 before the low-latency improvements (as described above) were added.
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-06-05-network-stack/flink-network-stack9.png&quot; width=&quot;650px&quot; alt=&quot;Network-buffertimeout-Flink&#39;s Network Stack&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see, with Flink 1.5+, even very low buffer timeouts such as 1ms (for low-latency scenarios) provide a maximum throughput as high as 75% of the default timeout where more data is buffered before being sent over the wire.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Now you know about result partitions, the different network connections and scheduling types for both batch and streaming. You also know about credit-based flow control and how the network stack works internally, in order to reason about network-related tuning parameters and about certain job behaviours. Future blog posts in this series will build upon this knowledge and go into more operational details including relevant metrics to look at, further network stack tuning, and common antipatterns to avoid. Stay tuned for more.&lt;/p&gt;
+
+</description>
+<pubDate>Wed, 05 Jun 2019 10:45:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/06/05/flink-network-stack.html</link>
+<guid isPermaLink="true">/2019/06/05/flink-network-stack.html</guid>
+</item>
+
+<item>
+<title>State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink</title>
+<description>&lt;p&gt;A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.&lt;/p&gt;
+
+&lt;p&gt;In this post, we motivate the State TTL feature and discuss its use cases. Moreover, we show how to use and configure it. We explain how Flink internally manages state with TTL and present some exciting additions to the feature in Flink 1.8.0. The blog post concludes with an outlook on future improvements and extensions.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-transient-nature-of-state&quot;&gt;The Transient Nature of State&lt;/h1&gt;
+
+&lt;p&gt;There are two major reasons why state should be maintained only for a limited time. For example, let’s imagine a Flink application that ingests a stream of user login events and stores for each user the time of the last login to improve the experience of frequent visitors.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Controlling the size of state.&lt;/strong&gt;
+Being able to efficiently manage an ever-growing state size is a primary use case for state TTL. Oftentimes, data needs to be persisted temporarily while there is some user activity around it, e.g. web sessions. When the activity ends there is no longer interest in that data while it still occupies storage. Flink 1.8.0 introduces background cleanup of old state based on TTL that makes the eviction of no-longer-necessary data frictionless. Previously, the application developer had to take extra actions and explicitly remove useless state to free storage space. This manual clean up procedure was not only error prone but also less efficient than the new lazy method to remove state. Following our previous example of storing the time of the last login, this might not be necessary after some time because the user can be treated as “infrequent” later on.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Complying with data protection and sensitive data requirements.&lt;/strong&gt;
+Recent developments around data privacy regulations, such as the General Data Protection Regulation (GDPR) introduced by the European Union, make compliance with such data requirements or treating sensitive data a top priority for many use cases and applications. An example of such use cases includes applications that require keeping data for a specific timeframe and preventing access to it thereafter. This is a common challenge for companies providing short-term services to their customers. The state TTL feature gives guarantees for how long an application can access state and hence can help to comply with data protection regulations.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Both requirements can be addressed by a feature that periodically, yet continuously, removes the state for a key once it becomes unnecessary or unimportant and there is no requirement to keep it in storage any more.&lt;/p&gt;
+
+&lt;h1 id=&quot;state-ttl-for-continuous-cleanup-of-application-state&quot;&gt;State TTL for continuous cleanup of application state&lt;/h1&gt;
+
+&lt;p&gt;The 1.6.0 release of Apache Flink introduced the State TTL feature. It enabled developers of stream processing applications to configure the state of operators to expire and be cleaned up after a defined timeout (time-to-live). In Flink 1.8.0 the feature was extended, including continuous cleanup of old entries for both the RocksDB and the heap state backends (FSStateBackend and MemoryStateBackend), enabling a continuous cleanup process of old entries (according to the TTL setting).&lt;/p&gt;
+
+&lt;p&gt;In Flink’s DataStream API, application state is defined by a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/stream/state/state.html#using-managed-keyed-state&quot;&gt;state descriptor&lt;/a&gt;. State TTL is configured by passing a &lt;code&gt;StateTtlConfiguration&lt;/code&gt; object to a state descriptor. The following Java example shows how to create a state TTL configuration and provide it to the state descriptor that holds the last login time of a user as a &lt;code&gt;Long&lt;/code&gt; value:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.state.StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.time.Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.state.ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setUpdateType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;UpdateType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;OnCreateAndWrite&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setStateVisibility&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;StateVisibility&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;NeverReturnExpired&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    
+&lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lastUserLogin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;lastUserLogin&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;lastUserLogin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;enableTimeToLive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Flink provides multiple options to configure the behavior of the state TTL functionality.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;When is the Time-to-Live reset?&lt;/strong&gt; 
+By default, the expiration time of a state entry is updated when the state is modified. Optionally, it can also be updated on read access at the cost of an additional write operation to update the timestamp.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Can the expired state be accessed one last time?&lt;/strong&gt; 
+State TTL employs a lazy strategy to clean up expired state. This can lead to the situation that an application attempts to read state which is expired but hasn’t been removed yet. You can configure whether such a read request returns the expired state or not. In either case, the expired state is immediately removed afterwards. While the option of returning expired state favors data availability, not returning expired state can be required for data protection regulations.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Which time semantics are used for the Time-to-Live timers?&lt;/strong&gt; 
+With Flink 1.8.0, users can only define a state TTL in terms of processing time. The support for event time is planned for future Apache Flink releases.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can read more about how to use state TTL in the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/state.html#state-time-to-live-ttl&quot;&gt;Apache Flink documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Internally, the State TTL feature is implemented by storing an additional timestamp of the last relevant state access, along with the actual state value. While this approach adds some storage overhead, it allows Flink to check for the expired state during state access, checkpointing, recovery, or dedicated storage cleanup procedures.&lt;/p&gt;
+
+&lt;h1 id=&quot;taking-out-the-garbage&quot;&gt;“Taking out the Garbage”&lt;/h1&gt;
+
+&lt;p&gt;When a state object is accessed in a read operation, Flink will check its timestamp and clear the state if it is expired (depending on the configured state visibility, the expired state is returned or not). Due to this lazy removal, expired state that is never accessed again will forever occupy storage space unless it is garbage collected.&lt;/p&gt;
+
+&lt;p&gt;So how can the expired state be removed without the application logic explicitly taking care of it? In general, there are different possible strategies to remove it in the background.&lt;/p&gt;
+
+&lt;h2 id=&quot;keep-full-state-snapshots-clean&quot;&gt;Keep full state snapshots clean&lt;/h2&gt;
+
+&lt;p&gt;Flink 1.6.0 already supported automatic eviction of the expired state when a full snapshot for a checkpoint or savepoint is taken. Note that state eviction is not applied for incremental checkpoints. State eviction on full snapshots must be explicitly enabled as shown in the following example:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupFullSnapshot&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The local storage stays untouched but the size of the stored snapshot is reduced. The local state of an operator will only be cleaned up when the operator reloads its state from a snapshot, i.e. in case of recovery or when starting from a savepoint.&lt;/p&gt;
+
+&lt;p&gt;Due to these limitations, applications still need to actively remove state after it expired in Flink 1.6.0. To improve the user experience, Flink 1.8.0 introduces two more autonomous cleanup strategies, one for each of Flink’s two state backend types. We describe them below.&lt;/p&gt;
+
+&lt;h2 id=&quot;incremental-cleanup-in-heap-state-backends&quot;&gt;Incremental cleanup in Heap state backends&lt;/h2&gt;
+
+&lt;p&gt;This approach is specific to the Heap state backends (FSStateBackend and MemoryStateBackend). The idea is that the storage backend keeps a lazy global iterator over all state entries. Certain events, for instance state access, trigger an incremental cleanup. Every time an incremental cleanup is triggered, the iterator is advanced. The traversed state entries are checked and expired once are removed. The following code example shows how to enable incremental cleanup:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// check 10 keys for every state access&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupIncrementally&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If enabled, every state access triggers a cleanup step. For every clean up step, a certain number of state entries are checked for expiration. There are two tuning parameters. The first defines the number of state entries to check for each cleanup step. The second parameter is a flag to trigger a cleanup step after each processed record, additionally to each state access.&lt;/p&gt;
+
+&lt;p&gt;There are two important caveats about this approach: 
+* The first one is that the time spent for the incremental cleanup increases the record processing latency.
+* The second one should be practically negligible but still worth mentioning: if no state is accessed or no records are processed, expired state won’t be removed.&lt;/p&gt;
+
+&lt;h2 id=&quot;rocksdb-background-compaction-to-filter-out-expired-state&quot;&gt;RocksDB background compaction to filter out expired state&lt;/h2&gt;
+
+&lt;p&gt;If your application uses the RocksDB state backend, you can enable another cleanup strategy which is based on a Flink specific compaction filter. RocksDB periodically runs asynchronous compactions to merge state updates and reduce storage. The Flink compaction filter checks the expiration timestamp of state entries with TTL and discards all expired values.&lt;/p&gt;
+
+&lt;p&gt;The first step to activate this feature is to configure the RocksDB state backend by setting the following Flink configuration option: &lt;code&gt;state.backend.rocksdb.ttl.compaction.filter.enabled&lt;/code&gt;. Once the RocksDB state backend is configured, the compaction cleanup strategy is enabled for a state as shown in the following code example:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupInRocksdbCompactFilter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Keep in mind that calling the Flink TTL filter slows down the RocksDB compaction.&lt;/p&gt;
+
+&lt;h2 id=&quot;eager-state-cleanup-with-timers&quot;&gt;Eager State Cleanup with Timers&lt;/h2&gt;
+
+&lt;p&gt;Another way to manually cleanup state is based on Flink timers. This is an idea that the community is currently evaluating for future releases. With this approach, a cleanup timer is registered for every state access. This approach is more predictable because state is eagerly removed as soon as it expires. However, it is more expensive because the timers consume storage along with the original state.&lt;/p&gt;
+
+&lt;h1 id=&quot;future-work&quot;&gt;Future work&lt;/h1&gt;
+
+&lt;p&gt;Apart from including the timer-based cleanup strategy, mentioned above, the Flink community has plans to further improve the state TTL feature. The possible improvements include adding support of TTL for event time scale (only processing time is supported at the moment) and enabling State TTL for queryable state.&lt;/p&gt;
+
+&lt;p&gt;We encourage you to join the conversation and share your thoughts and ideas in the &lt;a href=&quot;https://issues.apache.org/jira/projects/FLINK/summary&quot;&gt;Apache Flink JIRA board&lt;/a&gt; or by subscribing to the Apache Flink dev mailing list. Feedback or suggestions are always appreciated and we look forward to hearing your thoughts on the Flink mailing lists.&lt;/p&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;Time-based state access restrictions and controlling the size of application state are common challenges in the world of stateful stream processing. Flink’s 1.8.0 release significantly improves the State TTL feature by adding support for continuous background cleanup of expired state objects. The new clean up mechanisms relieve you from manually implementing state cleanup. They are also more efficient due to their lazy nature. State TTL gives you control over the size of your application state so that you can focus on the core logic of your applications.&lt;/p&gt;
+</description>
+<pubDate>Sun, 19 May 2019 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2019/05/19/state-ttl.html</link>
+<guid isPermaLink="true">/2019/05/19/state-ttl.html</guid>
+</item>
+
+<item>
 <title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL</title>
 <description>&lt;p&gt;Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of &lt;strong&gt;temporal data&lt;/strong&gt;, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?&lt;/p&gt;
 
@@ -111,7 +1317,7 @@
 
 &lt;p&gt;If you’d like to get some &lt;strong&gt;hands-on practice in joining streams with Flink SQL&lt;/strong&gt; (and Flink SQL in general), checkout this &lt;a href=&quot;https://github.com/ververica/sql-training/wiki&quot;&gt;free training for Flink SQL&lt;/a&gt;. The training environment is based on Docker and set up in just a few minutes.&lt;/p&gt;
 
-&lt;p&gt;Subscribe to the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Apache Flink mailing lists&lt;/a&gt; to stay up-to-date with the latest developments in this space.&lt;/p&gt;
+&lt;p&gt;Subscribe to the &lt;a href=&quot;/community.html#mailing-lists&quot;&gt;Apache Flink mailing lists&lt;/a&gt; to stay up-to-date with the latest developments in this space.&lt;/p&gt;
 </description>
 <pubDate>Tue, 14 May 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/2019/05/14/temporal-tables.html</link>
@@ -151,7 +1357,7 @@
 
 &lt;h2 id=&quot;pulsars-view-on-data-segmented-data-streams&quot;&gt;Pulsar’s view on data: Segmented data streams&lt;/h2&gt;
 
-&lt;p&gt;Apache Flink is a streaming-first computation framework that perceives &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;batch processing as a special case of streaming&lt;/a&gt;. Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.&lt;/p&gt;
+&lt;p&gt;Apache Flink is a streaming-first computation framework that perceives &lt;a href=&quot;/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;batch processing as a special case of streaming&lt;/a&gt;. Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.&lt;/p&gt;
 
 &lt;p&gt;Apache Pulsar has a similar perspective to that of Apache Flink with regards to the data layer. The framework also uses streams as a unified view on all data, while its layered architecture allows traditional pub-sub messaging for streaming workloads and continuous data processing or usage of &lt;em&gt;Segmented Streams&lt;/em&gt; and bounded data stream for batch and static workloads.&lt;/p&gt;
 
@@ -257,7 +1463,7 @@
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
-&lt;p&gt;Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be &lt;em&gt;“streaming-first”&lt;/em&gt; with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Apache Flink&lt;/a&gt; and &lt;a href=&quot;https://lists.apache.org/list.html?dev@pulsar.apache.org&quot;&gt;Apache Pulsar&lt;/a&gt; mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.&lt;/p&gt;
+&lt;p&gt;Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be &lt;em&gt;“streaming-first”&lt;/em&gt; with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the &lt;a href=&quot;/community.html#mailing-lists&quot;&gt;Apache Flink&lt;/a&gt; and &lt;a href=&quot;https://lists.apache.org/list.html?dev@pulsar.apache.org&quot;&gt;Apache Pulsar&lt;/a&gt; mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.&lt;/p&gt;
 </description>
 <pubDate>Fri, 03 May 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/2019/05/03/pulsar-flink.html</link>
@@ -335,15 +1541,15 @@ for more details.&lt;/p&gt;
 
 &lt;p&gt;Flink 1.8.0 is API-compatible with previous 1.x.y releases for APIs annotated
 with the &lt;code&gt;@Public&lt;/code&gt; annotation.  The release is available now and we encourage
-everyone to &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;download the release&lt;/a&gt; and
+everyone to &lt;a href=&quot;/downloads.html&quot;&gt;download the release&lt;/a&gt; and
 check out the updated
 &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/&quot;&gt;documentation&lt;/a&gt;.
-Feedback through the Flink &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing
+Feedback through the Flink &lt;a href=&quot;/community.html#mailing-lists&quot;&gt;mailing
 lists&lt;/a&gt; or
 &lt;a href=&quot;https://issues.apache.org/jira/projects/FLINK/summary&quot;&gt;JIRA&lt;/a&gt; is, as always,
 very much appreciated!&lt;/p&gt;
 
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt; on the Flink project site.&lt;/p&gt;
+&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt; on the Flink project site.&lt;/p&gt;
 
 &lt;div class=&quot;page-toc&quot;&gt;
 &lt;ul id=&quot;markdown-toc&quot;&gt;
@@ -532,7 +1738,7 @@ Convenience binaries that include hadoop are no longer released.&lt;/p&gt;
 
     &lt;p&gt;If a deployment relies on &lt;code&gt;flink-shaded-hadoop2&lt;/code&gt; being included in
 &lt;code&gt;flink-dist&lt;/code&gt;, then you must manually download a pre-packaged Hadoop
-jar from the optional components section of the &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;download
+jar from the optional components section of the &lt;a href=&quot;/downloads.html&quot;&gt;download
 page&lt;/a&gt; and copy it into the
 &lt;code&gt;/lib&lt;/code&gt; directory.  Alternatively, a Flink distribution that includes
 hadoop can be built by packaging &lt;code&gt;flink-dist&lt;/code&gt; and activating the
@@ -1407,7 +2613,7 @@ for a full reference of Flink’s metrics system.&lt;/p&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;List of resolved issues:&lt;/p&gt;
 
@@ -1506,7 +2712,7 @@ We highly recommend all users to upgrade to Flink 1.7.2.&lt;/p&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.7.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;List of resolved issues:&lt;/p&gt;
 
