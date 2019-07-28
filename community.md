@@ -329,6 +329,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">trohrmann</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/3581352?s=50" class="committer-avatar"></td>
+    <td class="text-center">Rong Rong</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">rongr</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/105434?s=50" class="committer-avatar"></td>
     <td class="text-center">Henry Saputra</td>
     <td class="text-center">PMC, Committer</td>
