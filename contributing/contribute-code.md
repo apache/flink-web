@@ -108,7 +108,7 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
       <div class="panel-body">
         <h2><span class="number">3</span><a href="#review">Review</a></h2>
         <p>Open a pull request and work with the reviewer.</p>
-        <p><b>Pull requests belonging to unassigned Jira tickets will not be reviewed or merged by the community.</b></p>
+        <p><b>Pull requests belonging to unassigned Jira tickets or not authored by assignee will not be reviewed or merged by the community.</b></p>
       </div>
     </div>
   </div>
