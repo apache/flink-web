@@ -8,7 +8,6 @@ title:  "Apache Flink Code Style and Quality Guide — Pull Requests & Changes"
 
 **Rationale:** We ask contributors to put in a little bit of extra effort to bring pull requests into a state that they can be more easily and more thoroughly reviewed. This helps the community in many ways:
 
-
 * Reviews are much faster and thus contributions get merged sooner.
 * We can ensure higher code quality by overlooking fewer issues in the contributions.
 * Committers can review more contributions in the same time, which helps to keep up with the high rate of contributions that Flink is experiencing
@@ -18,14 +17,14 @@ Please understand that contributions that do not follow this guide will take lon
 
 ## 1. JIRA issue and Naming
 
-Make sure that the pull request corresponds to a [JIRA issue]([https://issues.apache.org/jira/projects/FLINK/issues](https://issues.apache.org/jira/projects/FLINK/issues)).
+Make sure that the pull request corresponds to a [JIRA issue]([https://issues.apache.org/jira/projects/FLINK/issues).
 
 Exceptions are ****hotfixes****, like fixing typos in JavaDocs or documentation files.
   
 
-Name the pull request in the form `[FLINK-XXXX] [component] Title of the pull request`, where `FLINK-XXXX` should be replaced by the actual issue number. The components should be the same as used in the JIRA issue.
+Name the pull request in the form `[FLINK-XXXX][component] Title of the pull request`, where `FLINK-XXXX` should be replaced by the actual issue number. The components should be the same as used in the JIRA issue.
 
-Hotfixes should be named for example `[hotfix] [docs] Fix typo in event time introduction` or `[hotfix] [javadocs] Expand JavaDoc for PuncuatedWatermarkGenerator`.
+Hotfixes should be named for example `[hotfix][docs] Fix typo in event time introduction` or `[hotfix][javadocs] Expand JavaDoc for PuncuatedWatermarkGenerator`.
 
 
 ## 2. Description
@@ -46,8 +45,6 @@ If additional open questions / issues were discovered during the implementation 
 Pull Requests must put cleanup, refactoring, and core changes into separate commits. That way, the reviewer can look independently at the cleanup and refactoring and ensure that those changes to not alter the behavior. Then the reviewer can look at the core changes in isolation (without the noise of other changes) and ensure that this is a clean and robust change.
 
 Examples for changes that strictly need to go into a separate commit include
-
-
 
 * Cleanup, fixing style and warnings in pre-existing code
 * Renaming packages, classes, or methods
@@ -71,7 +68,7 @@ If a pull request does still contain big commits (e.g. a commit with more than 1
 ## 4. Commit Naming Conventions
 
 Commit messages should follow a similar pattern as the pull request as a whole: 
-`[FLINK-XXXX] [component] Commit description`. 
+`[FLINK-XXXX][component] Commit description`. 
  
 In some cases, the issue might be a subtask here, and the component may be different from the Pull Request’s main component. For example, when the commit introduces an end-to-end test for a runtime change, the PR would be tagged as `[runtime]`, but the individual commit would be tagged as `[e2e]`.
 
@@ -79,9 +76,9 @@ Examples for commit messages:
 
 * `[hotfix] Fix update_branch_version.sh to allow version suffixes`
 * `[hotfix] [table] Remove unused geometry dependency`
-* `[FLINK-11704] [tests] Improve AbstractCheckpointStateOutputStreamTestBase`
-* `[FLINK-10569] [runtime] Remove Instance usage in ExecutionVertexCancelTest`
-* `[FLINK-11702] [table-planner-blink] Introduce a new table type system`
+* `[FLINK-11704][tests] Improve AbstractCheckpointStateOutputStreamTestBase`
+* `[FLINK-10569][runtime] Remove Instance usage in ExecutionVertexCancelTest`
+* `[FLINK-11702][table-planner-blink] Introduce a new table type system`
 
 
 ## 5. Changes to the observable behavior of the system
