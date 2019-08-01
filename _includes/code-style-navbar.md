@@ -1,22 +1,42 @@
-<hr/>
 
-<div class="row">
-  <div class="col-sm-12" style="background-color: #f8f8f8;">
-    <h2>
+
+<ul class="list-group" style="padding-top: 30px; font-weight: bold;">
+	<li class="list-group-item">
 		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-preamble.html">
 			Preamble
 		</a>
-		 &nbsp;
-		<span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
+	</li>
+	<li class="list-group-item">
 		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-pull-requests.html">
 			Pull Requests & Changes
 		</a>
-		<span class="glyphicon glyphicon-chevron-right"></span> &nbsp;
-		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-general.html">
-			Code Style and Quality Guidelines
+	</li>
+	<li class="list-group-item">
+		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-common.html">
+			Common Coding Guide
 		</a> 
-    </h2>
-  </div>
-</div>
+	</li>
+	<li class="list-group-item">
+		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-java.html">
+			Java Language Guide
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-scala.html">
+			Scala Language Guide
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-components.html">
+			Component Guides
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="{{ site.baseurl }}/contributing/code-style-and-quality-formatting.html">
+			Formatting Guide
+		</a> 
+	</li>
+</ul>
+
 
 <hr/>
