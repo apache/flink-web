@@ -106,6 +106,10 @@ If you would you like to be included on this page, please reach out to the [Flin
       ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" alt="SK telecom" /><br />
+      SK telecom is South Korea's largest wireless carrier and uses Flink for several applications including smart factory and mobility applications. <br><br><a href="https://www.youtube.com/watch?v=wPQWFy5JENw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn more about one of SK telecom's use cases</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" alt="Telefonica Next" /><br />
       Telefónica NEXT's TÜV-certified Data Anonymization Platform is powered by Flink. <br><br><a href="https://next.telefonica.de/en/solutions/big-data-privacy-services" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Telefónica NEXT</a>
   </div>
