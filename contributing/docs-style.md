@@ -53,13 +53,36 @@ Markdown can also be used in combination with [GitHub Flavored Markdown](https:/
 
 ### Front Matter
 
-In addition to Markdown, each page contains a YAML [front matter block](https://jekyllrb.com/docs/front-matter/) that will be used to set variables and metadata on the page. The front matter must be the first thing in the file and must be specified as a valid YAML set between triple-dashed lines.
+In addition to Markdown, each file contains a YAML [front matter block](https://jekyllrb.com/docs/front-matter/) that will be used to set variables and metadata on the page. The front matter must be the first thing in the file and must be specified as a valid YAML set between triple-dashed lines.
+
+<div class="alert alert-warning">
+  <h3>Apache License</h3>
+  For every documentation file, the front matter should be immediately followed by the Apache License statement. For both language versions, this block must be stated in US English and copied in the exact same words as in the following example.
+</div>
 
 ```
 ---
 title: Concepts
 layout: redirect
 ---
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
 ```
 
 Below are the front matter variables most commonly used along the Flink documentation.
