@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Apache Flink: Code Style and Quality Guide (PLACEHOLDER)</title>
+    <title>Apache Flink: Apache Flink Code Style and Quality Guide  — Scala</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
@@ -126,8 +126,8 @@
               <li >
                   <a href="/zh/contributing/reviewing-prs.html">审核 Pull Request</a>
               </li>
-              <li  class="active">
-                  <a href="/zh/contributing/code-style-and-quality.html">代码样式与质量指南</a>
+              <li >
+                  <a href="/zh/contributing/code-style-and-quality-preamble.html">代码样式与质量指南</a>
               </li>
               <li >
                   <a href="/zh/contributing/contribute-documentation.html">贡献文档</a>
@@ -148,7 +148,7 @@
             <!-- Language Switcher -->
             <li>
               
-                <a href="/contributing/code-style-and-quality.html">English</a>
+                <a href="/contributing/code-style-and-quality-scala.html">English</a>
               
             </li>
 
@@ -171,13 +171,147 @@
       <div class="col-sm-9">
       <div class="row-fluid">
   <div class="col-sm-12">
-    <h1>Code Style and Quality Guide (PLACEHOLDER)</h1>
+    <h1>Apache Flink Code Style and Quality Guide  — Scala</h1>
 
-	<p><br />
-<br /></p>
+	
+<ul class="list-group" style="padding-top: 30px; font-weight: bold;">
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-preamble.html">
+			Preamble
+		</a>
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-pull-requests.html">
+			Pull Requests &amp; Changes
+		</a>
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-common.html">
+			Common Coding Guide
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-java.html">
+			Java Language Guide
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-scala.html">
+			Scala Language Guide
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-components.html">
+			Component Guides
+		</a> 
+	</li>
+	<li class="list-group-item">
+		<a href="/contributing/code-style-and-quality-formatting.html">
+			Formatting Guide
+		</a> 
+	</li>
+</ul>
 
-<p>This page is a placeholder for an updated Code Style and Quality Guide to be posted here, once the <a href="https://lists.apache.org/thread.html/461d0922787c62447c3baff3177a0c8f34fee7c95e2896e5ddf59691@%3Cdev.flink.apache.org%3E">discussion on the mailing list</a> has concluded.</p>
+<hr />
 
+<div class="page-toc">
+<ul id="markdown-toc">
+  <li><a href="#scala-language-features" id="markdown-toc-scala-language-features">Scala Language Features</a>    <ul>
+      <li><a href="#where-to-use-and-not-use-scala" id="markdown-toc-where-to-use-and-not-use-scala">Where to use (and not use) Scala</a></li>
+      <li><a href="#api-parity" id="markdown-toc-api-parity">API Parity</a></li>
+      <li><a href="#language-features" id="markdown-toc-language-features">Language Features</a></li>
+      <li><a href="#coding-formatting" id="markdown-toc-coding-formatting">Coding Formatting</a></li>
+    </ul>
+  </li>
+</ul>
+
+</div>
+
+<h2 id="scala-language-features">Scala Language Features</h2>
+
+<h3 id="where-to-use-and-not-use-scala">Where to use (and not use) Scala</h3>
+
+<p><strong>We use Scala for Scala APIs or pure Scala Libraries.</strong></p>
+
+<p><strong>We do not use Scala in the core APIs and runtime components. We aim to remove existing Scala use (code and dependencies) from those components.</strong></p>
+
+<p>⇒ This is not because we do not like Scala, it is a consequence of “the right tool for the right job” approach (see below).</p>
+
+<p>For APIs, we develop the foundation in Java, and layer Scala on top.</p>
+
+<ul>
+  <li>This has traditionally given the best interoperability for both Java and Scala</li>
+  <li>It does mean dedicated effort to keep the Scala API up to date</li>
+</ul>
+
+<p>Why don’t we use Scala in the core APIs and runtime?</p>
+
+<ul>
+  <li>The past has shown that Scala evolves too quickly with tricky changes in functionality. Each Scala version upgrade was a rather big effort process for the Flink community.</li>
+  <li>Scala does not always interact nicely with Java classes, e.g. Scala’s visibility scopes work differently and often expose more to Java consumers than desired</li>
+  <li>Scala adds an additional layer of complexity to artifact/dependency management.
+    <ul>
+      <li>We may want to keep Scala dependent libraries like Akka in the runtime, but abstract them via an interface and load them in a separate classloader, to keep them shielded and avoid version conflicts.</li>
+    </ul>
+  </li>
+  <li>Scala makes it very easy for knowledgeable Scala programmers to write code that is very hard to understand for programmers that are less knowledgeable in Scala. That is especially tricky for an open source project with a broad community of diverse experience levels. Working around this means restricting the Scala feature set by a lot, which defeats a good amount of the purpose of using Scala in the first place.</li>
+</ul>
+
+<h3 id="api-parity">API Parity</h3>
+
+<p>Keep Java API and Scala API in sync in terms of functionality and code quality.</p>
+
+<p>The Scala API should cover all the features of the Java APIs as well.</p>
+
+<p>Scala APIs should have a “completeness test”, like the following example from the DataStream API: <a href="https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala">https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala</a></p>
+
+<h3 id="language-features">Language Features</h3>
+
+<ul>
+  <li><strong>Avoid Scala implicits.</strong>
+    <ul>
+      <li>Scala’s implicits should only be used for user-facing API improvements such as the Table API expressions or type information extraction.</li>
+      <li>Don’t use them for internal “magic”.</li>
+    </ul>
+  </li>
+  <li><strong>Add explicit types for class members.</strong>
+    <ul>
+      <li>
+        <p>Don’t rely on implicit type inference for class fields and methods return types:</p>
+
+        <p><strong>Don’t:</strong>
+  <code>
+  var expressions = new java.util.ArrayList[String]()
+ </code></p>
+
+        <p><strong>Do:</strong>
+  <code>
+  var expressions: java.util.List[String] = new java.util.ArrayList[]()
+ </code></p>
+      </li>
+      <li>
+        <p>Type inference for local variables on the stack is fine.</p>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Use strict visibility.</strong>
+    <ul>
+      <li>Avoid Scala’s package private features (such as private[flink]) and use regular private/protected instead.</li>
+      <li>Keep in mind that <code>private[flink]</code> and <code>protected</code> members are public in Java.</li>
+      <li>Keep in mind that <code>private[flink]</code> still exposes all members in Flink provided examples.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="coding-formatting">Coding Formatting</h3>
+
+<p><strong>Use line wrapping to structure your code.</strong></p>
+
+<ul>
+  <li>Scala’s functional nature allows for long transformation chains (<code>x.map().map().foreach()</code>).</li>
+  <li>In order to force implementers to structure their code, the line length is therefore limited to 100 characters.</li>
+  <li>Use one line per transformation for better maintainability.</li>
+</ul>
 
 
   </div>
