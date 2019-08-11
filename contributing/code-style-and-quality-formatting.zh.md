@@ -2,7 +2,7 @@
 title:  "Apache Flink Code Style and Quality Guide — Formatting"
 ---
 
-{% include code-style-navbar.md %}
+{% include code-style-navbar.zh.md %}
 
 {% toc %}
 

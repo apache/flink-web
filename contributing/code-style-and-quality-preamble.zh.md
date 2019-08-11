@@ -2,7 +2,7 @@
 title:  "Apache Flink Code Style and Quality Guide — Preamble"
 ---
 
-{% include code-style-navbar.md %}
+{% include code-style-navbar.zh.md %}
 
 
 This is an attempt to capture the code and quality standard that we want to maintain.
