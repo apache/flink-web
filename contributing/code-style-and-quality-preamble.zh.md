@@ -1,25 +1,25 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide — Preamble"
+title:  "Apache Flink 代码样式与质量指南 — 序言"
 ---
 
 {% include code-style-navbar.zh.md %}
 
 
-This is an attempt to capture the code and quality standard that we want to maintain.
+本文旨在确立我们要维护的代码样式与质量标准。
 
-A code contribution (or any piece of code) can be evaluated in various ways: One set of properties is whether the code is correct and efficient. This requires solving the _logical or algorithmic problem_ correctly and well.
+评估代码贡献（或任何代码片段）有多种方式：一组指标是代码是否正确和高效。这需要正确地解决逻辑或算法问题。
 
-Another set of properties is whether the code follows an intuitive design and architecture, whether it is well structured with right separation of concerns, and whether the code is easily understandable and makes its assumptions explicit. That set of properties requires solving the _software engineering problem_ well. A good solution implies that the code is easily testable, maintainable also by other people than the original authors (because it is harder to accidentally break), and efficient to evolve.
+另一组指标是代码的设计和架构是否直观、结构是否良好、关注点是否正确、代码是否易于理解以及假设是否明确。这需要很好地解决软件工程问题。好的解决方案意味着代码容易测试，可以由原作者之外的其他人维护（代码不容易被意外破坏），并且可持续优化。
 
-While the first set of properties has rather objective approval criteria, the second set of properties is much harder to assess, but is of high importance for an open source project like Apache Flink. To make the code base inviting to many contributors, to make contributions easy to understand for developers that did not write the original code, and to make the code robust in the face of many contributions, well engineered code is crucial.[^1] For well engineered code, it is easier to keep it correct and fast over time.
+第一组指标具有比较客观的评价标准，第二组指标较难于评估，然而对于 Apache Flink 这样的开源项目，第二组指标更加重要。为了能够邀请更多的贡献者，为了使非原始开发人员容易上手参与贡献，为了使大量贡献者协作开发的代码保持健壮，对代码进行精心地设计至关重要。[^1] 随着时间的推移，精心设计的代码更容易保持正确和高效。
 
 
-This is of course not a full guide on how to write well engineered code. There is a world of big books that try to capture that. This guide is meant as a checklist of best practices, patterns, anti-patterns, and common mistakes that we observed in the context of developing Flink.
+本文当然不是代码设计的完全指南。有海量的书籍研究和讨论相关课题。本指南旨在作为一份清单，列举出我们在开发 Flink 过程中所观察到的最佳实践、模式、反模式和常见错误。
 
-A big part of high-quality open source contributions is about helping the reviewer to understand the contribution and double-check the implications, so an important part of this guide is about how to structure a pull request for review.
+高质量开源贡献的很大一部分是帮助审阅者理解贡献的内容进而对内容进行细致地检查，因此本指南的一个重要部分是如何构建便于代码审查的拉取请求。
 
 
 <hr>
 
 [^1]:
-     In earlier days, we (the Flink community) did not always pay sufficient attention to this, making some components of Flink harder to evolve and to contribute to.
+     早期，我们（Flink 社区）并没有对此给予足够的重视，使贡献者难以优化 Flink 的某些组件。
