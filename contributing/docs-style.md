@@ -163,7 +163,7 @@ In Markdown, headings are any line prefixed with a hash (#), with the number of 
 
 <div class="alert alert-warning">
   <h3>Best Practice</h3>
-  Use descriptive language in the phrasing of headings. For example, for a documentation page on dynamic tables, Dynamic Tables and Continuous Queries is more descriptive than Background or Technical Information.
+  Use descriptive language in the phrasing of headings. For example, for a documentation page on dynamic tables, "Dynamic Tables and Continuous Queries" is more descriptive than "Background" or "Technical Information".
 </div>
 
 ### Table of Contents
