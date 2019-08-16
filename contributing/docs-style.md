@@ -20,7 +20,7 @@ Looking for style guides to contribute with translating existing documentation t
 ## Language Style
 
 
-Below, you find some basic guidelines that can help ensure readability and accessibility in your writing. For a deeper and more complete dive into language style, also refer to [The Guiding Principles of ACORN](#the-guiding-principles-of-acorn).
+Below, you find some basic guidelines that can help ensure readability and accessibility in your writing. For a deeper and more complete dive into language style, also refer to the [General Guiding Principles](#general-guiding-principles).
 
 ### Addressing the User
 
@@ -114,9 +114,9 @@ Below are the front matter variables most commonly used along the Flink document
 
 Documentation-wide information and configuration settings that sit under `_config.yml` are also available to the front matter through the site variable. These settings can be accessed using the following syntax:
 
-{% highlight raw %}
+```liquid
 {{ "{{ site.CONFIG_KEY " }}}}
-{% endhighlight %}
+```
 
 The placeholder will be replaced with the value of the variable named `CONFIG_KEY` when generating the documentation.
 
@@ -170,16 +170,16 @@ In Markdown, headings are any line prefixed with a hash (#), with the number of 
 
 In the documentation build, the **Table Of Contents** (TOC) is automatically generated from the headings of the page using the following line of markup:
 
-{% highlight raw %}
+```liquid
 {{ "{% toc " }}%}
-{% endhighlight %}
+```
 
 All headings up to **Level-3** are considered. To exclude a particular heading from the TOC:
 
-{% highlight raw %}
+```liquid
 {{ "# Excluded Heading
     {:.no_toc" }}}
-{% endhighlight %}
+```
 
 <div class="alert alert-warning">
   <h3>Best Practice</h3>
@@ -226,9 +226,9 @@ In the documentation build, navigation is defined using properties configured in
 
 It's possible to use _Back to Top_ links in extensive documentation pages, so that users can navigate to the top of the page without having to scroll back up manually. In markup, this is implemented as a placeholder that is replaced with a default link when generating the documentation:
 
-{% highlight raw %}
+```liquid
 {{ "{% top " }}%}
-{% endhighlight %}
+```
 
 <div class="alert alert-warning">
   <h3>Best Practice</h3>
@@ -241,21 +241,21 @@ In case you want to include edge cases, tightly related information or nice-to-k
 
 * To highlight a tip or piece of information that may be helpful to know:
 
-{% highlight raw %}
-{{ "{% info " }}%}
-{% endhighlight %}
+  ```liquid
+  {{ "{% info " }}%}
+  ```
 
 * To signal danger of pitfalls or call attention to an important piece of information that is crucial to follow:
 
-{% highlight raw %}
-{{ "{% warn " }}%}
-{% endhighlight %}
+  ```liquid
+  {{ "{% warn " }}%}
+  ```
 
 You can change the text of the label at any time by passing it as an argument, too:
 
-{% highlight raw %}
+```liquid
 {{ "{% info Recommendation " }}%}
-{% endhighlight %}
+```
 
 ### Links
 
@@ -265,27 +265,36 @@ Adding links to documentation is an effective way to guide the user into a bette
 
   * **Heading:** ## Heading Title
   * **ID:** #heading-title
+  <p></p>
 
-  {% highlight raw %}[Link Text](#heading-title){% endhighlight %}
+  ```liquid 
+  [Link Text](#heading-title) 
+  ```
 
 * **Links between files in the repository.** The base relative path to the domain of the documentation is available as a configuration variable named `baseurl`.
 
-  {% highlight raw %}[Link Text]({{ "{{ site.baseurl " }}}}/path/to/link_page.html){% endhighlight %}
+  ```liquid 
+  [Link Text]({{ "{{ site.baseurl " }}}}/path/to/link_page.html)
+  ```
 
 * **External links**
 
-  {% highlight raw %}[Link Text](external_url){% endhighlight %} 
+  ```liquid 
+  [Link Text](external_url)
+  ```
 
 <div class="alert alert-warning">
   <h3>Best Practice</h3>
-  Use descriptive links that provide information on the action or destination. For example, avoid using <b>Learn More</b> or <b>Click Here</b> links.
+  Use descriptive links that provide information on the action or destination. For example, avoid using "Learn More" or "Click Here" links.
 </div>
 
 ### Visual Elements
 
 Figures and other visual elements are placed under the root _fig_ folder and can be referenced in documentation pages using a syntax similar to that of links:
 
-{% highlight raw %}![Picture Text]({{ "{{ site.baseurl " }}}}/fig/image_name.png){:height="200px" width="200px"}{% endhighlight %}
+```liquid 
+![Picture Text]({{ "{{ site.baseurl " }}}}/fig/image_name.png){:height="200px" width="200px"}
+```
 
 Or using plain HTML:
 
@@ -300,34 +309,38 @@ Or using plain HTML:
 
 ### Code
 
-* **Inline code.** Small code snippets or references to language constructs in normal text flow should be highlighted using surrounding back-ticks (\`).
+* **Inline code.** Small code snippets or references to language constructs in normal text flow should be highlighted using surrounding backticks ( **\`** ).
 
 * **Code blocks.** Code that represents self-contained examples, feature walkthroughs, demonstration of best practices or other useful scenarios should be wrapped using a fenced code block with appropriate [syntax highlighting](https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers). One way of achieving this with markup is:
 
 
-  {% highlight raw %}{{ "{% highlight java"}}%} 
-  your code
-{{"{% endhighlight"}}%} {% endhighlight %}
+  ```liquid 
+  {{ "{% highlight java"}}%} 
+     your code
+  {{"{% endhighlight"}}%} 
+  ```
 
 
-  which is equivalent to using triple backticks (\`\`\`):
+  which is equivalent to using triple backticks ( **\`\`\`** ):
 
 
-  {% highlight raw %}{{ "```java 
-  your code"
-  }}```{% endhighlight %}
+  ```liquid
+  {{ "```java 
+     your code"
+  }}```
+  ```
 
 
   When specifying multiple programming languages, each code block should be styled as a tab:
 
-  {% highlight html %}
+  ```html
   <div class="codetabs" markdown="1">
 
   <div data-lang="java" markdown="1"> … </div>
   <div data-lang="scala" markdown="1"> … </div> 
 
   </div>
-  {% endhighlight %}
+  ```
 
   These code blocks are often used to learn and explore, so there are a few best practices to keep in mind:
 
@@ -341,9 +354,9 @@ Or using plain HTML:
 
 [Back to top](#top)
 
-## The Guiding Principles of ACORN
+## General Guiding Principles
 
-This style guide has the overarching goal of setting the foundation for documentation that is **Accessible**, **Consistent**, **Objective**, **Rational** and **(I)Nclusive**.
+This style guide has the overarching goal of setting the foundation for documentation that is **Accessible**, **Consistent**, **Objective**, **Logical** and **Inclusive**.
 
 #### Accessible
 
@@ -357,10 +370,10 @@ Stick to the basic guidelines detailed in this style guide and use your own best
 
 Keep your sentences short and to the point. As a rule of thumb, if a sentence is shorter than 14 words, readers will likely understand 90 percent of its content. Sentences with more than 25 words are usually harder to understand and should be revised and split, when possible. Being concise and using well-known keywords also allows users to navigate to relevant documentation with little effort.
 
-#### Rational
+#### Logical
 
 Be mindful that most users will scan through online content and only read around [28 percent of it](https://www.nngroup.com/articles/website-reading/). This underscores the importance of grouping related ideas together into a clear hierarchy of information and using focused, descriptive headings. Placing the most relevant information in the first two paragraphs of each section is a good practice that increases the “return of time invested” for the user.
 
-#### (I)Nclusive
+#### Inclusive
 
 Use positive language and concrete, relatable examples to ensure the content is findable and welcoming to all users. The documentation is translated to other languages, so using simple language and familiar words also helps reduce the translation effort.
