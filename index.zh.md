@@ -271,6 +271,12 @@ layout: base
           
         </li>
         <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" width="175" alt="SK telecom" />
+          </a></div>
+                  
+        </li>
+        <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" />
           </a></div>
