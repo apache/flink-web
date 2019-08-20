@@ -107,7 +107,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" alt="SK telecom" /><br />
-      三星集团是韩国最大的无线运营商，包括智能工厂、移动应用程序在内，它在很多应用中使用了Flink <br><br><a href="https://www.youtube.com/watch?v=wPQWFy5JENw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 学习一个三星的使用例子</a>
+      三星（SK telecom）是韩国最大的无线运营商，包括智能工厂、移动应用程序在内，它在很多应用中使用了Flink <br><br><a href="https://www.youtube.com/watch?v=wPQWFy5JENw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 学习一个SK telecom的使用例子</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" alt="Telefonica Next" /><br />
