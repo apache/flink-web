@@ -106,6 +106,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       ResearchGate 是科学家的社交网络，它使用 Flink 进行网络分析和近似重复检测。<br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 请参阅 ResearchGate 在 Flink Forward 2016 上的分享</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+      <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" alt="SK telecom" /><br />
+      三星（SK telecom）是韩国最大的无线运营商。它在很多应用中使用了 Flink，包括智能工厂和移动应用程序。<br><br><a href="https://www.youtube.com/watch?v=wPQWFy5JENw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解其中一个 SK telecom 的使用案例。</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" alt="Telefonica Next" /><br />
       Telefónica NEXT 的 TÜV 认证数据匿名平台由 Flink 提供支持。<br><br><a href="https://next.telefonica.de/en/solutions/big-data-privacy-services" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解更多关于 Telefónica NEXT 的信息</a>
   </div>
