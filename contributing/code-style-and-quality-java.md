@@ -63,6 +63,7 @@ title:  "Apache Flink Code Style and Quality Guide — Java"
     * `contains()` before `get()` → `get()` and check null
     * `contains()` before `put()` → `putIfAbsent()` or `computeIfAbsent()`
     * Iterating over keys, getting values → iterate over `entrySet()`
+* **Set the initial capacity for a collection only if there is a good proven reason** for that, otherwise do not clutter the code. In case of **Maps** it can be even deluding because the Map's load factor effectively reduces the capacity.
 
 
 ### Lambdas
