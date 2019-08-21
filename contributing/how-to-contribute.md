@@ -120,7 +120,7 @@ While the prior points give ways to identify promising candidates, the following
 
   - Being community minded: The candidate understands the meritocratic principles of community management. They do not always optimize for as much as possible personal contribution, but will help and empower others where it makes sense.
 
-  - We trust that a committer candidate will use their write access to the repositories responsibly, an if in doubt, conservatively. Flink is a big system, and it is important that committers are aware of what they know and what they don't know. In doubt, committers should ask for a second pair of eyes rather than commit to parts that they are not well familiar with. (Even the most seasoned committers follow this practice.)
+  - We trust that a committer candidate will use their write access to the repositories responsibly, and if in doubt, conservatively. Flink is a big system, and it is important that committers are aware of what they know and what they don't know. In doubt, committers should ask for a second pair of eyes rather than commit to parts that they are not well familiar with. (Even the most seasoned committers follow this practice.)
   
   - They have shown to be respectful towards other community members and constructive in discussions.
 

@@ -8,7 +8,7 @@ title: "社区 & 项目信息"
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](how-to-contribute.html)。
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
 
 ## 邮件列表
 
@@ -72,6 +72,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">发送</a></td>
     <td class="text-center">
       <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">归档</a> <br>
+      <a href="http://apache-flink.147419.n8.nabble.com/">Nabble 归档</a>
     </td>
   </tr>
   <tr>
@@ -88,6 +89,19 @@ title: "社区 & 项目信息"
       <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble 归档</a>
     </td>
   </tr>
+  <tr>
+      <td>
+        <strong>builds</strong>@flink.apache.org<br>
+        <small>Flink 主仓库的构建通知</small>
+      </td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-subscribe@flink.apache.org">订阅</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-digest-subscribe@flink.apache.org">订阅</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-unsubscribe@flink.apache.org">退订</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>只读邮件列表</i></td>
+      <td class="text-center">
+        <a href="http://mail-archives.apache.org/mod_mbox/flink-builds/">归档</a> <br>
+      </td>
+    </tr>
   <tr>
     <td>
       <strong>issues</strong>@flink.apache.org
@@ -322,6 +336,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">Till Rohrmann</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">trohrmann</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/3581352?s=50" class="committer-avatar"></td>
+    <td class="text-center">Rong Rong</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">rongr</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/105434?s=50" class="committer-avatar"></td>

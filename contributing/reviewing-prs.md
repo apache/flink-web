@@ -82,7 +82,7 @@ This is the detailed code review of the actual changes, covering:
 * Does the code avoid to introduce additional compiler warnings?
 * If dependencies have been changed, were the NOTICE files updated?
 
-Code guidelines can be found in the [Flink Code Style and Quality Guide]({{ site.baseurl }}/contributing/code-style-and-quality.html).
+Code guidelines can be found in the [Flink Code Style and Quality Guide]({{ site.baseurl }}/contributing/code-style-and-quality-preamble.html).
 
 ----
 

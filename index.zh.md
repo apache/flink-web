@@ -188,6 +188,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" width="175" alt="Didi" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
         
@@ -223,6 +229,11 @@ layout: base
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" width="175" alt="Klaviyo" />
+          </a></div>
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/kuaishou-logo.jpg" width="175" alt="Kuaishou" />
           </a></div>
         </li>
         <li>

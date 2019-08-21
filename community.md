@@ -8,7 +8,7 @@ title: "Community & Project Info"
 
 ## How do I get help from Apache Flink?
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](/contributing/how-to-contribute.html).
 
 
 ## Mailing Lists
@@ -73,6 +73,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">Post</a></td>
     <td class="text-center">
       <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">Archives</a> <br>
+      <a href="http://apache-flink.147419.n8.nabble.com/">Nabble Archive</a>
     </td>
   </tr>
   <tr>
@@ -89,6 +90,19 @@ There are many ways to get help from the Apache Flink community. The [mailing li
       <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble Archive</a>
     </td>
   </tr>
+  <tr>
+      <td>
+        <strong>builds</strong>@flink.apache.org<br>
+        <small>Build notifications of Flink main repository</small>
+      </td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-subscribe@flink.apache.org">Subscribe</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-digest-subscribe@flink.apache.org">Subscribe</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-unsubscribe@flink.apache.org">Unsubscribe</a></td>
+      <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>Read only list</i></td>
+      <td class="text-center">
+        <a href="http://mail-archives.apache.org/mod_mbox/flink-builds/">Archives</a> <br>
+      </td>
+    </tr>
   <tr>
     <td>
       <strong>issues</strong>@flink.apache.org
@@ -327,6 +341,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Till Rohrmann</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">trohrmann</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/3581352?s=50" class="committer-avatar"></td>
+    <td class="text-center">Rong Rong</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">rongr</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/105434?s=50" class="committer-avatar"></td>

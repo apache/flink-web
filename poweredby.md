@@ -44,6 +44,11 @@ If you would you like to be included on this page, please reach out to the [Flin
       Criteo is the advertising platform for the open internet and uses Flink for real-time revenue monitoring and near-real-time event processing. <br><br><a href="https://medium.com/criteo-labs/criteo-streaming-flink-31816c08da50" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about Criteo's Flink use case</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" alt="Didi" /><br />
+        Didi Chuxing (“DiDi”), the world's leading mobile transportation platform, uses Apache Flink for real-time monitoring, feature extraction, and ETL.
+        <br><br><a href="https://blog.didiyun.com/index.php/2018/12/05/realtime-compute/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about Didi's Flink use case</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" alt="Drivetribe" /><br />
       Drivetribe, a digital community founded by the former hosts of “Top Gear”, uses Flink for metrics and content recommendations. <br><br><a href="https://ververica.com/blog/drivetribe-cqrs-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about Flink in the Drivetribe stack</a>
   </div>
@@ -68,7 +73,12 @@ If you would you like to be included on this page, please reach out to the [Flin
       Klaviyo leverages Apache Flink to scale its real-time analytics system that deduplicates and aggregates over a million events per second. <br><br><a href="https://klaviyo.tech/tagged/counting" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about real-time analytics at Klaviyo</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
-    <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="King" /><br />
+    <img src="{{ site.baseurl }}/img/poweredby/kuaishou-logo.jpg" alt="Kuaishou" /><br />
+        Kuaishou, one of the leading short video sharing apps in China, uses Apache Flink to build a real-time monitoring platform for short videos and live streaming.
+        <br><br><a href="https://mp.weixin.qq.com/s/BghNofoU6cPRn7XfdHR83w" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about real-time monitoring at Kuaishou</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/lyft-logo.png" alt="Lyft" /><br />
       Lyft uses Flink as processing engine for its streaming platform, for example to consistently generate features for machine learning. <br><br><a href="https://www.slideshare.net/SeattleApacheFlinkMeetup/streaminglyft-greg-fee-seattle-apache-flink-meetup-104398613" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Streaming at Lyft</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
@@ -94,6 +104,10 @@ If you would you like to be included on this page, please reach out to the [Flin
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" alt="ResearchGate" /><br />
       ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" alt="SK telecom" /><br />
+      SK telecom is South Korea's largest wireless carrier and uses Flink for several applications including smart factory and mobility applications. <br><br><a href="https://www.youtube.com/watch?v=wPQWFy5JENw" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn more about one of SK telecom's use cases</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" alt="Telefonica Next" /><br />
