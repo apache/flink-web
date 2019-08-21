@@ -8,7 +8,7 @@ title: "社区 & 项目信息"
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](how-to-contribute.html)。
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
 
 ## 邮件列表
 
