@@ -48,6 +48,45 @@ We are aware that spaces are a bit nicer; it just happened to be that we started
 * **Spaces around operators/keywords.** Operators (`+`, `=`, `>`, …) and keywords (`if`, `for`, `catch`, …) must have a space before and after them, provided they are not at the start or end of the line.
 
 
+### Breaking the lines of too long statements
+
+In general long lines should be avoided for the better readability. Try to use short statements which operate on the same level of abstraction. Break the long statements by creating more local variables, defining helper functions etc.
+
+Two major sources of long lines are:
+ * Long list of arguments in function declaration or call: <code>void func(type1 arg1, type2 arg2, ...)</code>
+ * Long sequence of chained calls: <code>list.stream().map(...).reduce(...).collect(...)...</code>
+
+Rules about breaking the long lines:
+ * Break the argument list or chain of calls if the line exceeds limit or earlier if you believe that the breaking would improve the code readability
+ * If you break the line then each argument/call should have a separate line, including the first one
+ * Each new line should have one extra indentation (or two for a function declaration) relative to the line of the parent function name or the called entity
+
+Additionally for function arguments:
+ * The opening parenthesis always stays on the line of the parent function name
+ * The possible thrown exception list is never broken and stays on the same last line, even if the line length exceeds its limit
+ * The line of the function argument should end with a comma staying on the same line except the last argument
+
+Example of breaking the list of function arguments:
+```
+public void func(
+    int arg1,
+    int arg2,
+    ...) throws E1, E2, E3 {
+
+}
+```
+
+The dot of a chained call is always on the line of that chained call proceeding the call at the beginning.
+
+Example of breaking the list of chaind calls:
+```
+values
+    .stream()
+    .map(...)
+    .collect(...);
+```
+
+
 ### Braces
 
 * **Left curly braces (<code>{</code>) must not be placed on a new line.**
