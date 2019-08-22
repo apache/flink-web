@@ -107,7 +107,7 @@ The bot automatically posts a comment tracking the review progress for each new 
 * [ ] 4. The architectural approach is sound.
 * [ ] 5. Overall code quality is good.
 
-Please see the [Pull Request Review Guide](https://flink.apache.org/reviewing-prs.html) if you have questions about the review process.
+Please see the [Pull Request Review Guide](https://flink.apache.org/contributing/reviewing-prs.html) if you have questions about the review process.
 ```
 
 Reviewers can instruct the bot to tick off the boxes (in order) to indicate the progress of the review.
