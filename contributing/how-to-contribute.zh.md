@@ -8,7 +8,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
 
 
 <h1>你想做什么？</h1>
-<p>为 Apache Flink 做贡献不仅仅是为项目编写代码。以下，我们列出了各种不同的为项目提供帮助的机会：</p>
+<p>为 Apache Flink 做贡献不仅仅是为项目编写代码。以下，我们提供了不同的途径可以为项目提供帮助：</p>
 
 
 <table class="table table-bordered">
@@ -35,7 +35,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     <tr>
       <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> 帮助准备版本发布</td>
       <td>
-        发部新版本包括以下步骤：
+        发布新版本包括以下步骤：
         <ol>
           <li>建立新的候选版本并且在 dev@flink.apache.org 邮件列表发起投票（投票通常持续72小时）。</li>
           <li>测试候选版本并投票 （如果没发现问题就+1，如果候选版本有问题就-1）。</li>
@@ -49,7 +49,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
       <td>请阅读 <a href="{{ site.baseurl }}/zh/contributing/contribute-documentation.html">文档贡献指南</a></td>
     </tr>
     <tr>
-      <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 支援 Flink 用户</td>
+      <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 支持 Flink 用户</td>
       <td>
         <ul class="contribute-card-list">
           <li>回答 <a href="https://flink.apache.org/community.html#mailing-lists">用户邮件列表</a> 中的问题</li>
