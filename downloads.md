@@ -186,7 +186,7 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 <a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>, 
 <a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}">Docs</a>, 
 <a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/java">Javadocs</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/scala/index.html">ScalaDocs</a>)
+<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/scala/index.html">Scaladocs</a>)
 {% else %}
 Flink {{ flink_release.version_long }} - {{ flink_release.release_date }} 
 (<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
