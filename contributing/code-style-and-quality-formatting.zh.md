@@ -82,7 +82,7 @@ public void func(
 
 The dot of a chained call is always on the line of that chained call proceeding the call at the beginning.
 
-Example of breaking the list of chaind calls:
+Example of breaking the list of chained calls:
 
 ```
 values
