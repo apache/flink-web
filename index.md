@@ -6,7 +6,7 @@ layout: base
 
   <div class="col-sm-12">
     <p class="lead" markdown="span">
-      **Apache Flink<sup>®</sup> - Stateful Computations over Data Streams**
+      **Apache Flink<sup>®</sup> — Stateful Computations over Data Streams**
     </p>
   </div>
 
@@ -307,6 +307,29 @@ layout: base
   <a href="#" class="jcarousel-control-next" data-jcarouselcontrol="true"><span class="glyphicon glyphicon-chevron-right"></span></a>
 
   </div>
+
+</div>
+
+<!-- Events section -->
+<div class="row">
+
+<div class="col-sm-12">
+  <hr />
+</div>
+
+<div class="col-sm-3">
+
+  <h2><a>Upcoming Events</a></h2>
+
+</div>
+<div class="col-sm-9">
+
+  <a href="https://flink-forward.org"><img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png"/></a>
+
+  <a href="https://events.apache.org/x/current-event.html">
+    <img src="https://www.apache.org/events/current-event-234x60.png"/>
+  </a>
+</div>
 
 </div>
 
