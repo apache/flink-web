@@ -304,6 +304,30 @@ layout: base
 
 </div>
 
+<!-- Events section -->
+<div class="row">
+
+<div class="col-sm-12">
+  <hr />
+</div>
+
+<div class="col-sm-3">
+
+  <h2><a>Upcoming Events</a></h2>
+
+</div>
+<div class="col-sm-9">
+  <!-- Flink Forward -->
+  <a href="https://flink-forward.org" target="_blank">
+    <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
+  </a>
+  <!-- ApacheCon -->
+  <a href="https://events.apache.org/x/current-event.html" target="_blank">
+    <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
+  </a>
+</div>
+
+</div>
 <!-- Updates section -->
 
 <div class="row">
