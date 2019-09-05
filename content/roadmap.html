@@ -184,23 +184,25 @@ under the License.
   <li><a href="#batch-and-streaming-unification" id="markdown-toc-batch-and-streaming-unification">Batch and Streaming Unification</a></li>
   <li><a href="#fast-batch-bounded-streams" id="markdown-toc-fast-batch-bounded-streams">Fast Batch (Bounded Streams)</a></li>
   <li><a href="#stream-processing-use-cases" id="markdown-toc-stream-processing-use-cases">Stream Processing Use Cases</a></li>
-  <li><a href="#deployment-scaling-security" id="markdown-toc-deployment-scaling-security">Deployment, Scaling, Security</a></li>
+  <li><a href="#deployment-scaling-and-security" id="markdown-toc-deployment-scaling-and-security">Deployment, Scaling and Security</a></li>
+  <li><a href="#resource-management-and-configuration" id="markdown-toc-resource-management-and-configuration">Resource Management and Configuration</a></li>
   <li><a href="#ecosystem" id="markdown-toc-ecosystem">Ecosystem</a></li>
-  <li><a href="#connectors--formats" id="markdown-toc-connectors--formats">Connectors &amp; Formats</a></li>
+  <li><a href="#non-jvm-languages-python" id="markdown-toc-non-jvm-languages-python">Non-JVM Languages (Python)</a></li>
+  <li><a href="#connectors-and-formats" id="markdown-toc-connectors-and-formats">Connectors and Formats</a></li>
   <li><a href="#miscellaneous" id="markdown-toc-miscellaneous">Miscellaneous</a></li>
 </ul>
 
 </div>
 
 <p><strong>Preamble:</strong> This is not an authoritative roadmap in the sense of a strict plan with a specific
-timeline. Rather, we, the community, share our vision for the future and give an overview of the bigger
+timeline. Rather, we — the community — share our vision for the future and give an overview of the bigger
 initiatives that are going on and are receiving attention. This roadmap shall give users and
 contributors an understanding where the project is going and what they can expect to come.</p>
 
 <p>The roadmap is continuously updated. New features and efforts should be added to the roadmap once
 there is consensus that they will happen and what they will roughly look like for the user.</p>
 
-<p><strong>Last Update:</strong> 2019-05-08</p>
+<p><strong>Last Update:</strong> 2019-09-04</p>
 
 <h1 id="analytics-applications-and-the-roles-of-datastream-dataset-and-table-api">Analytics, Applications, and the roles of DataStream, DataSet, and Table API</h1>
 
@@ -211,23 +213,29 @@ there is consensus that they will happen and what they will roughly look like fo
   <li>
     <p>The <strong>Table API / SQL</strong> is becoming the primary API for analytical use cases, in a unified way
 across batch and streaming. To support analytical use cases in a more streamlined fashion,
-the API is extended with additional functions (<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739">FLIP-29</a>).</p>
+the API is being extended with more convenient multi-row/column operations (<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739">FLIP-29</a>).</p>
 
-    <p>Like SQL, the Table API is <em>declarative</em>, operates on a <em>logical schema</em>, and applies <em>automatic optimization</em>.
+    <ul>
+      <li>
+        <p>Like SQL, the Table API is <em>declarative</em>, operates on a <em>logical schema</em>, and applies <em>automatic optimization</em>.
 Because of these properties, that API does not give direct access to time and state.</p>
+      </li>
+      <li>
+        <p>The Table API is also the foundation for the Machine Learning (ML) efforts inititated in (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-39+Flink+ML+pipeline+and+ML+libs">FLIP-39</a>), that will allow users to easily build, persist and serve (<a href="https://issues.apache.org/jira/browse/FLINK-13167">FLINK-13167</a>) ML pipelines/workflows through a set of abstract core interfaces.</p>
+      </li>
+    </ul>
   </li>
   <li>
     <p>The <strong>DataStream API</strong> is the primary API for data-driven applications and data pipelines.
 It uses <em>physical data types</em> (Java/Scala classes) and there is no automatic rewriting.
-The applications have explicit control over <em>time</em> and <em>state</em> (state, triggers, proc. fun.).</p>
-
-    <p>In the long run, the DataStream API should fully subsume the DataSet API through <em>bounded streams</em>.</p>
+The applications have explicit control over <em>time</em> and <em>state</em> (state, triggers, proc fun.). 
+In the long run, the DataStream API will fully subsume the DataSet API through <em>bounded streams</em>.</p>
   </li>
 </ul>
 
 <h1 id="batch-and-streaming-unification">Batch and Streaming Unification</h1>
 
-<p>Flink’s approach is to cover batch and streaming by the same APIs, on a streaming runtime.
+<p>Flink’s approach is to cover batch and streaming by the same APIs on a streaming runtime.
 <a href="/news/2019/02/13/unified-batch-streaming-blink.html">This blog post</a>
 gives an introduction to the unification effort.</p>
 
@@ -235,23 +243,20 @@ gives an introduction to the unification effort.</p>
 
 <ul>
   <li>
-    <p>Table API restructuring <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions">FLIP-32</a>
-that decouples the Table API from batch/streaming specific environments and dependencies.</p>
+    <p>Table API restructuring (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions">FLIP-32</a>)
+that decouples the Table API from batch/streaming specific environments and dependencies. Some key parts of the FLIP are completed, such as the modular decoupling of expression parsing and the removal of Scala dependencies, and the next step is to unify the function stack (<a href="https://issues.apache.org/jira/browse/FLINK-12710">FLINK-12710</a>).</p>
   </li>
   <li>
-    <p>The new source interfaces <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>
-generalize across batch and streaming, making every connector usable as a batch and
-streaming data source.</p>
+    <p>The new source interfaces generalize across batch and streaming, making every connector usable as a batch and streaming data source (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>).</p>
   </li>
   <li>
-    <p>The introduction of <em>upsert-</em> or <em>changelog-</em> sources <a href="https://issues.apache.org/jira/browse/FLINK-8545">FLINK-8545</a>
-will support more powerful streaming inputs to the Table API.</p>
+    <p>The introduction of <em>upsert-</em> or <em>changelog-</em> sources will support more powerful streaming inputs to the Table API (<a href="https://issues.apache.org/jira/browse/FLINK-8545">FLINK-8545</a>).</p>
   </li>
 </ul>
 
-<p>On the runtime level, the streaming operators are extended to also support the data consumption
-patterns required for some batch operations (<a href="https://lists.apache.org/thread.html/cb1633d10d17b0c639c3d59b2283e9e01ecda3e54ba860073c124878@%3Cdev.flink.apache.org%3E">discussion thread</a>).
-This is also groundwork for features like efficient <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-17+Side+Inputs+for+DataStream+API">side inputs</a>.</p>
+<p>On the runtime level, the streaming operators were extended in Flink 1.9 to also support the data consumption patterns required for some batch operations — which is groundwork for upcoming features like efficient <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-17+Side+Inputs+for+DataStream+API">side inputs</a>.</p>
+
+<p>Once these unification efforts are completed, we can move on to unifying the DataStream API.</p>
 
 <h1 id="fast-batch-bounded-streams">Fast Batch (Bounded Streams)</h1>
 
@@ -263,14 +268,7 @@ widely-used batch processors, there are some ongoing efforts to make sure this t
   <li>
     <p>Faster and more complete SQL/Table API: The community is merging the Blink query processor which improves on
 the current query processor by adding a much richer set of runtime operators, optimizer rules, and code generation.
-The new query processor will have full TPC-DS support and up to 10x performance improvement over the current
-query processor (<a href="https://issues.apache.org/jira/browse/FLINK-11439">FLINK-11439</a>).</p>
-  </li>
-  <li>
-    <p>Exploiting bounded streams to reduce the scope of fault tolerance: When input data is bounded, it is
-possible to completely buffer data during shuffles (memory or disk) and replay that data after a
-failure. This makes recovery more fine grained and thus much more efficient
-(<a href="https://issues.apache.org/jira/browse/FLINK-10288">FLINK-10288</a>).</p>
+The Blink-based query processor has full TPC-H support (with TPC-DS planned for the next release) and up to 10x performance improvement over the pre-1.9 Flink query processor (<a href="https://issues.apache.org/jira/browse/FLINK-11439">FLINK-11439</a>).</p>
   </li>
   <li>
     <p>An application on bounded data can schedule operations after another, depending on how the operators
@@ -281,28 +279,13 @@ on bounded data (<a href="https://issues.apache.org/jira/browse/FLINK-10429">FLI
   <li>
     <p>Caching of intermediate results on bounded data, to support use cases like interactive data exploration.
 The caching generally helps with applications where the client submits a series of jobs that build on
-top of one another and reuse each others’ results.
-<a href="https://issues.apache.org/jira/browse/FLINK-11199">FLINK-11199</a></p>
-  </li>
-  <li>
-    <p>External Shuffle Services (mainly bounded streams) to support decoupling from computation and
-intermediate results for better resource efficiency on systems like Yarn.
-<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A+Pluggable+Shuffle+Manager">FLIP-31</a>.</p>
+top of one another and reuse each others’ results (<a href="https://issues.apache.org/jira/browse/FLINK-11199">FLINK-11199</a>).</p>
   </li>
 </ul>
 
-<p>Various of these enhancements can be taken from the contributed code from the
-<a href="https://github.com/apache/flink/tree/blink">Blink fork</a>.</p>
-
-<p>To exploit the above optimizations for bounded streams in the DataStream API, we need
-break parts of the API and explicitly model bounded streams.</p>
+<p>Various of these enhancements can be integrated from the contributed code in the <a href="https://github.com/apache/flink/tree/blink">Blink fork</a>. To exploit these optimizations for bounded streams also in the DataStream API, we first need to break parts of the API and explicitly model bounded streams.</p>
 
 <h1 id="stream-processing-use-cases">Stream Processing Use Cases</h1>
-
-<p>Flink will get the new modes to stop a running application while ensuring that output and
-side-effects are consistent and committed prior to shutdown. <em>SUSPEND</em> commit output/side-effects,
-but keep state, while <em>TERMINATE</em> drains state and commits the outputs and side effects.
-<a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=103090212">FLIP-34</a> has the details.</p>
 
 <p>The <em>new source interface</em> effort (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface">FLIP-27</a>)
 aims to give simpler out-of-the box support for event time and watermark generation for sources.
@@ -310,49 +293,65 @@ Sources will have the option to align their consumption speed in event time, to 
 size of in-flight state when re-processing large data volumes in streaming
 (<a href="https://issues.apache.org/jira/browse/FLINK-10886">FLINK-10887</a>).</p>
 
-<p>To make evolution of streaming state simpler, we plan to add first class support for
-<a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a>, similar to the way
+<p>To overcome the current pitfalls of checkpoint performance under backpressure scenarios, the community is introducing the concept of <a href="https://lists.apache.org/thread.html/fd5b6cceb4bffb635e26e7ec0787a8db454ddd64aadb40a0d08a90a8@%3Cdev.flink.apache.org%3E">unaligned checkpoints</a>. This will allow checkpoint barriers to overtake the output/input buffer queue to speed up alignment and snapshot the inflight data as part of checkpoint state.</p>
+
+<p>We also plan to add first class support for
+<a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> to make evolution of streaming state simpler, similar to the way
 Flink deeply supports Avro state evolution (<a href="https://issues.apache.org/jira/browse/FLINK-11333">FLINK-11333</a>).</p>
 
-<h1 id="deployment-scaling-security">Deployment, Scaling, Security</h1>
+<h1 id="deployment-scaling-and-security">Deployment, Scaling and Security</h1>
 
-<p>There is a big effort to design a new way for Flink to interact with dynamic resource
-pools and automatically adjust to resource availability and load.
-Part of this is  becoming a <em>reactive</em> way of adjusting to changing resources (like
-containers/pods being started or removed) <a href="https://issues.apache.org/jira/browse/FLINK-10407">FLINK-10407</a>,
-while other parts are resulting in <em>active</em> scaling policies where Flink decides to add
-or remove TaskManagers, based on internal metrics.</p>
-
-<p>To support the active resource management also in Kubernetes, we are adding a Kubernetes Resource Manager
-<a href="https://issues.apache.org/jira/browse/FLINK-9953">FLINK-9953</a>.</p>
-
-<p>The Flink Web UI is being ported to a newer framework and getting additional features for
-better introspection of running jobs <a href="https://issues.apache.org/jira/browse/FLINK-10705">FLINK-10705</a>.</p>
+<p>To provide downstream projects with a consistent way to programatically control Flink deployment submissions, the Client API is being <a href="https://lists.apache.org/thread.html/ce99cba4a10b9dc40eb729d39910f315ae41d80ec74f09a356c73938@%3Cdev.flink.apache.org%3E">refactored</a>. The goal is to unify the implementation of cluster deployment and job submission in Flink and allow more flexible job and cluster management — independent of cluster setup or deployment mode. <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=125308637">FLIP-52</a> proposes the deprecation and removal of the legacy Program interface.</p>
 
 <p>The community is working on extending the interoperability with authentication and authorization services.
 Under discussion are general extensions to the <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-security-improvements-td21068.html">security module abstraction</a>
 as well as specific <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-Kerberos-Improvement-td25983.html">enhancements to the Kerberos support</a>.</p>
 
-<h1 id="ecosystem">Ecosystem</h1>
+<h1 id="resource-management-and-configuration">Resource Management and Configuration</h1>
 
-<p>The community is working on extending the support for catalogs, schema registries, and
-metadata stores, including support in the APIs and the SQL client (<a href="https://issues.apache.org/jira/browse/FLINK-11275">FLINK-11275</a>).
-We are adding DDL (Data Definition Language) support to make it easy to add tables and streams to
-the catalogs (<a href="https://issues.apache.org/jira/browse/FLINK-10232">FLINK-10232</a>).</p>
-
-<p>There is a broad effort to integrate Flink with the Hive Ecosystem, including
-metastore and Hive UDF support <a href="https://issues.apache.org/jira/browse/FLINK-10556">FLINK-10556</a>.</p>
-
-<p>There is also a big effort to support Python for Table API <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API">FLIP-38</a>.
-We will divide the work into following stages:</p>
+<p>There is a big effort to design a new way for Flink to interact with dynamic resource
+pools and automatically adjust to resource availability and load.
+Part of this is becoming a <em>reactive</em> way of adjusting to changing resources (like
+containers/pods being started or removed) (<a href="https://issues.apache.org/jira/browse/FLINK-10407">FLINK-10407</a>),
+while other parts are resulting in <em>active</em> scaling policies where Flink decides to add
+or remove TaskManagers, based on internal metrics.</p>
 
 <ul>
-  <li>Translate Python Table API queries without UDFs to Java and run them completely in Java for the first step.</li>
-  <li>Add support for User-defined functions(Scalar Function/Table Function/Aggregate Function) in the second step.</li>
-  <li>Integrating Pandas as the final effort, i.e., functions in Pandas can be used in Python Table API directly.</li>
+  <li>
+    <p>The current TaskExecutor memory configuration in Flink has some shortcomings that make it hard to reason about or optimize resource utilization, such as: (1) different configuration models for memory footprint for Streaming and Batch; (2) complex and user-dependent configuration of off-heap state backends (typically RocksDB) in Streaming execution; (3) and sub-optimal memory utilization in Batch execution. <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-49%3A+Unified+Memory+Configuration+for+TaskExecutors">FLIP-49</a> proposes to unify managed memory configuration for TaskExecutors to make this process more generic and intuitive for the user.</p>
+  </li>
+  <li>
+    <p>In a similar way, we are introducing changes to Flink’s resource management module with <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-53%3A+Fine+Grained+Operator+Resource+Management">FLIP-53</a> to enable fine-grained control over Operator resource utilization according to known (or unknown) resource profiles. Since the requirements of this FLIP conflict with the existing static slot allocation model, this model first needs to be refactored to provide dynamic slot allocation (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-56%3A+Dynamic+Slot+Allocation">FLIP-56</a>).</p>
+  </li>
+  <li>
+    <p>To support the active resource management also in Kubernetes, we are working on a Kubernetes Resource Manager
+(<a href="https://issues.apache.org/jira/browse/FLINK-9953">FLINK-9953</a>).</p>
+  </li>
 </ul>
 
-<h1 id="connectors--formats">Connectors &amp; Formats</h1>
+<p>Spillable Heap State Backend (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-50%3A+Spill-able+Heap+Keyed+State+Backend">FLIP-50</a>), a new state backend configuration, is being implemented to support spilling cold state data to disk before heap memory is exhausted and so reduce the chance of OOM errors in job execution. This is not meant as a replacement for RocksDB, but more of an enhancement to the existing Heap State Backend.</p>
+
+<h1 id="ecosystem">Ecosystem</h1>
+
+<p>The community is working on extending the support for catalogs, schema registries, and metadata stores, including support in the APIs and the SQL client (<a href="https://issues.apache.org/jira/browse/FLINK-11275">FLINK-11275</a>).
+We have added DDL (Data Definition Language) support in Flink 1.9 to make it easy to add tables to catalogs (<a href="https://issues.apache.org/jira/browse/FLINK-10232">FLINK-10232</a>), and will extend the support to streaming use cases in the next release.</p>
+
+<p>There is also an ongoing effort to fully integrate Flink with the Hive ecosystem. The latest release made headway in bringing Hive data and metadata interoperability to Flink, along with initial support for Hive UDFs. Moving forward, the community will stabilize and expand on the existing implementation to support Hive DDL syntax and types, as well as other desirable features and capabilities described in <a href="https://issues.apache.org/jira/browse/FLINK-10556">FLINK-10556</a>.</p>
+
+<h1 id="non-jvm-languages-python">Non-JVM Languages (Python)</h1>
+
+<p>The work initiated in Flink 1.9 to bring full Python support to the Table API (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API">FLIP-38</a>) will continue in the upcoming releases, also in close collaboration with the Apache Beam community. The next steps include:</p>
+
+<ul>
+  <li>
+    <p>Adding support for Python UDFs (Scalar Functions (UDF), Tabular Functions (UDTF) and Aggregate Functions (UDAF)). The details of this implementation are defined in <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-58%3A+Flink+Python+User-Defined+Function+for+Table+API">FLIP-58</a> and leverage the <a href="https://docs.google.com/document/d/1B9NmaBSKCnMJQp-ibkxvZ_U233Su67c1eYgBhrqWP24/edit#heading=h.khjybycus70">Apache Beam portability framework</a> as a basis for UDF execution.</p>
+  </li>
+  <li>
+    <p>Integrating Pandas as the final effort — that is, making functions in Pandas directly usable in the Python Table API.</p>
+  </li>
+</ul>
+
+<h1 id="connectors-and-formats">Connectors and Formats</h1>
 
 <p>Support for additional connectors and formats is a continuous process.</p>
 
@@ -360,18 +359,14 @@ We will divide the work into following stages:</p>
 
 <ul>
   <li>
-    <p>The Flink code base is being updates to support Java 9, 10, and 11
-<a href="https://issues.apache.org/jira/browse/FLINK-8033">FLINK-8033</a>,
-<a href="https://issues.apache.org/jira/browse/FLINK-10725">FLINK-10725</a>.</p>
+    <p>The Flink code base has been updated to support Java 9 (<a href="https://issues.apache.org/jira/browse/FLINK-8033">FLINK-8033</a>) and Java 11 support is underway (<a href="https://issues.apache.org/jira/browse/FLINK-10725">FLINK-10725</a>).</p>
   </li>
   <li>
     <p>To reduce compatibility issues with different Scala versions, we are working using Scala
 only in the Scala APIs, but not in the runtime. That removes any Scala dependency for all
-Java-only users, and makes it easier for Flink to support different Scala versions
-<a href="https://issues.apache.org/jira/browse/FLINK-11063">FLINK-11063</a>.</p>
+Java-only users, and makes it easier for Flink to support different Scala versions (<a href="https://issues.apache.org/jira/browse/FLINK-11063">FLINK-11063</a>).</p>
   </li>
 </ul>
-
 
 
   </div>
