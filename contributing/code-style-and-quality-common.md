@@ -140,7 +140,7 @@ That way, you get warnings from IntelliJ about all sections where you have to re
 _Note: This means that `@Nonnull` annotations are usually not necessary, but can be used in certain cases to override a previous annotation, or to point non-nullability out in a context where one would expect a nullable value._
 
 `Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`. 
-For fields and parameters, `Optional` is disputed in Java and most parts of the Flink code case don’t use optional for fields.
+See also [usage of Java Optional](code-style-and-quality-java.md#java-optional).
 
 
 ### Avoid Code Duplication

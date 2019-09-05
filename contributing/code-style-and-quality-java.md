@@ -63,6 +63,18 @@ title:  "Apache Flink Code Style and Quality Guide — Java"
     * `contains()` before `get()` → `get()` and check null
     * `contains()` before `put()` → `putIfAbsent()` or `computeIfAbsent()`
     * Iterating over keys, getting values → iterate over `entrySet()`
+* **Set the initial capacity for a collection only if there is a good proven reason** for that, otherwise do not clutter the code. In case of **Maps** it can be even deluding because the Map's load factor effectively reduces the capacity.
+
+
+### Java Optional
+
+* Use **@Nullable annotation where you do not use Optional** for the nullable values.
+* If you can prove that `Optional` usage would lead to a **performance degradation in critical code then fallback to @Nullable**.
+* Always use **Optional to return nullable values** in the API/public methods except the case of a proven performance concern.
+* **Do not use Optional as a function argument**, instead either overload the method or use the Builder pattern for the set of function arguments.
+     * Note: an Optional argument can be allowed in a private helper method if you believe that it simplifies the code
+     ([example](https://github.com/apache/flink/blob/master/flink-formats/flink-avro/src/main/java/org/apache/flink/formats/avro/typeutils/AvroFactory.java#L95)).
+* **Do not use Optional for class fields**.
 
 
 ### Lambdas
