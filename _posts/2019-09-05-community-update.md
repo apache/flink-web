@@ -136,11 +136,15 @@ As the conference and meetup season ramps up again, here are some events to keep
 * [Conference] **ApacheCon Berlin 2019* (October 22-24)** - Berlin, Germany
 <p></p>
 * [Conference] **Data2Day 2019* (October 22-24)** - Ludwigshafen, Germany
+<p></p>
+* [Conference] **Big Data Tech Warsaw 2020* (February 7)** - Warsaw, Poland
+	<p></p>
+	* The Call For Presentations (CFP) is now [open](https://bigdatatechwarsaw.eu/cfp/).
 
 ### Asia
 
 * [Conference] **Flink Forward Asia 2019 (November 28-30)** - Beijing, China
 	<p></p>
-	* The second edition of Flink Forward Asia is also happening later this year, in Beijing, and the Call For Presentations (CFP) is [open](https://developer.aliyun.com/special/ffa2019) until September 20.
+	* The second edition of Flink Forward Asia is also happening later this year, in Beijing, and the CFP is [open](https://developer.aliyun.com/special/ffa2019) until September 20.
 
 If you'd like to keep a closer eye on what’s happening in the community, subscribe to the [community mailing list](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more. Also, please reach out if you're interested in organizing or being part of Flink events in your area!
