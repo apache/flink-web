@@ -48,7 +48,7 @@ Besides the translation effort, the community has also been working quite hard o
  <p></p>
  * Improve the _getting-started_ material and make the content more accessible to different levels of Flink experience. 
 
-Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary](https://ci.apache.org/projects/flink/flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [this FLIP](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
+Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary](https://ci.apache.org/projects/flink/flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
 
 ## Improvement of the Contribution Process and Experience
 
@@ -72,7 +72,7 @@ Congratulations and thank you for your hardworking commitment to Flink!
 
 # The Bigger Picture
 
-Flink continues to push the boundaries of <strike>stream</strike> data processing, and the community is proud to see an ever-increasingly diverse set of contributors, users and technologies join the ecosystem. 
+Flink continues to push the boundaries of (stream) data processing, and the community is proud to see an ever-increasingly diverse set of contributors, users and technologies join the ecosystem. 
 
 In the timeframe of three releases, the project jumped from **112 to 190 contributors**, also doubling down on the number of requested changes and improvements. To top it off, the Flink GitHub repository recently reached the milestone of **10k stars**, all the way up from the incubation days in 2014.
 
