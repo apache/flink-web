@@ -72,7 +72,7 @@ Congratulations and thank you for your hardworking commitment to Flink!
 
 # The Bigger Picture
 
-Flink continues to push the boundaries of <strike>stream</strike> data processing, and the community is proud to see an ever-increasingly diverse set of contributors, users and technologies join the ecosystem. 
+Flink continues to push the boundaries of (stream) data processing, and the community is proud to see an ever-increasingly diverse set of contributors, users and technologies join the ecosystem. 
 
 In the timeframe of three releases, the project jumped from **112 to 190 contributors**, also doubling down on the number of requested changes and improvements. To top it off, the Flink GitHub repository recently reached the milestone of **10k stars**, all the way up from the incubation days in 2014.
 
