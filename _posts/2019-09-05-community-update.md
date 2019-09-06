@@ -48,7 +48,7 @@ Besides the translation effort, the community has also been working quite hard o
  <p></p>
  * Improve the _getting-started_ material and make the content more accessible to different levels of Flink experience. 
 
-Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary](https://ci.apache.org/projects/flink/flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [this FLIP](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
+Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary](https://ci.apache.org/projects/flink/flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
 
 ## Improvement of the Contribution Process and Experience
 
