@@ -322,7 +322,7 @@ layout: base
     <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
   </a>
   <!-- ApacheCon -->
-  <a href="https://events.apache.org/x/current-event.html" target="_blank">
+  <a href="https://www.apache.org/events/current-event" target="_blank">
     <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
   </a>
 </div>
