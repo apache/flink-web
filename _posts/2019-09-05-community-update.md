@@ -60,13 +60,13 @@ It's important to stress that **contributions are not restricted to code**. Non-
 
 ## New Committers and PMC Members
 
-The Apache Flink community has welcomed **5** new Committers and **3** PMC (Project Management Committee) Members in 2019, so far:
+The Apache Flink community has welcomed **5** new Committers and **4** PMC (Project Management Committee) Members in 2019, so far:
 
 ### PMC
-	Thomas Weise, Jincheng Sun, Kete (Kurt) Young
+	Jincheng Sun, Kete (Kurt) Young, Kostas Kloudas, Thomas Weise
 
 ### Committers
-	Zhijiang Wang, Jiangjie (Becket) Qin, Rong Rong, Andrey Zagrebin, Hequn
+	Andrey Zagrebin, Hequn, Jiangjie (Becket) Qin, Rong Rong, Zhijiang Wang
 
 Congratulations and thank you for your hardworking commitment to Flink!
 
