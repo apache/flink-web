@@ -411,7 +411,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
     <td class="text-center">Shaoxuan Wang</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">shaoxuan</td>
   </tr>
   <tr>
@@ -447,7 +447,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/955396?s=50" class="committer-avatar"></td>
     <td class="text-center">Kurt Young</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">kurt</td>
   </tr>
   <tr>
