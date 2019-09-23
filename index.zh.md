@@ -271,7 +271,7 @@ layout: base
           
         </li>
         <li>
-          <div><a href="{{ site.baseurl }}/poweredby.html">
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" width="175" alt="SK telecom" />
           </a></div>
                   
@@ -287,6 +287,12 @@ layout: base
             <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
           </a></div>
           
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/xiaomi-logo.png" width="175" alt="Xiaomi" />
+          </a></div>
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
