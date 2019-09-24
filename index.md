@@ -266,6 +266,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" width="175" alt="Razorpay" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
           </a></div>
           
