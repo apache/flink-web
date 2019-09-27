@@ -62,7 +62,7 @@ If you would you like to be included on this page, please reach out to the [Flin
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" alt="Gojek" /><br />
-      Gojek is a Super App: one app with over 20 services uses Flink to power their self-serve platform empowering data-driven decisions across functions. <br><br><a href="https://blog.gojekengineering.com/how-our-diy-platform-creates-value-through-network-effects-76e1e8bad0db" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the GoJek engineering blog</a>
+      Gojek is a Super App: one app with over 20 services uses Flink to power their self-serve platform empowering data-driven decisions across functions. <br><br><a href="https://blog.gojekengineering.com/how-our-diy-platform-creates-value-through-network-effects-76e1e8bad0db" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Gojek engineering blog</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" alt="Huawei" /><br />
