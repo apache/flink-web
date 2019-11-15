@@ -25,7 +25,11 @@ You can run this demo on your local machine using [minikube](https://github.com/
 
 If you’re using a different way to provision Kubernetes, make sure you have at least 6 CPU Cores, 9 GB of RAM and 10 GB of disk space available.
 
-Next, let’s install the KUDO CLI. At the time of this writing, the latest KUDO version is v0.7.5. You can find the CLI binaries for download [here](https://github.com/kudobuilder/kudo/releases), or, if you’re using Homebrew on a Mac, you can install the CLI via:
+Install the `kubectl` CLI tool. The KUDO CLI is a plugin for the Kubernetes CLI. The official instructions for installing and setting up kubectl are [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+
+Next, let’s install the KUDO CLI. At the time of this writing, the latest KUDO version is v0.8.0. You can find the CLI binaries for download [here](https://github.com/kudobuilder/kudo/releases). Download the `kubectl-kudo` binary for your OS and architecture.
+
+If you’re using Homebrew on MacOS, you can install the CLI via:
 
 ```
 $ brew tap kudobuilder/tap
@@ -44,13 +48,13 @@ This will create several resources. First, it will create the [Custom Resource D
 The KUDO CLI leverages the kubectl plugin system, which gives you all its functionality under `kubectl kudo`. This is a convenient way to install and deal with your KUDO Operators. For our demo, we use Kafka and Flink which depend on ZooKeeper. To make the ZooKeeper Operator available on the cluster, run:
 
 ```
-$ kubectl kudo install zookeeper --version=0.1.0 --skip-instance
+$ kubectl kudo install zookeeper --version=0.2.0 --skip-instance
 ```
 
 The --skip-instance flag skips the creation of a ZooKeeper instance. The flink-demo Operator that we’re going to install below will create it as a dependency instead. Now let’s make the Kafka and Flink Operators available the same way:
 
 ```
-$ kubectl kudo install kafka --version=0.1.2 --skip-instance
+$ kubectl kudo install kafka --version=0.1.3 --skip-instance
 ```
 
 ```
@@ -105,7 +109,7 @@ The output shows that the “deploy” plan is in progress and that it consists 
 $ kubectl kudo plan status --instance flink-demo-kafka
 Plan(s) for "flink-demo-kafka" in namespace "default":
 .
-└── flink-demo-kafka (Operator-Version: "kafka-0.1.2" Active-Plan: "deploy")
+└── flink-demo-kafka (Operator-Version: "kafka-0.1.3" Active-Plan: "deploy")
 	├── Plan deploy (serial strategy) [IN_PROGRESS]
 	│   └── Phase deploy-kafka [IN_PROGRESS]
 	│   	└── Step deploy (IN_PROGRESS)
