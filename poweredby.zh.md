@@ -127,6 +127,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       Uber 在 Apache Flink 上构建了基于 SQL 的开源流媒体分析平台 AthenaX。<br><br><a href="https://eng.uber.com/athenax/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 更多信息请访问Uber工程博客</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/vip-logo.png" alt="Vip" /><br />
+      Vip，中国最大的品牌特卖网站之一，应用Flink实时的将数据流ETL到Hive中用于数据处理和分析. <br><br><a href="https://yq.aliyun.com/articles/652548" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解Vip如何使用 Flink </a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/xiaomi-logo.png" alt="Xiaomi" /><br />
         小米，作为中国最大的专注于硬件与软件开发的公司之一，利用 Flink 构建了一个内部平台，以提高开发运维实时应用程序的效率，并用于实时推荐等场景。<br><br><a href="https://files.alicdn.com/tpsservice/d77d3ed3f2709790f0d84f4ec279a486.pdf" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解小米如何使用 Flink 的。</a>
   </div>
