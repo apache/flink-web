@@ -160,6 +160,10 @@ We use Jira to track all code related issues: [{{ site.jira }}]({{ site.jira }})
 
 All issue activity is also mirrored to the issues mailing list.
 
+## Reporting Security Issues
+
+If you wish to report a security vulnerability, please contact [security@apache.org](mailto:security@apache.org). Apache Flink follows the typical [Apache vulnerability handling process](https://www.apache.org/security/) for reporting vulnerabilities. Note that vulnerabilities should not be publicly disclosed until the project has responded.
+
 ## Meetups
 
 There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-flink/) featuring Flink.
