@@ -158,6 +158,10 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 
 所有 issue 的活动也会同步到 issue 邮件列表。
 
+## 报告安全漏洞
+
+如果你希望报告安全漏洞, 请联系 [security@apache.org](mailto:security@apache.org)。 Apache Flink 遵循标准的 [Apache漏洞处理流程](https://www.apache.org/security/) 来报告漏洞。请注意，在项目做出响应之前，请不要公开披露漏洞。
+
 ## Meetups
 
 在 [meetup.com](http://www.meetup.com/topics/apache-flink/) 上可以找到很多 Flink 相关的 meetup。
