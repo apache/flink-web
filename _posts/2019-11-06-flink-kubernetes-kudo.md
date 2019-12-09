@@ -1,11 +1,11 @@
 ---
 layout: post
 title:  "Running Apache Flink on Kubernetes with KUDO"
-date:   2019-11-18 12:00:00
+date:   2019-12-09 12:00:00
 categories: news
 authors:
 - gerred:
-		name: "Gerred Dillon"
+  name: "Gerred Dillon"
 excerpt: A common use case for Apache Flink is streaming data analytics together with Apache Kafka, which provides a pub/sub model and durability for data streams. In this post, we demonstrate how to orchestrate Flink and Kafka with KUDO.
 ---
 
