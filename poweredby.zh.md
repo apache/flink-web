@@ -102,6 +102,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       OVH 使用 Flink 开发面向流的应用程序，比如实时商业智能系统或警报系统。<br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 OVH 如何使用 Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" alt="Pinterest" /><br />
+      Pinterest 使用基于 Apache Flink 的实时实验分析平台每天进行上千次的实验。 <br><br><a href="https://medium.com/pinterest-engineering/real-time-experiment-analytics-at-pinterest-using-apache-flink-841c8df98dc2" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多在 Pinterest 有关实时实验分析的信息</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" alt="Razorpay" /><br />
         Razorpay 是印度最大的支付门户网站之一，使用 Flink 构建了自己的内部平台 Mitra，用以扩展 AI 特征生成和实时模型服务。 <br><br><a href=" https://medium.com/razorpay-unfiltered/data-science-at-scale-using-apache-flink-982cb18848b" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多在 Razorpay 有关 Flink 数据分析的信息</a>
     </div>
