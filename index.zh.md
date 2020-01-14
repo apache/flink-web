@@ -271,6 +271,12 @@ layout: base
           
         </li>
         <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" width="175" alt="Pinterest" />
+          </a></div>
+
+        </li>
+        <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
           </a></div>
