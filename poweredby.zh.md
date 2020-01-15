@@ -103,7 +103,7 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" alt="Pinterest" /><br />
-      Pinterest 使用基于 Flink 的实时实验分析平台每天进行上千次的实验。 <br><br><a href="https://medium.com/pinterest-engineering/real-time-experiment-analytics-at-pinterest-using-apache-flink-841c8df98dc2" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 详细了解 Pinterest 的实时实验分析平台</a>
+      Pinterest 使用基于 Apache Flink 的实时实验分析平台每天进行上千次的实验。 <br><br><a href="https://medium.com/pinterest-engineering/real-time-experiment-analytics-at-pinterest-using-apache-flink-841c8df98dc2" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读更多在 Pinterest 有关实时实验分析的信息</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
       <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" alt="Razorpay" /><br />
