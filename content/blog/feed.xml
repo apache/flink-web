@@ -7,6 +7,218 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System</title>
+<description>&lt;p&gt;In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Dynamic updates of application logic&lt;/li&gt;
+  &lt;li&gt;Dynamic data partitioning (shuffle), controlled at runtime&lt;/li&gt;
+  &lt;li&gt;Low latency alerting based on custom windowing logic (without using the window API)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Dynamic updates of application logic&lt;/strong&gt; allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;Dynamic data partitioning&lt;/strong&gt; provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.&lt;br /&gt;
+&lt;br /&gt;
+&lt;strong&gt;Custom window management&lt;/strong&gt; demonstrates how you can utilize the low level &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/process_function.html&quot;&gt;process function API&lt;/a&gt;, when the native &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/windows.html&quot;&gt;window API&lt;/a&gt; is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.&lt;/p&gt;
+
+&lt;p&gt;These patterns build on top of core Flink functionality, however, they might not be immediately apparent from the framework’s documentation as explaining and presenting the motivation behind them is not always trivial without a concrete use case. That is why we will showcase these patterns with a practical example that offers a real-world usage scenario for Apache Flink — a &lt;em&gt;Fraud Detection&lt;/em&gt; engine.
+We hope that this series will place these powerful approaches into your tool belt and enable you to take on new and exciting tasks.&lt;/p&gt;
+
+&lt;p&gt;In the first blog post of the series we will look at the high-level architecture of the demo application, describe its components and their interactions. We will then deep dive into the implementation details of the first pattern in the series - &lt;strong&gt;dynamic data partitioning&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;You will be able to run the full Fraud Detection Demo application locally and look into the details of the implementation by using the accompanying GitHub repository.&lt;/p&gt;
+
+&lt;h3 id=&quot;fraud-detection-demo&quot;&gt;Fraud Detection Demo&lt;/h3&gt;
+
+&lt;p&gt;The full source code for our fraud detection demo is open source and available online. To run it locally, check out the following repository and follow the steps in the README:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/afedulov/fraud-detection-demo&quot;&gt;https://github.com/afedulov/fraud-detection-demo&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;You will see the demo is a self-contained application - it only requires &lt;code&gt;docker&lt;/code&gt; and &lt;code&gt;docker-compose&lt;/code&gt; to be built from sources and includes the following components:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Apache Kafka (message broker) with ZooKeeper&lt;/li&gt;
+  &lt;li&gt;Apache Flink (&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/concepts/glossary.html#flink-application-cluster&quot;&gt;application cluster&lt;/a&gt;)&lt;/li&gt;
+  &lt;li&gt;Fraud Detection Web App&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The high-level goal of the Fraud Detection engine is to consume a stream of financial transactions and evaluate them against a set of rules. These rules are subject to frequent changes and tweaks. In a real production system, it is important to be able to add and remove them at runtime, without incurring an expensive penalty of stopping and restarting the job.&lt;/p&gt;
+
+&lt;p&gt;When you navigate to the demo URL in your browser, you will be presented with the following UI:&lt;/p&gt;
+
+&lt;center&gt;
+ &lt;img src=&quot;/img/blog/2019-11-19-demo-fraud-detection/ui.png&quot; width=&quot;800px&quot; alt=&quot;Figure 1: Demo UI&quot; /&gt;
+ &lt;br /&gt;
+ &lt;i&gt;&lt;small&gt;Figure 1: Fraud Detection Demo UI&lt;/small&gt;&lt;/i&gt;
+ &lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;On the left side, you can see a visual representation of financial transactions flowing through the system after you click the “Start” button. The slider at the top allows you to control the number of generated transactions per second. The middle section is devoted to managing the rules evaluated by Flink. From here, you can create new rules as well as issue control commands, such as clearing Flink’s state.&lt;/p&gt;
+
+&lt;p&gt;The demo out-of-the-box comes with a set of predefined sample rules. You can click the &lt;em&gt;Start&lt;/em&gt; button and, after some time, will observe alerts displayed in the right section of the UI. These alerts are the result of Flink evaluating the generated transactions stream against the predefined rules.&lt;/p&gt;
+
+&lt;p&gt;Our sample fraud detection system consists of three main components:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Frontend (React)&lt;/li&gt;
+  &lt;li&gt;Backend (SpringBoot)&lt;/li&gt;
+  &lt;li&gt;Fraud Detection application (Apache Flink)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Interactions between the main elements are depicted in &lt;em&gt;Figure 2&lt;/em&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+ &lt;img src=&quot;/img/blog/2019-11-19-demo-fraud-detection/architecture.png&quot; width=&quot;800px&quot; alt=&quot;Figure 2: Demo Components&quot; /&gt;
+ &lt;br /&gt;
+ &lt;i&gt;&lt;small&gt;Figure 2: Fraud Detection Demo Components&lt;/small&gt;&lt;/i&gt;
+ &lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The Backend exposes a REST API to the Frontend for creating/deleting rules as well as issuing control commands for managing the demo execution. It then relays those Frontend actions to Flink by sending them via a “Control” Kafka topic. The Backend additionally includes a &lt;em&gt;Transactions Generator&lt;/em&gt; component, which sends an emulated stream of money transfer events to Flink via a separate “Transactions” topic. Alerts generated by Flink are consumed by the Backend from “Alerts” topic and relayed to the UI via WebSockets.&lt;/p&gt;
+
+&lt;p&gt;Now that you are familiar with the overall layout and the goal of our Fraud Detection engine, let’s now go into the details of what is required to implement such a system.&lt;/p&gt;
+
+&lt;h3 id=&quot;dynamic-data-partitioning&quot;&gt;Dynamic Data Partitioning&lt;/h3&gt;
+
+&lt;p&gt;The first pattern we will look into is Dynamic Data Partitioning.&lt;/p&gt;
+
+&lt;p&gt;If you have used Flink’s DataStream API in the past, you are undoubtedly familiar with the &lt;strong&gt;keyBy&lt;/strong&gt; method. Keying a stream shuffles all the records such that elements with the same key are assigned to the same partition. This means all records with the same key are processed by the same physical instance of the next operator.&lt;/p&gt;
+
+&lt;p&gt;In a typical streaming application, the choice of key is fixed, determined by some static field within the elements. For instance, when building a simple window-based aggregation of a stream of transactions, we might always group by the transactions account id.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// [...]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;...&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;Transaction:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getAccountId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;cm&quot;&gt;/*window specification*/&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
+To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;“Whenever the &lt;strong&gt;sum&lt;/strong&gt; of the accumulated &lt;strong&gt;payment amount&lt;/strong&gt; from the same &lt;strong&gt;beneficiary&lt;/strong&gt; to the same &lt;strong&gt;payee&lt;/strong&gt; within the &lt;strong&gt;duration of a week&lt;/strong&gt; is &lt;strong&gt;greater&lt;/strong&gt; than &lt;strong&gt;1 000 000 $&lt;/strong&gt; - fire an alert.”&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Aggregation field (payment amount)&lt;/li&gt;
+  &lt;li&gt;Grouping fields (beneficiary + payee)&lt;/li&gt;
+  &lt;li&gt;Aggregation function (sum)&lt;/li&gt;
+  &lt;li&gt;Window duration (1 week)&lt;/li&gt;
+  &lt;li&gt;Limit (1 000 000)&lt;/li&gt;
+  &lt;li&gt;Limit operator (greater)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Accordingly, we will use the following simple JSON format to define the aforementioned parameters:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;ruleId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;ruleState&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;ACTIVE&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;groupingKeyNames&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;beneficiaryId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;payeeId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;aggregateFieldName&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;paymentAmount&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;aggregatorFunctionType&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;SUM&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;limitOperatorType&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;GREATER&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;limit&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;windowMinutes&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10080&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;At this point, it is important to understand that &lt;strong&gt;&lt;code&gt;groupingKeyNames&lt;/code&gt;&lt;/strong&gt; determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. &lt;em&gt;beneficiary #25 -&amp;gt; payee #12&lt;/em&gt;) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink’s API is realised by a &lt;code&gt;keyBy()&lt;/code&gt; function.&lt;/p&gt;
+
+&lt;p&gt;Most examples in Flink’s &lt;code&gt;keyBy()&lt;/code&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions&quot;&gt;documentation&lt;/a&gt; use a hard-coded &lt;code&gt;KeySelector&lt;/code&gt;, which extracts specific fixed events’ fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.&lt;/p&gt;
+
+&lt;p&gt;On a high level, our main processing pipeline looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Alert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alerts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;transactions&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicKeyFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;cm&quot;&gt;/* some key selector */&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;cm&quot;&gt;/* actual calculations and alerting */&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We have previously established that each rule defines a &lt;strong&gt;&lt;code&gt;groupingKeyNames&lt;/code&gt;&lt;/strong&gt; parameter that specifies which combination of fields will be used for the incoming events’ grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of &lt;code&gt;DynamicKeyFunction()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png&quot; width=&quot;800px&quot; alt=&quot;Figure 3: Forking events with Dynamic Key Function&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Figure 3: Forking events with Dynamic Key Function&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;DynamicKeyFunction&lt;/code&gt; iterates over a set of defined rules and prepares every event to be processed by a &lt;code&gt;keyBy()&lt;/code&gt; function by extracting the required grouping keys:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DynamicKeyFunction&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;cm&quot;&gt;/* Simplified */&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* Rules that are initialized somehow.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;                        Details will be discussed in a future blog post. */&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+      &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+           &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
+               &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+               &lt;span class=&quot;n&quot;&gt;KeysExtractor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getGroupingKeyNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+               &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRuleId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()));&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;KeysExtractor.getKey()&lt;/code&gt; uses reflection to extract the required values of &lt;code&gt;groupingKeyNames&lt;/code&gt; fields from events and combines them as a single concatenated String key, e.g &lt;code&gt;&quot;{beneficiaryId=25;payeeId=12}&quot;&lt;/code&gt;. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between &lt;em&gt;beneficiary #25&lt;/em&gt; and &lt;em&gt;payee #12&lt;/em&gt; and evaluating defined rules within the desired time window.&lt;/p&gt;
+
+&lt;p&gt;Notice that a wrapper class &lt;code&gt;Keyed&lt;/code&gt; with the following signature was introduced as the output type of &lt;code&gt;DynamicKeyFunction&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IN&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KEY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wrapped&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KEY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KEY&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Fields of this POJO carry the following information: &lt;code&gt;wrapped&lt;/code&gt; is the original transaction event, &lt;code&gt;key&lt;/code&gt; is the result of using &lt;code&gt;KeysExtractor&lt;/code&gt; and &lt;code&gt;id&lt;/code&gt; is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).&lt;/p&gt;
+
+&lt;p&gt;Events of this type will be the input to the &lt;code&gt;keyBy()&lt;/code&gt; function in the main processing pipeline and allow the use of a simple lambda-expression as a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions&quot;&gt;&lt;code&gt;KeySelector&lt;/code&gt;&lt;/a&gt; for the final step of implementing dynamic data shuffle.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Alert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alerts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;transactions&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicKeyFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicAlertFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By applying &lt;code&gt;DynamicKeyFunction&lt;/code&gt; we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules’ processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same &lt;code&gt;groupingKeyNames&lt;/code&gt;, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.&lt;/p&gt;
+
+&lt;h3 id=&quot;summary&quot;&gt;Summary:&lt;/h3&gt;
+
+&lt;p&gt;In this blog post, we have discussed the motivation behind supporting dynamic, runtime changes to a Flink application by looking at a sample use case - a Fraud Detection engine. We have described the overall architecture and interactions between its components as well as provided references for building and running a demo Fraud Detection application in a dockerized setup. We then showed the details of implementing a  &lt;strong&gt;dynamic data partitioning pattern&lt;/strong&gt; as the first underlying building block to enable flexible runtime configurations.&lt;/p&gt;
+
+&lt;p&gt;To remain focused on describing the core mechanics of the pattern, we kept the complexity of the DSL and the underlying rules engine to a minimum. Going forward, it is easy to imagine adding extensions such as allowing more sophisticated rule definitions, including filtering of certain events, logical rules chaining, and other more advanced functionality.&lt;/p&gt;
+
+&lt;p&gt;In the second part of this series, we will describe how the rules make their way into the running Fraud Detection engine. Additionally, we will go over the implementation details of the main processing function of the pipeline - &lt;em&gt;DynamicAlertFunction()&lt;/em&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2019-11-19-demo-fraud-detection/end-to-end.png&quot; width=&quot;800px&quot; alt=&quot;Figure 4: End-to-end pipeline&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Figure 4: End-to-end pipeline&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;In the next article, we will see how Flink’s broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).&lt;/p&gt;
+</description>
+<pubDate>Wed, 15 Jan 2020 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html</link>
+<guid isPermaLink="true">/news/2020/01/15/demo-fraud-detection.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.8.3 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the third bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
 
