@@ -61,6 +61,10 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
       爱立信使用 Flink 构建了一个实时异常检测器，通过大型基础设施进行机器学习。<br><br><a href="https://www.oreilly.com/ideas/applying-the-kappa-architecture-in-the-telco-industry" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 阅读关于O'Reilly想法的详细概述</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" alt="Gojek" /><br />
+      Gojek 是一个超级 App: 拥有超过20种服务，并使用 Flink 为其自助平台提供支持，从而实现跨功能的数据驱动决策。<br><br><a href="https://blog.gojekengineering.com/how-our-diy-platform-creates-value-through-network-effects-76e1e8bad0db" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 更多信息请访问 Gojek 工程师博客</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" alt="Huawei" /><br />
       华为是全球领先的 ICT 基础设施和智能设备供应商。华为云提供基于 Flink 的云服务。<br><br><a href="https://www.slideshare.net/FlinkForward/flink-forward-san-francisco-2018-jinkui-shi-and-radu-tudoran-flink-realtime-analysis-in-cloudstream-service-of-huawei-cloud" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> 了解Flink 如何为云服务提供动力</a>
   </div>
