@@ -274,13 +274,13 @@ We hope that this series will place these powerful approaches into your tool bel
 <p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
 To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:</p>
 
-<p><em>“Whenever the <strong>sum</strong> of the accumulated <strong>payment amount</strong> from the same <strong>beneficiary</strong> to the same <strong>payee</strong> within the <strong>duration of a week</strong> is <strong>greater</strong> than <strong>1 000 000 $</strong> - fire an alert.”</em></p>
+<p><em>“Whenever the <strong>sum</strong> of the accumulated <strong>payment amount</strong> from the same <strong>payer</strong> to the same <strong>beneficiary</strong> within the <strong>duration of a week</strong> is <strong>greater</strong> than <strong>1 000 000 $</strong> - fire an alert.”</em></p>
 
 <p>In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:</p>
 
 <ol>
   <li>Aggregation field (payment amount)</li>
-  <li>Grouping fields (beneficiary + payee)</li>
+  <li>Grouping fields (payer + beneficiary)</li>
   <li>Aggregation function (sum)</li>
   <li>Window duration (1 week)</li>
   <li>Limit (1 000 000)</li>
@@ -292,7 +292,7 @@ To understand why this is the case, let us start with articulating a realistic s
 <div class="highlight"><pre><code class="language-json"><span class="p">{</span>
   <span class="nt">&quot;ruleId&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
   <span class="nt">&quot;ruleState&quot;</span><span class="p">:</span> <span class="s2">&quot;ACTIVE&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;groupingKeyNames&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;beneficiaryId&quot;</span><span class="p">,</span> <span class="s2">&quot;payeeId&quot;</span><span class="p">],</span>
+  <span class="nt">&quot;groupingKeyNames&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;payerId&quot;</span><span class="p">,</span> <span class="s2">&quot;beneficiaryId&quot;</span><span class="p">],</span>
   <span class="nt">&quot;aggregateFieldName&quot;</span><span class="p">:</span> <span class="s2">&quot;paymentAmount&quot;</span><span class="p">,</span>
   <span class="nt">&quot;aggregatorFunctionType&quot;</span><span class="p">:</span> <span class="s2">&quot;SUM&quot;</span><span class="p">,</span>
   <span class="nt">&quot;limitOperatorType&quot;</span><span class="p">:</span> <span class="s2">&quot;GREATER&quot;</span><span class="p">,</span>
@@ -300,7 +300,7 @@ To understand why this is the case, let us start with articulating a realistic s
   <span class="nt">&quot;windowMinutes&quot;</span><span class="p">:</span> <span class="mi">10080</span>
 <span class="p">}</span></code></pre></div>
 
-<p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>beneficiary #25 -&gt; payee #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink’s API is realised by a <code>keyBy()</code> function.</p>
+<p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink’s API is realised by a <code>keyBy()</code> function.</p>
 
 <p>Most examples in Flink’s <code>keyBy()</code><a href="https://ci.apache.org/projects/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events’ fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
 
@@ -346,7 +346,7 @@ To understand why this is the case, let us start with articulating a realistic s
   <span class="o">}</span>
   <span class="o">...</span>
 <span class="o">}</span></code></pre></div>
-<p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>"{beneficiaryId=25;payeeId=12}"</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>beneficiary #25</em> and <em>payee #12</em> and evaluating defined rules within the desired time window.</p>
+<p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>"{payerId=25;beneficiaryId=12}"</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
 
 <p>Notice that a wrapper class <code>Keyed</code> with the following signature was introduced as the output type of <code>DynamicKeyFunction</code>:</p>
 
