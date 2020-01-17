@@ -97,12 +97,12 @@ DataStream<...> windowed = input
 This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
 To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:  
 
-*"Whenever the **sum** of the accumulated **payment amount** from the same **beneficiary** to the same **payee** within the **duration of a week** is **greater** than **1 000 000 $** - fire an alert."*
+*"Whenever the **sum** of the accumulated **payment amount** from the same **payer** to the same **beneficiary** within the **duration of a week** is **greater** than **1 000 000 $** - fire an alert."*
 
 In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:
 
 1. Aggregation field (payment amount)  
-1. Grouping fields (beneficiary + payee)  
+1. Grouping fields (payer + beneficiary)  
 1. Aggregation function (sum)  
 1. Window duration (1 week)  
 1. Limit (1 000 000)  
@@ -114,7 +114,7 @@ Accordingly, we will use the following simple JSON format to define the aforemen
 {
   "ruleId": 1,
   "ruleState": "ACTIVE",
-  "groupingKeyNames": ["beneficiaryId", "payeeId"],
+  "groupingKeyNames": ["payerId", "beneficiaryId"],
   "aggregateFieldName": "paymentAmount",
   "aggregatorFunctionType": "SUM",
   "limitOperatorType": "GREATER",
@@ -123,7 +123,7 @@ Accordingly, we will use the following simple JSON format to define the aforemen
 }
 ```
 
-At this point, it is important to understand that **`groupingKeyNames`** determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. _beneficiary #25 -> payee #12_) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink's API is realised by a `keyBy()` function.
+At this point, it is important to understand that **`groupingKeyNames`** determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. _payer #25 -> beneficiary #12_) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink's API is realised by a `keyBy()` function.
 
 Most examples in Flink's `keyBy()`[documentation](https://ci.apache.org/projects/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions) use a hard-coded `KeySelector`, which extracts specific fixed events' fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.
 
@@ -173,7 +173,7 @@ public class DynamicKeyFunction
   ...
 }
 ```
- `KeysExtractor.getKey()` uses reflection to extract the required values of `groupingKeyNames` fields from events and combines them as a single concatenated String key, e.g `"{beneficiaryId=25;payeeId=12}"`. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between _beneficiary #25_ and _payee #12_ and evaluating defined rules within the desired time window.
+ `KeysExtractor.getKey()` uses reflection to extract the required values of `groupingKeyNames` fields from events and combines them as a single concatenated String key, e.g `"{payerId=25;beneficiaryId=12}"`. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between _payer #25_ and _beneficiary #12_ and evaluating defined rules within the desired time window.
 
 Notice that a wrapper class `Keyed` with the following signature was introduced as the output type of `DynamicKeyFunction`:  
 
