@@ -27,7 +27,7 @@ If you’re using a different way to provision Kubernetes, make sure you have at
 
 Install the `kubectl` CLI tool. The KUDO CLI is a plugin for the Kubernetes CLI. The official instructions for installing and setting up kubectl are [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 
-Next, let’s install the KUDO CLI. At the time of this writing, the latest KUDO version is v0.8.0. You can find the CLI binaries for download [here](https://github.com/kudobuilder/kudo/releases). Download the `kubectl-kudo` binary for your OS and architecture.
+Next, let’s install the KUDO CLI. At the time of this writing, the latest KUDO version is v0.10.0. You can find the CLI binaries for download [here](https://github.com/kudobuilder/kudo/releases). Download the `kubectl-kudo` binary for your OS and architecture.
 
 If you’re using Homebrew on MacOS, you can install the CLI via:
 
@@ -48,17 +48,17 @@ This will create several resources. First, it will create the [Custom Resource D
 The KUDO CLI leverages the kubectl plugin system, which gives you all its functionality under `kubectl kudo`. This is a convenient way to install and deal with your KUDO Operators. For our demo, we use Kafka and Flink which depend on ZooKeeper. To make the ZooKeeper Operator available on the cluster, run:
 
 ```
-$ kubectl kudo install zookeeper --version=0.2.0 --skip-instance
+$ kubectl kudo install zookeeper --version=0.3.0 --skip-instance
 ```
 
 The --skip-instance flag skips the creation of a ZooKeeper instance. The flink-demo Operator that we’re going to install below will create it as a dependency instead. Now let’s make the Kafka and Flink Operators available the same way:
 
 ```
-$ kubectl kudo install kafka --version=0.1.3 --skip-instance
+$ kubectl kudo install kafka --version=1.2.0 --skip-instance
 ```
 
 ```
-$ kubectl kudo install flink --version=0.1.1 --skip-instance
+$ kubectl kudo install flink --version=0.2.1 --skip-instance
 ```
 
 This installs all the Operator versions needed for our demo.
@@ -80,7 +80,7 @@ Next, change into the “operators” directory and install the demo-operator fr
 ```
 $ cd operators
 $ kubectl kudo install repository/flink/docs/demo/financial-fraud/demo-operator --instance flink-demo
-instance.kudo.dev/v1alpha1/flink-demo created
+instance.kudo.dev/v1beta1/flink-demo created
 ```
 
 This time we didn’t include the --skip-instance flag, so KUDO will actually deploy all the components, including Flink, Kafka, and ZooKeeper. KUDO orchestrates deployments and other lifecycle operations using [plans](https://kudo.dev/docs/concepts.html#plan) that were defined by the Operator developer. Plans are similar to [runbooks](https://en.wikipedia.org/wiki/Runbook) and encapsulate all the procedures required to operate the software. We can track the status of the deployment using this KUDO command:
@@ -89,7 +89,7 @@ This time we didn’t include the --skip-instance flag, so KUDO will actually de
 $ kubectl kudo plan status --instance flink-demo
 Plan(s) for "flink-demo" in namespace "default":
 .
-└── flink-demo (Operator-Version: "flink-demo-0.1.1" Active-Plan: "deploy")
+└── flink-demo (Operator-Version: "flink-demo-0.1.4" Active-Plan: "deploy")
 	└── Plan deploy (serial strategy) [IN_PROGRESS]
     	├── Phase dependencies [IN_PROGRESS]
     	│   ├── Step zookeeper (COMPLETE)
@@ -109,7 +109,7 @@ The output shows that the “deploy” plan is in progress and that it consists 
 $ kubectl kudo plan status --instance flink-demo-kafka
 Plan(s) for "flink-demo-kafka" in namespace "default":
 .
-└── flink-demo-kafka (Operator-Version: "kafka-0.1.3" Active-Plan: "deploy")
+└── flink-demo-kafka (Operator-Version: "kafka-1.2.0" Active-Plan: "deploy")
 	├── Plan deploy (serial strategy) [IN_PROGRESS]
 	│   └── Phase deploy-kafka [IN_PROGRESS]
 	│   	└── Step deploy (IN_PROGRESS)
