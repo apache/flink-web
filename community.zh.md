@@ -258,6 +258,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">gyfora</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5466492?s=50" class="committer-avatar"></td>
+    <td class="text-center">Dian Fu</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">dianfu</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/332352?s=50" class="committer-avatar"></td>
     <td class="text-center">Alan Gates</td>
     <td class="text-center">PMC, Committer</td>
