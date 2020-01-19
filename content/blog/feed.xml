@@ -97,13 +97,13 @@ We hope that this series will place these powerful approaches into your tool bel
 &lt;p&gt;This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
 To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;“Whenever the &lt;strong&gt;sum&lt;/strong&gt; of the accumulated &lt;strong&gt;payment amount&lt;/strong&gt; from the same &lt;strong&gt;beneficiary&lt;/strong&gt; to the same &lt;strong&gt;payee&lt;/strong&gt; within the &lt;strong&gt;duration of a week&lt;/strong&gt; is &lt;strong&gt;greater&lt;/strong&gt; than &lt;strong&gt;1 000 000 $&lt;/strong&gt; - fire an alert.”&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;“Whenever the &lt;strong&gt;sum&lt;/strong&gt; of the accumulated &lt;strong&gt;payment amount&lt;/strong&gt; from the same &lt;strong&gt;payer&lt;/strong&gt; to the same &lt;strong&gt;beneficiary&lt;/strong&gt; within the &lt;strong&gt;duration of a week&lt;/strong&gt; is &lt;strong&gt;greater&lt;/strong&gt; than &lt;strong&gt;1 000 000 $&lt;/strong&gt; - fire an alert.”&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;Aggregation field (payment amount)&lt;/li&gt;
-  &lt;li&gt;Grouping fields (beneficiary + payee)&lt;/li&gt;
+  &lt;li&gt;Grouping fields (payer + beneficiary)&lt;/li&gt;
   &lt;li&gt;Aggregation function (sum)&lt;/li&gt;
   &lt;li&gt;Window duration (1 week)&lt;/li&gt;
   &lt;li&gt;Limit (1 000 000)&lt;/li&gt;
@@ -115,7 +115,7 @@ To understand why this is the case, let us start with articulating a realistic s
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;ruleId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;ruleState&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;ACTIVE&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;quot;groupingKeyNames&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;beneficiaryId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;payeeId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;quot;groupingKeyNames&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;payerId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;beneficiaryId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;aggregateFieldName&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;paymentAmount&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;aggregatorFunctionType&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;SUM&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;limitOperatorType&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;GREATER&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
@@ -123,7 +123,7 @@ To understand why this is the case, let us start with articulating a realistic s
   &lt;span class=&quot;nt&quot;&gt;&amp;quot;windowMinutes&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10080&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;At this point, it is important to understand that &lt;strong&gt;&lt;code&gt;groupingKeyNames&lt;/code&gt;&lt;/strong&gt; determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. &lt;em&gt;beneficiary #25 -&amp;gt; payee #12&lt;/em&gt;) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink’s API is realised by a &lt;code&gt;keyBy()&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;At this point, it is important to understand that &lt;strong&gt;&lt;code&gt;groupingKeyNames&lt;/code&gt;&lt;/strong&gt; determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. &lt;em&gt;payer #25 -&amp;gt; beneficiary #12&lt;/em&gt;) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink’s API is realised by a &lt;code&gt;keyBy()&lt;/code&gt; function.&lt;/p&gt;
 
 &lt;p&gt;Most examples in Flink’s &lt;code&gt;keyBy()&lt;/code&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions&quot;&gt;documentation&lt;/a&gt; use a hard-coded &lt;code&gt;KeySelector&lt;/code&gt;, which extracts specific fixed events’ fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.&lt;/p&gt;
 
@@ -169,7 +169,7 @@ To understand why this is the case, let us start with articulating a realistic s
   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
   &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;KeysExtractor.getKey()&lt;/code&gt; uses reflection to extract the required values of &lt;code&gt;groupingKeyNames&lt;/code&gt; fields from events and combines them as a single concatenated String key, e.g &lt;code&gt;&quot;{beneficiaryId=25;payeeId=12}&quot;&lt;/code&gt;. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between &lt;em&gt;beneficiary #25&lt;/em&gt; and &lt;em&gt;payee #12&lt;/em&gt; and evaluating defined rules within the desired time window.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;KeysExtractor.getKey()&lt;/code&gt; uses reflection to extract the required values of &lt;code&gt;groupingKeyNames&lt;/code&gt; fields from events and combines them as a single concatenated String key, e.g &lt;code&gt;&quot;{payerId=25;beneficiaryId=12}&quot;&lt;/code&gt;. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between &lt;em&gt;payer #25&lt;/em&gt; and &lt;em&gt;beneficiary #12&lt;/em&gt; and evaluating defined rules within the desired time window.&lt;/p&gt;
 
 &lt;p&gt;Notice that a wrapper class &lt;code&gt;Keyed&lt;/code&gt; with the following signature was introduced as the output type of &lt;code&gt;DynamicKeyFunction&lt;/code&gt;:&lt;/p&gt;
 
