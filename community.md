@@ -472,6 +472,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Committer</td>
     <td class="text-center">azagrebin</td>
   </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6239804?s=50" class="committer-avatar"></td>
+    <td class="text-center">Yu Li</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">liyu</td>
+  </tr>
 
 </table>
 
