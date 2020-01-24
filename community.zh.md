@@ -173,6 +173,11 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 - **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub 镜像**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
+### Flink Stateful Functions 仓库
+
+- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+- **GitHub 镜像**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
+
 ### Flink-shaded 仓库 (shaded 的依赖包)
 
 - **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
