@@ -170,24 +170,29 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 ## Source Code
 
-### Main source repositories
+### Flink core repository
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+
+### Flink Stateful Functions repository
+
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+- **GitHub mirror**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
 ### Flink-shaded repositories (shaded dependency libraries)
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
 - **GitHub mirror**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
 
 ### Flink Website repositories
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
 - **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
 ### Bahir Flink repositories (additional connectors)
 
-- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
+- **ASF repository**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
 - **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
 
 
