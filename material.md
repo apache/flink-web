@@ -6,7 +6,7 @@ title: "Material"
 
 ## Apache Flink Logos
 
-We provide the Apache Flink logo in different sizes and formats. You can [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB) or just pick the one you need from this page.
+We provide the Apache Flink logo in different sizes and formats. You can [download all variants]({{ site.baseurl }}/img/logo.zip) (7.4 MB) or just pick the one you need from this page.
 
 ### Portable Network Graphics (PNG)
 
@@ -53,7 +53,7 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
 
 <div class="panel panel-default">
   <div class="panel-body" markdown="span">
-    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/png) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/png) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.4 MB).
   </div>
 </div>
 
@@ -85,7 +85,7 @@ We provide the Apache Flink logo in different sizes and formats. You can [downlo
 
 <div class="panel panel-default">
   <div class="panel-body" markdown="span">
-    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/svg) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+    You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/svg) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.4 MB).
   </div>
 </div>
 
@@ -98,7 +98,7 @@ You can download the logo in PSD format as well:
 - **Colored logo**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_squirrel_1000.psd).
 - **Black outline logo with text**: [1000x1000]({{ site.baseurl }}/img/logo/psd/flink_1000.psd), [5000x5000]({{ site.baseurl }}/img/logo/psd/flink_5000.psd).
 
-You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/psd) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.7 MB).
+You can find more variants of the logo [in this directory]({{ site.baseurl }}/img/logo/psd) or [download all variants]({{ site.baseurl }}/img/logo.zip) (7.4 MB).
 </div>
 </div>
 

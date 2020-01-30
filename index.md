@@ -6,7 +6,7 @@ layout: base
 
   <div class="col-sm-12">
     <p class="lead" markdown="span">
-      **Apache Flink<sup>®</sup> - Stateful Computations over Data Streams**
+      **Apache Flink<sup>®</sup> — Stateful Computations over Data Streams**
     </p>
   </div>
 
@@ -141,14 +141,13 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/alibaba-logo.png" width="175"  alt="Alibaba" />
           </a></div>
-         
 
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
-            <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
+            <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" width="175"  alt="AWS" />
           </a></div>
-         
+            
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -188,6 +187,12 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/didi-logo.png" width="175" alt="Didi" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
         
@@ -197,6 +202,18 @@ layout: base
             <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" width="175" alt="Ebay" />
           </a></div>
         
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
+          </a></div>
+         
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" width="175"  alt="Gojek" />
+          </a></div>
+         
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -216,6 +233,16 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" width="175" alt="Klaviyo" />
+          </a></div>
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/kuaishou-logo.jpg" width="175" alt="Kuaishou" />
+          </a></div>
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
           </a></div>
         
@@ -227,13 +254,43 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/oppo-logo.png" width="175" alt="OPPO" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
           </a></div>
           
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" width="175" alt="OVH" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" width="175" alt="Pinterest" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" width="175" alt="Razorpay" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" width="175" alt="SK telecom" />
           </a></div>
           
         </li>
@@ -248,6 +305,18 @@ layout: base
             <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
           </a></div>
           
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/vip-logo.png" width="175" alt="Vip" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/xiaomi-logo.png" width="175" alt="Xiaomi" />
+          </a></div>
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -268,6 +337,31 @@ layout: base
   <a href="#" class="jcarousel-control-next" data-jcarouselcontrol="true"><span class="glyphicon glyphicon-chevron-right"></span></a>
 
   </div>
+
+</div>
+
+<!-- Events section -->
+<div class="row">
+
+<div class="col-sm-12">
+  <hr />
+</div>
+
+<div class="col-sm-3">
+
+  <h2><a>Upcoming Events</a></h2>
+
+</div>
+<div class="col-sm-9">
+  <!-- Flink Forward -->
+  <a href="https://flink-forward.org" target="_blank">
+    <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
+  </a>
+  <!-- ApacheCon -->
+  <a href="https://www.apache.org/events/current-event" target="_blank">
+    <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
+  </a>
+</div>
 
 </div>
 

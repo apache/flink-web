@@ -49,7 +49,7 @@ Because of that, all functions that you pass to the API must be serializable, as
 [java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html).
 
 If your function is an anonymous inner class, consider the following:
-  - make the function a standalone class, or a static inner class
+  - make the function a standalone class, or a static inner class.
   - use a Java 8 lambda function.
 
 Is your function is already a static class, check the fields that you assign when you create

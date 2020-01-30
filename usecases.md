@@ -35,7 +35,7 @@ Instead of querying a remote database, event-driven applications access their da
 
 The limits of event-driven applications are defined by how well a stream processor can handle time and state. Many of Flink's outstanding features are centered around these concepts. Flink provides a rich set of state primitives that can manage very large data volumes (up to several terabytes) with exactly-once consistency guarantees. Moreover, Flink's support for event-time, highly customizable window logic, and fine-grained control of time as provided by the `ProcessFunction` enable the implementation of advanced business logic. Moreover, Flink features a library for Complex Event Processing (CEP) to detect patterns in data streams. 
 
-However, Flink's outstanding feature for event-driven applications are savepoints. A savepoint a consistent state image that can be used as a starting point for compatible applications. Given a savepoint, an application can be updated or adapt its scale, or multiple versions of an application can be started for A/B testing.
+However, Flink's outstanding feature for event-driven applications is savepoint. A savepoint is a consistent state image that can be used as a starting point for compatible applications. Given a savepoint, an application can be updated or adapt its scale, or multiple versions of an application can be started for A/B testing.
 
 ### What are typical event-driven applications?
 
@@ -100,6 +100,6 @@ Many common data transformation or enrichment tasks can be addressed by Flink's 
 
 ### What are typical data pipeline applications?
 
-* <a href="https://data-artisans.com/blog/blink-flink-alibaba-search">Real-time search index building</a> in e-commerce
+* <a href="https://ververica.com/blog/blink-flink-alibaba-search">Real-time search index building</a> in e-commerce
 * <a href="https://jobs.zalando.com/tech/blog/apache-showdown-flink-vs.-spark/">Continuous ETL</a> in e-commerce 
 
