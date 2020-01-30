@@ -138,13 +138,10 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
 
 {% for additional_component in site.component_releases %}
 
-{% if additional_component.source_release %}
-{% assign source_release = additional_component.source_release %}
 <p>
-<a href="{{ source_release.url }}" class="ga-track" id="{{ source_release.id }}">{{ source_release.name }}</a>
-(<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
+<a href="{{ additional_component.url }}" class="ga-track" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
+(<a href="{{ additional_component.asc_url }}">asc</a>, <a href="{{ additional_component.sha512_url }}">sha512</a>)
 </p>
-{% endif %}
 
 {% endfor %}
 
