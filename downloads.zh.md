@@ -59,7 +59,7 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 {% endif %}
 
 {% if flink_release.optional_components %}
-### 可选组件
+#### 可选组件
 
 {% assign components = flink_release.optional_components | | sort: 'name' %}
 {% for component in components %}
@@ -94,7 +94,7 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 {% endif %}
 
 {% if flink_release.alternative_binaries %}
-### 其他替代执行包
+#### 其他替代执行包
 
 {% assign alternatives = flink_release.alternative_binaries | | sort: 'name' %}
 {% for alternative in alternatives %}
@@ -123,9 +123,9 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 
 {% endif %}
 
-## 发布说明
+#### 发布说明
 
-如果你计划从以前的版本升级 Flink，请查看 [Flink {{ site.FLINK_VERSION_STABLE_SHORT }} 的发布说明]({{ site.DOCS_BASE_URL }}
+如果你计划从以前的版本升级 Flink，请查看 [Flink {{ flink_release.version_short }} 的发布说明]({{ site.DOCS_BASE_URL }}
 flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flink_release.version_short }}.html)。
 
 {% endfor %}
