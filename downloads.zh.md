@@ -21,9 +21,7 @@ $( document ).ready(function() {
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
 如果你计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于
-Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的下载包，且另外下載对应版本的 Hadoop 库，并且把下载后的 Hadoop 库放置
-到 Flink 安装目录下的 lib 目录
-包并[设置 HADOOP_CLASSPATH 环境变量](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html)。
+Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/zh/ops/deployment/hadoop.html)文档。
 
 {% for flink_release in site.flink_releases %}
 
