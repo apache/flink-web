@@ -22,7 +22,9 @@ The documentation is located in the `docs/` subdirectory of the Flink code base.
 
 ## Before you start working on the documentation ...
 
-... please make sure there exists a [Jira](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a Jira issue, except for trivial fixes such as typos.
+... please make sure there exists a [Jira](https://issues.apache.org/jira/browse/FLINK) issue that corresponds to your contribution. We require all documentation changes to refer to a Jira issue, except for trivial fixes such as typos. 
+
+Also, have a look at the [Documentation Style Guide]({{ site.baseurl }}/contributing/docs-style.html) for some guidance on how to write accessible, consistent and inclusive documentation.
 
 ## Update or extend the documentation
 
