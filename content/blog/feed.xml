@@ -7,6 +7,744 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Apache Flink 1.10.0 Release Announcement</title>
+<description>&lt;p&gt;The Apache Flink community is excited to hit the double digits and announce the release of Flink 1.10.0! As a result of the biggest community effort to date, with over 1.2k issues implemented and more than 200 contributors, this release introduces significant improvements to the overall performance and stability of Flink jobs, a preview of native Kubernetes integration and great advances in Python support (PyFlink).&lt;/p&gt;
+
+&lt;p&gt;Flink 1.10 also marks the completion of the &lt;a href=&quot;https://flink.apache.org/news/2019/08/22/release-1.9.0.html#preview-of-the-new-blink-sql-query-processor&quot;&gt;Blink integration&lt;/a&gt;, hardening streaming SQL and bringing mature batch processing to Flink with production-ready Hive integration and TPC-DS coverage. This blog post describes all major new features and improvements, important changes to be aware of and what to expect moving forward.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#new-features-and-improvements&quot; id=&quot;markdown-toc-new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#improved-memory-management-and-configuration&quot; id=&quot;markdown-toc-improved-memory-management-and-configuration&quot;&gt;Improved Memory Management and Configuration&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#unified-logic-for-job-submission&quot; id=&quot;markdown-toc-unified-logic-for-job-submission&quot;&gt;Unified Logic for Job Submission&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#native-kubernetes-integration-beta&quot; id=&quot;markdown-toc-native-kubernetes-integration-beta&quot;&gt;Native Kubernetes Integration (Beta)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#table-apisql-production-ready-hive-integration&quot; id=&quot;markdown-toc-table-apisql-production-ready-hive-integration&quot;&gt;Table API/SQL: Production-ready Hive Integration&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#other-improvements-to-the-table-apisql&quot; id=&quot;markdown-toc-other-improvements-to-the-table-apisql&quot;&gt;Other Improvements to the Table API/SQL&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#pyflink-support-for-native-user-defined-functions-udfs&quot; id=&quot;markdown-toc-pyflink-support-for-native-user-defined-functions-udfs&quot;&gt;PyFlink: Support for Native User Defined Functions (UDFs)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#important-changes&quot; id=&quot;markdown-toc-important-changes&quot;&gt;Important Changes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#release-notes&quot; id=&quot;markdown-toc-release-notes&quot;&gt;Release Notes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#list-of-contributors&quot; id=&quot;markdown-toc-list-of-contributors&quot;&gt;List of Contributors&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;p&gt;The binary distribution and source artifacts are now available on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt; of the Flink website. For more details, check the complete &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12345845&quot;&gt;release changelog&lt;/a&gt; and the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/&quot;&gt;updated documentation&lt;/a&gt;. We encourage you to download the release and share your feedback with the community through the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Flink mailing lists&lt;/a&gt; or &lt;a href=&quot;https://issues.apache.org/jira/projects/FLINK/summary&quot;&gt;JIRA&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/h2&gt;
+
+&lt;h3 id=&quot;improved-memory-management-and-configuration&quot;&gt;Improved Memory Management and Configuration&lt;/h3&gt;
+
+&lt;p&gt;The current &lt;code&gt;TaskExecutor&lt;/code&gt; memory configuration in Flink has some shortcomings that make it hard to reason about or optimize resource utilization, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Different configuration models for memory footprint in Streaming and Batch execution;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Complex and user-dependent configuration of off-heap state backends (i.e. RocksDB) in Streaming execution.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To make memory options more explicit and intuitive to users, Flink 1.10 introduces significant changes to the &lt;code&gt;TaskExecutor&lt;/code&gt; memory model and configuration logic (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-49%3A+Unified+Memory+Configuration+for+TaskExecutors&quot;&gt;FLIP-49&lt;/a&gt;). These changes make Flink more adaptable to all kinds of deployment environments (e.g. Kubernetes, Yarn, Mesos), giving users strict control over its memory consumption.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Managed Memory Extension&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Managed memory was extended to also account for memory usage of &lt;code&gt;RocksDBStateBackend&lt;/code&gt;. While batch jobs can use either on-heap or off-heap memory, streaming jobs with &lt;code&gt;RocksDBStateBackend&lt;/code&gt; can use off-heap memory only. Therefore, to allow users to switch between Streaming and Batch execution without having to modify cluster configurations, managed memory is now always off-heap.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Simplified RocksDB Configuration&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Configuring an off-heap state backend like RocksDB used to involve a good deal of manual tuning, like decreasing the JVM heap size or setting Flink to use off-heap memory. This can now be achieved through Flink’s out-of-box configuration, and adjusting the memory budget for &lt;code&gt;RocksDBStateBackend&lt;/code&gt; is as simple as resizing the managed memory size.&lt;/p&gt;
+
+&lt;p&gt;Another important improvement was to allow Flink to bind RocksDB native memory usage (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-7289&quot;&gt;FLINK-7289&lt;/a&gt;), preventing it from exceeding its total memory budget — this is especially relevant in containerized environments like Kubernetes. For details on how to enable and tune this feature, refer to &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/state/large_state_tuning.html#tuning-rocksdb&quot;&gt;Tuning RocksDB&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;label label-danger&quot;&gt;Note&lt;/span&gt; FLIP-49 changes the process of cluster resource configuration, which may require tuning your clusters for upgrades from previous Flink versions. For a comprehensive overview of the changes introduced and tuning guidance, consult &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/memory/mem_setup.html&quot;&gt;this setup&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;unified-logic-for-job-submission&quot;&gt;Unified Logic for Job Submission&lt;/h3&gt;
+
+&lt;p&gt;Prior to this release, job submission was part of the duties of the Execution Environments and closely tied to the different deployment targets (e.g. Yarn, Kubernetes, Mesos). This led to a poor separation of concerns and, over time, to a growing number of customized environments that users needed to configure and manage separately.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.10, job submission logic is abstracted into the generic &lt;code&gt;Executor&lt;/code&gt; interface (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-73%3A+Introducing+Executors+for+job+submission&quot;&gt;FLIP-73&lt;/a&gt;). The addition of the &lt;code&gt;ExecutorCLI&lt;/code&gt; (&lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=133631524&quot;&gt;FLIP-81&lt;/a&gt;) introduces a unified way to specify configuration parameters for &lt;strong&gt;any&lt;/strong&gt; &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/cli.html#deployment-targets&quot;&gt;execution target&lt;/a&gt;. To round up this effort, the process of result retrieval was also decoupled from job submission with the introduction of a &lt;code&gt;JobClient&lt;/code&gt; (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-74%3A+Flink+JobClient+API&quot;&gt;FLINK-74&lt;/a&gt;), responsible for fetching the &lt;code&gt;JobExecutionResult&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;span&gt;
+	&lt;center&gt;
+	&lt;img vspace=&quot;8&quot; style=&quot;width:100%&quot; src=&quot;/img/blog/2020-02-11-release-1.10.0/flink_1.10_zeppelin.png&quot; /&gt;
+	&lt;/center&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;In particular, these changes make it much easier to programmatically use Flink in downstream frameworks — for example, Apache Beam or Zeppelin interactive notebooks — by providing users with a unified entry point to Flink. For users working with Flink across multiple target environments, the transition to a configuration-based execution process also significantly reduces boilerplate code and maintainability overhead.&lt;/p&gt;
+
+&lt;h3 id=&quot;native-kubernetes-integration-beta&quot;&gt;Native Kubernetes Integration (Beta)&lt;/h3&gt;
+
+&lt;p&gt;For users looking to get started with Flink on a containerized environment, deploying and managing a standalone cluster on top of Kubernetes requires some upfront knowledge about containers, operators and environment-specific tools like &lt;code&gt;kubectl&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.10, we rolled out the first phase of &lt;strong&gt;Active Kubernetes Integration&lt;/strong&gt; (&lt;a href=&quot;https://jira.apache.org/jira/browse/FLINK-9953&quot;&gt;FLINK-9953&lt;/a&gt;) with support for session clusters (with per-job planned). In this context, “active” means that Flink’s ResourceManager (&lt;code&gt;K8sResMngr&lt;/code&gt;) natively communicates with Kubernetes to allocate new pods on-demand, similar to Flink’s Yarn and Mesos integration. Users can also leverage namespaces to launch Flink clusters for multi-tenant environments with limited aggregate resource consumption. RBAC roles and service accounts with enough permission should be configured beforehand.&lt;/p&gt;
+
+&lt;p&gt;&lt;span&gt;
+	&lt;center&gt;
+	&lt;img vspace=&quot;8&quot; style=&quot;width:75%&quot; src=&quot;/img/blog/2020-02-11-release-1.10.0/flink_1.10_nativek8s.png&quot; /&gt;
+	&lt;/center&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;As introduced in &lt;a href=&quot;#unified-logic-for-job-submission&quot;&gt;Unified Logic For Job Submission&lt;/a&gt;, all command-line options in Flink 1.10 are mapped to a unified configuration. For this reason, users can simply refer to the Kubernetes config options and submit a job to an existing Flink session on Kubernetes in the CLI using:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;./bin/flink run -d -e kubernetes-session -Dkubernetes.cluster-id&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;ClusterId&amp;gt; examples/streaming/WindowJoin.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you want to try out this preview feature, we encourage you to walk through the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/deployment/native_kubernetes.html&quot;&gt;Native Kubernetes setup&lt;/a&gt;, play around with it and share feedback with the community.&lt;/p&gt;
+
+&lt;h3 id=&quot;table-apisql-production-ready-hive-integration&quot;&gt;Table API/SQL: Production-ready Hive Integration&lt;/h3&gt;
+
+&lt;p&gt;Hive integration was announced as a preview feature in Flink 1.9. This preview allowed users to persist Flink-specific metadata (e.g. Kafka tables) in Hive Metastore using SQL DDL, call UDFs defined in Hive and use Flink for reading and writing Hive tables. Flink 1.10 rounds up this effort with further developments that bring production-ready Hive integration to Flink with full compatibility of &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/#supported-hive-versions&quot;&gt;most Hive versions&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;native-partition-support-for-batch-sql&quot;&gt;Native Partition Support for Batch SQL&lt;/h4&gt;
+
+&lt;p&gt;So far, only writes to non-partitioned Hive tables were supported. In Flink 1.10, the Flink SQL syntax has been extended with &lt;code&gt;INSERT OVERWRITE&lt;/code&gt; and &lt;code&gt;PARTITION&lt;/code&gt; (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-63%3A+Rework+table+partition+support&quot;&gt;FLIP-63&lt;/a&gt;), enabling users to write into both static and dynamic partitions in Hive.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Static Partition Writing&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OVERWRITE&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tablename1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PARTITION&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partcol1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;val1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;partcol2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;val2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...)]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;select_statement1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;from_statement&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Dynamic Partition Writing&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OVERWRITE&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tablename1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;select_statement1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;from_statement&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Fully supporting partitioned tables allows users to take advantage of partition pruning on read, which significantly increases the performance of these operations by reducing the amount of data that needs to be scanned.&lt;/p&gt;
+
+&lt;h4 id=&quot;further-optimizations&quot;&gt;Further Optimizations&lt;/h4&gt;
+
+&lt;p&gt;Besides partition pruning, Flink 1.10 introduces more &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/read_write_hive.html#optimizations&quot;&gt;read optimizations&lt;/a&gt; to Hive integration, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Projection pushdown:&lt;/strong&gt; Flink leverages projection pushdown to minimize data transfer between Flink and Hive tables by omitting unnecessary fields from table scans. This is especially beneficial for tables with a large number of columns.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;LIMIT pushdown:&lt;/strong&gt; for queries with the &lt;code&gt;LIMIT&lt;/code&gt; clause, Flink will limit the number of output records wherever possible to minimize the amount of data transferred across the network.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;ORC Vectorization on Read:&lt;/strong&gt; to boost read performance for ORC files, Flink now uses the native ORC Vectorized Reader by default for Hive versions above 2.0.0 and columns with non-complex data types.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;pluggable-modules-as-flink-system-objects-beta&quot;&gt;Pluggable Modules as Flink System Objects (Beta)&lt;/h4&gt;
+
+&lt;p&gt;Flink 1.10 introduces a generic mechanism for pluggable modules in the Flink table core, with a first focus on system functions (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-68%3A+Extend+Core+Table+System+with+Pluggable+Modules&quot;&gt;FLIP-68&lt;/a&gt;). With modules, users can extend Flink’s system objects — for example use Hive built-in functions that behave like Flink system functions. This release ships with a pre-implemented &lt;code&gt;HiveModule&lt;/code&gt;, supporting multiple Hive versions, but users are also given the possibility to &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/modules.html&quot;&gt;write their own pluggable modules&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;other-improvements-to-the-table-apisql&quot;&gt;Other Improvements to the Table API/SQL&lt;/h3&gt;
+
+&lt;h4 id=&quot;watermarks-and-computed-columns-in-sql-ddl&quot;&gt;Watermarks and Computed Columns in SQL DDL&lt;/h4&gt;
+
+&lt;p&gt;Flink 1.10 supports stream-specific syntax extensions to define time attributes and watermark generation in Flink SQL DDL (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-66%3A+Support+Time+Attribute+in+SQL+DDL&quot;&gt;FLIP-66&lt;/a&gt;). This allows time-based operations, like windowing, and the definition of &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/sql/create.html#create-table&quot;&gt;watermark strategies&lt;/a&gt; on tables created using DDL statements.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;table_name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;WATERMARK&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FOR&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columnName&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;watermark_strategy_expression&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This release also introduces support for virtual computed columns (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-70%3A+Flink+SQL+Computed+Column+Design&quot;&gt;FLIP-70&lt;/a&gt;) that can be derived based on other columns in the same table or deterministic expressions (i.e. literal values, UDFs and built-in functions). In Flink, computed columns are useful to define time attributes &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/sql/create.html#create-table&quot;&gt;upon table creation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;additional-extensions-to-sql-ddl&quot;&gt;Additional Extensions to SQL DDL&lt;/h4&gt;
+
+&lt;p&gt;There is now a clear distinction between temporary/persistent and system/catalog functions (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-57%3A+Rework+FunctionCatalog&quot;&gt;FLIP-57&lt;/a&gt;). This not only eliminates ambiguity in function reference, but also allows for deterministic function resolution order (i.e. in case of naming collision, system functions will precede catalog functions, with temporary functions taking precedence over persistent functions for both dimensions).&lt;/p&gt;
+
+&lt;p&gt;Following the groundwork in FLIP-57, we extended the SQL DDL syntax to support the creation of catalog functions, temporary functions and temporary system functions (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-79+Flink+Function+DDL+Support&quot;&gt;FLIP-79&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;TEMPORARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;TEMPORARY&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SYSTEM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FUNCTION&lt;/span&gt; 
+
+  &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;EXISTS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catalog_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.][&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;db_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.]&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function_name&lt;/span&gt; 
+
+&lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;identifier&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;LANGUAGE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JAVA&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SCALA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For a complete overview of the current state of DDL support in Flink SQL, check the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/sql/&quot;&gt;updated documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;label label-danger&quot;&gt;Note&lt;/span&gt; In order to correctly handle and guarantee a consistent behavior across meta-objects (tables, views, functions) in the future, some object declaration methods in the Table API have been deprecated in favor of methods that are closer to standard SQL DDL (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-64%3A+Support+for+Temporary+Objects+in+Table+module&quot;&gt;FLIP-64&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h4 id=&quot;full-tpc-ds-coverage-for-batch&quot;&gt;Full TPC-DS Coverage for Batch&lt;/h4&gt;
+
+&lt;p&gt;TPC-DS is a widely used industry-standard decision support benchmark to evaluate and measure the performance of SQL-based data processing engines. In Flink 1.10, all TPC-DS queries are supported end-to-end (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11491&quot;&gt;FLINK-11491&lt;/a&gt;), reflecting the readiness of its SQL engine to address the needs of modern data warehouse-like workloads.&lt;/p&gt;
+
+&lt;h3 id=&quot;pyflink-support-for-native-user-defined-functions-udfs&quot;&gt;PyFlink: Support for Native User Defined Functions (UDFs)&lt;/h3&gt;
+
+&lt;p&gt;A preview of PyFlink was introduced in the previous release, making headway towards the goal of full Python support in Flink. For this release, the focus was to enable users to register and use Python User-Defined Functions (UDF, with UDTF/UDAF planned) in the Table API/SQL (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-58%3A+Flink+Python+User-Defined+Stateless+Function+for+Table&quot;&gt;FLIP-58&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;span&gt;
+	&lt;center&gt;
+	&lt;img vspace=&quot;8&quot; hspace=&quot;100&quot; style=&quot;width:75%&quot; src=&quot;/img/blog/2020-02-11-release-1.10.0/flink_1.10_pyflink.gif&quot; /&gt;
+	&lt;/center&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;If you are interested in the underlying implementation — leveraging Apache Beam’s &lt;a href=&quot;https://beam.apache.org/roadmap/portability/&quot;&gt;Portability Framework&lt;/a&gt; — refer to the “Architecture” section of FLIP-58 and also to &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-78%3A+Flink+Python+UDF+Environment+and+Dependency+Management&quot;&gt;FLIP-78&lt;/a&gt;. These data structures lay the required foundation for Pandas support and for PyFlink to eventually reach the DataStream API.&lt;/p&gt;
+
+&lt;p&gt;From Flink 1.10, users can also easily install PyFlink through &lt;code&gt;pip&lt;/code&gt; using:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;pip install apache-flink&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For a preview of other improvements planned for PyFlink, check &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14500&quot;&gt;FLINK-14500&lt;/a&gt; and get involved in the &lt;a href=&quot;http://apache-flink.147419.n8.nabble.com/Re-DISCUSS-What-parts-of-the-Python-API-should-we-focus-on-next-td1285.html&quot;&gt;discussion&lt;/a&gt; for requested user features.&lt;/p&gt;
+
+&lt;h2 id=&quot;important-changes&quot;&gt;Important Changes&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10725&quot;&gt;FLINK-10725&lt;/a&gt;] Flink can now be compiled and run on Java 11.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://jira.apache.org/jira/browse/FLINK-15495&quot;&gt;FLINK-15495&lt;/a&gt;] The Blink planner is now the default in the SQL Client, so that users can benefit from all the latest features and improvements. The switch from the old planner in the Table API is also planned for the next release, so we recommend that users start getting familiar with the Blink planner.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13025&quot;&gt;FLINK-13025&lt;/a&gt;] There is a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/connectors/elasticsearch.html#elasticsearch-connector&quot;&gt;new Elasticsearch sink connector&lt;/a&gt;, fully supporting Elasticsearch 7.x versions.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15115&quot;&gt;FLINK-15115&lt;/a&gt;] The connectors for Kafka 0.8 and 0.9 have been marked as deprecated and will no longer be actively supported. If you are still using these versions or have any other related concerns, please reach out to the @dev mailing list.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14516&quot;&gt;FLINK-14516&lt;/a&gt;] The non-credit-based network flow control code was removed, along with the configuration option &lt;code&gt;taskmanager.network.credit.model&lt;/code&gt;. Moving forward, Flink will always use credit-based flow control.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12122&quot;&gt;FLINK-12122&lt;/a&gt;] &lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=65147077&quot;&gt;FLIP-6&lt;/a&gt; was rolled out with Flink 1.5.0 and introduced a code regression related to the way slots are allocated from &lt;code&gt;TaskManagers&lt;/code&gt;. To use a scheduling strategy that is closer to the pre-FLIP behavior, where Flink tries to spread out the workload across all currently available &lt;code&gt;TaskManagers&lt;/code&gt;, users can set &lt;code&gt;cluster.evenly-spread-out-slots: true&lt;/code&gt; in the &lt;code&gt;flink-conf.yaml&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11956&quot;&gt;FLINK-11956&lt;/a&gt;] &lt;code&gt;s3-hadoop&lt;/code&gt; and &lt;code&gt;s3-presto&lt;/code&gt; filesystems no longer use class relocations and should be loaded through &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/filesystems/#pluggable-file-systems&quot;&gt;plugins&lt;/a&gt;, but now seamlessly integrate with all credential providers. Other filesystems are strongly recommended to be used only as plugins, as we will continue to remove relocations.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Flink 1.9 shipped with a refactored Web UI, with the legacy one being kept around as backup in case something wasn’t working as expected. No issues have been reported so far, so &lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Remove-old-WebUI-td35218.html&quot;&gt;the community voted&lt;/a&gt; to drop the legacy Web UI in Flink 1.10.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
+
+&lt;p&gt;Please review the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/release-notes/flink-1.10.html&quot;&gt;release notes&lt;/a&gt; carefully for a detailed list of changes and new features if you plan to upgrade your setup to Flink 1.10. This version is API-compatible with previous 1.x releases for APIs annotated with the @Public annotation.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank all contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;Achyuth Samudrala, Aitozi, Alberto Romero, Alec.Ch, Aleksey Pak, Alexander Fedulov, Alice Yan, Aljoscha Krettek, Aloys, Andrey Zagrebin, Arvid Heise, Benchao Li, Benoit Hanotte, Benoît Paris, Bhagavan Das, Biao Liu, Chesnay Schepler, Congxian Qiu, Cyrille Chépélov, César Soto Valero, David Anderson, David Hrbacek, David Moravek, Dawid Wysakowicz, Dezhi Cai, Dian Fu, Dyana Rose, Eamon Taaffe, Fabian Hueske, Fawad Halim, Fokko Driesprong, Frey Gao, Gabor Gevay, Gao Yun, Gary Yao, GatsbyNewton, GitHub, Grebennikov Roman, GuoWei Ma, Gyula Fora, Haibo Sun, Hao Dang, Henvealf, Hongtao Zhang, HuangXingBo, Hwanju Kim, Igal Shilman, Jacob Sevart, Jark Wu, Jeff Martin, Jeff Yang, Jeff Zhang, Jiangjie (Becket) Qin, Jiayi, Jiayi Liao, Jincheng Sun, Jing Zhang, Jingsong Lee, JingsongLi, Joao Boto, John Lonergan, Kaibo Zhou, Konstantin Knauf, Kostas Kloudas, Kurt Young, Leonard Xu, Ling Wang, Lining Jing, Liupengcheng, LouisXu, Mads Chr. Olesen, Marco Zühlke, Marcos Klein, Matyas Orhidi, Maximilian Bode, Maximilian Michels, Nick Pavlakis, Nico Kruber, Nicolas Deslandes, Pablo Valtuille, Paul Lam, Paul Lin, PengFei Li, Piotr Nowojski, Piotr Przybylski, Piyush Narang, Ricco Chen, Richard Deurwaarder, Robert Metzger, Roman, Roman Grebennikov, Roman Khachatryan, Rong Rong, Rui Li, Ryan Tao, Scott Kidder, Seth Wiesman, Shannon Carey, Shaobin.Ou, Shuo Cheng, Stefan Richter, Stephan Ewen, Steve OU, Steven Wu, Terry Wang, Thesharing, Thomas Weise, Till Rohrmann, Timo Walther, Tony Wei, TsReaper, Tzu-Li (Gordon) Tai, Victor Wong, WangHengwei, Wei Zhong, WeiZhong94, Wind (Jiayi Liao), Xintong Song, XuQianJin-Stars, Xuefu Zhang, Xupingyong, Yadong Xie, Yang Wang, Yangze Guo, Yikun Jiang, Ying, YngwieWang, Yu Li, Yuan Mei, Yun Gao, Yun Tang, Zhanchun Zhang, Zhenghua Gao, Zhijiang, Zhu Zhu, a-suiniaev, azagrebin, beyond1920, biao.liub, blueszheng, bowen.li, caoyingjie, catkint, chendonglin, chenqi, chunpinghe, cyq89051127, danrtsey.wy, dengziming, dianfu, eskabetxe, fanrui, forideal, gentlewang, godfrey he, godfreyhe, haodang, hehuiyuan, hequn8128, hpeter, huangxingbo, huzheng, ifndef-SleePy, jiemotongxue, joe, jrthe42, kevin.cyj, klion26, lamber-ken, libenchao, liketic, lincoln-lil, lining, liuyongvs, liyafan82, lz, mans2singh, mojo, openinx, ouyangwulin, shining-huang, shuai-xu, shuo.cs, stayhsfLee, sunhaibotb, sunjincheng121, tianboxiu, tianchen, tianchen92, tison, tszkitlo40, unknown, vinoyang, vthinkxie, wangpeibin, wangxiaowei, wangxiyuan, wangxlong, wangyang0918, whlwanghailong, xuchao0903, xuyang1706, yanghua, yangjf2019, yongqiang chai, yuzhao.cyz, zentol, zhangzhanchum, zhengcanbin, zhijiang, zhongyong jin, zhuzhu.zz, zjuwangg, zoudaokoulife, 砚田, 谢磊, 张志豪, 曹建华&lt;/p&gt;
+</description>
+<pubDate>Tue, 11 Feb 2020 03:30:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2020/02/11/release-1.10.0.html</link>
+<guid isPermaLink="true">/news/2020/02/11/release-1.10.0.html</guid>
+</item>
+
+<item>
+<title>A Guide for Unit Testing in Apache Flink</title>
+<description>&lt;p&gt;Writing unit tests is one of the essential tasks of designing a production-grade application. Without tests, a single change in code can result in cascades of failure in production. Thus unit tests should be written for all types of applications, be it a simple job cleaning data and training a model or a complex multi-tenant, real-time data processing system. In the following sections, we provide a guide for unit testing of Apache Flink applications. 
+Apache Flink provides a robust unit testing framework to make sure your applications behave in production as expected during development. You need to include the following dependencies to utilize the provided framework.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-test-utils_${scala.binary.version}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${flink.version}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt; 
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-runtime_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.9.0&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;classifier&amp;gt;&lt;/span&gt;tests&lt;span class=&quot;nt&quot;&gt;&amp;lt;/classifier&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.9.0&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;test&lt;span class=&quot;nt&quot;&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;classifier&amp;gt;&lt;/span&gt;tests&lt;span class=&quot;nt&quot;&gt;&amp;lt;/classifier&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The strategy of writing unit tests differs for various operators. You can break down the strategy into the following three buckets:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Stateless Operators&lt;/li&gt;
+  &lt;li&gt;Stateful Operators&lt;/li&gt;
+  &lt;li&gt;Timed Process Operators&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;stateless-operators&quot;&gt;Stateless Operators&lt;/h1&gt;
+
+&lt;p&gt;Writing unit tests for a stateless operator is a breeze. You need to follow the basic norm of writing a test case, i.e., create an instance of the function class and test the appropriate methods. Let’s take an example of a simple &lt;code&gt;Map&lt;/code&gt; operator.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyStatelessMap&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;hello &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The test case for the above operator should look like&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;MyStatelessMap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;statelessMap&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MyStatelessMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;statelessMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Pretty simple, right? Let’s take a look at one for the &lt;code&gt;FlatMap&lt;/code&gt; operator.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyStatelessFlatMap&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FlatMapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;hello &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;FlatMap&lt;/code&gt; operators require a &lt;code&gt;Collector&lt;/code&gt; object along with the input. For the test case, we have two options:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Mock the &lt;code&gt;Collector&lt;/code&gt; object using Mockito&lt;/li&gt;
+  &lt;li&gt;Use the &lt;code&gt;ListCollector&lt;/code&gt; provided by Flink&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I prefer the second method as it requires fewer lines of code and is suitable for most of the cases.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;MyStatelessFlatMap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;statelessFlatMap&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MyStatelessFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ListCollector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listCollector&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ListCollector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;statelessFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listCollector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Lists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;stateful-operators&quot;&gt;Stateful Operators&lt;/h1&gt;
+
+&lt;p&gt;Writing test cases for stateful operators requires more effort. You need to check whether the operator state is updated correctly and if it is cleaned up properly along with the output of the operator.&lt;/p&gt;
+
+&lt;p&gt;Let’s take an example of stateful &lt;code&gt;FlatMap&lt;/code&gt; function&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StatefulFlatMap&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RichFlatMapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ValueState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Configuration&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRuntimeContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;previousInput&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;hello &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot; &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The intricate part of writing tests for the above class is to mock the configuration as well as the runtime context of the application. Flink provides TestHarness classes so that users don’t have to create the mock objects themselves. Using the &lt;code&gt;KeyedOperatorHarness&lt;/code&gt;, the test looks like:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.streaming.api.operators.StreamFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.streaming.runtime.streamrecord.StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.streaming.util.OneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;StatefulFlatMap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;statefulFlatMap&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;StatefulFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// OneInputStreamOperatorTestHarness takes the input and output types as type parameters     &lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;OneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;c1&quot;&gt;// KeyedOneInputStreamOperatorTestHarness takes three arguments:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;//   Flink operator object, key selector and key type&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedOneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;statefulFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// test first record&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ValueState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;statefulFlatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRuntimeContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;previousInput&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Lists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)),&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;extractOutputStreamRecords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// test second record&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;parallel&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Lists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; 
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello parallel world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)),&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;extractOutputStreamRecords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;parallel&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;previousInput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The test harness provides many helper methods, three of which are being used here:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code&gt;open&lt;/code&gt;: calls the open of the &lt;code&gt;FlatMap&lt;/code&gt; function with relevant parameters. It also initializes the context.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;processElement&lt;/code&gt;: allows users to pass an input element as well as the timestamp associated with the element.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;extractOutputStreamRecords&lt;/code&gt;: gets the output records along with their timestamps from the &lt;code&gt;Collector&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The test harness simplifies the unit testing for the stateful functions to a large extent.&lt;/p&gt;
+
+&lt;p&gt;You might also need to check whether the state value is being set correctly. You can get the state value directly from the operator using a mechanism similar to the one used while creating the state. This is also demonstrated in the previous example.&lt;/p&gt;
+
+&lt;h1 id=&quot;timed-process-operators&quot;&gt;Timed Process Operators&lt;/h1&gt;
+
+&lt;p&gt;Writing tests for process functions, that work with time, is quite similar to writing tests for stateful functions because you can also use test harness.
+However, you need to take care of another aspect, which is providing timestamps for events and controlling the current time of the application. By setting the current (processing or event) time, you can trigger registered timers, which will call the &lt;code&gt;onTimer&lt;/code&gt; method of the function&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyProcessFunction&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;timerService&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerProcessingTimeTimer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;hello &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;onTimer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OnTimerContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Timer triggered at timestamp %d&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We need to test both the methods in the &lt;code&gt;KeyedProcessFunction&lt;/code&gt;, i.e., &lt;code&gt;processElement&lt;/code&gt; as well as &lt;code&gt;onTimer&lt;/code&gt;. Using a test harness, we can control the current time of the function. Thus, we can trigger the timer at will rather than waiting for a specific time.&lt;/p&gt;
+
+&lt;p&gt;Let’s take a look at the test case&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testProcessElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;MyProcessFunction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myProcessFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MyProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;OneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedOneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedProcessOperator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// Function time is initialized to 0&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Lists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)),&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;extractOutputStreamRecords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testOnTimer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;MyProcessFunction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myProcessFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MyProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;OneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedOneInputStreamOperatorTestHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeyedProcessOperator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;numProcessingTimeTimers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+      
+  &lt;span class=&quot;c1&quot;&gt;// Function time is set to 50&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setProcessingTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;assertEquals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Lists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hello world&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; 
+      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Timer triggered at timestamp 50&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)),&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;testHarness&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;extractOutputStreamRecords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The mechanism to test the multi-input stream operators such as CoProcess functions is similar to the ones described in this article. You should use the TwoInput variant of the harness for these operators, such as &lt;code&gt;TwoInputStreamOperatorTestHarness&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In the previous sections we showcased how unit testing in Apache Flink works for stateless, stateful and times-aware-operators. We hope you found the steps easy to follow and execute while developing your Flink applications. If you have any questions or feedback you can reach out to me &lt;a href=&quot;https://www.kharekartik.dev/about/&quot;&gt;here&lt;/a&gt; or contact the community on the &lt;a href=&quot;https://flink.apache.org/community.html&quot;&gt;Apache Flink user mailing list&lt;/a&gt;.&lt;/p&gt;
+</description>
+<pubDate>Fri, 07 Feb 2020 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2020/02/07/a-guide-for-unit-testing-in-apache-flink.html</link>
+<guid isPermaLink="true">/news/2020/02/07/a-guide-for-unit-testing-in-apache-flink.html</guid>
+</item>
+
+<item>
+<title>Apache Flink 1.9.2 Released</title>
+<description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.9 series.&lt;/p&gt;
+
+&lt;p&gt;This release includes 117 fixes and minor improvements for Flink 1.9.1. The list below includes a detailed list of all fixes and improvements.&lt;/p&gt;
+
+&lt;p&gt;We highly recommend all users to upgrade to Flink 1.9.2.&lt;/p&gt;
+
+&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.9.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.9.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.9.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;List of resolved issues:&lt;/p&gt;
+
+&lt;h2&gt;        Sub-task
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12122&quot;&gt;FLINK-12122&lt;/a&gt;] -         Spread out tasks evenly across all available registered TaskManagers
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13360&quot;&gt;FLINK-13360&lt;/a&gt;] -         Add documentation for HBase connector for Table API &amp;amp; SQL
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13361&quot;&gt;FLINK-13361&lt;/a&gt;] -         Add documentation for JDBC connector for Table API &amp;amp; SQL
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13723&quot;&gt;FLINK-13723&lt;/a&gt;] -         Use liquid-c for faster doc generation
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13724&quot;&gt;FLINK-13724&lt;/a&gt;] -         Remove unnecessary whitespace from the docs&amp;#39; sidenav
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13725&quot;&gt;FLINK-13725&lt;/a&gt;] -         Use sassc for faster doc generation
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13726&quot;&gt;FLINK-13726&lt;/a&gt;] -         Build docs with jekyll 4.0.0.pre.beta1
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13791&quot;&gt;FLINK-13791&lt;/a&gt;] -         Speed up sidenav by using group_by
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13817&quot;&gt;FLINK-13817&lt;/a&gt;] -         Expose whether web submissions are enabled
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13818&quot;&gt;FLINK-13818&lt;/a&gt;] -         Check whether web submission are enabled
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14535&quot;&gt;FLINK-14535&lt;/a&gt;] -         Cast exception is thrown when count distinct on decimal fields
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14735&quot;&gt;FLINK-14735&lt;/a&gt;] -         Improve batch schedule check input consumable performance
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Bug
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10377&quot;&gt;FLINK-10377&lt;/a&gt;] -         Remove precondition in TwoPhaseCommitSinkFunction.notifyCheckpointComplete
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10435&quot;&gt;FLINK-10435&lt;/a&gt;] -         Client sporadically hangs after Ctrl + C
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11120&quot;&gt;FLINK-11120&lt;/a&gt;] -         TIMESTAMPADD function handles TIME incorrectly
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11835&quot;&gt;FLINK-11835&lt;/a&gt;] -         ZooKeeperLeaderElectionITCase.testJobExecutionOnClusterWithLeaderChange failed
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12342&quot;&gt;FLINK-12342&lt;/a&gt;] -         Yarn Resource Manager Acquires Too Many Containers
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12399&quot;&gt;FLINK-12399&lt;/a&gt;] -         FilterableTableSource does not use filters on job run
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13184&quot;&gt;FLINK-13184&lt;/a&gt;] -         Starting a TaskExecutor blocks the YarnResourceManager&amp;#39;s main thread
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13589&quot;&gt;FLINK-13589&lt;/a&gt;] -         DelimitedInputFormat index error on multi-byte delimiters with whole file input splits
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13702&quot;&gt;FLINK-13702&lt;/a&gt;] -         BaseMapSerializerTest.testDuplicate fails on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13708&quot;&gt;FLINK-13708&lt;/a&gt;] -         Transformations should be cleared because a table environment could execute multiple job
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13740&quot;&gt;FLINK-13740&lt;/a&gt;] -         TableAggregateITCase.testNonkeyedFlatAggregate failed on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13749&quot;&gt;FLINK-13749&lt;/a&gt;] -         Make Flink client respect classloading policy
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13758&quot;&gt;FLINK-13758&lt;/a&gt;] -         Failed to submit JobGraph when registered hdfs file in DistributedCache 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13799&quot;&gt;FLINK-13799&lt;/a&gt;] -         Web Job Submit Page displays stream of error message when web submit is disables in the config
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13827&quot;&gt;FLINK-13827&lt;/a&gt;] -         Shell variable should be escaped in start-scala-shell.sh
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13862&quot;&gt;FLINK-13862&lt;/a&gt;] -         Update Execution Plan docs
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13945&quot;&gt;FLINK-13945&lt;/a&gt;] -         Instructions for building flink-shaded against vendor repository don&amp;#39;t work
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13969&quot;&gt;FLINK-13969&lt;/a&gt;] -         Resuming Externalized Checkpoint (rocks, incremental, scale down) end-to-end test fails on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13995&quot;&gt;FLINK-13995&lt;/a&gt;] -         Fix shading of the licence information of netty
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13999&quot;&gt;FLINK-13999&lt;/a&gt;] -         Correct the documentation of MATCH_RECOGNIZE
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14066&quot;&gt;FLINK-14066&lt;/a&gt;] -         Pyflink building failure in master and 1.9.0 version
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14074&quot;&gt;FLINK-14074&lt;/a&gt;] -         MesosResourceManager can&amp;#39;t create new taskmanagers in Session Cluster Mode.
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14175&quot;&gt;FLINK-14175&lt;/a&gt;] -         Upgrade KPL version in flink-connector-kinesis to fix application OOM
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14200&quot;&gt;FLINK-14200&lt;/a&gt;] -         Temporal Table Function Joins do not work on Tables (only TableSources) on the query side
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14235&quot;&gt;FLINK-14235&lt;/a&gt;] -         Kafka010ProducerITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceCustomOperator fails on travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14315&quot;&gt;FLINK-14315&lt;/a&gt;] -         NPE with JobMaster.disconnectTaskManager
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14337&quot;&gt;FLINK-14337&lt;/a&gt;] -         HistoryServer does not handle NPE on corruped archives properly
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14347&quot;&gt;FLINK-14347&lt;/a&gt;] -         YARNSessionFIFOITCase.checkForProhibitedLogContents found a log with prohibited string
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14355&quot;&gt;FLINK-14355&lt;/a&gt;] -         Example code in state processor API docs doesn&amp;#39;t compile
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14370&quot;&gt;FLINK-14370&lt;/a&gt;] -         KafkaProducerAtLeastOnceITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceRegularSink fails on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14382&quot;&gt;FLINK-14382&lt;/a&gt;] -         Incorrect handling of FLINK_PLUGINS_DIR on Yarn
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14398&quot;&gt;FLINK-14398&lt;/a&gt;] -         Further split input unboxing code into separate methods
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14413&quot;&gt;FLINK-14413&lt;/a&gt;] -         Shade-plugin ApacheNoticeResourceTransformer uses platform-dependent encoding
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14434&quot;&gt;FLINK-14434&lt;/a&gt;] -         Dispatcher#createJobManagerRunner should not start JobManagerRunner
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14445&quot;&gt;FLINK-14445&lt;/a&gt;] -         Python module build failed when making sdist
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14447&quot;&gt;FLINK-14447&lt;/a&gt;] -         Network metrics doc table render confusion
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14459&quot;&gt;FLINK-14459&lt;/a&gt;] -         Python module build hangs
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14524&quot;&gt;FLINK-14524&lt;/a&gt;] -         PostgreSQL JDBC sink generates invalid SQL in upsert mode
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14547&quot;&gt;FLINK-14547&lt;/a&gt;] -         UDF cannot be in the join condition in blink planner
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14561&quot;&gt;FLINK-14561&lt;/a&gt;] -         Don&amp;#39;t write FLINK_PLUGINS_DIR ENV variable to Flink configuration
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14562&quot;&gt;FLINK-14562&lt;/a&gt;] -         RMQSource leaves idle consumer after closing
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14574&quot;&gt;FLINK-14574&lt;/a&gt;] -          flink-s3-fs-hadoop doesn&amp;#39;t work with plugins mechanism
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14589&quot;&gt;FLINK-14589&lt;/a&gt;] -         Redundant slot requests with the same AllocationID leads to inconsistent slot table
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14641&quot;&gt;FLINK-14641&lt;/a&gt;] -         Fix description of metric `fullRestarts`
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14673&quot;&gt;FLINK-14673&lt;/a&gt;] -         Shouldn&amp;#39;t expect HMS client to throw NoSuchObjectException for non-existing function
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14683&quot;&gt;FLINK-14683&lt;/a&gt;] -         RemoteStreamEnvironment&amp;#39;s construction function has a wrong method
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14701&quot;&gt;FLINK-14701&lt;/a&gt;] -         Slot leaks if SharedSlotOversubscribedException happens
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14784&quot;&gt;FLINK-14784&lt;/a&gt;] -         CsvTableSink miss delimiter when row start with null member
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14817&quot;&gt;FLINK-14817&lt;/a&gt;] -         &amp;quot;Streaming Aggregation&amp;quot; document contains misleading code examples
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14846&quot;&gt;FLINK-14846&lt;/a&gt;] -         Correct the default writerbuffer size documentation of RocksDB
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14910&quot;&gt;FLINK-14910&lt;/a&gt;] -         DisableAutoGeneratedUIDs fails on keyBy
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14930&quot;&gt;FLINK-14930&lt;/a&gt;] -         OSS Filesystem Uses Wrong Shading Prefix
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14949&quot;&gt;FLINK-14949&lt;/a&gt;] -         Task cancellation can be stuck against out-of-thread error
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14951&quot;&gt;FLINK-14951&lt;/a&gt;] -         State TTL backend end-to-end test fail when taskManager has multiple slot
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14953&quot;&gt;FLINK-14953&lt;/a&gt;] -         Parquet table source should use schema type to build FilterPredicate
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14960&quot;&gt;FLINK-14960&lt;/a&gt;] -         Dependency shading of table modules test fails on Travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14976&quot;&gt;FLINK-14976&lt;/a&gt;] -         Cassandra Connector leaks Semaphore on Throwable; hangs on close
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15001&quot;&gt;FLINK-15001&lt;/a&gt;] -         The digest of sub-plan reuse should contain retraction traits for stream physical nodes
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15013&quot;&gt;FLINK-15013&lt;/a&gt;] -         Flink (on YARN) sometimes needs too many slots
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15030&quot;&gt;FLINK-15030&lt;/a&gt;] -         Potential deadlock for bounded blocking ResultPartition.
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15036&quot;&gt;FLINK-15036&lt;/a&gt;] -         Container startup error will be handled out side of the YarnResourceManager&amp;#39;s main thread
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15063&quot;&gt;FLINK-15063&lt;/a&gt;] -         Input group and output group of the task metric are reversed
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15065&quot;&gt;FLINK-15065&lt;/a&gt;] -         RocksDB configurable options doc description error
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15076&quot;&gt;FLINK-15076&lt;/a&gt;] -         Source thread should be interrupted during the Task cancellation 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15234&quot;&gt;FLINK-15234&lt;/a&gt;] -         Hive table created from flink catalog table shouldn&amp;#39;t have null properties in parameters
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15240&quot;&gt;FLINK-15240&lt;/a&gt;] -         is_generic key is missing for Flink table stored in HiveCatalog
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15259&quot;&gt;FLINK-15259&lt;/a&gt;] -         HiveInspector.toInspectors() should convert Flink constant to Hive constant 
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15266&quot;&gt;FLINK-15266&lt;/a&gt;] -         NPE in blink planner code gen
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15361&quot;&gt;FLINK-15361&lt;/a&gt;] -         ParquetTableSource should pass predicate in projectFields
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15412&quot;&gt;FLINK-15412&lt;/a&gt;] -         LocalExecutorITCase#testParameterizedTypes failed in travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15413&quot;&gt;FLINK-15413&lt;/a&gt;] -         ScalarOperatorsTest failed in travis
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15418&quot;&gt;FLINK-15418&lt;/a&gt;] -         StreamExecMatchRule not set FlinkRelDistribution
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15421&quot;&gt;FLINK-15421&lt;/a&gt;] -         GroupAggsHandler throws java.time.LocalDateTime cannot be cast to java.sql.Timestamp
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15435&quot;&gt;FLINK-15435&lt;/a&gt;] -         ExecutionConfigTests.test_equals_and_hash in pyFlink fails when cpu core numbers is 6
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15443&quot;&gt;FLINK-15443&lt;/a&gt;] -         Use JDBC connector write FLOAT value occur ClassCastException
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15478&quot;&gt;FLINK-15478&lt;/a&gt;] -         FROM_BASE64 code gen type wrong
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15489&quot;&gt;FLINK-15489&lt;/a&gt;] -         WebUI log refresh not working
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15522&quot;&gt;FLINK-15522&lt;/a&gt;] -         Misleading root cause exception when cancelling the job
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15523&quot;&gt;FLINK-15523&lt;/a&gt;] -         ConfigConstants generally excluded from japicmp
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15543&quot;&gt;FLINK-15543&lt;/a&gt;] -         Apache Camel not bundled but listed in flink-dist NOTICE
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15549&quot;&gt;FLINK-15549&lt;/a&gt;] -         Integer overflow in SpillingResettableMutableObjectIterator
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15577&quot;&gt;FLINK-15577&lt;/a&gt;] -         WindowAggregate RelNodes missing Window specs in digest
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15615&quot;&gt;FLINK-15615&lt;/a&gt;] -         Docs: wrong guarantees stated for the file sink
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;        Improvement
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11135&quot;&gt;FLINK-11135&lt;/a&gt;] -         Reorder Hadoop config loading in HadoopUtils
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12848&quot;&gt;FLINK-12848&lt;/a&gt;] -         Method equals() in RowTypeInfo should consider fieldsNames
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13729&quot;&gt;FLINK-13729&lt;/a&gt;] -         Update website generation dependencies
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14008&quot;&gt;FLINK-14008&lt;/a&gt;] -         Auto-generate binary licensing
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14104&quot;&gt;FLINK-14104&lt;/a&gt;] -         Bump Jackson to 2.10.1
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14123&quot;&gt;FLINK-14123&lt;/a&gt;] -         Lower the default value of taskmanager.memory.fraction
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14206&quot;&gt;FLINK-14206&lt;/a&gt;] -         Let fullRestart metric count fine grained restarts as well
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14215&quot;&gt;FLINK-14215&lt;/a&gt;] -         Add Docs for TM and JM Environment Variable Setting
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14251&quot;&gt;FLINK-14251&lt;/a&gt;] -         Add FutureUtils#forward utility
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14334&quot;&gt;FLINK-14334&lt;/a&gt;] -         ElasticSearch docs refer to non-existent ExceptionUtils.containsThrowable
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14335&quot;&gt;FLINK-14335&lt;/a&gt;] -         ExampleIntegrationTest in testing docs is incorrect
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14408&quot;&gt;FLINK-14408&lt;/a&gt;] -         In OldPlanner, UDF open method can not be invoke when SQL is optimized
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14557&quot;&gt;FLINK-14557&lt;/a&gt;] -         Clean up the package of py4j
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14639&quot;&gt;FLINK-14639&lt;/a&gt;] -         Metrics User Scope docs refer to wrong class
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14646&quot;&gt;FLINK-14646&lt;/a&gt;] -         Check non-null for key in KeyGroupStreamPartitioner
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14825&quot;&gt;FLINK-14825&lt;/a&gt;] -         Rework state processor api documentation
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14995&quot;&gt;FLINK-14995&lt;/a&gt;] -         Kinesis NOTICE is incorrect
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15113&quot;&gt;FLINK-15113&lt;/a&gt;] -         fs.azure.account.key not hidden from global configuration
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15554&quot;&gt;FLINK-15554&lt;/a&gt;] -         Bump jetty-util-ajax to 9.3.24
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15657&quot;&gt;FLINK-15657&lt;/a&gt;] -         Fix the python table api doc link in Python API tutorial
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15700&quot;&gt;FLINK-15700&lt;/a&gt;] -         Improve Python API Tutorial doc
+&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15726&quot;&gt;FLINK-15726&lt;/a&gt;] -         Fixing error message in StreamExecTableSourceScan
+&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+<pubDate>Thu, 30 Jan 2020 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2020/01/30/release-1.9.2.html</link>
+<guid isPermaLink="true">/news/2020/01/30/release-1.9.2.html</guid>
+</item>
+
+<item>
 <title>State Unlocked: Interacting with State in Apache Flink</title>
 <description>&lt;h1 id=&quot;introduction&quot;&gt;Introduction&lt;/h1&gt;
 
@@ -12787,7 +13525,7 @@ register for the conference.&lt;/p&gt;
 several parts of the system. We suggest all users of Flink to work with this
 latest stable version.&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;/downloads.html&quot;&gt;Download the release&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.9&quot;&gt;check out the
+&lt;p&gt;&lt;a href=&quot;/downloads.html&quot;&gt;Download the release&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10&quot;&gt;check out the
 documentation&lt;/a&gt;. Feedback through the Flink mailing lists
 is, as always, very welcome!&lt;/p&gt;
 

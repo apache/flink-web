@@ -22,11 +22,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 If you plan to use Apache Flink together with Apache Hadoop (run Flink
 on YARN, connect to HDFS, connect to HBase, or use some Hadoop-based
-file system connector) then select the download that bundles the
-matching Hadoop version, download the optional pre-bundled Hadoop that
-matches your version and place it in the `lib` folder of Flink, or
-[export your
-HADOOP_CLASSPATH](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html).
+file system connector), please check out the [Hadoop Integration]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/ops/deployment/hadoop.html) documentation.
 
 {% for flink_release in site.flink_releases %}
 
@@ -126,13 +122,10 @@ main Flink release:
 
 {% for additional_component in site.component_releases %}
 
-{% if additional_component.source_release %}
-{% assign source_release = additional_component.source_release %}
 <p>
-<a href="{{ source_release.url }}" class="ga-track" id="{{ source_release.id }}">{{ source_release.name }}</a>
-(<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
+<a href="{{ additional_component.url }}" class="ga-track" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
+(<a href="{{ additional_component.asc_url }}">asc</a>, <a href="{{ additional_component.sha512_url }}">sha512</a>)
 </p>
-{% endif %}
 
 {% endfor %}
 
