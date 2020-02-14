@@ -147,7 +147,7 @@ Environments hold the _SDK Harness_ which is the code that handles the execution
 </center>
 
 
-- TODO cross-language
+Environments can be present for many languages. This opens up an entirely new type of pipelines: cross-language pipelines. In cross-language pipelines we can combine transforms of two or more languages, e.g. a machine learning pipeline with the feature generation written in Java and the learning written in Python. All this can be run on top of Flink.
 
 
 ## Conclusion
