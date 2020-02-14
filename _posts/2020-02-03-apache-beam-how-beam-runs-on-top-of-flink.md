@@ -95,7 +95,7 @@ When data is transferred over the wire in Flink, it has to be turned into bytes.
 
 The `Read` transform provides a way to read data into your pipeline in Beam. The Read transform is supported by two wrappers in Beam, the `SourceInputFormat` for batch processing and the `UnboundedSourceWrapper` for stream processing.
 
-### Map/FlatMap/Filter vs ParDo
+### ParDo
 
 `ParDo` is the swiss army knife of Beam and can be compared to a `RichFlatMapFunction` in Flink with additional features such as `SideInputs`, `SideOutputs`, State and Timers. `ParDo` is essentially translated by the Flink runner using the `FlinkDoFnFunction` for batch processing or the `FlinkStatefulDoFnFunction`, while for streaming scenarios the translation is executed with the `DoFnOperator` that takes care of checkpointing and buffering of data during checkpoints, watermark emissions and maintenance of state and timers. This is all executed by Beam’s interface, called the `DoFnRunner`, that encapsulates Beam-specific execution logic, like retrieving state, executing state and timers, or reporting metrics.
 
