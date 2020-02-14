@@ -147,7 +147,6 @@ Environments hold the _SDK Harness_ which is the code that handles the execution
 </center>
 
 
-- TODO Mention TFX
 - TODO cross-language
 
 
