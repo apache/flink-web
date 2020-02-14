@@ -91,7 +91,7 @@ When data is transferred over the wire in Flink, it has to be turned into bytes.
 <img src="{{ site.baseurl }}/img/blog/flink-runner-beam-serializers-coders.png" width="600px" alt="Serializers vs Coders"/>
 </center>
 
-### Sources vs Reads
+### Read
 
 The `Read` transform provides a way to read data into your pipeline in Beam. The Read transform is supported by two wrappers in Beam, the `SourceInputFormat` for batch processing and the `UnboundedSourceWrapper` for stream processing.
 
