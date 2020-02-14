@@ -109,7 +109,7 @@ In Flink, windows are assigned by the `WindowOperator` when you use the `window(
 
 ### GroupByKey
 
-Most of the time it is useful to partition the data by a key. In Flink, this is done via the `keyBy()` API call. In Beam the `GroupByKey` transform can only be applied if the input is of the form `KV<Key, Value>`. Unlike Flink where the key can even be nested inside the data, Beam enforces the key to always be explicit. The `GroupByKey` transform then groups the data by key and by window which is similar to what `keyBy(..).window(..)` would give us in Flink. Beam has its own set of libraries to do that because Beam has its own set of window functions and triggers. Essentially, it is very similar to what the WindowOperator does in Flink.
+Most of the time it is useful to partition the data by a key. In Flink, this is done via the `keyBy()` API call. In Beam the `GroupByKey` transform can only be applied if the input is of the form `KV<Key, Value>`. Unlike Flink where the key can even be nested inside the data, Beam enforces the key to always be explicit. The `GroupByKey` transform then groups the data by key and by window which is similar to what `keyBy(..).window(..)` would give us in Flink. Beam has its own set of libraries to do that because Beam has its own set of window functions and triggers. Essentially, GroupByKey is very similar to what the WindowOperator does in Flink.
 
 ### Flatten
 
