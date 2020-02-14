@@ -105,7 +105,7 @@ In addition to the main input, ParDo transforms can have a number of side inputs
 
 ### AssignWindows
 
-In Flink, windows are assigned by the `WindowOperator` when you use the `window()` in the API. In Beam, windows can be assigned at any point in time. Any element is implicitly part of a window. If no window is assigned explicitly, it is part of the `GlobalWindow`. Window information is stored for each element in `WindowedValue`. The window information is only useful once we issue a `GroupByKey`.
+In Flink, windows are assigned by the `WindowOperator` when you use the `window()` in the API. In Beam, windows can be assigned at any point in time. Any element is implicitly part of a window. If no window is assigned explicitly, the element is part of the `GlobalWindow`. Window information is stored for each element in a wrapper called `WindowedValue`. The window information is only used once we issue a `GroupByKey`.
 
 ### GroupByKey
 
