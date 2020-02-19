@@ -81,7 +81,7 @@ The classic Flink Runner was the initial version of the Runner, hence the "class
 <img src="{{ site.baseurl }}/img/blog/classic-flink-runner-beam.png" width="600px" alt="The Classic Flink Runner in Beam"/>
 </center>
 
-While Beam and Flink share very similar concepts there are enough differences that Beam pipeline cannot be translated 1:1 into a Flink program. In the following we will present the key differences:
+While Beam and Flink share very similar concepts, there are enough differences between the two frameworks that make Beam pipelines impossible to be translated 1:1 into a Flink program. In the following sections, we will present the key differences:
 
 ### Serializers vs Coders
 
