@@ -7,6 +7,131 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>No Java Required: Configuring Sources and Sinks in SQL</title>
+<description>&lt;h1 id=&quot;introduction&quot;&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;The recent &lt;a href=&quot;https://flink.apache.org/news/2020/02/11/release-1.10.0.html&quot;&gt;Apache Flink 1.10 release&lt;/a&gt; includes many exciting features.
+In particular, it marks the end of the community’s year-long effort to merge in the &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;Blink SQL contribution&lt;/a&gt; from Alibaba.
+The reason the community chose to spend so much time on the contribution is that SQL works.
+It allows Flink to offer a truly unified interface over batch and streaming and makes stream processing accessible to a broad audience of developers and analysts.
+Best of all, Flink SQL is ANSI-SQL compliant, which means if you’ve ever used a database in the past, you already know it&lt;sup id=&quot;fnref:1&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;!&lt;/p&gt;
+
+&lt;p&gt;A lot of work focused on improving runtime performance and progressively extending its coverage of the SQL standard.
+Flink now supports the full TPC-DS query set for batch queries, reflecting the readiness of its SQL engine to address the needs of modern data warehouse-like workloads.
+Its streaming SQL supports an almost equal set of features - those that are well defined on a streaming runtime - including &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/streaming/joins.html&quot;&gt;complex joins&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/streaming/match_recognize.html&quot;&gt;MATCH_RECOGNIZE&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As important as this work is, the community also strives to make these features generally accessible to the broadest audience possible.
+That is why the Flink community is excited in 1.10 to offer production-ready DDL syntax (e.g., &lt;code&gt;CREATE TABLE&lt;/code&gt;, &lt;code&gt;DROP TABLE&lt;/code&gt;) and a refactored catalog interface.&lt;/p&gt;
+
+&lt;h1 id=&quot;accessing-your-data-where-it-lives&quot;&gt;Accessing Your Data Where It Lives&lt;/h1&gt;
+
+&lt;p&gt;Flink does not store data at rest; it is a compute engine and requires other systems to consume input from and write its output.
+Those that have used Flink’s &lt;code&gt;DataStream&lt;/code&gt; API in the past will be familiar with connectors that allow for interacting with external systems. 
+Flink has a vast connector ecosystem that includes all major message queues, filesystems, and databases.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+If your favorite system does not have a connector maintained in the central Apache Flink repository, check out the &lt;a href=&quot;https://flink-packages.org&quot;&gt;flink packages website&lt;/a&gt;, which has a growing number of community-maintained components.
+&lt;/div&gt;
+
+&lt;p&gt;While these connectors are battle-tested and production-ready, they are written in Java and configured in code, which means they are not amenable to pure SQL or Table applications.
+For a holistic SQL experience, not only queries need to be written in SQL, but also table definitions.&lt;/p&gt;
+
+&lt;h1 id=&quot;create-table-statements&quot;&gt;CREATE TABLE Statements&lt;/h1&gt;
+
+&lt;p&gt;While Flink SQL has long provided table abstractions atop some of Flink’s most popular connectors, configurations were not always so straightforward.
+Beginning in 1.10, Flink supports defining tables through &lt;code&gt;CREATE TABLE&lt;/code&gt; statements.
+With this feature, users can now create logical tables, backed by various external systems, in pure SQL.&lt;/p&gt;
+
+&lt;p&gt;By defining tables in SQL, developers can write queries against logical schemas that are abstracted away from the underlying physical data store. Coupled with Flink SQL’s unified approach to batch and stream processing, Flink provides a straight line from discovery to production.&lt;/p&gt;
+
+&lt;p&gt;Users can define tables over static data sets, anything from a local CSV file to a full-fledged data lake or even Hive.
+Leveraging Flink’s efficient batch processing capabilities, they can perform ad-hoc queries searching for exciting insights.
+Once something interesting is identified, businesses can gain real-time and continuous insights by merely altering the table so that it is powered by a message queue such as Kafka.
+Because Flink guarantees SQL queries have unified semantics over batch and streaming, users can be confident that redeploying this query as a continuous streaming application over a message queue will output identical results.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot; data-lang=&quot;sql&quot;&gt;&lt;span class=&quot;c1&quot;&gt;-- Define a table called orders that is backed by a Kafka topic&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- The definition includes all relevant Kafka properties,&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- the underlying format (JSON) and even defines a&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- watermarking algorithm based on one of the fields&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- so that this table can be used with event time.&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;user_id&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;product&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;order_time&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TIMESTAMP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;WATERMARK&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FOR&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;order_time&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;order_time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;5&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SECONDS&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.type&amp;#39;&lt;/span&gt;    	 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;kafka&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.version&amp;#39;&lt;/span&gt; 	 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;universal&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.topic&amp;#39;&lt;/span&gt;   	 &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;orders&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.startup-mode&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;earliest-offset&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.properties.bootstrap.servers&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;localhost:9092&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;format.type&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;json&amp;#39;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;-- Define a table called product_analysis&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- on top of ElasticSearch 7 where we &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- can write the results of our query. &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_analysis&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;product&lt;/span&gt; 	&lt;span class=&quot;n&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;tracking_time&lt;/span&gt; 	&lt;span class=&quot;k&quot;&gt;TIMESTAMP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;units_sold&lt;/span&gt; 	&lt;span class=&quot;nb&quot;&gt;BIGINT&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.type&amp;#39;&lt;/span&gt;    &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;elasticsearch&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.version&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;7&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.hosts&amp;#39;&lt;/span&gt;   &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;localhost:9200&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.index&amp;#39;&lt;/span&gt;   &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;ProductAnalysis&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;s1&quot;&gt;&amp;#39;connector.document.type&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;analysis&amp;#39;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;-- A simple query that analyzes order data&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- from Kafka and writes results into &lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;-- ElasticSearch. &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;product_analysis&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;product_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;TUMBLE_START&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;INTERVAL&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;1&amp;#39;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tracking_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;COUNT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;units_sold&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orders&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;GROUP&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;product_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;TUMBLE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;INTERVAL&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;1&amp;#39;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;catalogs&quot;&gt;Catalogs&lt;/h1&gt;
+
+&lt;p&gt;While being able to create tables is important, it often isn’t enough.
+A business analyst, for example, shouldn’t have to know what properties to set for Kafka, or even have to know what the underlying data source is, to be able to write a query.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, Flink 1.10 also ships with a revamped catalog system for managing metadata about tables and user definined functions.
+With catalogs, users can create tables once and reuse them across Jobs and Sessions.
+Now, the team managing a data set can create a table and immediately make it accessible to other groups within their organization.&lt;/p&gt;
+
+&lt;p&gt;The most notable catalog that Flink integrates with today is Hive Metastore.
+The Hive catalog allows Flink to fully interoperate with Hive and serve as a more efficient query engine.
+Flink supports reading and writing Hive tables, using Hive UDFs, and even leveraging Hive’s metastore catalog to persist Flink specific metadata.&lt;/p&gt;
+
+&lt;h1 id=&quot;looking-ahead&quot;&gt;Looking Ahead&lt;/h1&gt;
+
+&lt;p&gt;Flink SQL has made enormous strides to democratize stream processing, and 1.10 marks a significant milestone in that development.
+However, we are not ones to rest on our laurels and, the community is committed to raising the bar on standards while lowering the barriers to entry.
+The community is looking to add more catalogs, such as JDBC and Apache Pulsar.
+We encourage you to sign up for the &lt;a href=&quot;https://flink.apache.org/community.html&quot;&gt;mailing list&lt;/a&gt; and stay on top of the announcements and new features in upcoming releases.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot;&gt;
+      &lt;p&gt;My colleague Timo, whose worked on Flink SQL from the beginning, has the entire SQL standard printed on his desk and references it before any changes are merged. It’s enormous. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+<pubDate>Thu, 20 Feb 2020 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2020/02/20/ddl.html</link>
+<guid isPermaLink="true">/news/2020/02/20/ddl.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.10.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is excited to hit the double digits and announce the release of Flink 1.10.0! As a result of the biggest community effort to date, with over 1.2k issues implemented and more than 200 contributors, this release introduces significant improvements to the overall performance and stability of Flink jobs, a preview of native Kubernetes integration and great advances in Python support (PyFlink).&lt;/p&gt;
 
