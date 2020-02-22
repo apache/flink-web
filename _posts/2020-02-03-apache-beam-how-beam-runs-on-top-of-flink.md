@@ -152,7 +152,7 @@ Environments can be present for many languages. This opens up an entirely new ty
 
 ## Conclusion
 
-Beam with Flink combines the power of Flink with the flexibility of Beam. All it takes to run Beam is a Flink cluster, which you may already have. Apache Beam's fully-fledged Python API is probably the most compelling argument for using Beam with Flink, but the unified API which allows to "write-once" and "execute-anywhere" is also very appealing to Beam users. On top of this, features like side inputs and a rich connector ecosystem are also reasons why people like Beam. 
+Using Apache Beam with Apache Flink combines  (a.) the power of Flink with (b.) the flexibility of Beam. All it takes to run Beam is a Flink cluster, which you may already have. Apache Beam's fully-fledged Python API is probably the most compelling argument for using Beam with Flink, but the unified API which allows to "write-once" and "execute-anywhere" is also very appealing to Beam users. On top of this, features like side inputs and a rich connector ecosystem are also reasons why people like Beam. 
 
 With the introduction of schemas, a new format for handling type information, Beam is heading in a similar direction as Flink with its type system which is essential for the Table API or SQL. Speaking of, the next Flink release will include a Python version of the Table API which is based on the language portability of Beam. Looking ahead, the Beam community plans to extend the support for interactive programs like notebooks. TFX, which is built with Beam, is a very powerful way to solve many problems around training and validating machine learning models. 
 
