@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "PyFlink: Introducing Python Support for UDFs in Flink's Table API"
-date: 2020-02-13T08:45:00.000Z
+date: 2020-02-23T12:00:00.000Z
 authors:
 - Jincheng:
   name: "Jincheng Sun"
@@ -24,7 +24,7 @@ Since Python UDFs cannot directly run in JVM, they are executed within the Pytho
 * **Logging Service**: Mechanism for logging support for user defined functions. It allows transferring log entries produced by user defined functions to the Flink operator and integrates with Flink’s own logging system. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-02-17-communication-flink-operator-python-execution-environment.png" width="600px" alt="Communication between the Flink operator and the Python execution environment"/>
+<img src="{{ site.baseurl }}/img/blog/2020-02-23-pyflink-udfs/communication-flink-operator-python-execution-environment.png" width="600px" alt="Communication between the Flink operator and the Python execution environment"/>
 </center>
 <br>
 
@@ -38,7 +38,7 @@ NOTE: Supporting metrics is currently planned for Flink 1.11
 Figure 2 below describes the high-level flow between initializing and executing UDFs from the Java operator to the Python process. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-02-17-flow-initialization-execution-python-udfs-flink.png" width="600px" alt="High-level flow between initialization and execution of Python UDFs in Flink 1.10"/>
+<img src="{{ site.baseurl }}/img/blog/2020-02-23-pyflink-udfs/flow-initialization-execution-python-udfs-flink.png" width="800px" alt="High-level flow between initialization and execution of Python UDFs in Flink 1.10"/>
 </center>
 <br>
 
