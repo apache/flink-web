@@ -145,7 +145,7 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
 
 ## 验证哈希和签名
 
-随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://www.apache.org/dist/flink/KEYS) 来校验它们。
+随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://downloads.apache.org/flink/KEYS) 来校验它们。
 
 ## Maven 依赖
 
