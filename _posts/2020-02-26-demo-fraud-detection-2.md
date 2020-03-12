@@ -92,7 +92,7 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
 ![](./../img/blog/patterns-blog-2/hash.png)
 
 * **DynamicAlertFunction** that accumulates a data window and creates Alerts based on it
-    * Rebalance means that the data redistribution is caused not by the explicit `keyBy` operator, but by a change in parallelism (12 -> 1).
+     * A rebalance distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in this case).
 
 <center>
  <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across operators : REBALANCE"/>
