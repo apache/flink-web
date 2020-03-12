@@ -27,7 +27,7 @@ DataStream<Alert> alerts =
         .process(new DynamicAlertFunction())
 ```
 
-`DynamicKeyFunction`, as described earlier, provides dynamic data partitioning, while `DynamicAlertFunction` is responsible for executing the main logic of processing transactions and sending alert messages according to defined rules.
+`DynamicKeyFunction` provides dynamic data partitioning while `DynamicAlertFunction` is responsible for executing the main logic of processing transactions and sending alert messages according to defined rules.
 
 For a simplified description, we previously assumed that the applied set of rules are pre-initialized and are accessible via the `List<Rules>` within DynamicKeyFunction.
 
