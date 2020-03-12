@@ -13,11 +13,11 @@ excerpt: In this series of blog posts you will learn about powerful Flink patter
 
 In the [first article](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series, we gave a high-level description of the objectives and required functionality of a Fraud Detection engine. We also described how to make data-partitioning in Apache Flink's customizable based on modifiable rules, instead of using a hardcoded `KeysExtractor` implementation.
 
-We intentionally omitted details of how the applied rules are initialized and what possibilities exist for updating them at runtime. In this post, we will address exactly these details. You will learn how the approach to data partitionining described in [Part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) can be applied in combination with a dynamic configuration. These two patterns used together can eliminate the need to recompile the code and redeploy your Flink job for a wide range of modifications of the business logic parameters.
+We intentionally omitted details of how the applied rules are initialized and what possibilities exist for updating them at runtime. In this post, we will address exactly these details. You will learn how the approach to data partitionining described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) can be applied in combination with a dynamic configuration. These two patterns used together can eliminate the need to recompile the code and redeploy your Flink job for a wide range of modifications of the business logic parameters.
 
 # Rules Broadcasting
 
-Let's first remind ourselves what the data processing pipeline that we created at the previous stage looks like:
+Let's first have a look at the [previously defined](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning) data processing pipeline:
 
 ```java
 DataStream<Alert> alerts =
