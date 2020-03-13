@@ -141,7 +141,7 @@ public static final MapStateDescriptor<Integer, Rule> RULES_STATE_DESCRIPTOR =
             "keys", BasicTypeInfo.INT_TYPE_INFO, TypeInformation.of(Rule.class));
 ```
 
-Connecting to `rulesStream` causes some changes in the signature of the processing functions. Presented in a slightly simplified way in the previous article as `ProcessFunction`, `DynamicKeyFunction` is in reality `BroadcastProcessFunction`.
+Connecting to `rulesStream` causes some changes in the signature of the processing functions. The previous article presented it in a slightly simplified way as a `ProcessFunction`. However, `DynamicKeyFunction` is actually a `BroadcastProcessFunction`.
 
 ```java
 public abstract class BroadcastProcessFunction<IN1, IN2, OUT> {
