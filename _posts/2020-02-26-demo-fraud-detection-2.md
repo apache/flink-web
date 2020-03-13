@@ -103,7 +103,7 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
 
 ![](./../img/blog/patterns-blog-2/rebalance.png)
 
-At the top of the Job Graph you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed-in" into the main processing data flow through the `broadcast` operation. Unlike other methods of transmitting data between operators, such as `forward` and `hash`, which make each message available for processing in only one of the parallel instances of the receiving operator, broadcast makes each message available at the input of all of the parallel instances of the operator which the broadcast stream is connected to. This makes broadcast applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
+At the top of the Job Graph you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance`, which make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
  <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across operators : BROADCAST"/>
