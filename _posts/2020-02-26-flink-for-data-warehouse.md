@@ -1,11 +1,12 @@
 ---
 layout: post 
-title:  "Flink as Unified Engine for Modern Datawarehousing: Production Ready Hive Integration" 
+title:  "Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration"
 date: 2020-02-26T02:30:00.000Z
-categories: news
+categories: features
 authors:
-- Bowen Li
-- twitter: Bowen__Li
+- bowen:
+  name: Bowen Li
+  twitter: Bowen__Li
 ---
 
 In this blog post, you will learn how Flink can help modernize your data warehouse and our motivation behind the Flink-Hive integration, what you can currently do with it in Flink's latest release 1.10, and our roadmap for Flink 1.11 and beyond.
@@ -39,13 +40,6 @@ On the other hand, Apache Hive has established itself as a focal point of the da
 Thus we started integrating Flink and Hive as a beta version in Flink 1.9. Over the past few months, we’ve been listening to users’ requests and feedback, further extensively enhancing our product, and running rigorous benchmarks (which will be published soon separately). I’m glad to announce that the integration between Flink and Hive is at production grade in [Flink 1.10](https://flink.apache.org/news/2020/02/11/release-1.10.0.html) right now and we can’t wait to walk you through the details.
 
 
-### Compatible with More Hive Versions
-
-The beta version in Flink 1.9 covers Hive 1.2 and 2.3, and relies on Hive’s own backward compatibility for other Hive versions.
-
-In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look [here](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/#supported-hive-versions).
-
-
 ### Unified Metadata Management 
 
 Hive Metastore has evolved into the de facto metadata hub over the years in the Hadoop, or even the cloud, ecosystem. Many companies have a single Hive Metastore service instance in production to manage all of their schemas, either Hive or non-Hive metadata, as the single source of truth.
@@ -53,6 +47,19 @@ Hive Metastore has evolved into the de facto metadata hub over the years in the 
 In 1.9 we introduced Flink’s [HiveCatalog](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html), connecting Flink to users’ rich metadata pool. The meaning of `HiveCatalog` is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.
 
 In Flink 1.10, users can store Flink's own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. [Here’s an end-to-end example](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html#example) of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.
+
+
+### Stream Processing
+
+The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data in stream processing use cases:
+
+- Users can now join their real-time streaming data with offline Hive data for more complex data processing
+- Users can leverage Flink to streaming real-time data into Hive directly, greatly shortening end-to-end latency between when data in generated and when it arrives at your data warehouse for analytics, from hours even days to minutes
+
+
+### Compatible with More Hive Versions
+
+In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look [here](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/#supported-hive-versions).
 
 
 ### Reuse Hive User Defined Functions (UDFs)
@@ -80,13 +87,14 @@ Your engine should be able to handle all common types of file formats to give yo
 
 In Flink 1.10, we added support for a few more frequently-used Hive data types that were not covered by Flink 1.9. Flink users now should have a full, smooth experience to query and manipulate Hive data from Flink.
 
+
 ### Roadmap
 
 Integration between any two systems is a never-ending story. 
 
 We are constantly improving Flink itself and the Flink-Hive integration also gets improved by collecting user feedback and working with folks in this vibrant community.
 
-After careful consideration and prioritization of the feedback we received, many of the below requests, together with other improvements, have been prioritized for the next Flink release, Flink 1.11.
+After careful consideration and prioritization of the feedback we received, we have prioritize many of the below requests for the next Flink release of 1.11.
 
 - Native Parquet reader for better performance
 - Additional interoperability - support creating Hive tables, views, functions in Flink
