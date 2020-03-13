@@ -51,7 +51,7 @@ In Flink 1.10, users can store Flink's own tables, views, UDFs, statistics in Hi
 
 ### Stream Processing
 
-The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data in stream processing use cases:
+The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data and unlock stream processing use cases:
 
 - Users can now join their real-time streaming data with offline Hive data for more complex data processing
 - Users can leverage Flink to streaming real-time data into Hive directly, greatly shortening end-to-end latency between when data in generated and when it arrives at your data warehouse for analytics, from hours even days to minutes
