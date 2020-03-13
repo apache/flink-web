@@ -146,9 +146,13 @@ Connecting to `rulesStream` causes some changes in the signature of the processi
 ```java
 public abstract class BroadcastProcessFunction<IN1, IN2, OUT> {
 
-    public abstract void processElement(IN1 value, ReadOnlyContext ctx, Collector<OUT> out) throws Exception;
+    public abstract void processElement(IN1 value,
+                                        ReadOnlyContext ctx,
+                                        Collector<OUT> out) throws Exception;
 
-    public abstract void processBroadcastElement(IN2 value, Context ctx, Collector<OUT> out) throws Exception;
+    public abstract void processBroadcastElement(IN2 value,
+                                                 Context ctx,
+                                                 Collector<OUT> out) throws Exception;
 
 }
 ```
@@ -186,10 +190,11 @@ public class DynamicKeyFunction
 
 In the above code `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed and saved in all parallel instances of the operator using `processBroadcastState`, as depicted in Figure 6. We use Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, iteration is performed over entries in the dynamically updated broadcast state.
 
-`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in Part 1  **[!LINK]**, each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
+`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
 
 # Summary
-In this blogpost, we have continued our investigation of the use case of the Fraud Detection System built with Apache Flink. We have looked into different ways in which data can be distributed between Flink operators, and specifically into details of events broadcast. We have demonstrated, how `DynamicDataPartitioning` pattern described in the first part of the series **[LINK]** can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink, which is applicable in a variety of other use cases, such as:
-* Control of state (cleanup/insert/fix)
-* A/B experiments
-* Updates of ML model coefficients
+In this blogpost, we have continued our investigation of the use case of the Fraud Detection System built with Apache Flink. We have looked into different ways in which data can be distributed between Flink operators, and specifically into details of events broadcast. We have demonstrated, how `DynamicDataPartitioning` pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series  can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink, which is applicable in a variety of other use cases, such as:
+
+  *  Control of state (cleanup/insert/fix)
+  *  A/B experiments
+  *  Updates of ML model coefficients
