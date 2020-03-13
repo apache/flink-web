@@ -114,9 +114,7 @@ At the top of the Job Graph you can see an additional data source - **Rules Sour
 
 ![](./../img/blog/patterns-blog-2/broadcast.png)
 
-In order to make use of that additional data source, we first need to "connect" it to the main data stream at the stage of Job Graph definition as follows:
-
-//The connection of the reference flow to the Transactions flow is made as follows:
+In order to make use of the Rules Source, we need to "connect" it to the main data stream as follows:
 
 ```java
 // Streams setup
@@ -130,7 +128,7 @@ BroadcastStream<Rule> rulesStream = rulesUpdateStream.broadcast(RULES_STATE_DESC
      transactions
          .connect(rulesStream)
          .process(new DynamicKeyFunction())
-          .keyBy((keyed) -> keyed.getKey())
+         .keyBy((keyed) -> keyed.getKey())
          .connect(rulesStream)
          .process(new DynamicAlertFunction())
 ```
