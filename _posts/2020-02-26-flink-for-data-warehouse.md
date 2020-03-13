@@ -9,7 +9,7 @@ authors:
   twitter: Bowen__Li
 ---
 
-In this blog post, you will learn how Flink can help modernize your data warehouse and our motivation behind the Flink-Hive integration, what you can currently do with it in Flink's latest release 1.10, and our roadmap for Flink 1.11 and beyond.
+In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.
 
 {% toc %}
 
