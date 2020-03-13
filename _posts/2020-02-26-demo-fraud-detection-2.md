@@ -57,9 +57,9 @@ Let's next have a look at the example of DSL of one of the sample rules presente
 Earlier we have already seen how part of this definition, namely `groupingKeyNames`, is used in `DynamicKeyFunction` to extract message keys. At the same time, all other parameters of this rule are necessary within `DynamicAlertFunction` - they define the actual logic of performed operations and it's parameters (such as the alert triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use a special data distribution mechanism in Apache Flink - [events broadcast](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/broadcast_state.html). Let’s turn to the Job Graph of the system that we are building:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph of the Fraud Detection Flink Job"/>
 <br/>
-<i><small>Figure 2: Job Graph</small></i>
+<i><small>Figure 2: Job Graph of the Fraud Detection Flink Job</small></i>
 </center>
 <br/>
 
@@ -137,8 +137,7 @@ As you can see, the broadcast stream can be created from any regular stream by  
 
 ```java
 public static final MapStateDescriptor<Integer, Rule> RULES_STATE_DESCRIPTOR =
-        new MapStateDescriptor<>(
-            "keys", BasicTypeInfo.INT_TYPE_INFO, TypeInformation.of(Rule.class));
+        new MapStateDescriptor<>("rules", Integer.class, Rule.class);
 ```
 
 Connecting to `rulesStream` causes some changes in the signature of the processing functions. The previous article presented it in a slightly simplified way as a `ProcessFunction`. However, `DynamicKeyFunction` is actually a `BroadcastProcessFunction`.
