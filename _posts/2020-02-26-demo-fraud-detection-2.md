@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Advanced Flink Application Patterns Vol.2:
-Case Study of a Fraud Detection System"
+Dynamic Updates of Application Logic"
 date: 2020-02-26T12:00:00.000Z
 authors:
 - alex:
