@@ -54,7 +54,7 @@ Let's next have a look at a sample rule definition, which we have introduced in 
 
 ![](./../img/blog/patterns-blog-2/rule-dsl.png)
 
-Earlier we have already seen how part of this definition, namely `groupingKeyNames`, is used in `DynamicKeyFunction` to extract message keys. At the same time, all other parameters of this rule are necessary within `DynamicAlertFunction` - they define the actual logic of performed operations and it's parameters (such as the alert triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use a special data distribution mechanism in Apache Flink - [events broadcast](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/broadcast_state.html). Let’s turn to the Job Graph of the system that we are building:
+The previous post covered the use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink. Let’s turn to the Job Graph of the system that we are building:
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph of the Fraud Detection Flink Job"/>
