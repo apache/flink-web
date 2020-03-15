@@ -156,7 +156,7 @@ public abstract class BroadcastProcessFunction<IN1, IN2, OUT> {
 }
 ```
 
-The difference is the addition of a `processBroadcastElement` method through which the control messages will arrive. The version of `DynamicKeyFunciton` that allows  modifying the list of data distribution keys at runtime by sending rules definitions to `rules` Kafka topic (`RulesSource`) looks as follows:
+The difference is the addition of a `processBroadcastElement` method through which the messages of the rules stream will arrive. The following new version of the `DynamicKeyFunction` allows modifying the list of data distribution keys at runtime through this stream:
 
 ```java
 public class DynamicKeyFunction
