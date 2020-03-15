@@ -43,7 +43,7 @@ public class DynamicKeyFunction
 
 Obviously, adding rules to this list is possible directly inside the code of the Flink Job at the stage of its initialization (create a List object, use it's `add` method). A major drawback of doing so is that it will require recompilation of the job with each rule modification. In the real Fraud Detection system, you can expect to modify these rules on a frequent basis, which makes this approach unacceptable from the point of view of business and operational requirements - a different approach is needed.
 
-Let's next have a look at a sample Rule definition, that we have already presented in the previous post:
+Let's next have a look at a sample rule definition, which we have introduced in the previous post:
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rule-dsl.png" width="800px" alt="Figure 1: Rule definition"/>
