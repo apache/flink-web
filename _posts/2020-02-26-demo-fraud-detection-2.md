@@ -66,7 +66,7 @@ The previous post covered the use of `groupingKeyNames` by `DynamicKeyFunction` 
 On it you can see the main blocks of our Transactions processing pipeline:<br>
 
 * **Transaction Source**, consuming transaction messages from Kafka partitions in parallel <br>
-    * The forward operator following it means that all data consumed by one of the parallel instances of Transaction Source operator will be transferred to exactly one instance of the subsequent DynamicKeyFunction operator, without redistribution. It also indicates the same level of parallelism of two connected operators (12 in this case).
+    * The forward operator following it means that all data consumed by one of the parallel instances of Transaction Source operator will be transferred to exactly one instance of the subsequent DynamicKeyFunction operator, without redistribution. It also indicates the same level of parallelism of two connected operators (12 in this case). This communication pattern is depicted on Figure 3.
 
  <center>
  <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across parallel operator instances : FORWARD"/>
@@ -131,7 +131,7 @@ BroadcastStream<Rule> rulesStream = rulesUpdateStream.broadcast(RULES_STATE_DESC
          .process(new DynamicAlertFunction())
 ```
 
-As you can see, the broadcast stream can be created from any regular stream by  calling the `broadcast` method and specifying a state descriptor. It is assumed that broadcasted data in the majority of cases needs to be stored and retrieved while processing events of the main data flow, therefore there there is always a corresponding broadcast state created. Unlike other Apache Flink state types, broadcast state is automatically made available in the subsequent processing function, without the need to initialize it in the `open()` method. The broadcast state always has a key-value format (MapState).
+As you can see, the broadcast stream can be created from any regular stream by calling the `broadcast` method and specifying a state descriptor. Flink assumes that broadcasted data needs to be stored and retrieved while processing events of the main data flow and therefore always automatically creates a corresponding broadcast state from this state descriptor. This is different to any other Apache Flink state type where you need to initialize it in the `open()` method of the  processing function. Also note that broadcast state always has a key-value format (`MapState`).
 
 ```java
 public static final MapStateDescriptor<Integer, Rule> RULES_STATE_DESCRIPTOR =
