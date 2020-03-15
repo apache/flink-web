@@ -71,9 +71,9 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
     * The forward operator following it means that all data consumed by one of the parallel instances of Transaction Source operator will be transferred to exactly one instance of the subsequent DynamicKeyFunction operator, without redistribution. It also indicates the same level of parallelism of two connected operators (12 in this case).
 
  <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across operators : FORWARD"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across parallel operator instances : FORWARD"/>
  <br/>
- <i><small>Figure 3: Message passing across operators : FORWARD</small></i>
+ <i><small>Figure 3: Message passing across parallel operator instances: FORWARD</small></i>
  </center>
  <br/>
 
@@ -83,9 +83,9 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
     * hash here means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the following operator.
 
  <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across operators : HASH (keyBy)"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across parallel operator instances : HASH (via `keyBy`)"/>
  <br/>
- <i><small>Figure 4: Message passing across operators : HASH (keyBy)</small></i>
+ <i><small>Figure 4: Message passing across parallel operator instances : HASH (keyBy)</small></i>
  </center>
  <br/>
 
@@ -95,9 +95,9 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
      * A rebalance distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in this case).
 
 <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across operators : REBALANCE"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across parallel operator instances : REBALANCE"/>
  <br/>
- <i><small>Figure 5: Message passing across operators : REBALANCE</small></i>
+ <i><small>Figure 5: Message passing across parallel operator instances : REBALANCE</small></i>
  </center>
  <br/>
 
@@ -106,9 +106,9 @@ On it you can see the main blocks of our Transactions processing pipeline:<br>
 At the top of the Job Graph you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance`, which make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across operators : BROADCAST"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across parallel operator instances: BROADCAST"/>
  <br/>
- <i><small>Figure 6: Message passing across operators : BROADCAST</small></i>
+ <i><small>Figure 6: Message passing across parallel operator instances: BROADCAST</small></i>
  </center>
  <br/>
 
@@ -192,7 +192,7 @@ In the above code `processElement()` receives Transactions and `processBroadcast
 `DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
 
 # Summary
-In this blogpost, we have continued our investigation of the use case of the Fraud Detection System built with Apache Flink. We have looked into different ways in which data can be distributed between Flink operators, and specifically into details of events broadcast. We have demonstrated, how `DynamicDataPartitioning` pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series  can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink, which can be used for a variety of purposes, such as:
+In this blogpost, we continued our investigation of the use case of a Fraud Detection System built with Apache Flink. We looked into different ways in which data can be distributed between parallel operator instances and, most importantly, examined broadcast state. We demonstrated how dynamic partitioning — a pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series — can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink, which is applicable in a variety of other use cases, such as:
 
   *  Control of state (cleanup/insert/fix)
   *  A/B experiments
