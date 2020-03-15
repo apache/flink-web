@@ -187,11 +187,12 @@ public class DynamicKeyFunction
 }
 ```
 
-In the above code `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed and saved in all parallel instances of the operator using `processBroadcastState`, as depicted in Figure 6. We use Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, iteration is performed over entries in the dynamically updated broadcast state.
+In the above code `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using `processBroadcastState`. We use a Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, iteration is performed over entries in the dynamically updated broadcast state.
 
 `DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
 
 # Summary
+
 In this blogpost, we continued our investigation of the use case of a Fraud Detection System built with Apache Flink. We looked into different ways in which data can be distributed between parallel operator instances and, most importantly, examined broadcast state. We demonstrated how dynamic partitioning — a pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series — can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink, which is applicable in a variety of other use cases, such as:
 
   *  Control of state (cleanup/insert/fix)
