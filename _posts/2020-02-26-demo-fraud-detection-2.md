@@ -89,7 +89,7 @@ The job graph above also indicates various data exchange patterns between the op
 
 ![](./../img/blog/patterns-blog-2/forward.png)
 
-* The __HASH__ connection between the `DynamicKeyFunction` and the `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the following operator. Such connection needs to be explicitly "requested" from Flink by using a `keyBy` operator.
+* The __HASH__ connection between `DynamicKeyFunction` and `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the following operator. Such connection needs to be explicitly "requested" from Flink by using `keyBy`.
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across parallel tasks: HASH (via `keyBy`)"/>
