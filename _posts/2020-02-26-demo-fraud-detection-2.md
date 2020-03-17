@@ -70,7 +70,7 @@ The main blocks of the Transactions processing pipeline are:<br>
 
 * **Transaction Source**, consuming transaction messages from Kafka partitions in parallel <br>
 
-* **Dynamic Key Function** that performs data enrichment with a dynamic key. The subsequent `keyBy` operator hashes this dynamic key and partitions the data accordingly among all parallel instances of the following operator
+* **Dynamic Key Function** that performs data enrichment with a dynamic key. The subsequent `keyBy` hashes this dynamic key and partitions the data accordingly among all parallel instances of the following operator
 
 * **Dynamic Alert Function** that accumulates a data window and creates Alerts based on it
 
