@@ -111,7 +111,7 @@ The job graph above also indicates various data exchange patterns between the op
 
 ![](./../img/blog/patterns-blog-2/rebalance.png)
 
-At the top of the job graph in Figure 2 you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data, such as `forward`, `hash` or `rebalance`, which dispatch each message to exactly one receiving operator instance, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of use cases that require affecting the processing of all messages, regardless of their key or source partition.
+The Fraud Detection job graph in Figure 2 actually contains an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance`, which make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
  <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: BROADCAST message passing across operator instances"/>
@@ -197,7 +197,7 @@ public class DynamicKeyFunction
 }
 ```
 
-In the above code, `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using `processBroadcastState`. We use a Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, iteration is performed over entries in the dynamically updated broadcast state.
+In the above code, `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using `processBroadcastState`. We use a Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, we iterate over entries in the dynamically-updated broadcast state.
 
 `DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from the `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also store messages in the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
 
