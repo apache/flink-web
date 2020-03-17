@@ -15,7 +15,7 @@ In the [first article](https://flink.apache.org/news/2020/01/15/demo-fraud-detec
 
 We intentionally omitted details of how the applied rules are initialized and what possibilities exist for updating them at runtime. In this post, we will address exactly these details. You will learn how the approach to data partitionining described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) can be applied in combination with a dynamic configuration. These two patterns used together can eliminate the need to recompile the code and redeploy your Flink job for a wide range of modifications of the business logic.
 
-# Rules Broadcasting
+## Rules Broadcasting
 
 Let's first have a look at the [previously-defined](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning) data processing pipeline:
 
@@ -53,7 +53,10 @@ Let's next have a look at a sample rule definition, which we have introduced in 
 <br/>
 
 ![](./../img/blog/patterns-blog-2/rule-dsl.png)
-The previous post covered the use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink. Let’s turn to the Job Graph of the system that we are building:
+The previous post covered the use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink.
+
+Figure 2 presents the final job graph of the system that we are building:
+
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph of the Fraud Detection Flink Job"/>
 <br/>
@@ -67,18 +70,20 @@ The main blocks of the Transactions processing pipeline are:<br>
 
 * **Transaction Source**, consuming transaction messages from Kafka partitions in parallel <br>
 
-* **Dynamic Key Function**, which performs data enrichment with a dynamic key. The subsequent `keyBy` operator hashes this dynamic key and partitions the data accordingly among all parallel instances of the following task
+* **Dynamic Key Function**, which performs data enrichment with a dynamic key. The subsequent `keyBy` operator hashes this dynamic key and partitions the data accordingly among all parallel instances of the following operator
 
 * **Dynamic Alert Function** that accumulates a data window and creates Alerts based on it
 
-The job graph also depicts various data exchange patterns between the operators.
+## Data Exchange inside Apache Flink
 
-* The __FORWARD__ connection following the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator, without redistribution. It also indicates the same level of parallelism of the two connected operators (12 in this case). This communication pattern is depicted in Figure 3. Orange circles represent transactions and dotted rectangles depict parallel instances of the operators (also called [*tasks*](https://ci.apache.org/projects/flink/flink-docs-stable/concepts/glossary.html#operator)).  
+The job graph above also indicates various data exchange patterns between the operators. In order to understand how the broadcast pattern works, let's take a short detour and discuss what methods of messages propagation exist in Apache Flink's distributed runtime.
+
+* The __FORWARD__ connection following the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator, without redistribution. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions and dotted rectangles depict parallel instances of the conjoined operators (also called [*tasks*](https://ci.apache.org/projects/flink/flink-docs-stable/concepts/glossary.html#operator)).  
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across tasks: FORWARD"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across parallel tasks: FORWARD"/>
 <br/>
-<i><small>Figure 3: Message passing across tasks: FORWARD</small></i>
+<i><small>Figure 3: Message passing across parallel tasks: FORWARD</small></i>
 </center>
 <br/>
 
@@ -87,9 +92,9 @@ The job graph also depicts various data exchange patterns between the operators.
 * The __HASH__ connection between the `DynamicKeyFunction` and the `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the following operator. Such connection needs to be explicitly "requested" from Flink by using a `keyBy` operator.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across tasks: HASH (via `keyBy`)"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across parallel tasks: HASH (via `keyBy`)"/>
 <br/>
-<i><small>Figure 4: Message passing across tasks: HASH (keyBy)</small></i>
+<i><small>Figure 4: Message passing across parallel tasks: HASH (keyBy)</small></i>
 </center>
 <br/>
 
@@ -98,26 +103,28 @@ The job graph also depicts various data exchange patterns between the operators.
 * A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned randomly and can help to mitigate data skew in certain scenarios.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across tasks: REBALANCE"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across parallel tasks: REBALANCE"/>
 <br/>
-<i><small>Figure 5: Message passing across tasks: REBALANCE</small></i>
+<i><small>Figure 5: Message passing across parallel tasks: REBALANCE</small></i>
 </center>
 <br/>
 
 ![](./../img/blog/patterns-blog-2/rebalance.png)
 
-At the top of the job graph in Figure 2 you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance`, which make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
+At the top of the job graph in Figure 2 you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data, such as `forward`, `hash` or `rebalance`, which dispatch each message to exactly one receiving task, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of use cases that require affecting the processing of all messages, regardless of their key or source partition.
 
 <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across parallel operator instances: BROADCAST"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across parallel tasks: BROADCAST"/>
  <br/>
- <i><small>Figure 6: Message passing across parallel operator instances: BROADCAST</small></i>
+ <i><small>Figure 6: Message passing across parallel tasks: BROADCAST</small></i>
  </center>
  <br/>
 
 ![](./../img/blog/patterns-blog-2/broadcast.png)
 
-In order to make use of the Rules Source, we need to "connect" it to the main data stream as follows:
+## Broadcast State Pattern
+
+In order to make use of the Rules Source, we need to "connect" it to the main data stream:
 
 ```java
 // Streams setup
@@ -136,7 +143,7 @@ BroadcastStream<Rule> rulesStream = rulesUpdateStream.broadcast(RULES_STATE_DESC
          .process(new DynamicAlertFunction())
 ```
 
-As you can see, the broadcast stream can be created from any regular stream by calling the `broadcast` method and specifying a state descriptor. Flink assumes that broadcasted data needs to be stored and retrieved while processing events of the main data flow and therefore always automatically creates a corresponding broadcast state from this state descriptor. This is different to any other Apache Flink state type where you need to initialize it in the `open()` method of the  processing function. Also note that broadcast state always has a key-value format (`MapState`).
+As you can see, the broadcast stream can be created from any regular stream by calling the `broadcast` method and specifying a state descriptor. Flink assumes that broadcasted data needs to be stored and retrieved while processing events of the main data flow and therefore always automatically creates a corresponding _broadcast state_ from this state descriptor. This is different to any other Apache Flink state type where you need to initialize it in the `open()` method of the  processing function. Also note that broadcast state always has a key-value format (`MapState`).
 
 ```java
 public static final MapStateDescriptor<Integer, Rule> RULES_STATE_DESCRIPTOR =
@@ -159,7 +166,7 @@ public abstract class BroadcastProcessFunction<IN1, IN2, OUT> {
 }
 ```
 
-The difference is the addition of a `processBroadcastElement` method through which the messages of the rules stream will arrive. The following new version of the `DynamicKeyFunction` allows modifying the list of data distribution keys at runtime through this stream:
+The difference is the addition of the `processBroadcastElement` method through which messages of the rules stream will arrive. The following new version of the `DynamicKeyFunction` allows modifying the list of data distribution keys at runtime through this stream:
 
 ```java
 public class DynamicKeyFunction
@@ -192,7 +199,7 @@ public class DynamicKeyFunction
 
 In the above code `processElement()` receives Transactions and `processBroadcastElement()` receives Rules updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using `processBroadcastState`. We use a Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, iteration is performed over entries in the dynamically updated broadcast state.
 
-`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
+`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast MapState. As described in [part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from the `BroadcastState` by the provided ID and process it according to the logic required by that rule. At this stage, we will also store messages in the internal function state in order to perform calculations on the required time window of data. We will consider how it is done in the final blog of the series about Fraud Detection.
 
 # Summary
 
