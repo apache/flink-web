@@ -78,12 +78,12 @@ The main blocks of the Transactions processing pipeline are:<br>
 
 The job graph above also indicates various data exchange patterns between the operators. In order to understand how the broadcast pattern works, let's take a short detour and discuss what methods of messages propagation exist in Apache Flink's distributed runtime.
 
-* The __FORWARD__ connection following the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator, without redistribution. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions and dotted rectangles depict parallel instances of the conjoined operators (also called [*tasks*](https://ci.apache.org/projects/flink/flink-docs-stable/concepts/glossary.html#operator)).  
+* The __FORWARD__ connection following the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator, without redistribution. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions and dotted rectangles depict parallel instances of the conjoined operators.  
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: Message passing across parallel tasks: FORWARD"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: FORWARD message passing across operator instances"/>
 <br/>
-<i><small>Figure 3: Message passing across parallel tasks: FORWARD</small></i>
+<i><small>Figure 3: FORWARD message passing across operator instances</small></i>
 </center>
 <br/>
 
@@ -92,9 +92,9 @@ The job graph above also indicates various data exchange patterns between the op
 * The __HASH__ connection between `DynamicKeyFunction` and `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the following operator. Such connection needs to be explicitly "requested" from Flink by using `keyBy`.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 3: Message passing across parallel tasks: HASH (via `keyBy`)"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 4: HASHED message passing across operator instances (via `keyBy`)"/>
 <br/>
-<i><small>Figure 4: Message passing across parallel tasks: HASH (keyBy)</small></i>
+<i><small>Figure 4: HASHED message passing across operator instances (via `keyBy`)</small></i>
 </center>
 <br/>
 
@@ -103,20 +103,20 @@ The job graph above also indicates various data exchange patterns between the op
 * A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned randomly and can help to mitigate data skew in certain scenarios.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 4: Message passing across parallel tasks: REBALANCE"/>
+<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 5: REBALANCE message passing across operator instances"/>
 <br/>
-<i><small>Figure 5: Message passing across parallel tasks: REBALANCE</small></i>
+<i><small>Figure 5: REBALANCE message passing across operator instances</small></i>
 </center>
 <br/>
 
 ![](./../img/blog/patterns-blog-2/rebalance.png)
 
-At the top of the job graph in Figure 2 you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data, such as `forward`, `hash` or `rebalance`, which dispatch each message to exactly one receiving task, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of use cases that require affecting the processing of all messages, regardless of their key or source partition.
+At the top of the job graph in Figure 2 you can see an additional data source - **Rules Source**, which also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data, such as `forward`, `hash` or `rebalance`, which dispatch each message to exactly one receiving operator instance, `broadcast` makes each message available at the input of all of the parallel instances of the operator which the _broadcast stream_ is connected to. This makes `broadcast` applicable to a wide range of use cases that require affecting the processing of all messages, regardless of their key or source partition.
 
 <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: Message passing across parallel tasks: BROADCAST"/>
+ <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: BROADCAST message passing across operator instances"/>
  <br/>
- <i><small>Figure 6: Message passing across parallel tasks: BROADCAST</small></i>
+ <i><small>Figure 6: BROADCAST message passing across operator instances</small></i>
  </center>
  <br/>
 
