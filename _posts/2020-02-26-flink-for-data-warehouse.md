@@ -53,8 +53,9 @@ In Flink 1.10, users can store Flink's own tables, views, UDFs, statistics in Hi
 
 The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data and unlock stream processing use cases:
 
-- Users can now join their real-time streaming data with offline Hive data for more complex data processing
-- Users can leverage Flink to streaming real-time data into Hive directly, greatly shortening end-to-end latency between when data in generated and when it arrives at your data warehouse for analytics, from hours even days to minutes
+- join real-time streaming data in Flink with offline Hive data for more complex data processing
+- backfill Hive data with Flink directly in a unified fashion
+- leverage Flink to move real-time data into Hive more quickly, greatly shortening end-to-end latency between when data in generated and when it arrives at your data warehouse for analytics, from hours even days to minutes
 
 
 ### Compatible with More Hive Versions
@@ -96,11 +97,11 @@ We are constantly improving Flink itself and the Flink-Hive integration also get
 
 After careful consideration and prioritization of the feedback we received, we have prioritize many of the below requests for the next Flink release of 1.11.
 
+- Hive streaming sink so that Flink can stream data into Hive tables, bringing a real streaming experience to Hive
 - Native Parquet reader for better performance
 - Additional interoperability - support creating Hive tables, views, functions in Flink
 - Better out-of-box experience with built-in dependencies, including documentations
 - JDBC driver so that users can reuse their existing toolings to run SQL jobs on Flink
-- Hive streaming sink so that Flink can stream data into Hive tables, bringing a real streaming experience to Hive
 - Hive syntax and semantic compatible mode
 
 If you have more feature requests or discover bugs, please reach out to the community through mailing list and JIRAs.
