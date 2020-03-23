@@ -52,7 +52,6 @@ Let's next have a look at a sample rule definition that we introduced in the pre
 </center>
 <br/>
 
-![](./../img/blog/patterns-blog-2/rule-dsl.png)
 The previous post covered use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert-triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism](https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink.
 
 Figure 2 presents the final job graph of the system that we are building:
@@ -63,8 +62,6 @@ Figure 2 presents the final job graph of the system that we are building:
 <i><small>Figure 2: Job Graph of the Fraud Detection Flink Job</small></i>
 </center>
 <br/>
-
-![](./../img/blog/patterns-blog-2/job-graph.png)
 
 The main blocks of the Transactions processing pipeline are:<br>
 
@@ -87,8 +84,6 @@ The job graph above also indicates various data exchange patterns between the op
 </center>
 <br/>
 
-![](./../img/blog/patterns-blog-2/forward.png)
-
 * The __HASH__ connection between `DynamicKeyFunction` and `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the next operator. Such a connection needs to be explicitly "requested" from Flink by using `keyBy`.
 
 <center>
@@ -97,8 +92,6 @@ The job graph above also indicates various data exchange patterns between the op
 <i><small>Figure 4: HASHED message passing across operator instances (via `keyBy`)</small></i>
 </center>
 <br/>
-
-![](./../img/blog/patterns-blog-2/hash.png)
 
 * A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in the case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned randomly and can help to mitigate data skew in certain scenarios.
 
@@ -109,8 +102,6 @@ The job graph above also indicates various data exchange patterns between the op
 </center>
 <br/>
 
-![](./../img/blog/patterns-blog-2/rebalance.png)
-
 The Fraud Detection job graph in Figure 2 contains an additional data source: **Rules Source**. It also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance` that make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator to which the _broadcast stream_ is connected. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
@@ -119,8 +110,6 @@ The Fraud Detection job graph in Figure 2 contains an additional data source: **
  <i><small>Figure 6: BROADCAST message passing across operator instances</small></i>
  </center>
  <br/>
-
-![](./../img/blog/patterns-blog-2/broadcast.png)
 
 ## Broadcast State Pattern
 
