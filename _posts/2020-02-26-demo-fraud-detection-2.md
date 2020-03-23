@@ -73,7 +73,7 @@ The main blocks of the Transactions processing pipeline are:<br>
 
 ## Data Exchange inside Apache Flink
 
-The job graph above also indicates various data exchange patterns between the operators. In order to understand how the broadcast pattern works, let's take a short detour and discuss what methods of messages propagation exist in Apache Flink's distributed runtime.
+The job graph above also indicates various data exchange patterns between the operators. In order to understand how the broadcast pattern works, let's take a short detour and discuss what methods of message propagation exist in Apache Flink's distributed runtime.
 
 * The __FORWARD__ connection after the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator, without redistribution. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions, and dotted rectangles depict parallel instances of the conjoined operators.  
 
