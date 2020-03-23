@@ -188,7 +188,7 @@ Finally, you can see the execution result on the command line:
  3`
 
 
-### Python UDF dependency management
+## Python UDF dependency management
 
 In many cases, you would like to import third-party dependencies in the Python UDF. The example below provides detailed guidance on how to manage such dependencies.
 
