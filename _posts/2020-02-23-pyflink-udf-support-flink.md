@@ -63,7 +63,7 @@ The high-level flow can be summarized in two parts:
 This section provides some Python user defined function (UDF) examples, including how to install PyFlink, how to define/register/invoke UDFs in PyFlink and how to execute the job.
 
 
-### Install PyFlink
+## Install PyFlink
 Using Python in Apache Flink requires installing PyFlink. PyFlink is available through PyPi and can be easily installed using pip: 
 
 ```python
