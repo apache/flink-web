@@ -10,7 +10,7 @@ excerpt: Flink 1.10 extends its support for Python by adding Python UDFs in PyFl
 
 Flink 1.9 introduced the Python Table API, allowing developers and data engineers to write Python Table API jobs for Table transformations and analysis, such as Python ETL or aggregate jobs. However, Python users faced some limitations when it came to support for Python UDFs in Flink 1.9, preventing them from extending the system’s built-in functionality. 
 
-In Flink1.10, the community further extended the support for Python by adding Python UDFs in PyFlink. Additionally, both the Python UDF Environment and Dependency Management are now supported, allowing users to import third-party libraries in the UDFs, leveraging Python's rich set of third-party libraries. 
+In Flink 1.10, the community further extended the support for Python by adding Python UDFs in PyFlink. Additionally, both the Python UDF environment and dependency management are now supported, allowing users to import third-party libraries in the UDFs, leveraging Python's rich set of third-party libraries. 
 
 
 # Python Support for UDFs in Flink 1.10
