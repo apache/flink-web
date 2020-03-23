@@ -254,7 +254,7 @@ t_env.from_path('mySource')\
 t_env.execute("tutorial_job")
 ```
 
-### Submit the job
+### Submit a job with dependency 
 
 Firstly, you need to prepare input data in the “/tmp/input” file. For example,
 
