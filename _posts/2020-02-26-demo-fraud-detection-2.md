@@ -29,7 +29,7 @@ DataStream<Alert> alerts =
 
 `DynamicKeyFunction` provides dynamic data partitioning while `DynamicAlertFunction` is responsible for executing the main logic of processing transactions and sending alert messages according to defined rules.
 
-Vol.1 of this case study simplified the use case and assumed that the applied set of rules is pre-initialized and is accessible via the `List<Rules>` within `DynamicKeyFunction`.
+Vol.1 of this series simplified the use case and assumed that the applied set of rules is pre-initialized and accessible via the `List<Rules>` within `DynamicKeyFunction`.
 
 ```java
 public class DynamicKeyFunction
