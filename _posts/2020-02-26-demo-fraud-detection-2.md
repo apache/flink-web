@@ -111,6 +111,11 @@ The Fraud Detection job graph in Figure 2 contains an additional data source: _R
  </center>
  <br/>
 
+<div class="alert alert-info" markdown="1">
+<span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
+There are actually a few more specialized data partitioning schemes in Flink which we did not mention here. If you want to find out more, please refer to Flink's documentation on __[stream partitioning](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/#physical-partitioning)__.
+</div>
+
 ## Broadcast State Pattern
 
 In order to make use of the Rules Source, we need to "connect" it to the main data stream:
@@ -192,8 +197,4 @@ In the above code, `processElement()` receives Transactions, and `processBroadca
 
 # Summary
 
-In this blog post, we continued our investigation of the use case of a Fraud Detection System built with Apache Flink. We looked into different ways in which data can be distributed between parallel operator instances and, most importantly, examined broadcast state. We demonstrated how dynamic partitioning — a pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series — can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink that is applicable in a variety of other use cases, such as:
-
-  *  Control of state (cleanup/insert/fix)
-  *  A/B experiments
-  *  Updates of ML model coefficients
+In this blog post, we continued our investigation of the use case of a Fraud Detection System built with Apache Flink. We looked into different ways in which data can be distributed between parallel operator instances and, most importantly, examined broadcast state. We demonstrated how dynamic partitioning — a pattern described in the [first part](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series — can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink that is applicable in a variety of other use cases, such as controlling state (cleanup/insert/fix), running A/B experiments or executing updates of ML model coefficients.
