@@ -93,7 +93,7 @@ The job graph above also indicates various data exchange patterns between the op
 </center>
 <br/>
 
-* A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in the case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned randomly and can help to mitigate data skew in certain scenarios.
+* A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in the case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned in a round-robin fashion and can help to mitigate data skew in certain scenarios.
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 5: REBALANCE message passing across operator instances"/>
@@ -102,7 +102,7 @@ The job graph above also indicates various data exchange patterns between the op
 </center>
 <br/>
 
-The Fraud Detection job graph in Figure 2 contains an additional data source: **Rules Source**. It also consumes from Kafka. Rules are "mixed into" the main processing data flow through the `broadcast` channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance` that make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator to which the _broadcast stream_ is connected. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
+The Fraud Detection job graph in Figure 2 contains an additional data source: _Rules Source_. It also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance` that make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator to which the _broadcast stream_ is connected. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
  <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: BROADCAST message passing across operator instances"/>
