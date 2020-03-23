@@ -65,7 +65,7 @@ Figure 2 presents the final job graph of the system that we are building:
 
 The main blocks of the Transactions processing pipeline are:<br>
 
-* **Transaction Source**, consuming transaction messages from Kafka partitions in parallel. <br>
+* **Transaction Source** that consumes transaction messages from Kafka partitions in parallel. <br>
 
 * **Dynamic Key Function** that performs data enrichment with a dynamic key. The subsequent `keyBy` hashes this dynamic key and partitions the data accordingly among all parallel instances of the following operator.
 
