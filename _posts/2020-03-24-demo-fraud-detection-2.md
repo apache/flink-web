@@ -2,7 +2,7 @@
 layout: post
 title: "Advanced Flink Application Patterns Vol.2:
 Dynamic Updates of Application Logic"
-date: 2020-02-26T12:00:00.000Z
+date: 2020-03-24T12:00:00.000Z
 authors:
 - alex:
   name: "Alexander Fedulov"
