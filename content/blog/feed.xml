@@ -7,6 +7,132 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration</title>
+<description>&lt;p&gt;In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#introduction&quot; id=&quot;markdown-toc-introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#flink-and-its-integration-with-hive-comes-into-the-scene&quot; id=&quot;markdown-toc-flink-and-its-integration-with-hive-comes-into-the-scene&quot;&gt;Flink and Its Integration With Hive Comes into the Scene&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#unified-metadata-management&quot; id=&quot;markdown-toc-unified-metadata-management&quot;&gt;Unified Metadata Management&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#stream-processing&quot; id=&quot;markdown-toc-stream-processing&quot;&gt;Stream Processing&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#compatible-with-more-hive-versions&quot; id=&quot;markdown-toc-compatible-with-more-hive-versions&quot;&gt;Compatible with More Hive Versions&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#reuse-hive-user-defined-functions-udfs&quot; id=&quot;markdown-toc-reuse-hive-user-defined-functions-udfs&quot;&gt;Reuse Hive User Defined Functions (UDFs)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#enhanced-read-and-write-on-hive-data&quot; id=&quot;markdown-toc-enhanced-read-and-write-on-hive-data&quot;&gt;Enhanced Read and Write on Hive Data&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#formats&quot; id=&quot;markdown-toc-formats&quot;&gt;Formats&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#more-data-types&quot; id=&quot;markdown-toc-more-data-types&quot;&gt;More Data Types&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#roadmap&quot; id=&quot;markdown-toc-roadmap&quot;&gt;Roadmap&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#summary&quot; id=&quot;markdown-toc-summary&quot;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;What are some of the latest requirements for your data warehouse and data infrastructure in 2020?&lt;/p&gt;
+
+&lt;p&gt;We’ve came up with some for you.&lt;/p&gt;
+
+&lt;p&gt;Firstly, today’s business is shifting to a more real-time fashion, and thus demands abilities to process online streaming data with low latency for near-real-time or even real-time analytics. People become less and less tolerant of delays between when data is generated and when it arrives at their hands, ready to use. Hours or even days of delay is not acceptable anymore. Users are expecting minutes, or even seconds, of end-to-end latency for data in their warehouse, to get quicker-than-ever insights.&lt;/p&gt;
+
+&lt;p&gt;Secondly, the infrastructure should be able to handle both offline batch data for offline analytics and exploration, and online streaming data for more timely analytics. Both are indispensable as they both have very valid use cases. Apart from the real time processing mentioned above, batch processing would still exist as it’s good for ad hoc queries and explorations, and full-size calculations. Your modern infrastructure should not force users to choose between one or the other, it should offer users both options for a world-class data infrastructure.&lt;/p&gt;
+
+&lt;p&gt;Thirdly, the data players, including data engineers, data scientists, analysts, and operations, urge a more unified infrastructure than ever before for easier ramp-up and higher working efficiency. The big data landscape has been fragmented for years - companies may have one set of infrastructure for real time processing, one set for batch, one set for OLAP, etc. That, oftentimes, comes as a result of the legacy of lambda architecture, which was popular in the era when stream processors were not as mature as today and users had to periodically run batch processing as a way to correct streaming pipelines. Well, it’s a different era now! As stream processing becomes mainstream and dominant, end users no longer want to learn shattered pieces of skills and maintain many moving parts with all kinds of tools and pipelines. Instead, what they really need is a unified analytics platform that can be mastered easily, and simplify any operational complexity.&lt;/p&gt;
+
+&lt;p&gt;If any of these resonate with you, you just found the right post to read: we have never been this close to the vision by strengthening Flink’s integration with Hive to a production grade.&lt;/p&gt;
+
+&lt;h2 id=&quot;flink-and-its-integration-with-hive-comes-into-the-scene&quot;&gt;Flink and Its Integration With Hive Comes into the Scene&lt;/h2&gt;
+
+&lt;p&gt;Apache Flink has been a proven scalable system to handle extremely high workload of streaming data in super low latency in many giant tech companies.&lt;/p&gt;
+
+&lt;p&gt;Despite its huge success in the real time processing domain, at its deep root, Flink has been faithfully following its inborn philosophy of being &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;a unified data processing engine for both batch and streaming&lt;/a&gt;, and taking a streaming-first approach in its architecture to do batch processing. By making batch a special case for streaming, Flink really leverages its cutting edge streaming capabilities and applies them to batch scenarios to gain the best offline performance. Flink’s batch performance has been quite outstanding in the early days and has become even more impressive, as the community started merging Blink, Alibaba’s fork of Flink, back to Flink in 1.9 and finished it in 1.10.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, Apache Hive has established itself as a focal point of the data warehousing ecosystem. It serves as not only a SQL engine for big data analytics and ETL, but also a data management platform, where data is discovered and defined. As business evolves, it puts new requirements on data warehouse.&lt;/p&gt;
+
+&lt;p&gt;Thus we started integrating Flink and Hive as a beta version in Flink 1.9. Over the past few months, we have been listening to users’ requests and feedback, extensively enhancing our product, and running rigorous benchmarks (which will be published soon separately). I’m glad to announce that the integration between Flink and Hive is at production grade in &lt;a href=&quot;https://flink.apache.org/news/2020/02/11/release-1.10.0.html&quot;&gt;Flink 1.10&lt;/a&gt; and we can’t wait to walk you through the details.&lt;/p&gt;
+
+&lt;h3 id=&quot;unified-metadata-management&quot;&gt;Unified Metadata Management&lt;/h3&gt;
+
+&lt;p&gt;Hive Metastore has evolved into the de facto metadata hub over the years in the Hadoop, or even the cloud, ecosystem. Many companies have a single Hive Metastore service instance in production to manage all of their schemas, either Hive or non-Hive metadata, as the single source of truth.&lt;/p&gt;
+
+&lt;p&gt;In 1.9 we introduced Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html&quot;&gt;HiveCatalog&lt;/a&gt;, connecting Flink to users’ rich metadata pool. The meaning of &lt;code&gt;HiveCatalog&lt;/code&gt; is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.10, users can store Flink’s own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html#example&quot;&gt;Here’s an end-to-end example&lt;/a&gt; of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.&lt;/p&gt;
+
+&lt;h3 id=&quot;stream-processing&quot;&gt;Stream Processing&lt;/h3&gt;
+
+&lt;p&gt;The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data and unlock stream processing use cases:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;join real-time streaming data in Flink with offline Hive data for more complex data processing&lt;/li&gt;
+  &lt;li&gt;backfill Hive data with Flink directly in a unified fashion&lt;/li&gt;
+  &lt;li&gt;leverage Flink to move real-time data into Hive more quickly, greatly shortening the end-to-end latency between when data is generated and when it arrives at your data warehouse for analytics, from hours — or even days — to minutes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;compatible-with-more-hive-versions&quot;&gt;Compatible with More Hive Versions&lt;/h3&gt;
+
+&lt;p&gt;In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/#supported-hive-versions&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;reuse-hive-user-defined-functions-udfs&quot;&gt;Reuse Hive User Defined Functions (UDFs)&lt;/h3&gt;
+
+&lt;p&gt;Users can &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_functions.html#hive-user-defined-functions&quot;&gt;reuse all kinds of Hive UDFs in Flink&lt;/a&gt; since Flink 1.9.&lt;/p&gt;
+
+&lt;p&gt;This is a great win for Flink users with past history with the Hive ecosystem, as they may have developed custom business logic in their Hive UDFs. Being able to run these functions without any rewrite saves users a lot of time and brings them a much smoother experience when they migrate to Flink.&lt;/p&gt;
+
+&lt;p&gt;To take it a step further, Flink 1.10 introduces &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/hive/hive_functions.html#use-hive-built-in-functions-via-hivemodule&quot;&gt;compatibility of Hive built-in functions via HiveModule&lt;/a&gt;. Over the years, the Hive community has developed a few hundreds of built-in functions that are super handy for users. For those built-in functions that don’t exist in Flink yet, users are now able to leverage the existing Hive built-in functions that they are familiar with and complete their jobs seamlessly.&lt;/p&gt;
+
+&lt;h3 id=&quot;enhanced-read-and-write-on-hive-data&quot;&gt;Enhanced Read and Write on Hive Data&lt;/h3&gt;
+
+&lt;p&gt;Flink 1.10 extends its read and write capabilities on Hive data to all the common use cases with better performance.&lt;/p&gt;
+
+&lt;p&gt;On the reading side, Flink now can read Hive regular tables, partitioned tables, and views. Lots of optimization techniques are developed around reading, including partition pruning and projection pushdown to transport less data from file storage, limit pushdown for faster experiment and exploration, and vectorized reader for ORC files.&lt;/p&gt;
+
+&lt;p&gt;On the writing side, Flink 1.10 introduces “INSERT INTO” and “INSERT OVERWRITE” to its syntax, and can write to not only Hive’s regular tables, but also partitioned tables with either static or dynamic partitions.&lt;/p&gt;
+
+&lt;h3 id=&quot;formats&quot;&gt;Formats&lt;/h3&gt;
+
+&lt;p&gt;Your engine should be able to handle all common types of file formats to give you the freedom of choosing one over another in order to fit your business needs. It’s no exception for Flink. We have tested the following table storage formats: text, csv, SequenceFile, ORC, and Parquet.&lt;/p&gt;
+
+&lt;h3 id=&quot;more-data-types&quot;&gt;More Data Types&lt;/h3&gt;
+
+&lt;p&gt;In Flink 1.10, we added support for a few more frequently-used Hive data types that were not covered by Flink 1.9. Flink users now should have a full, smooth experience to query and manipulate Hive data from Flink.&lt;/p&gt;
+
+&lt;h3 id=&quot;roadmap&quot;&gt;Roadmap&lt;/h3&gt;
+
+&lt;p&gt;Integration between any two systems is a never-ending story.&lt;/p&gt;
+
+&lt;p&gt;We are constantly improving Flink itself and the Flink-Hive integration also gets improved by collecting user feedback and working with folks in this vibrant community.&lt;/p&gt;
+
+&lt;p&gt;After careful consideration and prioritization of the feedback we received, we have prioritize many of the below requests for the next Flink release of 1.11.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Hive streaming sink so that Flink can stream data into Hive tables, bringing a real streaming experience to Hive&lt;/li&gt;
+  &lt;li&gt;Native Parquet reader for better performance&lt;/li&gt;
+  &lt;li&gt;Additional interoperability - support creating Hive tables, views, functions in Flink&lt;/li&gt;
+  &lt;li&gt;Better out-of-box experience with built-in dependencies, including documentations&lt;/li&gt;
+  &lt;li&gt;JDBC driver so that users can reuse their existing toolings to run SQL jobs on Flink&lt;/li&gt;
+  &lt;li&gt;Hive syntax and semantic compatible mode&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you have more feature requests or discover bugs, please reach out to the community through mailing list and JIRAs.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;Data warehousing is shifting to a more real-time fashion, and Apache Flink can make a difference for your organization in this space.&lt;/p&gt;
+
+&lt;p&gt;Flink 1.10 brings production-ready Hive integration and empowers users to achieve more in both metadata management and unified/batch data processing.&lt;/p&gt;
+
+&lt;p&gt;We encourage all our users to get their hands on Flink 1.10. You are very welcome to join the community in development, discussions, and all other kinds of collaborations in this topic.&lt;/p&gt;
+
+</description>
+<pubDate>Thu, 26 Mar 2020 03:30:00 +0100</pubDate>
+<link>https://flink.apache.org/features/2020/03/26/flink-for-data-warehouse.html</link>
+<guid isPermaLink="true">/features/2020/03/26/flink-for-data-warehouse.html</guid>
+</item>
+
+<item>
 <title>Advanced Flink Application Patterns Vol.2: Dynamic Updates of Application Logic</title>
 <description>&lt;p&gt;In the &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;first article&lt;/a&gt; of the series, we gave a high-level description of the objectives and required functionality of a Fraud Detection engine. We also described how to make data partitioning in Apache Flink customizable based on modifiable rules instead of using a hardcoded &lt;code&gt;KeysExtractor&lt;/code&gt; implementation.&lt;/p&gt;
 
@@ -16602,105 +16728,6 @@ Flink serialization system improved a lot over time and by now surpasses the cap
 <pubDate>Tue, 04 Nov 2014 11:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2014/11/04/release-0.7.0.html</link>
 <guid isPermaLink="true">/news/2014/11/04/release-0.7.0.html</guid>
-</item>
-
-<item>
-<title>Upcoming Events</title>
-<description>&lt;p&gt;We are happy to announce several upcoming Flink events both in Europe and the US. Starting with a &lt;strong&gt;Flink hackathon in Stockholm&lt;/strong&gt; (Oct 8-9) and a talk about Flink at the &lt;strong&gt;Stockholm Hadoop User Group&lt;/strong&gt; (Oct 8). This is followed by the very first &lt;strong&gt;Flink Meetup in Berlin&lt;/strong&gt; (Oct 15). In the US, there will be two Flink Meetup talks: the first one at the &lt;strong&gt;Pasadena Big Data User Group&lt;/strong&gt; (Oct 29) and the second one at &lt;strong&gt;Silicon Valley Hands On Programming Events&lt;/strong&gt; (Nov 4).&lt;/p&gt;
-
-&lt;p&gt;We are looking forward to seeing you at any of these events. The following is an overview of each event and links to the respective Meetup pages.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-hackathon-stockholm-oct-8-9&quot;&gt;Flink Hackathon, Stockholm (Oct 8-9)&lt;/h3&gt;
-
-&lt;p&gt;The hackathon will take place at KTH/SICS from Oct 8th-9th. You can sign up here: https://docs.google.com/spreadsheet/viewform?formkey=dDZnMlRtZHJ3Z0hVTlFZVjU2MWtoX0E6MA.&lt;/p&gt;
-
-&lt;p&gt;Here is a rough agenda and a list of topics to work upon or look into. Suggestions and more topics are welcome.&lt;/p&gt;
-
-&lt;h4 id=&quot;wednesday-8th&quot;&gt;Wednesday (8th)&lt;/h4&gt;
-
-&lt;p&gt;9:00 - 10:00  Introduction to Apache Flink, System overview, and Dev
-environment (by Stephan)&lt;/p&gt;
-
-&lt;p&gt;10:15 - 11:00 Introduction to the topics (Streaming API and system by Gyula
-&amp;amp; Marton), (Graphs by Vasia / Martin / Stephan)&lt;/p&gt;
-
-&lt;p&gt;11:00 - 12:30 Happy hacking (part 1)&lt;/p&gt;
-
-&lt;p&gt;12:30 - Lunch (Food will be provided by KTH / SICS. A big thank you to them
-and also to Paris, for organizing that)&lt;/p&gt;
-
-&lt;p&gt;13:xx - Happy hacking (part 2)&lt;/p&gt;
-
-&lt;h4 id=&quot;thursday-9th&quot;&gt;Thursday (9th)&lt;/h4&gt;
-
-&lt;p&gt;Happy hacking (continued)&lt;/p&gt;
-
-&lt;h4 id=&quot;suggestions-for-topics&quot;&gt;Suggestions for topics&lt;/h4&gt;
-
-&lt;h5 id=&quot;streaming&quot;&gt;Streaming&lt;/h5&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Sample streaming applications (e.g. continuous heavy hitters and topics
-on the twitter stream)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Implement a simple SQL to Streaming program parser. Possibly using
-Apache Calcite (http://optiq.incubator.apache.org/)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Implement different windowing methods (count-based, time-based, …)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Implement different windowed operations (windowed-stream-join,
-windowed-stream-co-group)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Streaming state, and interaction with other programs (that access state
-of a stream program)&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h5 id=&quot;graph-analysis&quot;&gt;Graph Analysis&lt;/h5&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Prototype a Graph DSL (simple graph building, filters, graph
-properties, some algorithms)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Prototype abstractions different Graph processing paradigms
-(vertex-centric, partition-centric).&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Generalize the delta iterations, allow flexible state access.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;meetup-hadoop-user-group-talk-stockholm-oct-8&quot;&gt;Meetup: Hadoop User Group Talk, Stockholm (Oct 8)&lt;/h3&gt;
-
-&lt;p&gt;Hosted by Spotify, opens at 6 PM.&lt;/p&gt;
-
-&lt;p&gt;http://www.meetup.com/stockholm-hug/events/207323222/&lt;/p&gt;
-
-&lt;h3 id=&quot;st-flink-meetup-berlin-oct-15&quot;&gt;1st Flink Meetup, Berlin (Oct 15)&lt;/h3&gt;
-
-&lt;p&gt;We are happy to announce the first Flink meetup in Berlin. You are very welcome to to sign up and attend. The event will be held in Betahaus Cafe.&lt;/p&gt;
-
-&lt;p&gt;http://www.meetup.com/Apache-Flink-Meetup/events/208227422/&lt;/p&gt;
-
-&lt;h3 id=&quot;meetup-pasadena-big-data-user-group-oct-29&quot;&gt;Meetup: Pasadena Big Data User Group (Oct 29)&lt;/h3&gt;
-
-&lt;p&gt;http://www.meetup.com/Pasadena-Big-Data-Users-Group/&lt;/p&gt;
-
-&lt;h3 id=&quot;meetup-silicon-valley-hands-on-programming-events-nov-4&quot;&gt;Meetup: Silicon Valley Hands On Programming Events (Nov 4)&lt;/h3&gt;
-
-&lt;p&gt;http://www.meetup.com/HandsOnProgrammingEvents/events/210504392/&lt;/p&gt;
-
-</description>
-<pubDate>Fri, 03 Oct 2014 12:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2014/10/03/upcoming_events.html</link>
-<guid isPermaLink="true">/news/2014/10/03/upcoming_events.html</guid>
 </item>
 
 </channel>
