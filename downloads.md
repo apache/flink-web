@@ -115,6 +115,23 @@ Please have a look at the [Release Notes for Flink {{ flink_release.version_shor
 
 {% endfor %}
 
+Apache Flink® Stateful Functions {{ site.FLINK_STATEFUN_VERSION_STABLE }} is the latest stable release for the [Stateful Functions](https://flink.apache.org/stateful-functions.html) component.
+
+{% for flink_statefun_release in site.flink_statefun_releases %}
+
+## {{ flink_statefun_release.source_release.name }}
+
+<p>
+<a href="{{ flink_statefun_release.source_release.url }}" class="ga-track" id="{{ flink_statefun_release.source_release.id }}">{{ flink_statefun_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_statefun_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_statefun_release.source_release.sha512_url }}">sha512</a>)
+</p>
+
+This version is compatible with Apache Flink version {{ flink_statefun_release.source_release.flink_version }}.
+
+---
+
+{% endfor %}
+
 ## Additional Components
 
 These are components that the Flink project develops which are not part of the
@@ -134,6 +151,8 @@ main Flink release:
 Along with our releases, we also provide sha512 hashes in `*.sha512` files and cryptographic signatures in `*.asc` files. The Apache Software Foundation has an extensive [tutorial to verify hashes and signatures](http://www.apache.org/info/verification.html) which you can follow by using any of these release-signing [KEYS](https://downloads.apache.org/flink/KEYS).
 
 ## Maven Dependencies
+
+### Apache Flink
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
 
@@ -156,6 +175,26 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
+
+### Apache Flink Stateful Functions
+
+You can add the following dependencies to your `pom.xml` to include Apache Flink Stateful Functions in your project.
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>statefun-sdk</artifactId>
+  <version>{{ site.FLINK_STATEFUN_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>statefun-flink-harness</artifactId>
+  <version>{{ site.FLINK_STATEFUN_VERSION_STABLE }}</version>
+</dependency>
+```
+
+The `statefun-sdk` dependency is the only one you will need to start developing applications.
+The `statefun-flink-harness` dependency includes a local execution environment that allows you to locally test your application in an IDE.
 
 ## Update Policy for old releases
 
@@ -185,6 +224,19 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 (<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
 <a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>)
 {% endif %}
+</li>
+{% endfor %}
+</ul>
+
+### Flink-StateFun
+{% assign flink_statefun_releases = site.release_archive.flink_statefun %}
+<ul>
+{% for flink_statefun_release in flink_statefun_releases %}
+<li>
+Flink Stateful Functions {{ flink_statefun_release.version_long }} - {{ flink_statefun_release.release_date }} 
+(<a href="https://archive.apache.org/dist/flink/flink-statefun-{{ flink_statefun_release.version_long }}/flink-statefun-{{ flink_statefun_release.version_long }}-src.tgz">Source</a>, 
+<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}">Docs</a>, 
+<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}/api/java">Javadocs</a>) 
 </li>
 {% endfor %}
 </ul>
