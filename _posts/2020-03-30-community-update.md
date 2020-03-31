@@ -33,7 +33,8 @@ In a [recent update](http://apache-flink-mailing-list-archive.1008284.n3.nabble.
 
 ## Building up to Flink 1.11
 
-Amidst the usual outpour of discussion threads, JIRA tickets and FLIPs, the community is working full steam on bringing Flink 1.11 to life in the next few months. The upcoming release will focus on new features and integrations that broaden the scope of Flink use cases, as well as core runtime enhancements to streamline the operations of complex deployments.
+Amidst the usual outpour of discussion threads, JIRA tickets and FLIPs, the community is working full steam on bringing Flink 1.11 to life in the next few months. The feature freeze is currently scheduled for late April, so the release is expected around mid May. 
+The upcoming release will focus on new features and integrations that broaden the scope of Flink use cases, as well as core runtime enhancements to streamline the operations of complex deployments.
 
 Some of the plans on the use case side include support for changelog streams in the Table API/SQL ([FLIP-105](https://cwiki.apache.org/confluence/display/FLINK/FLIP-105%3A+Support+to+Interpret+and+Emit+Changelog+in+Flink+SQL)), easy streaming data ingestion into Apache Hive ([FLIP-115](https://cwiki.apache.org/confluence/display/FLINK/FLIP-115%3A+Filesystem+connector+in+Table)) and support for Pandas DataFrames in PyFlink. On the operational side, the much anticipated new Source API ([FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface)) will unify batch and streaming sources, and improve out-of-the-box event-time behavior; while unaligned checkpoints ([FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints)) and some changes to network memory management will allow to speed up checkpointing under backpressure. 
 
