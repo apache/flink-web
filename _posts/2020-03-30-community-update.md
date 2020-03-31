@@ -56,7 +56,7 @@ Congratulations to all and thank you for your hardworking commitment to Flink!
 
 ## A Look into the Flink Repository
 
-In the [last update](https://flink.apache.org/news/2019/09/10/community-update.html), we showed off some numbers around Flink releases and mailing list activity. This time, we’re looking into the activity in the Flink repository and how it’s evolving.
+In the [last update](https://flink.apache.org/news/2019/09/10/community-update.html), we shared some numbers around Flink releases and mailing list activity. This time, we’re looking into the activity in the Flink repository and how it’s evolving.
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_1.png" width="725px" alt="GitHub 1"/>
