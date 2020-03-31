@@ -13,7 +13,7 @@ excerpt: While things slow down around us, the Apache Flink community is privile
 
 While things slow down around us, the Apache Flink community is privileged to remain as active as ever. This blogpost combs through the past few months to give you an update on the state of things in Flink — from core releases to Stateful Functions; from some good old community stats to a new development blog.
 
-And since now is more important than ever to keep up the spirits, we’d like to invite you to join the [Flink Forward Virtual Conference](https://www.flink-forward.org/sf-2020), on April 22-24 (see [Upcoming Events](#upcoming-events)). Hope to see you there!
+And since now it's more important than ever to keep up the spirits, we’d like to invite you to join the [Flink Forward Virtual Conference](https://www.flink-forward.org/sf-2020), on April 22-24 (see [Upcoming Events](#upcoming-events)). Hope to see you there!
 
 {% toc %}
 
