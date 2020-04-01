@@ -134,7 +134,7 @@ title: "社区 & 项目信息"
 
 在往邮件列表中发送消息前，需要先订阅邮件列表。
 
-1. 发送一封不包含任何内容或主题的邮件到 subscribe-*listname*@flink.apache.org（替换 *listname* 为 dev, user, user-zh 等等）
+1. 发送一封不包含任何内容或主题的邮件到 *listname*-subscribe@flink.apache.org（替换 *listname* 为 dev, user, user-zh 等等）
 2. 等待直到收到一封主题为 "confirm subscribe to *listname*@flink.apache.org" 的邮件。回复该邮件，不用修改主题和添加邮件内容。
 3. 等待直到收到一封主题为 "WELCOME to *listname*@flink.apache.org" 的邮件。
 
