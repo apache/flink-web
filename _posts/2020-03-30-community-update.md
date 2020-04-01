@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Flink Community Update - March'20"
-date: 2020-03-30T08:00:00.000Z
+title: "Flink Community Update - April'20"
+date: 2020-04-01T08:00:00.000Z
 categories: news
 authors:
 - morsapaes:
