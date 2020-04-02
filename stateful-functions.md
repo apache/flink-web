@@ -8,9 +8,6 @@ layout: base
     <p class="lead" markdown="span">
       **Stateful Functions — Event-driven Applications on Apache Flink<sup>®</sup>**
     </p>
-    <p markdown="span">
-    *A library for building and running distributed, stateful applications at any scale.*
-    </p>
   </div>
 <div class="col-sm-12">
   <hr />
@@ -18,26 +15,36 @@ layout: base
 
 </div>
 
-## An API that simplifies building Distributed Stateful Applications
+Stateful Functions is an API that **simplifies building distributed stateful applications**. It's based on functions with persistent state that can interact dynamically with strong consistency guarantees.
 
-*Stateful Functions* is based on functions with persistent state that can interact dynamically with strong consistency guarantees.
+<div style="line-height:60%;">
+    <br>
+</div>
 
 <div class="row front-graphic">
   <img src="{{ site.baseurl }}/img/stateful-functions/statefun-overview.png" width="650px"/>
 </div>
 
-<div class="jumbotron">
-  <p style="font-size:110%;">A stateful function is a <span class="text-info">small piece of logic/code</span>, existing in many instances that represent entities, similar to actors. The functions is invoked through a message and are:</p>
- 
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b> Functions have embedded, fault-tolerant state, accessed locally like a variable.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b> Like FaaS, stateful functions don't reserve resources. Inactive functions don't consume CPU/Memory.</p>
-  
-  <p style="font-size:110%;">Applications are <span class="text-info">composed from multiple functions</span> that <span class="text-info">message each other</span>:</p>
-    
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once</b> State and messaging go hand-in-hand, providing exactly once message/state semantics.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b> Functions message each other by logical addresses. No name resulution needed.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Cyclic data flows</b> In contrast to stream processing, messaging patterns are not restricted to DAGs.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Dynamic messaging</b> Messaging patterns are not required to be pre-defined in a dataflow API (as in stream processing).</p>
+### Stateful Functions Applications
+
+A _stateful function_ is a small piece of logic/code existing in multiple instances that represent entities — similar to [actors](https://www.brianstorti.com/the-actor-model/). Functions are invoked through messages and are:
+
+<div class="jumbotron" style="height:165px;padding-top: 18px;">
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b></p> 
+  <p style="font-size:100%;">Functions have embedded, fault-tolerant state, accessed locally like a variable.</p>
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b></p> 
+  <p style="font-size:100%;">Much like FaaS, functions don't reserve resources — inactive functions don't consume CPU/Memory.</p>
+</div>
+
+Applications are composed of _modules_ of multiple functions that can interact arbitrarily with:
+
+<div class="jumbotron" style="height:235px;padding-top: 18px;">
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once Semantics</b></p> 
+    <p style="font-size:100%;">State and messaging go hand-in-hand, providing exactly-once message/state semantics.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b></p> 
+    <p style="font-size:100%;">Functions message each other by logical addresses. No name resulution needed.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Dynamic and Cyclic Messaging</b></p> 
+    <p style="font-size:100%;">Messaging patterns don't need to be pre-defined as dataflows (<i>dynamic</i>) and are also not restricted to DAGs (<i>cyclic</i>).</p>
 </div>
 
 <hr />
@@ -46,24 +53,35 @@ layout: base
 
 The Stateful Functions runtime is designed to provide a set of properties similar to what characterizes [serverless functions](https://martinfowler.com/articles/serverless.html), but applied to stateful problems.
 
+<div style="line-height:60%;">
+    <br>
+</div>
+
 <!-- Remote Execution -->
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/stateful-functions/statefun-remote.png" width="650px"/>
+  <img src="{{ site.baseurl }}/img/stateful-functions/statefun-remote.png" width="600px"/>
 </div>
 
-<div class="jumbotron">
-  <p style="font-size:110%;">The Stateful Functions runtime is built on Apache Flink<sup>®</sup> with the following design principles:</p>
- 
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Compute/State Co-location</b> Messaging, State-access, and Function Invocations are managed tightly together. This gives a high-level of consistence out-of-the-box.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Optional Physical Compute/State Separation</b> Functions can be executed remotely, message and state access are provided as part of the invokation request. That way functions can be manages like stateless processes, and support rapid scaling, rolling upgrades, and other common operational patterns.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Language independent</b> Function invocations use a simple HTTP/gRPC-based protocol so that Functions can be easily implemented in various languages.</p>
+The runtime is built on Apache Flink<sup>®</sup>, with the following design principles:
+
+<div class="jumbotron" style="height:315px;padding-top: 18px;">
+    <p style="font-size:100%;"><b>Logical Compute/State Co-location:</b></p> 
+    <p style="font-size:100%;">Messaging, state access/updates and function invocations are managed tightly together. This ensures a high-level of consistency out-of-the-box.</p>
+    <p style="font-size:100%;"><b>Physical Compute/State Separation:</b></p> 
+    <p style="font-size:100%;">Functions can be executed remotely, with message and state access provided as part of the invocation request. This way, functions can be managed like stateless processes and support rapid scaling, rolling upgrades and other common operational patterns.</p>
+    <p style="font-size:100%;"><b>Language Independence:</b></p> 
+    <p style="font-size:100%;">Function invocations use a simple HTTP/gRPC-based protocol so that Functions can be easily implemented in various languages.</p>
 </div>
 
-This design makes it possible to execute the stateful functions on a **FaaS platform**, a **Kubernetes deployment** or **behind a (micro)service**, while providing consistent state and lightweight messaging between functions.
+This makes it possible to execute functions on a **Kubernetes deployment**, a **FaaS platform** or **behind a (micro)service**, while providing consistent state and lightweight messaging between functions.
 
 <hr />
 
-## Key Features at a Glance
+## Key Benefits
+
+<div style="line-height:60%;">
+    <br>
+</div>
 
 <!-- Product Marketing Properties -->
 <div class="row">
@@ -71,7 +89,7 @@ This design makes it possible to execute the stateful functions on a **FaaS plat
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop3.png" alt="Arbitrary Messaging" width="90" height="90">
-      <h3>Arbitrary Messaging</h3>
+      <h3>Dynamic Messaging</h3>
     </div>
     <p align="justify">The API allows you to build and compose functions that communicate dynamic- and arbitrarily with each other. This gives you much more flexibility compared to the acyclic nature of classical stream processing topologies.</p>
     <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
@@ -116,7 +134,7 @@ This design makes it possible to execute the stateful functions on a **FaaS plat
       <h3>Cloud Native</h3>
     </div>
     <p align="justify">Stateful Function's approach to state and composition can be combined with the capabilities of modern serverless platforms like Kubernetes, Knative and AWS Lambda.</p>
-    <p align="justify"><a href="">Learn More</a></p>
+    <p align="justify" href="https://thenewstack.io/10-key-attributes-of-cloud-native-applications/"><a href="">Learn More</a></p>
   </div>
   <!-- "Stateless" Operation -->
   <div class="col-lg-4">
@@ -124,7 +142,7 @@ This design makes it possible to execute the stateful functions on a **FaaS plat
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop2.png" alt="Stateless Operation" width="90" height="90">
       <h3>"Stateless" Operation</h3>
     </div>
-    <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless applications that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
+    <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless processes that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
     </p>
     <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/logical.html#function-lifecycle">Learn More</a></p>
   </div>
@@ -132,11 +150,16 @@ This design makes it possible to execute the stateful functions on a **FaaS plat
 
 <hr />
 
-<div class="jumbotron">
-  <h2>An Example: Feature Engineering for Fraud Detection</h2>
-  <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="380px"/>
+## An Example: Feature Engineering for Fraud Detection
+
+<div style="line-height:60%;">
+    <br>
 </div>
+
+  <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
+
+<div style="line-height:150%;">
+    <br>
 </div>
 
 ## Learn More
