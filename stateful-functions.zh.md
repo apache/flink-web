@@ -15,30 +15,73 @@ layout: base
 
 </div>
 
-Stateful Functions is an API that reduces the complexity of **building and orchestrating distributed stateful applications at scale**. It brings together the benefits of stream processing with Apache Flink® and Function-as-a-Service (FaaS) to provide a powerful abstraction for the next generation of event-driven architectures.
+Stateful Functions is an API that **simplifies building distributed stateful applications**. It's based on functions with persistent state that can interact dynamically with strong consistency guarantees.
 
-<!-- What is Stateful Functions? -->
+<div style="line-height:60%;">
+    <br>
+</div>
+
 <div class="row front-graphic">
   <img src="{{ site.baseurl }}/img/stateful-functions/statefun-overview.png" width="650px"/>
 </div>
 
-The API is based on **functions with persistent state** that can share a pool of resources and **interact arbitrarily with strong consistency guarantees**.
+### Stateful Functions Applications
 
-<div class="jumbotron">
-  <h2>The Building Blocks</h2>
-  <p style="font-size:110%;">A stateful function is a <span class="text-info">small piece of logic/code</span> that can be invoked through a message and is:</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b> Functions exist as virtual instances with a logical address.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Addressable</b> Functions interact with each other by sending point-to-point messages to these addresses.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b> Functions have locally embedded, fault-tolerant state provided and managed by Apache Flink.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Lightweight</b> Functions don't consume resources unless actively being invoked.</p>
-  <p style="font-size:110%;">Applications are <span class="text-info">composed from multiple functions that message each other in arbitrary, potentially cyclic ways</span> .</p>
+A _stateful function_ is a small piece of logic/code existing in multiple instances that represent entities — similar to [actors](https://www.brianstorti.com/the-actor-model/). Functions are invoked through messages and are:
+
+<div class="jumbotron" style="height:165px;padding-top: 18px;">
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b></p> 
+  <p style="font-size:100%;">Functions have embedded, fault-tolerant state, accessed locally like a variable.</p>
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b></p> 
+  <p style="font-size:100%;">Much like FaaS, functions don't reserve resources — inactive functions don't consume CPU/Memory.</p>
 </div>
 
-## Built for Serverless Architectures
+Applications are composed of _modules_ of multiple functions that can interact arbitrarily with:
 
-Stateful Functions addresses two core shortcomings of FaaS: **consistent state** and **efficient messaging** between functions. It is designed to provide a set of properties similar to what characterizes [serverless functions](https://martinfowler.com/articles/serverless.html), but applied to stateful problems.
+<div class="jumbotron" style="height:235px;padding-top: 18px;">
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once Semantics</b></p> 
+    <p style="font-size:100%;">State and messaging go hand-in-hand, providing exactly-once message/state semantics.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b></p> 
+    <p style="font-size:100%;">Functions message each other by logical addresses. No service discovery needed.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Dynamic and Cyclic Messaging</b></p> 
+    <p style="font-size:100%;">Messaging patterns don't need to be pre-defined as dataflows (<i>dynamic</i>) and are also not restricted to DAGs (<i>cyclic</i>).</p>
+</div>
 
 <hr />
+
+## A Runtime built for Serverless Architectures
+
+The Stateful Functions runtime is designed to provide a set of properties similar to what characterizes [serverless functions](https://martinfowler.com/articles/serverless.html), but applied to stateful problems.
+
+<div style="line-height:60%;">
+    <br>
+</div>
+
+<!-- Remote Execution -->
+<div class="row front-graphic">
+  <img src="{{ site.baseurl }}/img/stateful-functions/statefun-remote.png" width="600px"/>
+</div>
+
+The runtime is built on Apache Flink<sup>®</sup>, with the following design principles:
+
+<div class="jumbotron" style="height:315px;padding-top: 18px;">
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Logical Compute/State Co-location:</b></p> 
+    <p style="font-size:100%;">Messaging, state access/updates and function invocations are managed tightly together. This ensures a high-level of consistency out-of-the-box.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Physical Compute/State Separation:</b></p> 
+    <p style="font-size:100%;">Functions can be executed remotely, with message and state access provided as part of the invocation request. This way, functions can be managed like stateless processes and support rapid scaling, rolling upgrades and other common operational patterns.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Language Independence:</b></p> 
+    <p style="font-size:100%;">Function invocations use a simple HTTP/gRPC-based protocol so that Functions can be easily implemented in various languages.</p>
+</div>
+
+This makes it possible to execute functions on a **Kubernetes deployment**, a **FaaS platform** or **behind a (micro)service**, while providing consistent state and lightweight messaging between functions.
+
+<hr />
+
+## Key Benefits
+
+<div style="line-height:60%;">
+    <br>
+</div>
 
 <!-- Product Marketing Properties -->
 <div class="row">
@@ -46,7 +89,7 @@ Stateful Functions addresses two core shortcomings of FaaS: **consistent state**
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop3.png" alt="Arbitrary Messaging" width="90" height="90">
-      <h3>Arbitrary Messaging</h3>
+      <h3>Dynamic Messaging</h3>
     </div>
     <p align="justify">The API allows you to build and compose functions that communicate dynamic- and arbitrarily with each other. This gives you much more flexibility compared to the acyclic nature of classical stream processing topologies.</p>
     <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
@@ -91,7 +134,7 @@ Stateful Functions addresses two core shortcomings of FaaS: **consistent state**
       <h3>Cloud Native</h3>
     </div>
     <p align="justify">Stateful Function's approach to state and composition can be combined with the capabilities of modern serverless platforms like Kubernetes, Knative and AWS Lambda.</p>
-    <p align="justify"><a href="">Learn More</a></p>
+    <p align="justify" href="https://thenewstack.io/10-key-attributes-of-cloud-native-applications/"><a href="">Learn More</a></p>
   </div>
   <!-- "Stateless" Operation -->
   <div class="col-lg-4">
@@ -99,7 +142,7 @@ Stateful Functions addresses two core shortcomings of FaaS: **consistent state**
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop2.png" alt="Stateless Operation" width="90" height="90">
       <h3>"Stateless" Operation</h3>
     </div>
-    <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless applications that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
+    <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless processes that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
     </p>
     <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/logical.html#function-lifecycle">Learn More</a></p>
   </div>
@@ -107,36 +150,63 @@ Stateful Functions addresses two core shortcomings of FaaS: **consistent state**
 
 <hr />
 
-## Integrated Messaging and State
+## An Example: Transaction Scoring for Fraud Detection
 
-Stateful Functions **physically decouples** the functions from Apache Flink and the JVM to allow for remote execution. Rather than running application-specific logic, Flink stores and manages the state of the functions while also providing the dynamic messaging fabric that functions use to message each other with **exactly-once consistency guarantees**.
-
-<!-- Remote Execution -->
-<div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/stateful-functions/statefun-remote.png" width="650px"/>
+<div style="line-height:60%;">
+    <br>
 </div>
 
-This makes it possible to execute stateful functions on a **FaaS platform**, a **Kubernetes deployment** or **behind a (micro) service**. [Other deployement options](https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/modules.html#modules) that trade off **loose coupling** and **independent scaling** with performance overhead are also possible.
+<div class="row">
+    <div class="col-sm-5">
+      <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
+    </div>
+    <div class="col-sm-7">
+      <p>Imagine an application that receives financial information and emits alerts for every transaction that exceeds a given threshold fraud score (i.e. fraudulent). To build this example with <b>Stateful Functions</b>, you can define four different functions, each tracking its own state:</p>
+      <p><b>Fraud Count:</b> tracks the total number of reported fraudulent transactions made against an account on a rolling 30 day period.</p>
+      <p><b>Merchant Scorer:</b> returns a trustworthiness score for each merchant, relying on a third party service.</p>
+      <p><b>Transaction Manager:</b> enriches transaction records to create feature vectors for scoring and emits fraud alert events.</b></p>
+      <p><b>Model:</b> scores transactions  based on input feature vectors from the Transaction Manager.</p>
+    </div>
+</div>
+
+<div style="line-height:60%;">
+    <br>
+</div>
+
+**Keeping track of fraudulent reports**
+
+The entry points to the application are the "Fraud Confirmation" and "Transactions" [_ingresses_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-ingress) (e.g. Kafka Topics). As events flow in from "Fraud Confirmation", the "Fraud Count" function increments its internal counter and sets a 30-day expiration timer on this state. Here, multiple instances of "Fraud Count" will exist — for example, one per customer account. After 30 days, the "Fraud Count" function will receive an expiration message (from itself) and clear its state.
+
+**Enriching and scoring transactions**
+
+On receiving events from the "Transactions" ingress, the "Transaction Manager" function messages "Fraud Count" to get the current count of fraud cases reported for the customer account; it also messages the "Merchant Scorer" for the trustworthiness score of the transaction merchant. "Transaction Manager" creates a feature vector with the count of fraud cases reported and the merchant score for the customer account that is then sent to the "Model" function for scoring.
+
+**Emitting alerts**
+
+Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
 
 <hr />
-
-<div class="jumbotron">
-  <h2>An Example: Feature Engineering for Fraud Detection</h2>
-  <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="380px"/>
-</div>
-</div>
 
 ## Learn More
 
 If you find these ideas interesting, give Stateful Functions a try and get involved! Check out the [Getting Started](https://ci.apache.org/projects/flink/flink-statefun-docs-master/getting-started/project-setup.html) section for introduction walkthroughs and the [documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-master/) for a deeper look into the internals of Stateful Functions.
+
+<div style="line-height:60%;">
+    <br>
+</div>
+
+<a href="https://github.com/apache/flink-statefun"><img src="{{ site.baseurl }}/img/stateful-functions/github-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>GitHub Repository</small>
+
+<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
+
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link-2.svg" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
 
 <hr />
 
 <div class="row">
     <div class="col-sm-5">
       <h3>For a quick overview,</h3>
-      watch <a href="https://youtu.be/fCeHCMJXXM0">this whiteboard session</a> with Stephan Ewen.
+      watch <a href="https://youtu.be/fCeHCMJXXM0">this whiteboard session</a>.
     </div>
     <div class="col-sm-7">
       <div class="bs-example" data-example-id="responsive-embed-16by9-iframe-youtube">

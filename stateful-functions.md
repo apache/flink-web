@@ -42,7 +42,7 @@ Applications are composed of _modules_ of multiple functions that can interact a
     <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once Semantics</b></p> 
     <p style="font-size:100%;">State and messaging go hand-in-hand, providing exactly-once message/state semantics.</p>
     <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b></p> 
-    <p style="font-size:100%;">Functions message each other by logical addresses. No name resulution needed.</p>
+    <p style="font-size:100%;">Functions message each other by logical addresses. No service discovery needed.</p>
     <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Dynamic and Cyclic Messaging</b></p> 
     <p style="font-size:100%;">Messaging patterns don't need to be pre-defined as dataflows (<i>dynamic</i>) and are also not restricted to DAGs (<i>cyclic</i>).</p>
 </div>
@@ -65,11 +65,11 @@ The Stateful Functions runtime is designed to provide a set of properties simila
 The runtime is built on Apache Flink<sup>®</sup>, with the following design principles:
 
 <div class="jumbotron" style="height:315px;padding-top: 18px;">
-    <p style="font-size:100%;"><b>Logical Compute/State Co-location:</b></p> 
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Logical Compute/State Co-location:</b></p> 
     <p style="font-size:100%;">Messaging, state access/updates and function invocations are managed tightly together. This ensures a high-level of consistency out-of-the-box.</p>
-    <p style="font-size:100%;"><b>Physical Compute/State Separation:</b></p> 
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Physical Compute/State Separation:</b></p> 
     <p style="font-size:100%;">Functions can be executed remotely, with message and state access provided as part of the invocation request. This way, functions can be managed like stateless processes and support rapid scaling, rolling upgrades and other common operational patterns.</p>
-    <p style="font-size:100%;"><b>Language Independence:</b></p> 
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Language Independence:</b></p> 
     <p style="font-size:100%;">Function invocations use a simple HTTP/gRPC-based protocol so that Functions can be easily implemented in various languages.</p>
 </div>
 
@@ -150,21 +150,56 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
 
 <hr />
 
-## An Example: Feature Engineering for Fraud Detection
+## An Example: Transaction Scoring for Fraud Detection
 
 <div style="line-height:60%;">
     <br>
 </div>
 
-  <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
+<div class="row">
+    <div class="col-sm-5">
+      <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
+    </div>
+    <div class="col-sm-7">
+      <p>Imagine an application that receives financial information and emits alerts for every transaction that exceeds a given threshold fraud score (i.e. fraudulent). To build this example with <b>Stateful Functions</b>, you can define four different functions, each tracking its own state:</p>
+      <p><b>Fraud Count:</b> tracks the total number of reported fraudulent transactions made against an account on a rolling 30 day period.</p>
+      <p><b>Merchant Scorer:</b> returns a trustworthiness score for each merchant, relying on a third party service.</p>
+      <p><b>Transaction Manager:</b> enriches transaction records to create feature vectors for scoring and emits fraud alert events.</b></p>
+      <p><b>Model:</b> scores transactions  based on input feature vectors from the Transaction Manager.</p>
+    </div>
+</div>
 
-<div style="line-height:150%;">
+<div style="line-height:60%;">
     <br>
 </div>
+
+**Keeping track of fraudulent reports**
+
+The entry points to the application are the "Fraud Confirmation" and "Transactions" [_ingresses_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-ingress) (e.g. Kafka Topics). As events flow in from "Fraud Confirmation", the "Fraud Count" function increments its internal counter and sets a 30-day expiration timer on this state. Here, multiple instances of "Fraud Count" will exist — for example, one per customer account. After 30 days, the "Fraud Count" function will receive an expiration message (from itself) and clear its state.
+
+**Enriching and scoring transactions**
+
+On receiving events from the "Transactions" ingress, the "Transaction Manager" function messages "Fraud Count" to get the current count of fraud cases reported for the customer account; it also messages the "Merchant Scorer" for the trustworthiness score of the transaction merchant. "Transaction Manager" creates a feature vector with the count of fraud cases reported and the merchant score for the customer account that is then sent to the "Model" function for scoring.
+
+**Emitting alerts**
+
+Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
+
+<hr />
 
 ## Learn More
 
 If you find these ideas interesting, give Stateful Functions a try and get involved! Check out the [Getting Started](https://ci.apache.org/projects/flink/flink-statefun-docs-master/getting-started/project-setup.html) section for introduction walkthroughs and the [documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-master/) for a deeper look into the internals of Stateful Functions.
+
+<div style="line-height:60%;">
+    <br>
+</div>
+
+<a href="https://github.com/apache/flink-statefun"><img src="{{ site.baseurl }}/img/stateful-functions/github-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>GitHub Repository</small>
+
+<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
+
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link-2.svg" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
 
 <hr />
 
