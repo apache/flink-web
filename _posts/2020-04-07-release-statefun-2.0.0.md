@@ -226,7 +226,7 @@ The project is still in a comparatively early stage, so if you want to get invol
 To follow the project and learn more, please check out these resources:
 
 * Code: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
-* Docs: [https://ci.apache.org/projects/flink/flink-statefun-docs-master/](https://ci.apache.org/projects/flink/flink-statefun-docs-master/)
+* Docs: [https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/](https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/)
 * Apache Flink project site: [https://flink.apache.org/](https://flink.apache.org/)
 * Apache Flink on Twitter: [@ApacheFlink](https://twitter.com/apacheflink)
 * Stateful Functions Webpage: [https://statefun.io](https://statefun.io)
