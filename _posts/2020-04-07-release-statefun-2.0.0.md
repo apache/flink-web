@@ -10,7 +10,7 @@ authors:
   twitter: "stephanewen"
 ---
 
-Today, we are announcing the release of Stateful Functions (StateFun) 2.0: the first release of Stateful Functions as part of the Apache Flink project.
+Today, we are announcing the release of Stateful Functions (StateFun) 2.0 — the first release of Stateful Functions as part of the Apache Flink project.
 This release marks a big milestone: Stateful Functions 2.0 is not only an API update, but the **first version of an event-driven database** that is built on Apache Flink.
 
 Stateful Functions 2.0 makes it possible to combine StateFun’s powerful approach to state and composition with the elasticity, rapid scaling/scale-to-zero and rolling upgrade capabilities of FaaS implementations like AWS Lambda and modern resource orchestration frameworks like Kubernetes. 
@@ -30,7 +30,7 @@ When Stateful Functions joined Apache Flink at the beginning of this year, the p
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image2.png" width="600px" alt="Statefun 1"/>
+	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image2.png" width="600px" alt="Statefun 1"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.1:</b> A ride-sharing app as a Stateful Functions example.</i></figcaption>
 	</figure>
@@ -40,14 +40,14 @@ When Stateful Functions joined Apache Flink at the beginning of this year, the p
     <br>
 </div>
 
-In version 2.0, Stateful Functions now physically decouples the functions from Flink and the JVM, to invoke them through simple services. That makes it possible to execute functions on a FaaS platform, a Kubernetes deployment, or behind a (micro) service. 
+In version 2.0, Stateful Functions now physically decouples the functions from Flink and the JVM, to invoke them through simple services. That makes it possible to execute functions on a FaaS platform, a Kubernetes deployment or behind a (micro) service. 
 
 Flink invokes the functions through a service endpoint via HTTP or gRPC based on incoming events, and supplies state access. The system makes sure that only one invocation per entity (`type`+`ID`) is ongoing at any point in time, thus guaranteeing consistency through isolation.
 By supplying state access as part of the function invocation, the functions themselves behave like stateless applications and can be managed with the same simplicity and benefits: rapid scalability, scale-to-zero, rolling/zero-downtime upgrades and so on.
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image5.png" width="600px" alt="Statefun 2"/>
+	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image5.png" width="600px" alt="Statefun 2"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.2:</b> In Stateful Functions 2.0, functions are stateless and state access is part of the function invocation.</i></figcaption>
 	</figure>
@@ -67,7 +67,7 @@ The functions can be implemented in any programming language that can handle HTT
   <div class="col-lg-6">
     <div class="text-center">
       <figure>
-		<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image3.png" width="600px" alt="Statefun 3"/>
+		<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image3.png" width="600px" alt="Statefun 3"/>
 		<br/><br/>
 		<figcaption><i><b>Fig.3:</b> A module declaring a remote endpoint and a function type.</i></figcaption>
 	  </figure>
@@ -79,7 +79,7 @@ The functions can be implemented in any programming language that can handle HTT
       	<div style="line-height:540%;">
     		<br>
 		</div>
-		<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image10.png" width="600px" alt="Statefun 4"/>
+		<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image10.png" width="600px" alt="Statefun 4"/>
 		<br/><br/>
 		<figcaption><i><b>Fig.4:</b> A Python implementation of a simple classifier function.</i></figcaption>
 	  </figure>
@@ -107,7 +107,7 @@ In the case of a traditional database or key/value store (let’s call them requ
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image7.png" width="600px" alt="Statefun 5"/>
+	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image7.png" width="600px" alt="Statefun 5"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.5:</b> Stateful Functions 2.0 inverts the relationship between database and application.</i></figcaption>
 	</figure>
@@ -135,7 +135,7 @@ In the scenario where the event-driven database takes care of state and messagin
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image8.png" width="600px" alt="Statefun 6"/>
+	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image8.png" width="600px" alt="Statefun 6"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.6:</b> The event-driven database integrates state access and messaging, guaranteeing consistency.</i></figcaption>
 	</figure>
@@ -162,7 +162,7 @@ _Remote Functions_ are the mechanism described so far, where functions are deplo
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image6.png" width="600px" alt="Statefun 7"/>
+<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image6.png" width="600px" alt="Statefun 7"/>
 </center>
 
 <div style="line-height:150%;">
@@ -182,7 +182,7 @@ This mode supports different languages while avoiding to route invocations throu
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image9.png" width="600px" alt="Statefun 8"/>
+<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image9.png" width="600px" alt="Statefun 8"/>
 </center>
 
 <div style="line-height:150%;">
@@ -200,7 +200,7 @@ _Embedded Functions_ are the mode of Stateful Functions 1.0 and Flink’s Java/S
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-02-release-statefun-2.0.0/image11.png" width="600px" alt="Statefun 9"/>
+<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image11.png" width="600px" alt="Statefun 9"/>
 </center>
 
 <div style="line-height:150%;">
@@ -215,19 +215,27 @@ When building a new stateful application, you usually don’t start from a compl
 
 The equivalent step for Flink would be to write a [savepoint]({{ site.docs-stable }}/ops/state/savepoints.html) that contains the initial state. Savepoints are snapshots of the state of the distributed stream processing application and can be passed to Flink to start processing from that state. Think of them as a database dump, but of a distributed streaming database. In the case of StateFun, the savepoint would contain the state of the functions.
 
-To create a savepoint for a Stateful Functions program, check out the [State Bootstrapping API](https://ci.apache.org/projects/flink/flink-statefun-docs-master/deployment-and-operations/state-bootstrap.html) that is part of StateFun 2.0. The State Bootstrapping API uses Flink’s [DataSet API]({{ site.docs-stable }}/dev/batch/), but we plan to expand this to use SQL in the next versions.
+To create a savepoint for a Stateful Functions program, check out the [State Bootstrapping API](https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/deployment-and-operations/state-bootstrap.html) that is part of StateFun 2.0. The State Bootstrapping API uses Flink’s [DataSet API]({{ site.docs-stable }}/dev/batch/), but we plan to expand this to use SQL in the next versions.
 
 ## Try it out and get involved!
 
-We hope that we could convey some of the excitement we feel about Stateful Functions. If we managed to pique your curiosity, try it out — for example, starting with [this walkthrough](https://ci.apache.org/projects/flink/flink-statefun-docs-master/getting_started/walkthrough.html).
+We hope that we could convey some of the excitement we feel about Stateful Functions. If we managed to pique your curiosity, try it out — for example, starting with [this walkthrough](https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/getting-started/python_walkthrough.html).
 
 The project is still in a comparatively early stage, so if you want to get involved, there is lots to work on: SDKs for other languages (e.g. Go, JavaScript, Rust), ingresses/egresses and tools for testing, among others.
 
 To follow the project and learn more, please check out these resources:
 
 * Code: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
-* Stateful Functions Website: [https://statefun.io](https://statefun.io)
-* Docs [https://ci.apache.org/projects/flink/flink-statefun-docs-master/](https://ci.apache.org/projects/flink/flink-statefun-docs-master/)
+* Docs: [https://ci.apache.org/projects/flink/flink-statefun-docs-master/](https://ci.apache.org/projects/flink/flink-statefun-docs-master/)
 * Apache Flink project site: [https://flink.apache.org/](https://flink.apache.org/)
 * Apache Flink on Twitter: [@ApacheFlink](https://twitter.com/apacheflink)
+* Stateful Functions Webpage: [https://statefun.io](https://statefun.io)
 * Stateful Functions on Twitter: [@StateFun_IO](https://twitter.com/statefun_io)
+
+## Thank you!
+
+The Apache Flink community would like to thank all contributors that have made this release possible:
+
+David Anderson, Dian Fu, Igal Shilman, Seth Wiesman, Stephan Ewen, Tzu-Li (Gordon) Tai, hequn8128
+
+
