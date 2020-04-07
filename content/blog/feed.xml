@@ -7,157 +7,260 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
-<title>Flink Community Update - April&#39;20</title>
-<description>&lt;p&gt;While things slow down around us, the Apache Flink community is privileged to remain as active as ever. This blogpost combs through the past few months to give you an update on the state of things in Flink — from core releases to Stateful Functions; from some good old community stats to a new development blog.&lt;/p&gt;
+<title>Stateful Functions 2.0 - An Event-driven Database on Apache Flink</title>
+<description>&lt;p&gt;Today, we are announcing the release of Stateful Functions (StateFun) 2.0 — the first release of Stateful Functions as part of the Apache Flink project.
+This release marks a big milestone: Stateful Functions 2.0 is not only an API update, but the &lt;strong&gt;first version of an event-driven database&lt;/strong&gt; that is built on Apache Flink.&lt;/p&gt;
 
-&lt;p&gt;And since now it’s more important than ever to keep up the spirits, we’d like to invite you to join the &lt;a href=&quot;https://www.flink-forward.org/sf-2020&quot;&gt;Flink Forward Virtual Conference&lt;/a&gt;, on April 22-24 (see &lt;a href=&quot;#upcoming-events&quot;&gt;Upcoming Events&lt;/a&gt;). Hope to see you there!&lt;/p&gt;
+&lt;p&gt;Stateful Functions 2.0 makes it possible to combine StateFun’s powerful approach to state and composition with the elasticity, rapid scaling/scale-to-zero and rolling upgrade capabilities of FaaS implementations like AWS Lambda and modern resource orchestration frameworks like Kubernetes.&lt;/p&gt;
+
+&lt;p&gt;With these features, Stateful Functions 2.0 addresses &lt;a href=&quot;https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf&quot;&gt;two of the most cited shortcomings&lt;/a&gt; of many FaaS setups today: consistent state and efficient messaging between functions.&lt;/p&gt;
 
 &lt;div class=&quot;page-toc&quot;&gt;
 &lt;ul id=&quot;markdown-toc&quot;&gt;
-  &lt;li&gt;&lt;a href=&quot;#the-year-so-far-in-flink&quot; id=&quot;markdown-toc-the-year-so-far-in-flink&quot;&gt;The Year (so far) in Flink&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#flink-110-release&quot; id=&quot;markdown-toc-flink-110-release&quot;&gt;Flink 1.10 Release&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#stateful-functions-contribution-and-20-release&quot; id=&quot;markdown-toc-stateful-functions-contribution-and-20-release&quot;&gt;Stateful Functions Contribution and 2.0 Release&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#building-up-to-flink-111&quot; id=&quot;markdown-toc-building-up-to-flink-111&quot;&gt;Building up to Flink 1.11&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#new-committers-and-pmc-members&quot; id=&quot;markdown-toc-new-committers-and-pmc-members&quot;&gt;New Committers and PMC Members&lt;/a&gt;        &lt;ul&gt;
-          &lt;li&gt;&lt;a href=&quot;#new-pmc-members&quot; id=&quot;markdown-toc-new-pmc-members&quot;&gt;New PMC Members&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;#new-committers&quot; id=&quot;markdown-toc-new-committers&quot;&gt;New Committers&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#an-event-driven-database&quot; id=&quot;markdown-toc-an-event-driven-database&quot;&gt;An Event-driven Database&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#event-driven-database-vs-requestresponse-database&quot; id=&quot;markdown-toc-event-driven-database-vs-requestresponse-database&quot;&gt;“Event-driven Database” vs. “Request/Response Database”&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#state-and-consistency&quot; id=&quot;markdown-toc-state-and-consistency&quot;&gt;State and Consistency&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#the-bigger-picture&quot; id=&quot;markdown-toc-the-bigger-picture&quot;&gt;The Bigger Picture&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#a-look-into-the-flink-repository&quot; id=&quot;markdown-toc-a-look-into-the-flink-repository&quot;&gt;A Look into the Flink Repository&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#flink-community-packages&quot; id=&quot;markdown-toc-flink-community-packages&quot;&gt;Flink Community Packages&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#flink-engine-room&quot; id=&quot;markdown-toc-flink-engine-room&quot;&gt;Flink “Engine Room”&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#remote-co-located-or-embedded-functions&quot; id=&quot;markdown-toc-remote-co-located-or-embedded-functions&quot;&gt;Remote, Co-located or Embedded Functions&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#remote-functions&quot; id=&quot;markdown-toc-remote-functions&quot;&gt;Remote Functions&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#co-located-functions&quot; id=&quot;markdown-toc-co-located-functions&quot;&gt;Co-located Functions&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#embedded-functions&quot; id=&quot;markdown-toc-embedded-functions&quot;&gt;Embedded Functions&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#upcoming-events&quot; id=&quot;markdown-toc-upcoming-events&quot;&gt;Upcoming Events&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#flink-forward-virtual-conference&quot; id=&quot;markdown-toc-flink-forward-virtual-conference&quot;&gt;Flink Forward Virtual Conference&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#others&quot; id=&quot;markdown-toc-others&quot;&gt;Others&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#loading-data-into-the-database&quot; id=&quot;markdown-toc-loading-data-into-the-database&quot;&gt;Loading Data into the Database&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#try-it-out-and-get-involved&quot; id=&quot;markdown-toc-try-it-out-and-get-involved&quot;&gt;Try it out and get involved!&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#thank-you&quot; id=&quot;markdown-toc-thank-you&quot;&gt;Thank you!&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;/div&gt;
 
-&lt;h1 id=&quot;the-year-so-far-in-flink&quot;&gt;The Year (so far) in Flink&lt;/h1&gt;
+&lt;h2 id=&quot;an-event-driven-database&quot;&gt;An Event-driven Database&lt;/h2&gt;
 
-&lt;h2 id=&quot;flink-110-release&quot;&gt;Flink 1.10 Release&lt;/h2&gt;
+&lt;p&gt;When Stateful Functions joined Apache Flink at the beginning of this year, the project had started as a library on top of Flink to build general-purpose event-driven applications. Users would implement &lt;em&gt;functions&lt;/em&gt; that receive and send messages, and maintain state in persistent variables. Flink provided the runtime with efficient exactly-once state and messaging. Stateful Functions 1.0 was a FaaS-inspired mix between stream processing and actor programming — on steroids.&lt;/p&gt;
 
-&lt;p&gt;To kick off the new year, the Flink community &lt;a href=&quot;https://flink.apache.org/news/2020/02/11/release-1.10.0.html&quot;&gt;released Flink 1.10&lt;/a&gt; with the record contribution of over 200 engineers. This release introduced significant improvements to the overall performance and stability of Flink jobs, a preview of native Kubernetes integration and advances in Python support (PyFlink). Flink 1.10 also marked the completion of the &lt;a href=&quot;https://flink.apache.org/news/2019/08/22/release-1.9.0.html#preview-of-the-new-blink-sql-query-processor&quot;&gt;Blink integration&lt;/a&gt;, hardening streaming SQL and bringing mature batch processing to Flink with production-ready Hive integration and TPC-DS coverage.&lt;/p&gt;
-
-&lt;p&gt;The community is now discussing the &lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Releasing-Flink-1-10-1-td38689.html#a38690&quot;&gt;release of Flink 1.10.1&lt;/a&gt;, covering some outstanding bugs from Flink 1.10.&lt;/p&gt;
-
-&lt;h2 id=&quot;stateful-functions-contribution-and-20-release&quot;&gt;Stateful Functions Contribution and 2.0 Release&lt;/h2&gt;
-
-&lt;p&gt;Last January, the first version of Stateful Functions (&lt;a href=&quot;https://statefun.io/&quot;&gt;statefun.io&lt;/a&gt;) code was pushed to the &lt;a href=&quot;https://github.com/apache/flink-statefun&quot;&gt;Flink repository&lt;/a&gt;. Stateful Functions started out as an API to build general purpose event-driven applications on Flink, taking advantage of its advanced state management mechanism to cut the “middleman” that usually handles state coordination in such applications (e.g. a database).&lt;/p&gt;
-
-&lt;p&gt;In a &lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Update-on-Flink-Stateful-Functions-what-are-the-next-steps-tp38646.html&quot;&gt;recent update&lt;/a&gt;, some new features were announced, like multi-language support (including a Python SDK), function unit testing and Stateful Functions’ own flavor of the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/libs/state_processor_api.html&quot;&gt;State Processor API&lt;/a&gt;. The release cycle will be independent from core Flink releases and the Release Candidate (RC) has been created — so, &lt;strong&gt;you can expect Stateful Functions 2.0 to be released very soon!&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;building-up-to-flink-111&quot;&gt;Building up to Flink 1.11&lt;/h2&gt;
-
-&lt;p&gt;Amidst the usual outpour of discussion threads, JIRA tickets and FLIPs, the community is working full steam on bringing Flink 1.11 to life in the next few months. The feature freeze is currently scheduled for late April, so the release is expected around mid May. 
-The upcoming release will focus on new features and integrations that broaden the scope of Flink use cases, as well as core runtime enhancements to streamline the operations of complex deployments.&lt;/p&gt;
-
-&lt;p&gt;Some of the plans on the use case side include support for changelog streams in the Table API/SQL (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-105%3A+Support+to+Interpret+and+Emit+Changelog+in+Flink+SQL&quot;&gt;FLIP-105&lt;/a&gt;), easy streaming data ingestion into Apache Hive (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-115%3A+Filesystem+connector+in+Table&quot;&gt;FLIP-115&lt;/a&gt;) and support for Pandas DataFrames in PyFlink. On the operational side, the much anticipated new Source API (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface&quot;&gt;FLIP-27&lt;/a&gt;) will unify batch and streaming sources, and improve out-of-the-box event-time behavior; while unaligned checkpoints (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints&quot;&gt;FLIP-76&lt;/a&gt;) and some changes to network memory management will allow to speed up checkpointing under backpressure.&lt;/p&gt;
-
-&lt;p&gt;Throw into the mix improvements around type systems, the WebUI, metrics reporting and supported formats, this release is bound to keep the community busy. For a complete overview of the ongoing development, check &lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Features-of-Apache-Flink-1-11-td38724.html#a38793&quot;&gt;this discussion&lt;/a&gt; and follow the weekly updates on the Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;@community mailing list&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;new-committers-and-pmc-members&quot;&gt;New Committers and PMC Members&lt;/h2&gt;
-
-&lt;p&gt;The Apache Flink community has welcomed &lt;strong&gt;1 PMC (Project Management Committee) Member&lt;/strong&gt; and &lt;strong&gt;5 new Committers&lt;/strong&gt; since the last update (September 2019):&lt;/p&gt;
-
-&lt;h3 id=&quot;new-pmc-members&quot;&gt;New PMC Members&lt;/h3&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;Jark Wu
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;new-committers&quot;&gt;New Committers&lt;/h3&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;Zili Chen, Jingsong Lee, Yu Li, Dian Fu, Zhu Zhu
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Congratulations to all and thank you for your hardworking commitment to Flink!&lt;/p&gt;
-
-&lt;h1 id=&quot;the-bigger-picture&quot;&gt;The Bigger Picture&lt;/h1&gt;
-
-&lt;h2 id=&quot;a-look-into-the-flink-repository&quot;&gt;A Look into the Flink Repository&lt;/h2&gt;
-
-&lt;p&gt;In the &lt;a href=&quot;https://flink.apache.org/news/2019/09/10/community-update.html&quot;&gt;last update&lt;/a&gt;, we shared some numbers around Flink releases and mailing list activity. This time, we’re looking into the activity in the Flink repository and how it’s evolving.&lt;/p&gt;
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
 &lt;center&gt;
-&lt;img src=&quot;/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_1.png&quot; width=&quot;725px&quot; alt=&quot;GitHub 1&quot; /&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image2.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 1&quot; /&gt;
+	&lt;br /&gt;&lt;br /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.1:&lt;/b&gt; A ride-sharing app as a Stateful Functions example.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
 &lt;/center&gt;
 
-&lt;p&gt;There is a clear upward trend in the number of contributions to the repository, based on the number of commits. This reflects the &lt;strong&gt;fast pace of development&lt;/strong&gt; the project is experiencing and also the &lt;strong&gt;successful integration of the China-based Flink contributors&lt;/strong&gt; started early last year. To complement these observations, the repository registered a &lt;strong&gt;1.5x increase in the number of individual contributors in 2019&lt;/strong&gt;, compared to the previous year.&lt;/p&gt;
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;But did this increase in capacity produce any other measurable benefits?&lt;/p&gt;
+&lt;p&gt;In version 2.0, Stateful Functions now physically decouples the functions from Flink and the JVM, to invoke them through simple services. That makes it possible to execute functions on a FaaS platform, a Kubernetes deployment or behind a (micro) service.&lt;/p&gt;
+
+&lt;p&gt;Flink invokes the functions through a service endpoint via HTTP or gRPC based on incoming events, and supplies state access. The system makes sure that only one invocation per entity (&lt;code&gt;type&lt;/code&gt;+&lt;code&gt;ID&lt;/code&gt;) is ongoing at any point in time, thus guaranteeing consistency through isolation.
+By supplying state access as part of the function invocation, the functions themselves behave like stateless applications and can be managed with the same simplicity and benefits: rapid scalability, scale-to-zero, rolling/zero-downtime upgrades and so on.&lt;/p&gt;
 
 &lt;center&gt;
-&lt;img src=&quot;/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_2.png&quot; width=&quot;725px&quot; alt=&quot;GitHub 2&quot; /&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image5.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 2&quot; /&gt;
+	&lt;br /&gt;&lt;br /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.2:&lt;/b&gt; In Stateful Functions 2.0, functions are stateless and state access is part of the function invocation.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
 &lt;/center&gt;
 
-&lt;p&gt;If we look at the average time of Pull Request (PR) “resolution”, it seems like it did: &lt;strong&gt;the average time it takes to close a PR these days has been steadily decreasing&lt;/strong&gt; since last year, sitting between 5-6 days for the past few months.&lt;/p&gt;
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;These are great indicators of the health of Flink as an open source project!&lt;/p&gt;
+&lt;p&gt;The functions can be implemented in any programming language that can handle HTTP requests or bring up a gRPC server. The &lt;a href=&quot;https://github.com/apache/flink-statefun&quot;&gt;StateFun project&lt;/a&gt; includes a very slim SDK for Python, taking requests and dispatching them to annotated functions. We aim to provide similar SDKs for other languages, such as Go, JavaScript or Rust. Users do not need to write any Flink code (or JVM code) at all; data ingresses/egresses and function endpoints can be defined in a compact YAML spec.&lt;/p&gt;
 
-&lt;h2 id=&quot;flink-community-packages&quot;&gt;Flink Community Packages&lt;/h2&gt;
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;If you missed the launch of &lt;a href=&quot;http://flink-packages.org/&quot;&gt;flink-packages.org&lt;/a&gt;, here’s a reminder! Ververica has &lt;a href=&quot;https://www.ververica.com/blog/announcing-flink-community-packages&quot;&gt;created (and open sourced)&lt;/a&gt; a website that showcases the work of the community to push forward the ecosystem surrounding Flink. There, you can explore existing packages (like the Pravega and Pulsar Flink connectors, or the Flink Kubernetes operators developed by Google and Lyft) and also submit your own contributions to the ecosystem.&lt;/p&gt;
+&lt;div class=&quot;row&quot;&gt;
+  &lt;div class=&quot;col-lg-6&quot;&gt;
+    &lt;div class=&quot;text-center&quot;&gt;
+      &lt;figure&gt;
+		&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image3.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 3&quot; /&gt;
+		&lt;br /&gt;&lt;br /&gt;
+		&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.3:&lt;/b&gt; A module declaring a remote endpoint and a function type.&lt;/i&gt;&lt;/figcaption&gt;
+	  &lt;/figure&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;col-lg-6&quot;&gt;
+    &lt;div class=&quot;text-center&quot;&gt;
+      &lt;figure&gt;
+      	&lt;div style=&quot;line-height:540%;&quot;&gt;
+    		&lt;br /&gt;
+		&lt;/div&gt;
+		&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image10.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 4&quot; /&gt;
+		&lt;br /&gt;&lt;br /&gt;
+		&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.4:&lt;/b&gt; A Python implementation of a simple classifier function.&lt;/i&gt;&lt;/figcaption&gt;
+	  &lt;/figure&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 
-&lt;h2 id=&quot;flink-engine-room&quot;&gt;Flink “Engine Room”&lt;/h2&gt;
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;The community has recently launched the &lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewrecentblogposts.action?key=FLINK&quot;&gt;“Engine Room”&lt;/a&gt;, a dedicated space in Flink’s Wiki for knowledge sharing between contributors. The goal of this initiative is to make ongoing development on Flink internals more transparent across different work streams, and also to help new contributors get on board with best practices. The first blogpost is already up and sheds light on the &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/2020/03/22/Migrating+Flink%27s+CI+Infrastructure+from+Travis+CI+to+Azure+Pipelines&quot;&gt;migration of Flink’s CI infrastructure from Travis to Azure Pipelines&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The Flink processes (and the JVM) are not executing any user-code at all — though this is possible, for performance reasons (see &lt;a href=&quot;#embedded-functions&quot;&gt;Embedded Functions&lt;/a&gt;). Rather than running application-specific dataflows, Flink here stores the state of the functions and provides the dynamic messaging plane through which functions message each other, carefully dispatching messages/invocations to the event-driven functions/services to maintain consistency guarantees.&lt;/p&gt;
 
-&lt;h1 id=&quot;upcoming-events&quot;&gt;Upcoming Events&lt;/h1&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;em&gt;Effectively, Flink takes the role of the database, but tailored towards event-driven functions and services. 
+It integrates state storage with the messaging between (and the invocations of) functions and services. 
+Because of this, Stateful Functions 2.0 can be thought of as an “Event-driven Database” on Apache Flink.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;h2 id=&quot;flink-forward-virtual-conference&quot;&gt;Flink Forward Virtual Conference&lt;/h2&gt;
+&lt;h2 id=&quot;event-driven-database-vs-requestresponse-database&quot;&gt;“Event-driven Database” vs. “Request/Response Database”&lt;/h2&gt;
 
-&lt;p&gt;The organization of Flink Forward had to make the hard decision of cancelling this year’s event in San Francisco. But all is not lost! &lt;strong&gt;Flink Forward SF will be held online on April 22-24 and you can register (for free)&lt;/strong&gt; &lt;a href=&quot;https://www.flink-forward.org/sf-2020&quot;&gt;here&lt;/a&gt;. Join the community for interactive talks and Q&amp;amp;A sessions with core Flink contributors and companies like Splunk, Lyft, Netflix or Google.&lt;/p&gt;
+&lt;p&gt;In the case of a traditional database or key/value store (let’s call them request/response databases), the application issues queries to the database (e.g. SQL via JDBC, GET/PUT via HTTP). In contrast, an event-driven database like StateFun &lt;strong&gt;&lt;em&gt;inverts&lt;/em&gt;&lt;/strong&gt; that relationship between database and application: the database invokes the functions/services based on arriving messages. This fits very naturally with FaaS and many event-driven application architectures.&lt;/p&gt;
 
-&lt;h2 id=&quot;others&quot;&gt;Others&lt;/h2&gt;
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;Events across the globe have come to a halt due to the growing concerns around COVID-19, so this time we’ll leave you with some interesting content to read instead. In addition to this written content, you can also recap last year’s sessions from &lt;a href=&quot;https://www.youtube.com/playlist?list=PLDX4T_cnKjD207Aa8b5CsZjc7Z_KRezGz&quot;&gt;Flink Forward Berlin&lt;/a&gt; and &lt;a href=&quot;https://www.youtube.com/playlist?list=PLDX4T_cnKjD3ANoNinSx3Au-poZTHvbF5&quot;&gt;Flink Forward China&lt;/a&gt;!&lt;/p&gt;
+&lt;center&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image7.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 5&quot; /&gt;
+	&lt;br /&gt;&lt;br /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.5:&lt;/b&gt; Stateful Functions 2.0 inverts the relationship between database and application.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
+&lt;/center&gt;
 
-&lt;table class=&quot;table table-bordered&quot;&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Type&lt;/th&gt;
-      &lt;th&gt;Links&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;span class=&quot;glyphicon glyphicon glyphicon-bookmark&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Blogposts&lt;/td&gt;
-      &lt;td&gt;&lt;ul&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://medium.com/bird-engineering/replayable-process-functions-in-flink-time-ordering-and-timers-28007a0210e1&quot;&gt;Replayable Process Functions: Time, Ordering, and Timers @Bird&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://engineering.salesforce.com/application-log-intelligence-performance-insights-at-salesforce-using-flink-92955f30573f&quot;&gt;Application Log Intelligence &amp;amp; Performance Insights at Salesforce Using Flink @Salesforce&lt;/a&gt;&lt;/li&gt;
-		  &lt;/ul&gt;
-		  &lt;ul&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/news/2020/01/29/state-unlocked-interacting-with-state-in-apache-flink.html&quot;&gt;State Unlocked: Interacting with State in Apache Flink&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/news/2020/03/24/demo-fraud-detection-2.html&quot;&gt;Advanced Flink Application Patterns Vol.2: Dynamic Updates of Application Logic&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/ecosystem/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink.html&quot;&gt;Apache Beam: How Beam Runs on Top of Flink&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/features/2020/03/27/flink-for-data-warehouse.html&quot;&gt;Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration&lt;/a&gt;&lt;/li&gt;
-		&lt;/ul&gt;
-	  &lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;span class=&quot;glyphicon glyphicon-console&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Tutorials&lt;/td&gt;
-      &lt;td&gt;&lt;ul&gt;
-      	  &lt;li&gt;&lt;a href=&quot;https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754&quot;&gt;Flink on Zeppelin — (Part 3). Streaming&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://aws.amazon.com/blogs/big-data/streaming-etl-with-apache-flink-and-amazon-kinesis-data-analytics&quot;&gt;Streaming ETL with Apache Flink and Amazon Kinesis Data Analytics&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/news/2020/02/20/ddl.html&quot;&gt;No Java Required: Configuring Sources and Sinks in SQL&lt;/a&gt;&lt;/li&gt;
-		  &lt;li&gt;&lt;a href=&quot;https://flink.apache.org/news/2020/02/07/a-guide-for-unit-testing-in-apache-flink.html&quot;&gt;A Guide for Unit Testing in Apache Flink&lt;/a&gt;&lt;/li&gt;
-		  &lt;/ul&gt;
-	  &lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
 
-&lt;p&gt;If you’d like to keep a closer eye on what’s happening in the community, subscribe to the Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;@community mailing list&lt;/a&gt; to get fine-grained weekly updates, upcoming event announcements and more.&lt;/p&gt;
+&lt;p&gt;In the case of applications built on request/response databases, the database is responsible only for the state. Communication between different functions/services is a separate concern handled within the application layer. In contrast to that, an event-driven database takes care of both state storage and message transport, in a tightly integrated manner.&lt;/p&gt;
+
+&lt;p&gt;Similar to &lt;a href=&quot;https://www.brianstorti.com/the-actor-model/&quot;&gt;Actor Programming&lt;/a&gt;, Stateful Functions uses the idea of &lt;em&gt;addressable entities&lt;/em&gt; - here, the entity is a function &lt;code&gt;type&lt;/code&gt; with an invocation scoped to an &lt;code&gt;ID&lt;/code&gt;. These addressable entities own the state and are the targets of messages. Different to actor systems is that the application logic is external and the addressable entities are not physical objects in memory (i.e. actors), but rows in Flink’s managed state, together with the entities’ mailboxes.&lt;/p&gt;
+
+&lt;h3 id=&quot;state-and-consistency&quot;&gt;State and Consistency&lt;/h3&gt;
+
+&lt;p&gt;Besides matching the needs of serverless applications and FaaS well, the event-driven database approach also helps with simplifying consistent state management.&lt;/p&gt;
+
+&lt;p&gt;Consider the example below, with two entities of an application — for example two microservices (&lt;em&gt;Service 1&lt;/em&gt;, &lt;em&gt;Service 2&lt;/em&gt;). &lt;em&gt;Service 1&lt;/em&gt; is invoked, updates the state in the database, and sends a request to &lt;em&gt;Service 2&lt;/em&gt;. Assume that this request fails. There is, in general, no way for &lt;em&gt;Service 1&lt;/em&gt; to know whether &lt;em&gt;Service 2&lt;/em&gt; processed the request and updated its state or not (c.f. &lt;a href=&quot;https://en.wikipedia.org/wiki/Two_Generals%27_Problem&quot;&gt;Two Generals Problem&lt;/a&gt;). To work around that, many techniques exist — making requests idempotent and retrying, commit/rollback protocols, or external transaction coordinators, for example. Solving this in the application layer is complex enough, and including the database into these approaches only adds more complexity.&lt;/p&gt;
+
+&lt;p&gt;In the scenario where the event-driven database takes care of state and messaging, we have a much easier problem to solve. Assume one shard of the database receives the initial message, updates its state, invokes &lt;em&gt;Service 1&lt;/em&gt;, and routes the message produced by the function to another shard, to be delivered to &lt;em&gt;Service 2&lt;/em&gt;. Now assume message transport errored — it may have failed or not, we cannot know for certain. Because the database is in charge of state and messaging, it can offer a generic solution to make sure that either both go through or none does, for example through transactions or &lt;a href=&quot;https://dl.acm.org/doi/abs/10.14778/3137765.3137777&quot;&gt;consistent snapshots&lt;/a&gt;. The application functions are stateless and their invocations without side effects, which means they can be re-invoked again without implications on consistency.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image8.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 6&quot; /&gt;
+	&lt;br /&gt;&lt;br /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.6:&lt;/b&gt; The event-driven database integrates state access and messaging, guaranteeing consistency.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;That is the big lesson we learned from working on stream processing technology in the past years: &lt;strong&gt;state access/updates and messaging need to be integrated&lt;/strong&gt;. This gives you consistency, scalable behavior and backpressures well based on both state access and compute bottlenecks.&lt;/p&gt;
+
+&lt;p&gt;Despite state and computation being physically separated here, the scheduling/dispatching of function invocations is still integrated and physically co-located with state access, preserving the consistency guarantees given by physical state/compute co-location.&lt;/p&gt;
+
+&lt;h2 id=&quot;remote-co-located-or-embedded-functions&quot;&gt;Remote, Co-located or Embedded Functions&lt;/h2&gt;
+
+&lt;p&gt;Functions can be deployed in various ways that trade off loose coupling and independent scaling with performance overhead. Each module of functions can be of a different kind, so some functions can run remote, while others could run embedded.&lt;/p&gt;
+
+&lt;h3 id=&quot;remote-functions&quot;&gt;Remote Functions&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;Remote Functions&lt;/em&gt; are the mechanism described so far, where functions are deployed separately from the Flink StateFun cluster. The state/messaging tier (i.e. the Flink processes) and the function tier can be deployed and scaled independently. All function invocations are remote and have to go through the endpoint service.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image6.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 7&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In a similar way as databases are accessed via a standardized protocol (e.g. ODBC/JDBC for relational databases, REST for many key/value stores), StateFun 2.0 invokes functions and services through a standardized protocol: HTTP or gRPC with data in a well-defined ProtoBuf schema.&lt;/p&gt;
+
+&lt;h3 id=&quot;co-located-functions&quot;&gt;Co-located Functions&lt;/h3&gt;
+
+&lt;p&gt;An alternative way of deploying functions is &lt;em&gt;co-location&lt;/em&gt; with the Flink JVM processes. In such a setup, each Flink TaskManager would talk to one function process sitting “next to it”. A common way to do this is to use a system like Kubernetes and deploy pods consisting of a Flink container and the function container that communicate via the pod-local network.&lt;/p&gt;
+
+&lt;p&gt;This mode supports different languages while avoiding to route invocations through a Service/Gateway/LoadBalancer, but it cannot scale the state and compute parts independently.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image9.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 8&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This style of deployment is similar to how &lt;a href=&quot;https://beam.apache.org/roadmap/portability/&quot;&gt;Apache Beam’s portability layer&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/tutorials/python_table_api.html&quot;&gt;Flink’s Python API&lt;/a&gt; deploy their non-JVM language SDKs.&lt;/p&gt;
+
+&lt;h3 id=&quot;embedded-functions&quot;&gt;Embedded Functions&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;Embedded Functions&lt;/em&gt; are the mode of Stateful Functions 1.0 and Flink’s Java/Scala stream processing APIs. Functions are deployed into the JVM and are directly invoked with the messages and state access. This is the most performant way, though at the cost of only supporting JVM languages.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-07-release-statefun-2.0.0/image11.png&quot; width=&quot;600px&quot; alt=&quot;Statefun 9&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Following the database analogy, embedded functions are a bit like &lt;em&gt;stored procedures&lt;/em&gt;, but in a principled way: the functions here are normal Java/Scala/Kotlin functions implementing standard interfaces and can be developed or tested in any IDE.&lt;/p&gt;
+
+&lt;h2 id=&quot;loading-data-into-the-database&quot;&gt;Loading Data into the Database&lt;/h2&gt;
+
+&lt;p&gt;When building a new stateful application, you usually don’t start from a completely blank slate. Often, the application has initial state, such as initial “bootstrap” state, or state from previous versions of the application. When using a database, one could simply bulk load the data to prepare the application.&lt;/p&gt;
+
+&lt;p&gt;The equivalent step for Flink would be to write a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/state/savepoints.html&quot;&gt;savepoint&lt;/a&gt; that contains the initial state. Savepoints are snapshots of the state of the distributed stream processing application and can be passed to Flink to start processing from that state. Think of them as a database dump, but of a distributed streaming database. In the case of StateFun, the savepoint would contain the state of the functions.&lt;/p&gt;
+
+&lt;p&gt;To create a savepoint for a Stateful Functions program, check out the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/deployment-and-operations/state-bootstrap.html&quot;&gt;State Bootstrapping API&lt;/a&gt; that is part of StateFun 2.0. The State Bootstrapping API uses Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/batch/&quot;&gt;DataSet API&lt;/a&gt;, but we plan to expand this to use SQL in the next versions.&lt;/p&gt;
+
+&lt;h2 id=&quot;try-it-out-and-get-involved&quot;&gt;Try it out and get involved!&lt;/h2&gt;
+
+&lt;p&gt;We hope that we could convey some of the excitement we feel about Stateful Functions. If we managed to pique your curiosity, try it out — for example, starting with &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/getting-started/python_walkthrough.html&quot;&gt;this walkthrough&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The project is still in a comparatively early stage, so if you want to get involved, there is lots to work on: SDKs for other languages (e.g. Go, JavaScript, Rust), ingresses/egresses and tools for testing, among others.&lt;/p&gt;
+
+&lt;p&gt;To follow the project and learn more, please check out these resources:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Code: &lt;a href=&quot;https://github.com/apache/flink-statefun&quot;&gt;https://github.com/apache/flink-statefun&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Docs: &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/&quot;&gt;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Apache Flink project site: &lt;a href=&quot;https://flink.apache.org/&quot;&gt;https://flink.apache.org/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Apache Flink on Twitter: &lt;a href=&quot;https://twitter.com/apacheflink&quot;&gt;@ApacheFlink&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Stateful Functions Webpage: &lt;a href=&quot;https://statefun.io&quot;&gt;https://statefun.io&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Stateful Functions on Twitter: &lt;a href=&quot;https://twitter.com/statefun_io&quot;&gt;@StateFun_IO&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;thank-you&quot;&gt;Thank you!&lt;/h2&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank all contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;David Anderson, Dian Fu, Igal Shilman, Seth Wiesman, Stephan Ewen, Tzu-Li (Gordon) Tai, hequn8128&lt;/p&gt;
+
 </description>
-<pubDate>Wed, 01 Apr 2020 10:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2020/04/01/community-update.html</link>
-<guid isPermaLink="true">/news/2020/04/01/community-update.html</guid>
+<pubDate>Tue, 07 Apr 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/04/07/release-statefun-2.0.0.html</link>
+<guid isPermaLink="true">/news/2020/04/07/release-statefun-2.0.0.html</guid>
 </item>
 
 <item>
