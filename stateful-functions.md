@@ -92,7 +92,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <h3>Dynamic Messaging</h3>
     </div>
     <p align="justify">The API allows you to build and compose functions that communicate dynamic- and arbitrarily with each other. This gives you much more flexibility compared to the acyclic nature of classical stream processing topologies.</p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
   </div>
   <!-- Consistent State -->
   <div class="col-lg-4">
