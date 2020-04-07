@@ -183,7 +183,7 @@ On receiving events from the "Transactions" ingress, the "Transaction Manager" f
 
 **Emitting alerts**
 
-Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
+Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
 
 <hr />
 
