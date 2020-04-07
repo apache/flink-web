@@ -197,7 +197,7 @@ If you find these ideas interesting, give Stateful Functions a try and get invol
 
 <a href="https://github.com/apache/flink-statefun"><img src="{{ site.baseurl }}/img/stateful-functions/github-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>GitHub Repository</small>
 
-<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
+<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
 
 <a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link-2.svg" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
 
