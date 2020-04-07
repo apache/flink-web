@@ -144,7 +144,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
     </div>
     <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless processes that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/logical.html#function-lifecycle">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/logical.html#function-lifecycle">Learn More</a></p>
   </div>
 </div>
 
