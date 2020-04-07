@@ -100,7 +100,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop1.png" alt="Consistent State" width="90" height="90">
       <h3>Consistent State</h3>
       <p align="justify">Functions can keep local state that is persistent and integrated with the messaging between functions. This gives you the effect of exactly-once state access/updates and guaranteed efficient messaging out-of-the-box.</p>
-      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#persisted-states">Learn More</a></p>
+      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#persisted-states">Learn More</a></p>
     </div>
   </div>
   <!-- Multi-language Support -->
