@@ -29,7 +29,7 @@ Stateful Functions is an API that **simplifies building distributed stateful app
 
 A _stateful function_ is a small piece of logic/code existing in multiple instances that represent entities — similar to [actors](https://www.brianstorti.com/the-actor-model/). Functions are invoked through messages and are:
 
-<div class="jumbotron" style="height:165px;padding-top: 18px;">
+<div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
   <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b></p> 
   <p style="font-size:100%;">Functions have embedded, fault-tolerant state, accessed locally like a variable.</p>
   <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b></p> 
@@ -38,7 +38,7 @@ A _stateful function_ is a small piece of logic/code existing in multiple instan
 
 Applications are composed of _modules_ of multiple functions that can interact arbitrarily with:
 
-<div class="jumbotron" style="height:235px;padding-top: 18px;">
+<div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
     <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once Semantics</b></p> 
     <p style="font-size:100%;">State and messaging go hand-in-hand, providing exactly-once message/state semantics.</p>
     <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b></p> 
@@ -64,7 +64,7 @@ The Stateful Functions runtime is designed to provide a set of properties simila
 
 The runtime is built on Apache Flink<sup>®</sup>, with the following design principles:
 
-<div class="jumbotron" style="height:315px;padding-top: 18px;">
+<div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
     <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Logical Compute/State Co-location:</b></p> 
     <p style="font-size:100%;">Messaging, state access/updates and function invocations are managed tightly together. This ensures a high-level of consistency out-of-the-box.</p>
     <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Physical Compute/State Separation:</b></p> 
