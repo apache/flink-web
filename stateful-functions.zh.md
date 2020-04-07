@@ -189,7 +189,7 @@ Depending on the score sent back to "Transaction Manager", it may emit an alert 
 
 ## Learn More
 
-If you find these ideas interesting, give Stateful Functions a try and get involved! Check out the [Getting Started](https://ci.apache.org/projects/flink/flink-statefun-docs-master/getting-started/project-setup.html) section for introduction walkthroughs and the [documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-master/) for a deeper look into the internals of Stateful Functions.
+If you find these ideas interesting, give Stateful Functions a try and get involved! Check out the [Getting Started](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/getting-started/project-setup.html) section for introduction walkthroughs and the [documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/) for a deeper look into the internals of Stateful Functions.
 
 <div style="line-height:60%;">
     <br>
