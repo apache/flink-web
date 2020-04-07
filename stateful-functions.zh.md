@@ -111,7 +111,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
     </div>
     <p align="justify">Functions can be implemented in any programming language that can handle HTTP requests or bring up a gRPC server, with initial support for Python. More SDKs will be added for languages like Go, Javascript and Rust.
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/modules.html#modules">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/sdk/modules.html#modules">Learn More</a></p>
   </div>
 </div>
 
