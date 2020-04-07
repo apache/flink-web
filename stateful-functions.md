@@ -158,7 +158,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
 
 <div class="row">
     <div class="col-sm-5">
-      <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
+      <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="400px"/>
     </div>
     <div class="col-sm-7">
       <p>Imagine an application that receives financial information and emits alerts for every transaction that exceeds a given threshold fraud score (i.e. fraudulent). To build this example with <b>Stateful Functions</b>, you can define four different functions, each tracking its own state:</p>
@@ -199,7 +199,10 @@ If you find these ideas interesting, give Stateful Functions a try and get invol
 
 <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
 
-<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link-2.svg" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
+
+<!-- Gimmick to make the last link work -->
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link.png" class="rounded-circle" width="0px" height="0px"></a> <small></small>
 
 <hr />
 

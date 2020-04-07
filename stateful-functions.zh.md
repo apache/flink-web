@@ -183,7 +183,7 @@ On receiving events from the "Transactions" ingress, the "Transaction Manager" f
 
 **Emitting alerts**
 
-Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
+Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
 
 <hr />
 
@@ -199,7 +199,10 @@ If you find these ideas interesting, give Stateful Functions a try and get invol
 
 <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
 
-<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link-2.svg" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
+
+<!-- Gimmick to make the last link work -->
+<a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link.png" class="rounded-circle" width="0px" height="0px"></a> <small></small>
 
 <hr />
 
