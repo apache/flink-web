@@ -7,6 +7,174 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>PyFlink: Introducing Python Support for UDFs in Flink&#39;s Table API</title>
+<description>&lt;p&gt;Flink 1.9 introduced the Python Table API, allowing developers and data engineers to write Python Table API jobs for Table transformations and analysis, such as Python ETL or aggregate jobs. However, Python users faced some limitations when it came to support for Python UDFs in Flink 1.9, preventing them from extending the system’s built-in functionality.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.10, the community further extended the support for Python by adding Python UDFs in PyFlink. Additionally, both the Python UDF environment and dependency management are now supported, allowing users to import third-party libraries in the UDFs, leveraging Python’s rich set of third-party libraries.&lt;/p&gt;
+
+&lt;h1 id=&quot;python-support-for-udfs-in-flink-110&quot;&gt;Python Support for UDFs in Flink 1.10&lt;/h1&gt;
+
+&lt;p&gt;Before diving into how you can define and use Python UDFs, we explain the motivation and background behind how UDFs work in PyFlink and provide some additional context about the implementation of our approach. Below we give a brief introduction on the PyFlink architecture from job submission, all the way to executing the Python UDF.&lt;/p&gt;
+
+&lt;p&gt;The PyFlink architecture mainly includes two parts — local and cluster — as shown in the architecture visual below. The local phase is the compilation of the job, and the cluster is the execution of the job.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-09-pyflink-udfs/pyflink-udf-architecture.png&quot; width=&quot;600px&quot; alt=&quot;PyFlink UDF Architecture&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;For the local part, the Python API is a mapping of the Java API:  each time Python executes a method in the figure above, it will synchronously call the method corresponding to Java through Py4J, and finally generate a Java JobGraph, before submitting it to the cluster.&lt;/p&gt;
+
+&lt;p&gt;For the cluster part, just like ordinary Java jobs, the JobMaster schedules tasks to TaskManagers. The tasks that include Python UDF in a TaskManager involve the execution of Java and Python operators. In the Python UDF operator, various gRPC services are used to provide different communications between the Java VM and the Python VM, such as DataService for data transmissions, StateService for state requirements, and Logging and Metrics Services. These services are built on Beam’s Fn API. While currently only Process mode is supported for Python workers, support for Docker mode and External service mode is also considered for future Flink releases.&lt;/p&gt;
+
+&lt;h1 id=&quot;how-to-use-pyflink-with-udfs-in-flink-110&quot;&gt;How to use PyFlink with UDFs in Flink 1.10&lt;/h1&gt;
+
+&lt;p&gt;This section provides some Python user defined function (UDF) examples, including how to install PyFlink, how to define/register/invoke UDFs in PyFlink and how to execute the job.&lt;/p&gt;
+
+&lt;h2 id=&quot;install-pyflink&quot;&gt;Install PyFlink&lt;/h2&gt;
+&lt;p&gt;Using Python in Apache Flink requires installing PyFlink. PyFlink is available through PyPI and can be easily installed using pip:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python -m pip install apache-flink&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Please note that Python 3.5 or higher is required to install and run PyFlink&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;define-a-python-udf&quot;&gt;Define a Python UDF&lt;/h2&gt;
+
+&lt;p&gt;There are many ways to define a Python scalar function, besides extending the base class &lt;code&gt;ScalarFunction&lt;/code&gt;. The following example shows the different ways of defining a Python scalar function that takes two columns of &lt;code&gt;BIGINT&lt;/code&gt; as input parameters and returns the sum of them as the result.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# option 1: extending the base class `ScalarFunction`&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ScalarFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# option 2: Python function&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# option 3: lambda function&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# option 4: callable function&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CallableAdd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CallableAdd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# option 5: partial function&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;partial_add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;functools&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partial_add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;register-a-python-udf&quot;&gt;Register a Python UDF&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# register the Python function&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;add&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;invoke-a-python-udf&quot;&gt;Invoke a Python UDF&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# use the function in Python Table API&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;my_table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;add(a, b)&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Below, you can find a complete example of using Python UDF.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyflink.datastream&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyflink.table&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyflink.table.descriptors&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OldCsv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FileSystem&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyflink.table.udf&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_execution_environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_parallelism&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;add&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FileSystem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;/tmp/input&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OldCsv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_temporary_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;mySource&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FileSystem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;/tmp/output&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OldCsv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;sum&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;with_schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                 &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;field&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;sum&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_temporary_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;mySink&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;mySource&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;\
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;add(a, b)&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;insert_into&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;mySink&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;tutorial_job&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;submit-the-job&quot;&gt;Submit the job&lt;/h2&gt;
+
+&lt;p&gt;Firstly, you need to prepare the input data in the “/tmp/input” file. For example,&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ echo &quot;1,2&quot; &amp;gt; /tmp/input&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, you can run this example on the command line,&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ python python_udf_sum.py&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;The command builds and runs the Python Table API program in a local mini-cluster. You can also submit the Python Table API program to a remote cluster using different command lines, (see more details &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/cli.html#job-submission-examples&quot;&gt;here&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Finally, you can see the execution result on the command line:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;$ cat /tmp/output
+ 3&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;python-udf-dependency-management&quot;&gt;Python UDF dependency management&lt;/h2&gt;
+
+&lt;p&gt;In many cases, you would like to import third-party dependencies in the Python UDF. The example below provides detailed guidance on how to manage such dependencies.&lt;/p&gt;
+
+&lt;p&gt;Suppose you want to use the &lt;code&gt;mpmath&lt;/code&gt; to perform the sum of the example above. The Python UDF may look like:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BIGINT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mpmath&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fadd&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# add third-party dependency&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fadd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To make it available on the worker node that does not contain the dependency, you can specify the dependencies with the following commands and API:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /tmp
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;mpmath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;1.1.0 &amp;gt; requirements.txt
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip download -d cached_dir -r requirements.txt --no-binary :all:&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;n&quot;&gt;t_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_python_requirements&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp/requirements.txt&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp/cached_dir&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;A &lt;code&gt;requirements.txt&lt;/code&gt; file that defines the third-party dependencies is used. If the dependencies cannot be accessed in the cluster, then you can specify a directory containing the installation packages of these dependencies by using the parameter “&lt;code&gt;requirements_cached_dir&lt;/code&gt;”, as illustrated in the example above. The dependencies will be uploaded to the cluster and installed offline.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion--upcoming-work&quot;&gt;Conclusion &amp;amp; Upcoming work&lt;/h1&gt;
+
+&lt;p&gt;In this blog post, we introduced the architecture of Python UDFs in PyFlink and provided some examples on how to define, register and invoke UDFs. Flink 1.10 brings Python support in the framework to new levels, allowing Python users to write even more magic with their preferred language. The community is actively working towards continuously improving the functionality and performance of PyFlink. Future work in upcoming releases will introduce support for Pandas UDFs in scalar and aggregate functions, add support to use Python UDFs through the SQL client to further expand the usage scope of Python UDFs, provide support for a Python ML Pipeline API and finally work towards even more performance improvements. The picture below provides more details on the roadmap for succeeding releases.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-09-pyflink-udfs/roadmap-of-pyflink.png&quot; width=&quot;600px&quot; alt=&quot;Roadmap of PyFlink&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+</description>
+<pubDate>Thu, 09 Apr 2020 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2020/04/09/pyflink-udf-support-flink.html</link>
+<guid isPermaLink="true">/2020/04/09/pyflink-udf-support-flink.html</guid>
+</item>
+
+<item>
 <title>Stateful Functions 2.0 - An Event-driven Database on Apache Flink</title>
 <description>&lt;p&gt;Today, we are announcing the release of Stateful Functions (StateFun) 2.0 — the first release of Stateful Functions as part of the Apache Flink project.
 This release marks a big milestone: Stateful Functions 2.0 is not only an API update, but the &lt;strong&gt;first version of an event-driven database&lt;/strong&gt; that is built on Apache Flink.&lt;/p&gt;
@@ -16918,68 +17086,6 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 <pubDate>Wed, 21 Jan 2015 11:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2015/01/21/release-0.8.html</link>
 <guid isPermaLink="true">/news/2015/01/21/release-0.8.html</guid>
-</item>
-
-<item>
-<title>December 2014 in the Flink community</title>
-<description>&lt;p&gt;This is the first blog post of a “newsletter” like series where we give a summary of the monthly activity in the Flink community. As the Flink project grows, this can serve as a “tl;dr” for people that are not following the Flink dev and user mailing lists, or those that are simply overwhelmed by the traffic.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-graduation&quot;&gt;Flink graduation&lt;/h3&gt;
-
-&lt;p&gt;The biggest news is that the Apache board approved Flink as a top-level Apache project! The Flink team is working closely with the Apache press team for an official announcement, so stay tuned for details!&lt;/p&gt;
-
-&lt;h3 id=&quot;new-flink-website&quot;&gt;New Flink website&lt;/h3&gt;
-
-&lt;p&gt;The &lt;a href=&quot;http://flink.apache.org&quot;&gt;Flink website&lt;/a&gt; got a total make-over, both in terms of appearance and content.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-irc-channel&quot;&gt;Flink IRC channel&lt;/h3&gt;
-
-&lt;p&gt;A new IRC channel called #flink was created at irc.freenode.org. An easy way to access the IRC channel is through the &lt;a href=&quot;http://webchat.freenode.net/&quot;&gt;web client&lt;/a&gt;.  Feel free to stop by to ask anything or share your ideas about Apache Flink!&lt;/p&gt;
-
-&lt;h3 id=&quot;meetups-and-talks&quot;&gt;Meetups and Talks&lt;/h3&gt;
-
-&lt;p&gt;Apache Flink was presented in the &lt;a href=&quot;http://www.meetup.com/Netherlands-Hadoop-User-Group/events/218635152&quot;&gt;Amsterdam Hadoop User Group&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;notable-code-contributions&quot;&gt;Notable code contributions&lt;/h2&gt;
-
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Code contributions listed here may not be part of a release or even the current snapshot yet.&lt;/p&gt;
-
-&lt;h3 id=&quot;streaming-scala-apihttpsgithubcomapacheincubator-flinkpull275&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/275&quot;&gt;Streaming Scala API&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;The Flink Streaming Java API recently got its Scala counterpart. Once merged, Flink Streaming users can use both Scala and Java for their development. The Flink Streaming Scala API is built as a thin layer on top of the Java API, making sure that the APIs are kept easily in sync.&lt;/p&gt;
-
-&lt;h3 id=&quot;intermediate-datasetshttpsgithubcomapacheincubator-flinkpull254&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/254&quot;&gt;Intermediate datasets&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;This pull request introduces a major change in the Flink runtime. Currently, the Flink runtime is based on the notion of operators that exchange data through channels. With the PR, intermediate data sets that are produced by operators become first-class citizens in the runtime. While this does not have any user-facing impact yet, it lays the groundwork for a slew of future features such as blocking execution, fine-grained fault-tolerance, and more efficient data sharing between cluster and client.&lt;/p&gt;
-
-&lt;h3 id=&quot;configurable-execution-modehttpsgithubcomapacheincubator-flinkpull259&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/259&quot;&gt;Configurable execution mode&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;This pull request allows the user to change the object-reuse behaviour. Before this pull request, some operations would reuse objects passed to the user function while others would always create new objects. This introduces a system wide switch and changes all operators to either reuse objects or don’t reuse objects.&lt;/p&gt;
-
-&lt;h3 id=&quot;distributed-coordination-via-akkahttpsgithubcomapacheincubator-flinkpull149&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/149&quot;&gt;Distributed Coordination via Akka&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;Another major change is a complete rewrite of the JobManager / TaskManager components in Scala. In addition to that, the old RPC service was replaced by Actors, using the Akka framework.&lt;/p&gt;
-
-&lt;h3 id=&quot;sorting-of-very-large-recordshttpsgithubcomapacheincubator-flinkpull249-&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/249&quot;&gt;Sorting of very large records&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;Flink’s internal sort-algorithms were improved to better handle large records (multiple 100s of megabytes or larger). Previously, the system did in some cases hold instances of multiple large records, resulting in high memory consumption and JVM heap thrashing. Through this fix, large records are streamed through the operators, reducing the memory consumption and GC pressure. The system now requires much less memory to support algorithms that work on such large records.&lt;/p&gt;
-
-&lt;h3 id=&quot;kryo-serialization-as-the-new-default-fallbackhttpsgithubcomapacheincubator-flinkpull271&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/271&quot;&gt;Kryo Serialization as the new default fallback&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;Flink’s build-in type serialization framework is handles all common types very efficiently. Prior versions uses Avro to serialize types that the built-in framework could not handle.
-Flink serialization system improved a lot over time and by now surpasses the capabilities of Avro in many cases. Kryo now serves as the default fallback serialization framework, supporting a much broader range of types.&lt;/p&gt;
-
-&lt;h3 id=&quot;hadoop-filesystem-supporthttpsgithubcomapacheincubator-flinkpull268&quot;&gt;&lt;a href=&quot;https://github.com/apache/incubator-flink/pull/268&quot;&gt;Hadoop FileSystem support&lt;/a&gt;&lt;/h3&gt;
-
-&lt;p&gt;This change permits users to use all file systems supported by Hadoop with Flink. In practice this means that users can use Flink with Tachyon, Google Cloud Storage (also out of the box Flink YARN support on Google Compute Cloud), FTP and all the other file system implementations for Hadoop.&lt;/p&gt;
-
-&lt;h2 id=&quot;heading-to-the-080-release&quot;&gt;Heading to the 0.8.0 release&lt;/h2&gt;
-
-&lt;p&gt;The community is working hard together with the Apache infra team to migrate the Flink infrastructure to a top-level project. At the same time, the Flink community is working on the Flink 0.8.0 release which should be out very soon.&lt;/p&gt;
-</description>
-<pubDate>Tue, 06 Jan 2015 11:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2015/01/06/december-in-flink.html</link>
-<guid isPermaLink="true">/news/2015/01/06/december-in-flink.html</guid>
 </item>
 
 </channel>
