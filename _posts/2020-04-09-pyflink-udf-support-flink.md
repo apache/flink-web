@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "PyFlink: Introducing Python Support for UDFs in Flink's Table API"
-date: 2020-02-23T12:00:00.000Z
+date: 2020-04-09T12:00:00.000Z
 authors:
 - Jincheng:
   name: "Jincheng Sun"
@@ -24,7 +24,7 @@ Before diving into how you can define and use Python UDFs, we explain the motiva
 The PyFlink architecture mainly includes two parts — local and cluster — as shown in the architecture visual below. The local phase is the compilation of the job, and the cluster is the execution of the job.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-02-23-pyflink-udfs/pyflink-udf-architecture.png" width="600px" alt="PyFlink UDF Architecture"/>
+<img src="{{ site.baseurl }}/img/blog/2020-04-09-pyflink-udfs/pyflink-udf-architecture.png" width="600px" alt="PyFlink UDF Architecture"/>
 </center>
 <br>
 
@@ -171,14 +171,13 @@ def add(i, j):
 
 To make it available on the worker node that does not contain the dependency, you can specify the dependencies with the following commands and API:
 
-```shell
+```bash
 $ cd /tmp
 $ echo mpmath==1.1.0 > requirements.txt
 $ pip download -d cached_dir -r requirements.txt --no-binary :all:
 ```
 
 ```python
-
 t_env.set_python_requirements("/tmp/requirements.txt", "/tmp/cached_dir")
 ```
 
@@ -190,6 +189,6 @@ A `requirements.txt` file that defines the third-party dependencies is used. If 
 In this blog post, we introduced the architecture of Python UDFs in PyFlink and provided some examples on how to define, register and invoke UDFs. Flink 1.10 brings Python support in the framework to new levels, allowing Python users to write even more magic with their preferred language. The community is actively working towards continuously improving the functionality and performance of PyFlink. Future work in upcoming releases will introduce support for Pandas UDFs in scalar and aggregate functions, add support to use Python UDFs through the SQL client to further expand the usage scope of Python UDFs, provide support for a Python ML Pipeline API and finally work towards even more performance improvements. The picture below provides more details on the roadmap for succeeding releases. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-02-23-pyflink-udfs/roadmap-of-pyflink.png" width="600px" alt="Roadmap of PyFlink"/>
+<img src="{{ site.baseurl }}/img/blog/2020-04-09-pyflink-udfs/roadmap-of-pyflink.png" width="600px" alt="Roadmap of PyFlink"/>
 </center>
 <br>
