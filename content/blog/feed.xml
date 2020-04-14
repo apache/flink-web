@@ -7,6 +7,307 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flink Serialization Tuning Vol. 1: Choosing your Serializer — if you can</title>
+<description>&lt;p&gt;Almost every Flink job has to exchange data between its operators and since these records may not only be sent to another instance in the same JVM but instead to a separate process, records need to be serialized to bytes first. Similarly, Flink’s off-heap state-backend is based on a local embedded RocksDB instance which is implemented in native C++ code and thus also needs transformation into bytes on every state access. Wire and state serialization alone can easily cost a lot of your job’s performance if not executed correctly and thus, whenever you look into the profiler output of your Flink job, you will most likely see serialization in the top places for using CPU cycles.&lt;/p&gt;
+
+&lt;p&gt;Since serialization is so crucial to your Flink job, we would like to highlight Flink’s serialization stack in a series of blog posts starting with looking at the different ways Flink can serialize your data types.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#recap-flink-serialization&quot; id=&quot;markdown-toc-recap-flink-serialization&quot;&gt;Recap: Flink Serialization&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#choice-of-serializer&quot; id=&quot;markdown-toc-choice-of-serializer&quot;&gt;Choice of Serializer&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#pojoserializer&quot; id=&quot;markdown-toc-pojoserializer&quot;&gt;PojoSerializer&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#tuple-data-types&quot; id=&quot;markdown-toc-tuple-data-types&quot;&gt;Tuple Data Types&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#row-data-types&quot; id=&quot;markdown-toc-row-data-types&quot;&gt;Row Data Types&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#avro&quot; id=&quot;markdown-toc-avro&quot;&gt;Avro&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#avro-specific&quot; id=&quot;markdown-toc-avro-specific&quot;&gt;Avro Specific&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#avro-generic&quot; id=&quot;markdown-toc-avro-generic&quot;&gt;Avro Generic&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#avro-reflect&quot; id=&quot;markdown-toc-avro-reflect&quot;&gt;Avro Reflect&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#kryo&quot; id=&quot;markdown-toc-kryo&quot;&gt;Kryo&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#disabling-kryo&quot; id=&quot;markdown-toc-disabling-kryo&quot;&gt;Disabling Kryo&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#apache-thrift-via-kryo&quot; id=&quot;markdown-toc-apache-thrift-via-kryo&quot;&gt;Apache Thrift (via Kryo)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#protobuf-via-kryo&quot; id=&quot;markdown-toc-protobuf-via-kryo&quot;&gt;Protobuf (via Kryo)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#state-schema-evolution&quot; id=&quot;markdown-toc-state-schema-evolution&quot;&gt;State Schema Evolution&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#performance-comparison&quot; id=&quot;markdown-toc-performance-comparison&quot;&gt;Performance Comparison&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot; id=&quot;markdown-toc-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;recap-flink-serialization&quot;&gt;Recap: Flink Serialization&lt;/h1&gt;
+
+&lt;p&gt;Flink handles &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/types_serialization.html&quot;&gt;data types and serialization&lt;/a&gt; with its own type descriptors, generic type extraction, and type serialization framework. We recommend reading through the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/types_serialization.html&quot;&gt;documentation&lt;/a&gt; first in order to be able to follow the arguments we present below. In essence, Flink tries to infer information about your job’s data types for wire and state serialization, and to be able to use grouping, joining, and aggregation operations by referring to individual field names, e.g. 
+&lt;code&gt;stream.keyBy(“ruleId”)&lt;/code&gt; or 
+&lt;code&gt;dataSet.join(another).where(&quot;name&quot;).equalTo(&quot;personName&quot;)&lt;/code&gt;. It also allows optimizations in the serialization format as well as reducing unnecessary de/serializations (mainly in certain Batch operations as well as in the SQL/Table APIs).&lt;/p&gt;
+
+&lt;h1 id=&quot;choice-of-serializer&quot;&gt;Choice of Serializer&lt;/h1&gt;
+
+&lt;p&gt;Apache Flink’s out-of-the-box serialization can be roughly divided into the following groups:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Flink-provided special serializers&lt;/strong&gt; for basic types (Java primitives and their boxed form), arrays, composite types (tuples, Scala case classes, Rows), and a few auxiliary types (Option, Either, Lists, Maps, …),&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;POJOs&lt;/strong&gt;; a public, standalone class with a public no-argument constructor and all non-static, non-transient fields in the class hierarchy either public or with a public getter- and a setter-method; see &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types&quot;&gt;POJO Rules&lt;/a&gt;,&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Generic types&lt;/strong&gt;; user-defined data types that are not recognized as a POJO and then serialized via &lt;a href=&quot;https://github.com/EsotericSoftware/kryo&quot;&gt;Kryo&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Alternatively, you can also register &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/custom_serializers.html&quot;&gt;custom serializers&lt;/a&gt; for user-defined data types. This includes writing your own serializers or integrating other serialization systems like &lt;a href=&quot;https://developers.google.com/protocol-buffers/&quot;&gt;Google Protobuf&lt;/a&gt; or &lt;a href=&quot;https://thrift.apache.org/&quot;&gt;Apache Thrift&lt;/a&gt; via &lt;a href=&quot;https://github.com/EsotericSoftware/kryo&quot;&gt;Kryo&lt;/a&gt;. Overall, this gives quite a number of different options of serializing user-defined data types and we will elaborate seven of them in the sections below.&lt;/p&gt;
+
+&lt;h2 id=&quot;pojoserializer&quot;&gt;PojoSerializer&lt;/h2&gt;
+
+&lt;p&gt;As outlined above, if your data type is not covered by a specialized serializer but follows the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types&quot;&gt;POJO Rules&lt;/a&gt;, it will be serialized with the &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/PojoSerializer.java&quot;&gt;PojoSerializer&lt;/a&gt; which uses Java reflection to access an object’s fields. It is fast, generic, Flink-specific, and supports &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/schema_evolution.html&quot;&gt;state schema evolution&lt;/a&gt; out of the box. If a composite data type cannot be serialized as a POJO, you will find the following message (or similar) in your cluster logs:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;15:45:51,460 INFO  org.apache.flink.api.java.typeutils.TypeExtractor             - Class … cannot be used as a POJO type because not all fields are valid POJO fields, and must be processed as GenericType. Please read the Flink documentation on “Data Types &amp;amp; Serialization” for details of the effect on performance.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This means, that the PojoSerializer will not be used, but instead Flink will fall back to Kryo for serialization (see below). We will have a more detailed look into a few (more) situations that can lead to unexpected Kryo fallbacks in the second part of this blog post series.&lt;/p&gt;
+
+&lt;h2 id=&quot;tuple-data-types&quot;&gt;Tuple Data Types&lt;/h2&gt;
+
+&lt;p&gt;Flink comes with a predefined set of tuple types which all have a fixed length and contain a set of strongly-typed fields of potentially different types. There are implementations for &lt;code&gt;Tuple0&lt;/code&gt;, &lt;code&gt;Tuple1&amp;lt;T0&amp;gt;&lt;/code&gt;, …, &lt;code&gt;Tuple25&amp;lt;T0, T1, ..., T24&amp;gt;&lt;/code&gt; and they may serve as easy-to-use wrappers that spare the creation of POJOs for each and every combination of objects you need to pass between computations. With the exception of &lt;code&gt;Tuple0&lt;/code&gt;, these are serialized and deserialized with the &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/TupleSerializer.java&quot;&gt;TupleSerializer&lt;/a&gt; and the according fields’ serializers. Since tuple classes are completely under the control of Flink, both actions can be performed without reflection by accessing the appropriate fields directly. This certainly is a (performance) advantage when working with tuples instead of POJOs. Tuples, however, are not as flexible and certainly less descriptive in code.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+ Since &lt;code&gt;Tuple0&lt;/code&gt; does not contain any data and therefore is probably a bit special anyway, it will use a special serializer implementation: &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/Tuple0Serializer.java&quot;&gt;Tuple0Serializer&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;row-data-types&quot;&gt;Row Data Types&lt;/h2&gt;
+
+&lt;p&gt;Row types are mainly used by the Table and SQL APIs of Flink. A &lt;code&gt;Row&lt;/code&gt; groups an arbitrary number of objects together similar to the tuples above. These fields are not strongly typed and may all be of different types. Because field types are missing, Flink’s type extraction cannot automatically extract type information and users of a &lt;code&gt;Row&lt;/code&gt; need to manually tell Flink about the row’s field types. The &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/RowSerializer.java&quot;&gt;RowSerializer&lt;/a&gt; will then make use of these types for efficient serialization.&lt;/p&gt;
+
+&lt;p&gt;Row type information can be provided in two ways:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;you can have your source or operator implement &lt;code&gt;ResultTypeQueryable&amp;lt;Row&amp;gt;&lt;/code&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RowSource&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SourceFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ResultTypeQueryable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TypeInformation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getProducedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ROW&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;INT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;OBJECT_ARRAY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;you can provide the types when building the job graph by using &lt;code&gt;SingleOutputStreamOperator#returns()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RowSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;returns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ROW&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;INT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;OBJECT_ARRAY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Types&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt;
+If you fail to provide the type information for a &lt;code&gt;Row&lt;/code&gt;, Flink identifies that &lt;code&gt;Row&lt;/code&gt; is not a valid POJO type according to the rules above and falls back to Kryo serialization (see below) which you will also see in the logs as:&lt;/p&gt;
+
+  &lt;p&gt;&lt;code&gt;13:10:11,148 INFO  org.apache.flink.api.java.typeutils.TypeExtractor             - Class class org.apache.flink.types.Row cannot be used as a POJO type because not all fields are valid POJO fields, and must be processed as GenericType. Please read the Flink documentation on &quot;Data Types &amp;amp; Serialization&quot; for details of the effect on performance.&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;avro&quot;&gt;Avro&lt;/h2&gt;
+
+&lt;p&gt;Flink offers built-in support for the &lt;a href=&quot;http://avro.apache.org/&quot;&gt;Apache Avro&lt;/a&gt; serialization framework (currently using version 1.8.2) by adding the &lt;code&gt;org.apache.flink:flink-avro&lt;/code&gt; dependency into your job. Flink’s &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.10.0/flink-formats/flink-avro/src/main/java/org/apache/flink/formats/avro/typeutils/AvroSerializer.java&quot;&gt;AvroSerializer&lt;/a&gt; can then use Avro’s specific, generic, and reflective data serialization and make use of Avro’s performance and flexibility, especially in terms of &lt;a href=&quot;https://avro.apache.org/docs/current/spec.html#Schema+Resolution&quot;&gt;evolving the schema&lt;/a&gt; when the classes change over time.&lt;/p&gt;
+
+&lt;h3 id=&quot;avro-specific&quot;&gt;Avro Specific&lt;/h3&gt;
+
+&lt;p&gt;Avro specific records will be automatically detected by checking that the given type’s type hierarchy contains the &lt;code&gt;SpecificRecordBase&lt;/code&gt; class. You can either specify your concrete Avro type, or—if you want to be more generic and allow different types in your operator—use the &lt;code&gt;SpecificRecordBase&lt;/code&gt; type (or a subtype) in your user functions, in &lt;code&gt;ResultTypeQueryable#getProducedType()&lt;/code&gt;, or in &lt;code&gt;SingleOutputStreamOperator#returns()&lt;/code&gt;. Since specific records use generated Java code, they are strongly typed and allow direct access to the fields via known getters and setters.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-warning&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-warning-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Warning&lt;/span&gt; If you specify the Flink type as &lt;code&gt;SpecificRecord&lt;/code&gt; and not &lt;code&gt;SpecificRecordBase&lt;/code&gt;, Flink will not see this as an Avro type. Instead, it will use Kryo to de/serialize any objects which may be considerably slower.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;avro-generic&quot;&gt;Avro Generic&lt;/h3&gt;
+
+&lt;p&gt;Avro’s &lt;code&gt;GenericRecord&lt;/code&gt; types cannot, unfortunately, be used automatically since they require the user to &lt;a href=&quot;https://avro.apache.org/docs/1.8.2/gettingstartedjava.html#Serializing+and+deserializing+without+code+generation&quot;&gt;specify a schema&lt;/a&gt; (either manually or by retrieving it from some schema registry). With that schema, you can provide the right type information by either of the following options just like for the Row Types above:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;implement &lt;code&gt;ResultTypeQueryable&amp;lt;GenericRecord&amp;gt;&lt;/code&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AvroGenericSource&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SourceFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GenericRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ResultTypeQueryable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GenericRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GenericRecordAvroTypeInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AvroGenericSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Schema&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;producedType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GenericRecordAvroTypeInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TypeInformation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GenericRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getProducedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producedType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+  &lt;li&gt;provide type information when building the job graph by using &lt;code&gt;SingleOutputStreamOperator#returns()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GenericRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AvroGenericSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;returns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GenericRecordAvroTypeInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Without this type information, Flink will fall back to Kryo for serialization which would serialize the schema into every record, over and over again. As a result, the serialized form will be bigger and more costly to create.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+ Since Avro’s &lt;code&gt;Schema&lt;/code&gt; class is not serializable, it can not be sent around as is. You can work around this by converting it to a String and parsing it back when needed. If you only do this once on initialization, there is practically no difference to sending it directly.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;avro-reflect&quot;&gt;Avro Reflect&lt;/h3&gt;
+
+&lt;p&gt;The third way of using Avro is to exchange Flink’s PojoSerializer (for POJOs according to the rules above) for Avro’s reflection-based serializer. This can be enabled by calling&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;enableForceAvro&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;kryo&quot;&gt;Kryo&lt;/h2&gt;
+
+&lt;p&gt;Any class or object which does not fall into the categories above or is covered by a Flink-provided special serializer is de/serialized with a fallback to &lt;a href=&quot;https://github.com/EsotericSoftware/kryo&quot;&gt;Kryo&lt;/a&gt; (currently version 2.24.0) which is a powerful and generic serialization framework in Java. Flink calls such a type a &lt;em&gt;generic type&lt;/em&gt; and you may stumble upon &lt;code&gt;GenericTypeInfo&lt;/code&gt; when debugging code. If you are using Kryo serialization, make sure to register your types with kryo:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerKryoType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyCustomType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Registering types adds them to an internal map of classes to tags so that, during serialization, Kryo does not have to add the fully qualified class names as a prefix into the serialized form. Instead, Kryo uses these (integer) tags to identify the underlying classes and reduce serialization overhead.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Flink will store Kryo serializer mappings from type registrations in its checkpoints and savepoints and will retain them across job (re)starts.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;disabling-kryo&quot;&gt;Disabling Kryo&lt;/h3&gt;
+
+&lt;p&gt;If desired, you can disable the Kryo fallback, i.e. the ability to serialize generic types, by calling&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;disableGenericTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This is mostly useful for finding out where these fallbacks are applied and replacing them with better serializers. If your job has any generic types with this configuration, it will fail with&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Exception in thread “main” java.lang.UnsupportedOperationException: Generic types have been disabled in the ExecutionConfig and type … is treated as a generic type.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If you cannot immediately see from the type where it is being used, this log message also gives you a stacktrace that can be used to set breakpoints and find out more details in your IDE.&lt;/p&gt;
+
+&lt;h2 id=&quot;apache-thrift-via-kryo&quot;&gt;Apache Thrift (via Kryo)&lt;/h2&gt;
+
+&lt;p&gt;In addition to the variants above, Flink also allows you to &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program&quot;&gt;register other type serialization frameworks&lt;/a&gt; with Kryo. After adding the appropriate dependencies from the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program&quot;&gt;documentation&lt;/a&gt; (&lt;code&gt;com.twitter:chill-thrift&lt;/code&gt; and &lt;code&gt;org.apache.thrift:libthrift&lt;/code&gt;), you can use &lt;a href=&quot;https://thrift.apache.org/&quot;&gt;Apache Thrift&lt;/a&gt; like the following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addDefaultKryoSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyCustomType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TBaseSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This only works if generic types are not disabled and &lt;code&gt;MyCustomType&lt;/code&gt; is a Thrift-generated data type. If the data type is not generated by Thrift, Flink will fail at runtime with an exception like this:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;java.lang.ClassCastException: class MyCustomType cannot be cast to class org.apache.thrift.TBase (MyCustomType and org.apache.thrift.TBase are in unnamed module of loader ‘app’)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Please note that &lt;code&gt;TBaseSerializer&lt;/code&gt; can be registered as a default Kryo serializer as above (and as specified in &lt;a href=&quot;https://github.com/twitter/chill/blob/v0.7.6/chill-thrift/src/main/java/com/twitter/chill/thrift/TBaseSerializer.java&quot;&gt;its documentation&lt;/a&gt;) or via &lt;code&gt;registerTypeWithKryoSerializer&lt;/code&gt;. In practice, we found both ways working. We also saw no difference between registering Thrift classes in addition to the call above. Both may be different in your scenario.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;protobuf-via-kryo&quot;&gt;Protobuf (via Kryo)&lt;/h2&gt;
+
+&lt;p&gt;In a way similar to Apache Thrift, &lt;a href=&quot;https://developers.google.com/protocol-buffers/&quot;&gt;Google Protobuf&lt;/a&gt; may be &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program&quot;&gt;registered as a custom serializer&lt;/a&gt; after adding the right dependencies (&lt;code&gt;com.twitter:chill-protobuf&lt;/code&gt; and &lt;code&gt;com.google.protobuf:protobuf-java&lt;/code&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerTypeWithKryoSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyCustomType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProtobufSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This will work as long as generic types have not been disabled (this would disable Kryo for good). If &lt;code&gt;MyCustomType&lt;/code&gt; is not a Protobuf-generated class, your Flink job will fail at runtime with the following exception:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;java.lang.ClassCastException: class &lt;code&gt;MyCustomType&lt;/code&gt; cannot be cast to class com.google.protobuf.Message (&lt;code&gt;MyCustomType&lt;/code&gt; and com.google.protobuf.Message are in unnamed module of loader ‘app’)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Please note that &lt;code&gt;ProtobufSerializer&lt;/code&gt; can be registered as a default Kryo serializer (as specified in the &lt;a href=&quot;https://github.com/twitter/chill/blob/v0.7.6/chill-thrift/src/main/java/com/twitter/chill/thrift/TBaseSerializer.java&quot;&gt;Protobuf documentation&lt;/a&gt;) or via &lt;code&gt;registerTypeWithKryoSerializer&lt;/code&gt; (as presented here). In practice, we found both ways working. We also saw no difference between registering your Protobuf classes in addition to the call above. Both may be different in your scenario.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;state-schema-evolution&quot;&gt;State Schema Evolution&lt;/h1&gt;
+
+&lt;p&gt;Before taking a closer look at the performance of each of the serializers described above, we would like to emphasize that performance is not everything that counts inside a real-world Flink job. Types for storing state, for example, should be able to evolve their schema (add/remove/change fields) throughout the lifetime of the job without losing previous state. This is what Flink calls &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/state/schema_evolution.html&quot;&gt;State Schema Evolution&lt;/a&gt;. Currently, as of Flink 1.10, there are only two serializers that support out-of-the-box schema evolution: POJO and Avro. For anything else, if you want to change the state schema, you will have to either implement your own &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/stream/state/custom_serialization.html&quot;&gt;custom serializers&lt;/a&gt; or use the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/libs/state_processor_api.html&quot;&gt;State Processor API&lt;/a&gt; to modify your state for the new code.&lt;/p&gt;
+
+&lt;h1 id=&quot;performance-comparison&quot;&gt;Performance Comparison&lt;/h1&gt;
+
+&lt;p&gt;With so many options for serialization, it is actually not easy to make the right choice. We already saw some technical advantages and disadvantages of each of them outlined above. Since serializers are at the core of your Flink jobs and usually also sit on the hot path (per record invocations), let us actually take a deeper look into their performance with the help of the Flink benchmarks project at &lt;a href=&quot;https://github.com/dataArtisans/flink-benchmarks&quot;&gt;https://github.com/dataArtisans/flink-benchmarks&lt;/a&gt;. This project adds a few micro-benchmarks on top of Flink (some more low-level than others) to track performance regressions and improvements. Flink’s continuous benchmarks for monitoring the serialization stack’s performance are implemented in &lt;a href=&quot;https://github.com/dataArtisans/flink-benchmarks/blob/master/src/main/java/org/apache/flink/benchmark/SerializationFrameworkMiniBenchmarks.java&quot;&gt;SerializationFrameworkMiniBenchmarks.java&lt;/a&gt;. This is only a subset of all available serialization benchmarks though and you will find the complete set in &lt;a href=&quot;https://github.com/dataArtisans/flink-benchmarks/blob/master/src/main/java/org/apache/flink/benchmark/full/SerializationFrameworkAllBenchmarks.java&quot;&gt;SerializationFrameworkAllBenchmarks.java&lt;/a&gt;. All of these use the same definition of a small POJO that may cover average use cases. Essentially (without constructors, getters, and setters), these are the data types that it uses for evaluating performance:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyPojo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;operationNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyOperation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;operations&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;otherId1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;otherId2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;otherId3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;someObject&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyOperation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This is mapped to tuples, rows, Avro specific records, Thrift and Protobuf representations appropriately and sent through a simple Flink job at parallelism 4 where the data type is used during network communication like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setParallelism&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PojoSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RECORDS_PER_INVOCATION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;rebalance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DiscardingSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;());&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After running this through the &lt;a href=&quot;http://openjdk.java.net/projects/code-tools/jmh/&quot;&gt;jmh&lt;/a&gt; micro-benchmarks defined in &lt;a href=&quot;https://github.com/dataArtisans/flink-benchmarks/blob/master/src/main/java/org/apache/flink/benchmark/full/SerializationFrameworkAllBenchmarks.java&quot;&gt;SerializationFrameworkAllBenchmarks.java&lt;/a&gt;, I retrieved the following performance results for Flink 1.10 on my machine (in number of operations per millisecond):
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-04-15-flink-serialization-performance-results.svg&quot; width=&quot;800px&quot; alt=&quot;Communication between the Flink operator and the Python execution environment&quot; /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;A few takeaways from these numbers:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The default fallback from POJO to Kryo reduces performance by 75%.&lt;br /&gt;
+Registering types with Kryo significantly improves its performance with only 64% fewer operations than by using a POJO.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Avro GenericRecord and SpecificRecord are roughly serialized at the same speed.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Avro Reflect serialization is even slower than Kryo default (-45%).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Tuples are the fastest, closely followed by Rows. Both leverage fast specialized serialization code based on direct access without Java reflection.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Using a (nested) Tuple instead of a POJO may speed up your job by 42% (but is less flexible!).
+ Having code-generation for the PojoSerializer (&lt;a href=&quot;https://jira.apache.org/jira/browse/FLINK-3599&quot;&gt;FLINK-3599&lt;/a&gt;) may actually close that gap (or at least move closer to the RowSerializer). If you feel like giving the implementation a go, please give the Flink community a note and we will see whether we can make that happen.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;If you cannot use POJOs, try to define your data type with one of the serialization frameworks that generate specific code for it: Protobuf, Avro, Thrift (in that order, performance-wise).&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt; As with all benchmarks, please bear in mind that these numbers only give a hint on Flink’s serializer performance in a specific scenario. They may be different with your data types but the rough classification is probably the same. If you want to be sure, please verify the results with your data types. You should be able to copy from &lt;code&gt;SerializationFrameworkAllBenchmarks.java&lt;/code&gt; to set up your own micro-benchmarks or integrate different serialization benchmarks into your own tooling.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;In the sections above, we looked at how Flink performs serialization for different sorts of data types and elaborated the technical advantages and disadvantages. For data types used in Flink state, you probably want to leverage either POJO or Avro types which, currently, are the only ones supporting state evolution out of the box and allow your stateful application to develop over time. POJOs are usually faster in the de/serialization while Avro may support more flexible schema evolution and may integrate better with external systems. Please note, however, that you can use different serializers for external vs. internal components or even state vs. network communication.&lt;/p&gt;
+
+&lt;p&gt;The fastest de/serialization is achieved with Flink’s internal tuple and row serializers which can access these types’ fields directly without going via reflection. With roughly 30% decreased throughput as compared to tuples, Protobuf and POJO types do not perform too badly on their own and are more flexible and maintainable. Avro (specific and generic) records as well as Thrift data types further reduce performance by 20% and 30%, respectively. You definitely want to avoid Kryo as that reduces throughput further by around 50% and more!&lt;/p&gt;
+
+&lt;p&gt;The next article in this series will use this finding as a starting point to look into a few common pitfalls and obstacles of avoiding Kryo, how to get the most out of the PojoSerializer, and a few more tuning techniques with respect to serialization. Stay tuned for more.&lt;/p&gt;
+</description>
+<pubDate>Wed, 15 Apr 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/04/15/flink-serialization-tuning-vol-1.html</link>
+<guid isPermaLink="true">/news/2020/04/15/flink-serialization-tuning-vol-1.html</guid>
+</item>
+
+<item>
 <title>PyFlink: Introducing Python Support for UDFs in Flink&#39;s Table API</title>
 <description>&lt;p&gt;Flink 1.9 introduced the Python Table API, allowing developers and data engineers to write Python Table API jobs for Table transformations and analysis, such as Python ETL or aggregate jobs. However, Python users faced some limitations when it came to support for Python UDFs in Flink 1.9, preventing them from extending the system’s built-in functionality.&lt;/p&gt;
 
@@ -17000,92 +17301,6 @@ internally, fault tolerance, and performance measurements!&lt;/p&gt;
 <pubDate>Wed, 04 Feb 2015 11:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2015/02/04/january-in-flink.html</link>
 <guid isPermaLink="true">/news/2015/02/04/january-in-flink.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 0.8.0 available</title>
-<description>&lt;p&gt;We are pleased to announce the availability of Flink 0.8.0. This release includes new user-facing features as well as performance and bug fixes, extends the support for filesystems and introduces the Scala API and flexible windowing semantics for Flink Streaming. A total of 33 people have contributed to this release, a big thanks to all of them!&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.apache.org/dyn/closer.cgi/flink/flink-0.8.0/flink-0.8.0-bin-hadoop2.tgz&quot;&gt;Download Flink 0.8.0&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12328699&quot;&gt;See the release changelog&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;overview-of-major-new-features&quot;&gt;Overview of major new features&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Extended filesystem support&lt;/strong&gt;: The former &lt;code&gt;DistributedFileSystem&lt;/code&gt; interface has been generalized to &lt;code&gt;HadoopFileSystem&lt;/code&gt; now supporting all sub classes of &lt;code&gt;org.apache.hadoop.fs.FileSystem&lt;/code&gt;. This allows users to use all file systems supported by Hadoop with Apache Flink.
-&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.8/example_connectors.html&quot;&gt;See connecting to other systems&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Streaming Scala API&lt;/strong&gt;: As an alternative to the existing Java API Streaming is now also programmable in Scala. The Java and Scala APIs have now the same syntax and transformations and will be kept from now on in sync in every future release.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Streaming windowing semantics&lt;/strong&gt;: The new windowing api offers an expressive way to define custom logic for triggering the execution of a stream window and removing elements. The new features include out-of-the-box support for windows based in logical or physical time and data-driven properties on the events themselves among others. &lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.8/streaming_guide.html#window-operators&quot;&gt;Read more here&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Mutable and immutable objects in runtime&lt;/strong&gt; All Flink versions before 0.8.0 were always passing the same objects to functions written by users. This is a common performance optimization, also used in other systems such as Hadoop.
- However, this is error-prone for new users because one has to carefully check that references to the object aren’t kept in the user function. Starting from 0.8.0, Flink allows to configure a mode which is disabling that mechanism.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Performance and usability improvements&lt;/strong&gt;: The new Apache Flink 0.8.0 release brings several new features which will significantly improve the performance and the usability of the system. Amongst others, these features include:
-    &lt;ul&gt;
-      &lt;li&gt;Improved input split assignment which maximizes computation locality&lt;/li&gt;
-      &lt;li&gt;Smart broadcasting mechanism which minimizes network I/O&lt;/li&gt;
-      &lt;li&gt;Custom partitioners which let the user control how the data is partitioned within the cluster. This helps to prevent data skewness and allows to implement highly efficient algorithms.&lt;/li&gt;
-      &lt;li&gt;coGroup operator now supports group sorting for its inputs&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Kryo is the new fallback serializer&lt;/strong&gt;: Apache Flink has a sophisticated type analysis and serialization framework that is able to handle commonly used types very efficiently.
- In addition to that, there is a fallback serializer for types which are not supported. Older versions of Flink used the reflective &lt;a href=&quot;http://avro.apache.org/&quot;&gt;Avro&lt;/a&gt; serializer for that purpose. With this release, Flink is using the powerful &lt;a href=&quot;https://github.com/EsotericSoftware/kryo&quot;&gt;Kryo&lt;/a&gt; and twitter-chill library for support of types such as Java Collections and Scala specifc types.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Hadoop 2.2.0+ is now the default Hadoop dependency&lt;/strong&gt;: With Flink 0.8.0 we made the “hadoop2” build profile the default build for Flink. This means that all users using Hadoop 1 (0.2X or 1.2.X versions) have to specify  version “0.8.0-hadoop1” in their pom files.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;HBase module updated&lt;/strong&gt; The HBase version has been updated to 0.98.6.1. Also, Hbase is now available to the Hadoop1 and Hadoop2 profile of Flink.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;contributors&quot;&gt;Contributors&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Marton Balassi&lt;/li&gt;
-  &lt;li&gt;Daniel Bali&lt;/li&gt;
-  &lt;li&gt;Carsten Brandt&lt;/li&gt;
-  &lt;li&gt;Moritz Borgmann&lt;/li&gt;
-  &lt;li&gt;Stefan Bunk&lt;/li&gt;
-  &lt;li&gt;Paris Carbone&lt;/li&gt;
-  &lt;li&gt;Ufuk Celebi&lt;/li&gt;
-  &lt;li&gt;Nils Engelbach&lt;/li&gt;
-  &lt;li&gt;Stephan Ewen&lt;/li&gt;
-  &lt;li&gt;Gyula Fora&lt;/li&gt;
-  &lt;li&gt;Gabor Hermann&lt;/li&gt;
-  &lt;li&gt;Fabian Hueske&lt;/li&gt;
-  &lt;li&gt;Vasiliki Kalavri&lt;/li&gt;
-  &lt;li&gt;Johannes Kirschnick&lt;/li&gt;
-  &lt;li&gt;Aljoscha Krettek&lt;/li&gt;
-  &lt;li&gt;Suneel Marthi&lt;/li&gt;
-  &lt;li&gt;Robert Metzger&lt;/li&gt;
-  &lt;li&gt;Felix Neutatz&lt;/li&gt;
-  &lt;li&gt;Chiwan Park&lt;/li&gt;
-  &lt;li&gt;Flavio Pompermaier&lt;/li&gt;
-  &lt;li&gt;Mingliang Qi&lt;/li&gt;
-  &lt;li&gt;Shiva Teja Reddy&lt;/li&gt;
-  &lt;li&gt;Till Rohrmann&lt;/li&gt;
-  &lt;li&gt;Henry Saputra&lt;/li&gt;
-  &lt;li&gt;Kousuke Saruta&lt;/li&gt;
-  &lt;li&gt;Chesney Schepler&lt;/li&gt;
-  &lt;li&gt;Erich Schubert&lt;/li&gt;
-  &lt;li&gt;Peter Szabo&lt;/li&gt;
-  &lt;li&gt;Jonas Traub&lt;/li&gt;
-  &lt;li&gt;Kostas Tzoumas&lt;/li&gt;
-  &lt;li&gt;Timo Walther&lt;/li&gt;
-  &lt;li&gt;Daniel Warneke&lt;/li&gt;
-  &lt;li&gt;Chen Xu&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Wed, 21 Jan 2015 11:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2015/01/21/release-0.8.html</link>
-<guid isPermaLink="true">/news/2015/01/21/release-0.8.html</guid>
 </item>
 
 </channel>
