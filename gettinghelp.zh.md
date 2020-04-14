@@ -48,10 +48,12 @@ Flink 使用 Java 序列化来分发应用程序逻辑（你实现的函数和�
 [java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html) 定义。
 
 如果你使用的函数是匿名内部类，请考虑以下事项：
+
   - 为函数构建独立的类或静态内部类。
   - 使用 Java 8 lambda 函数。
 
 如果函数已经是静态类，则在创建该类的实例时会检查该类的字段。其中很可能包含不可序列化类型的字段。
+
   - 在 Java 中，使用 `RichFunction` 并且在 `open()` 方法中初始化有问题的字段。
   - 在 Scala 中，你通常可以简单地使用 “lazy val” 声明来推迟初始化，直到分布式执行发生。这可能是一个较小的性能成本。你当然也可以在 Scala 中使用 `RichFunction`。
 
@@ -88,6 +90,7 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 从 Flink 1.4.0 开始，在默认激活 `child-first` 类加载方式的情况下，相比 Flink core 所使用的依赖或类路径中的其他依赖（例如来自 Hadoop ）而言，应用程序 JAR 文件中的依赖更可能带有不同的版本。
 
 如果你在 Flink 1.4 以上的版本中看到这些问题，则可能是属于以下某种情况：
+
   - 你的程序代码中存在依赖项版本冲突，确保所有依赖项版本都一致。
   - 你与一个 Flink 不能支持 `child-first` 类加载的库发生了冲突。目前会产生这种情况的有 Scala 标准库类、Flink 自己的类、日志 API 和所有的 Hadoop 核心类。
 

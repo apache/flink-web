@@ -49,11 +49,13 @@ Because of that, all functions that you pass to the API must be serializable, as
 [java.io.Serializable](http://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html).
 
 If your function is an anonymous inner class, consider the following:
+
   - make the function a standalone class, or a static inner class.
   - use a Java 8 lambda function.
 
 Is your function is already a static class, check the fields that you assign when you create
 an instance of the class. One of the fields most likely holds a non-serializable type.
+
   - In Java, use a `RichFunction` and initialize the problematic fields in the `open()` method.
   - In Scala, you can often simply use “lazy val” to defer initialization until the distributed execution happens. This may come at a minor performance cost. You can naturally also use a `RichFunction` in Scala.
 
@@ -102,6 +104,7 @@ by Flink's core, or other dependencies in the classpath (for example from Hadoop
 to be activated, which is the default.
 
 If you see these problems in Flink 1.4+, one of the following may be true:
+
   - You have a dependency version conflict within your application code. Make sure all your dependency versions are consistent.
   - You are conflicting with a library that Flink cannot support via `child-first` classloading. Currently these are the
     Scala standard library classes, as well as Flink's own classes, logging APIs, and any Hadoop core classes.
