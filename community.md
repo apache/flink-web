@@ -250,9 +250,9 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">tison</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/4971479?s=400&v=4" class="committer-avatar"/></td>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/4971479?s=50" class="committer-avatar"/></td>
     <td class="text-center">Hequn Cheng</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">hequn</td>
   </tr>
   <tr>
