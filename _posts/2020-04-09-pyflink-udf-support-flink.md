@@ -166,7 +166,7 @@ Suppose you want to use the `mpmath` to perform the sum of the example above. Th
 @udf(input_types=[DataTypes.BIGINT(), DataTypes.BIGINT()], result_type=DataTypes.BIGINT())
 def add(i, j):
     from mpmath import fadd # add third-party dependency
-    return int(fadd(1, 2))
+    return int(fadd(i, j))
 ```
 
 To make it available on the worker node that does not contain the dependency, you can specify the dependencies with the following commands and API:
