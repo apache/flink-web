@@ -501,6 +501,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Committer</td>
     <td class="text-center">liyu</td>
   </tr>
+  <tr>
+	<td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1891970?s=50" class="committer-avatar"></td>
+	<td class="text-center">Seth Wiesman</td>
+	<td class="text-center">Committer</td>
+	<td class="text-center">sjwiesman</td>
+  </tr>
 
 </table>
 
