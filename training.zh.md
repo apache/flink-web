@@ -1,5 +1,5 @@
 ---
-title: "Training"
+title: "Training Course"
 ---
 
 The Apache Flink community maintains a self-paced training course that contains
@@ -98,7 +98,7 @@ This training covers the fundamentals of Flink, including:
 </div>
 
 <div style="margin-bottom: 400px;">
-<a href="{{site.DOCS_BASE_URL}}flink-docs-master/training" target='_blank'>Apache Flink Training <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
+<a href="{{site.DOCS_BASE_URL}}flink-docs-master/zh/training" target='_blank'>Apache Flink Training Course <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
 </div>
 
 <!-- 
