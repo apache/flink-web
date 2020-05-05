@@ -2,6 +2,8 @@
 title: "Training Course"
 ---
 
+<hr/>
+
 The Apache Flink community maintains a self-paced training course that contains
 a set of lessons and hands-on exercises. This step-by-step introduction to Flink focuses
 on learning how to use the DataStream API to meet the needs of common, real-world use cases.
