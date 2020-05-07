@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Flink Community Update - May'20"
-date: 2020-05-06T08:00:00.000Z
+date: 2020-05-07T08:00:00.000Z
 categories: news
 authors:
 - morsapaes:
@@ -35,19 +35,19 @@ In the beginning of April, the Flink community announced the [release of Statefu
     <br>
 </div>
 
-It’s been encouraging to see so many questions about Stateful Functions popping up on the Mailing List and Stack Overflow! If you’d like to get involved, we’re always [looking for new contributors](https://github.com/apache/flink-statefun#contributing) — especially around SDKs for other languages like Go, Javascript and Rust.
+It’s been encouraging to see so many questions about Stateful Functions popping up in the [mailing list](https://lists.apache.org/list.html?user@flink.apache.org:lte=3M:statefun) and Stack Overflow! If you’d like to get involved, we’re always [looking for new contributors](https://github.com/apache/flink-statefun#contributing) — especially around SDKs for other languages like Go, Javascript and Rust.
 
 <hr>
 
 ## Warming up for Flink 1.11
 
-The final preparations for the release of Flink 1.11 are well underway and there’s a lot of new features and improvements to look out for:
+The final preparations for the release of Flink 1.11 are well underway, with the feature freeze scheduled for May 15th, and there’s a lot of new features and improvements to look out for:
 
-* On the **usability** side, you can expect a big focus on smoothing data ingestion with contributions like support for changelog streams in the Table API/SQL ([FLIP-105](https://cwiki.apache.org/confluence/display/FLINK/FLIP-105%3A+Support+to+Interpret+and+Emit+Changelog+in+Flink+SQL)), easy streaming data ingestion into Apache Hive ([FLIP-115](https://cwiki.apache.org/confluence/display/FLINK/FLIP-115%3A+Filesystem+connector+in+Table)) or support for Pandas DataFrames in PyFlink ([FLIP-120](https://cwiki.apache.org/confluence/display/FLINK/FLIP-120%3A+Support+conversion+between+PyFlink+Table+and+Pandas+DataFrame)). 
+* On the **usability** side, you can expect a big focus on smoothing data ingestion with contributions like support for Change Data Capture (CDC) in the Table API/SQL ([FLIP-105](https://cwiki.apache.org/confluence/display/FLINK/FLIP-105%3A+Support+to+Interpret+and+Emit+Changelog+in+Flink+SQL)), easy streaming data ingestion into Apache Hive ([FLIP-115](https://cwiki.apache.org/confluence/display/FLINK/FLIP-115%3A+Filesystem+connector+in+Table)) or support for Pandas DataFrames in PyFlink ([FLIP-120](https://cwiki.apache.org/confluence/display/FLINK/FLIP-120%3A+Support+conversion+between+PyFlink+Table+and+Pandas+DataFrame)). A great deal of effort has also gone into maturing PyFlink, with the introduction of user defined metrics in Python UDFs ([FLIP-112](https://cwiki.apache.org/confluence/display/FLINK/FLIP-112%3A+Support+User-Defined+Metrics+in++Python+UDF)) and the extension of Python UDF support beyond the Python Table API ([FLIP-106](https://cwiki.apache.org/confluence/display/FLINK/FLIP-106%3A+Support+Python+UDF+in+SQL+Function+DDL),[FLIP-114](https://cwiki.apache.org/confluence/display/FLINK/FLIP-114%3A+Support+Python+UDF+in+SQL+Client)).
 
-* On the **operational** side, the much anticipated new Source API ([FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface)) will unify batch and streaming sources, and improve out-of-the-box event-time behavior; while unaligned checkpoints ([FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints)) and some changes to network memory management will allow to speed up checkpointing under backpressure.
+* On the **operational** side, the much anticipated new Source API ([FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface)) will unify batch and streaming sources, and improve out-of-the-box event-time behavior; while unaligned checkpoints ([FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints)) and changes to network memory management will allow to speed up checkpointing under backpressure — this is part of a bigger effort to rethink fault tolerance that will introduce many other non-trivial changes to Flink. You can learn more about it in [this](https://youtu.be/ssEmeLcL5Uk) recent Flink Forward talk!
 
-Throw into the mix improvements around type systems, the WebUI, metrics reporting, supported formats and...we can't wait! To get an overview of the ongoing developments, have a look at [this thread](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/ANNOUNCE-Development-progress-of-Apache-Flink-1-11-tp40718.html). We encourage the community to get involved in testing once a RC (Release Candidate) is out. Keep an eye on the [@dev mailing list](https://flink.apache.org/community.html#mailing-lists) for updates!
+Throw into the mix improvements around type systems, the WebUI, metrics reporting, supported formats and...we can't wait! To get an overview of the ongoing developments, have a look at [this thread](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/ANNOUNCE-Development-progress-of-Apache-Flink-1-11-tp40718.html). We encourage the community to get involved in testing once an RC (Release Candidate) is out. Keep an eye on the [@dev mailing list](https://flink.apache.org/community.html#mailing-lists) for updates!
 
 <hr>
 
@@ -117,7 +117,7 @@ The Apache Flink community has welcomed **3 PMC Members** and **2 new Committers
     <br>
 </div>
 
-This week, the Flink website received the contribution of a self-paced training course curated by David ([@alpinegizmo](https://twitter.com/alpinegizmo)). The new materials guide you through the very basics of Flink and the DataStream API, and round off every concepts section with hands-on exercises to help you better assimilate what you learned.
+This week, the Flink website received the invaluable contribution of a self-paced training course curated by David ([@alpinegizmo](https://twitter.com/alpinegizmo)) — or, what used to be the entire training materials under [training.ververica.com](training.ververica.com). The new materials guide you through the very basics of Flink and the DataStream API, and round off every concepts section with hands-on exercises to help you better assimilate what you learned.
 
 <div style="line-height:60%;">
     <br>
@@ -131,7 +131,7 @@ This week, the Flink website received the contribution of a self-paced training 
     <br>
 </div>
 
-Whether you're new to Flink or just looking to strengthen your foundations, this training is the most comprehensive way to get started: [https://flink.apache.org/training.html](https://flink.apache.org/training.html). 
+Whether you're new to Flink or just looking to strengthen your foundations, this training is the most comprehensive way to get started and is now completely open source: [https://flink.apache.org/training.html](https://flink.apache.org/training.html). For now, the materials are only available in English, but the community intends to also provide a Chinese translation in the future.
 
 <hr>
 
@@ -192,7 +192,7 @@ Events across the globe have pretty much come to a halt, so we’ll leave you wi
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon glyphicon-certificate" aria-hidden="true"></span> Flink Packages</td>
-      <td><ul><p><a href="https://flink-packages.org/">Flink Packages</a> is a website where you can explore (and contribute to) the Flink <br /> ecosystem of connectors, extensions, APIs, tools and integrations. **New in:** </p>
+      <td><ul><p><a href="https://flink-packages.org/">Flink Packages</a> is a website where you can explore (and contribute to) the Flink <br /> ecosystem of connectors, extensions, APIs, tools and integrations. <b>New in:</b> </p>
       	  <li><a href="https://flink-packages.org/packages/spillable-state-backend-for-flink">Spillable State Backend for Flink</a></li>
 		  <li><a href="https://flink-packages.org/packages/flink-memory-calculator">Flink Memory Calculator</a></li>
 		  <li><a href="https://flink-packages.org/packages/ververica-platform-community-edition">Ververica Platform Community Edition</a></li>
