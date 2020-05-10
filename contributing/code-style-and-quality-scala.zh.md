@@ -32,7 +32,7 @@ title:  "Apache Flink 代码样式与质量指南  — Scala"
 * Scala 让懂 Scala 的程序员很容易编写代码，而对于不太懂 Scala 的程序员来说，这些代码很难理解。对于一个拥有不同经验水平的广大社区的开源项目来说，这尤其棘手。解决这个问题意味着大量限制 Scala 特性集，这首先就违背了使用 Scala 的很多目的。
 
 
-### API Parity
+### API 等价
 
 保持 Java API 和 Scala API 在功能和代码质量方面的同步。
 
