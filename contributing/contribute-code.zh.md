@@ -98,7 +98,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">实现</a></h2>
-        <p>根据<a href="{{ site.base }}/zh/contributing/code-style-and-quality.html">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
+        <p>根据<a href="{{ site.base }}/zh/contributing/code-style-and-quality-preamble.html">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
         <p><b>只有在达成共识时,才开始去实现(例如已经有工单分配给你了)</b></p>
       </div>
     </div>
@@ -126,7 +126,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
   <div class="col-sm-12">
     <div class="panel panel-default">
       <div class="panel-body">
-        注意：诸如拼写错误或语法错误之类的<i>简单</i>热修复可以在创建 pull request 时，使用 [hotfix] 标识，可以不创建 Jira 工单。
+        注意：诸如拼写错误或语法错误之类的<i>简单</i>热修复可以不用创建 Jira 工单，直接提交 [hotfix] pull request 即可。
       </div>
     </div>
   </div>
@@ -149,7 +149,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
  - 可能存在争议的改动或问题
  - 采用非常不明确的方法或有多种实现方法
 
- 在讨论未达成一致之前,不要为这些类型的更改打开 Jira 工单。
+ 在讨论未达成一致之前,不要为这些类型的更改创建 Jira 工单。
  基于 dev 邮件讨论的 Jira 工单需要链接到该讨论，并总结结果。
 
 
@@ -176,12 +176,12 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
     - 对 Flink 构建时间的影响
     - 依赖关系及其许可证
 
-如果在 Jira 的讨论中发现改动是一个大的或有争议的变更，则可能需要有 [Flink 改动建议 ( FLIP )](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) 或在 [ dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists) 中讨论以达成一致的意见。
+如果在 Jira 的讨论中发现改动是一个大的或有争议的变更，则可能需要起草 [Flink 改动建议(FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) 或在 [ dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists) 中讨论以达成一致的意见。
 
-贡献者可以在打开工单后的几天内得到来自 Committer 的第一回应。如果工单没有得到任何关注，我们建议你联系 [dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists)。请注意，Flink 社区有时无法接受发来的所有贡献信息。
+一般 Committer 会在几天内对工单进行回应。如果工单没有得到任何关注，我们建议你联系 [dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists)。请注意，Flink 社区有时无法处理发来的所有贡献信息。
 
 
-一旦满足了工单的所有要求，Committer 就会将工单*`分配`*给具体的人，这样你就可以开始写代码或者其他的贡献了。
+一旦满足了工单的所有条件后，Committer 就会将工单*`分配`*给某个人，然后被分配到工单的人就可以继续后续的工作了。
 只有 Committer 才能分配工单（包括分配给他自己和其他人）。
 
 **社区不会审查或合并属于未分配的 Jira 工单的 pull request！**
@@ -191,12 +191,12 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 
 ### 2. 实现你想改动的
 
-一旦你被分配到了 Jira issue，你就可以开始去实现你想改动的内容。
+你一旦被分配到了 Jira issue，那么你就可以开始去实现所需的改动了。
 
 以下是在实现时要注意的一些要点：
 
 - [设置 Flink 的开发环境](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- 遵循 Flink 的[代码风格和质量指南]({{ site.base }}/zh/contributing/code-style-and-quality.html)
+- 遵循 Flink 的[代码风格和质量指南]({{ site.base }}/zh/contributing/code-style-and-quality-preamble.html)
 - 接受来自 Jira issue 或设计文档中的任何讨论和要求。
 - 不要将不相关的问题混合到一个贡献中。
 
@@ -211,14 +211,14 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
  - 执行 [Flink 的端到端测试](https://github.com/apache/flink/tree/master/flink-end-to-end-tests#running-tests)。
  - 确保不包含任何不相关或不必要的格式化更改。
  - 确保你的提交历史符合要求。
- - 确保你的改动是基于当前分支提交的 Pull request。
- - 确保 pull request 引用的是相应的 Jira，并且每个 Jira issue 都分配给了一个 pull request（如果一个 Jira 有多个 pull requests，首先解决这种情况）
+ - 确保你的改动是基于最新的 base 分支提交的。
+ - 确保 pull request 引用的是相应的 Jira，并且每个 Jira issue 都对应一个 pull request（如果一个 Jira 有多个 pull requests，首先解决这种情况）
 
  创建 pull request 之前或之后的注意事项：
 
  - 确保分支在 [Travis](https://travis-ci.org/) 上已经成功构建。
 
-Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/en/articles/creating-a-pull-request) 进行审查和接受。
+Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/en/articles/creating-a-pull-request) 进行审查和合并。
 
 这里有关于[如何审查 pull request]({{ site.base }}/zh/contributing/reviewing-prs.html) 的单独指南，包括我们的 pull request 审核流程。作为代码作者，在你准备 pull request 前，应该满足以上所有要求。
 
