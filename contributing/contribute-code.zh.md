@@ -2,11 +2,11 @@
 title:  "贡献代码"
 ---
 
-Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我们欢迎给 Flink 做贡献，但由于项目的规模大，以及为了保持高质量的代码库，本文将阐述我们所遵循的贡献流程。
+Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展的项目。我们欢迎给 Flink 做贡献，但由于项目的规模大，以及为了保持高质量的代码库，我们要求贡献者遵循本文所阐述的贡献流程。
 
 **请随时提出任何问题！** 可以发送邮件到 [dev mailing list]( {{ site.base }}/zh/community.html#mailing-lists )，也可以对正在处理的 Jira issue 发表评论。
 
-**重要提示**：在开始准备代码贡献之前，请仔细阅读本文档。请遵循如下所述的流程和指南，为 Apache Flink 做贡献并不是从打开 pull request 开始的。我们希望贡献者先和我们联系，共同讨论整体方案。如果没有与 Flink committers 达成共识，那么贡献可能需要大量返工或不予审核通过。
+**重要提示**：在开始准备代码贡献之前，请仔细阅读本文档。请遵循如下所述的流程和指南，为 Apache Flink 做贡献并不是从创建 pull request 开始的。我们希望贡献者先和我们联系，共同讨论整体方案。如果没有与 Flink committers 达成共识，那么贡献可能需要大量返工或不予审核通过。
 
 
 
@@ -79,7 +79,7 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
 
 
 <div class="alert alert-warning" role="alert">
-    <b>注意：</b>最近（2019 年 6 月），代码贡献步骤有改动。社区<a href="https://lists.apache.org/thread.html/1e2b85d0095331606ad0411ca028f061382af08138776146589914f8@%3Cdev.flink.apache.org%3E">决定</a>将原来直接提交 pull request 的方式转移到 Jira 上，要求贡献者在打开 pull request 之前需在 Jira 上达成共识（通过分配到的工单来体现），以减轻 PR review 的压力。
+    <b>注意：</b>最近（2019 年 6 月），代码贡献步骤有改动。社区<a href="https://lists.apache.org/thread.html/1e2b85d0095331606ad0411ca028f061382af08138776146589914f8@%3Cdev.flink.apache.org%3E">决定</a>将原来直接提交 pull request 的方式转移到 Jira 上，要求贡献者在创建 pull request 之前需在 Jira 上达成共识（通过分配到的工单来体现），以减轻 PR review 的压力。
 </div>
 
 
@@ -106,8 +106,8 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
   <div class="column">
     <div class="panel panel-default">
       <div class="panel-body">
-        <h2><span class="number">3</span><a href="#review">检查</a></h2>
-        <p>打开一个 pull request 并与 reviewer 一起检查。</p>
+        <h2><span class="number">3</span><a href="#review">审查</a></h2>
+        <p>创建一个 pull request 并与 reviewer 一起审查。</p>
         <p><b>未被分配 Jira 工单的 pull request 将不会被社区审查或合并。</b></p>
       </div>
     </div>
@@ -126,7 +126,7 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
   <div class="col-sm-12">
     <div class="panel panel-default">
       <div class="panel-body">
-        注意：诸如拼写错误或语法错误之类的<i>简单</i>热修复可以在打开 pull request 时，使用 [hotfix] 标识，可以不创建 Jira 工单。
+        注意：诸如拼写错误或语法错误之类的<i>简单</i>热修复可以在创建 pull request 时，使用 [hotfix] 标识，可以不创建 Jira 工单。
       </div>
     </div>
   </div>
@@ -168,7 +168,7 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
      - 该特性是一个重要的新增内容(而不是对现有内容的改进)吗？如果是，Flink 社区会承诺维护这个特性吗？
      - 这个特性是否与 Flink 的路线图以及当前正在进行的工作内容一致？
      - 该特性是否为 Flink 用户或开发人员带来了附加价值？或者它引入了回归的风险而没有给相关的用户或开发人员带来好处？
-     - 该贡献是否存在于第三方的库中，例如 Apache Bahir 或者第三方的库？
+     - 该贡献是否存在于其他仓库中，例如 Apache Bahir 或者其他第三方库？
      - 这仅仅是为了在开源项目中获得提交而做出的贡献吗（仅仅是为了获得贡献而贡献，才去修复拼写错误、改变代码风格）?
   - 在如何解决这个问题上已有**共识**，包括以下需要考虑的因素
     - API、数据向后兼容性和迁移策略
@@ -184,7 +184,7 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
 一旦满足了工单的所有要求，Committer 就会将工单*`分配`*给具体的人，这样你就可以开始写代码或者其他的贡献了。
 只有 Committer 才能分配工单（包括分配给他自己和其他人）。
 
-**社区不会审查或合并属于未分配的 Jira 工单的 pull request ！**
+**社区不会审查或合并属于未分配的 Jira 工单的 pull request！**
 
 
 <a name="implement"></a>
@@ -196,16 +196,16 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
 以下是在实现时要注意的一些要点：
 
 - [设置 Flink 的开发环境](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- 遵循 Flink 的 [代码风格和质量指南]({{ site.base }}/zh/contributing/code-style-and-quality.html)
+- 遵循 Flink 的[代码风格和质量指南]({{ site.base }}/zh/contributing/code-style-and-quality.html)
 - 接受来自 Jira issue 或设计文档中的任何讨论和要求。
 - 不要将不相关的问题混合到一个贡献中。
 
 
 <a name="review"></a>
 
-### 3. 打开一个 Pull Request
+### 3. 创建 Pull Request
 
-在打开 pull request 之前的注意事项：
+在创建 pull request 之前的注意事项：
 
  - 确保 **`mvn clean verify`** 成功执行，以保证所有检查都通过、代码成功构建和所有测试用例都成功执行。
  - 执行 [Flink 的端到端测试](https://github.com/apache/flink/tree/master/flink-end-to-end-tests#running-tests)。
@@ -214,7 +214,7 @@ Apache Flink 是由志愿者贡献的代码来维护、改进和扩展的。我�
  - 确保你的改动是基于当前分支提交的 Pull request。
  - 确保 pull request 引用的是相应的 Jira，并且每个 Jira issue 都分配给了一个 pull request（如果一个 Jira 有多个 pull requests，首先解决这种情况）
 
- 打开 pull request 之前或之后的注意事项：
+ 创建 pull request 之前或之后的注意事项：
 
  - 确保分支在 [Travis](https://travis-ci.org/) 上已经成功构建。
 
