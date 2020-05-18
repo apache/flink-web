@@ -116,7 +116,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">4</span><a href="#merge">合并</a></h2>
-        <p> Flink committer 审查此贡献是否满足需求，并将代码合并到代码库中。</p>
+        <p>Flink committer 审查此贡献是否满足需求，并将代码合并到代码库中。</p>
       </div>
     </div>
   </div>
@@ -184,7 +184,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 一旦满足了工单的所有条件后，Committer 就会将工单*`分配`*给某个人，然后被分配到工单的人就可以继续后续的工作了。
 只有 Committer 才能分配工单（包括分配给他自己和其他人）。
 
-**社区不会审查或合并属于未分配的 Jira 工单的 pull request！**
+**社区不会审查或合并未关联 Jira 工单的 pull request！**
 
 
 <a name="implement"></a>
