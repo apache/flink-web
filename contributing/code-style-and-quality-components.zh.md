@@ -18,7 +18,7 @@ _关于特定组件更改的附加指南。_
 
 配置选项应该放在哪里？
 
-* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 文件中的内容是包括那些能够跨 job 共用的标准配置，因为配置在这个文件中的参数会被多个 job 共用。可以想像成 Ops 的工作人员，或者管理一个数据平台的工作人员那样，所以把通用的配置都放到 flink-conf.yaml 文件中。
+* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为的配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的人设置的参数。
 
 * <span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。
 * <span style="text-decoration:underline;">ExecutionEnvironment (在代码里)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。
@@ -26,7 +26,7 @@ _关于特定组件更改的附加指南。_
 如何命名配置键：
 
 * 配置键名应该分层级。
-  将配置视为嵌套对象（ JSON 样式）
+  将配置视为嵌套对象（JSON 样式）
 
   ```
   taskmanager: {
@@ -57,16 +57,16 @@ _关于特定组件更改的附加指南。_
 
 ### 连接器
 
-连接器历来很难实现，需要处理线程、并发和检查点的许多方面。
+连接器历来很难实现，需要处理多线程、并发和检查点的许多方面。
 
-作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些源（source）更加简单。新的源（source）应该不再处理并发/线程和检查点的任何方面。
+作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些源（source）更加简单。新的源应该不再处理并发/线程和检查点的任何方面。
 
-预计在不久的将来，类似的 FLIP 可以用于接收器。
+预计在不久的将来，会有类似针对 sink 的 FLIP。
 
 
 ### 示例
 
-示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。源/接收器可以使用 `StreamExecutionEnvironment.socketTextStream` ，这个不应该在生产中使用，但对于研究示例如何运行的是相当方便的，以及基于文件的源/接收器。（对于流，有连续的文件源）
+示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。源/接收器可以使用 `StreamExecutionEnvironment.socketTextStream`，这个不应该在生产中使用，但对于研究示例如何运行的是相当方便的，以及基于文件的源/接收器。（对于流，有连续的文件源）
 
 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。
 
@@ -84,7 +84,7 @@ _关于特定组件更改的附加指南。_
 
 * 语法、语义和功能应该和 SQL 保持一致！
 * 我们不需要重造轮子。大部分问题都已经在业界广泛讨论过并写在 SQL 标准中了。
-* 我们依靠最新的标准（在写这篇文档时  SQL:2016 or ISO/IEC 9075:2016  [[下载]](https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip)）。并非每个部分都可在线获取，但快速网络搜索可能对此有所帮助。
+* 我们依靠最新的标准（在写这篇文档时使用  SQL:2016 or ISO/IEC 9075:2016  [[下载]](https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip)）。并非每个部分都可在线获取，但快速网络搜索可能对此有所帮助。
 
 讨论与标准或厂商特定解释的差异。
 
@@ -112,7 +112,7 @@ _关于特定组件更改的附加指南。_
 
 测试为空性
 
-* 几乎每个操作，SQL 都原生支持 `NULL`，并具有3值布尔逻辑。
+* 几乎每个操作，SQL 都原生支持 `NULL`，并具有 3 值布尔逻辑。
 * 也确保测试每个功能的可空性.
 
 
@@ -138,6 +138,6 @@ _关于特定组件更改的附加指南。_
 
 * 考虑一个类将来是否需要与 Java 类交互。
 * 在接口中使用 Java 集合和 Java Optional，以便与 Java 代码平滑集成。
-* 如果一个类要被转换为 Java，请不要使用 .copy() 或 apply() 等案例类的功能。
+* 如果要将类转换为 Java，不要使用 .copy() 或 apply() 等案例类的功能进行构造。
 * 纯 Scala 面向用户的 API 应该使用纯 Scala 集合/迭代/等与 Scala 自然和惯用的（“scalaesk”）集成。
 
