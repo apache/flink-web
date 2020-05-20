@@ -31,6 +31,12 @@ Since last year, the community has been working on [FLIP-42](https://cwiki.apach
 
 If working shoulder to shoulder with the Flink community on documentation sounds exciting, we’d love to hear from you! You can read more about our idea for this year’s project below and, depending on whether it is accepted, [apply](https://developers.google.com/season-of-docs/docs/tech-writer-guide) as a technical writer. If you have any questions or just want to know more about the project idea, ping us at [dev@flink.apache.org](https://flink.apache.org/community.html#mailing-lists)!
 
+<div class="alert alert-info">
+	Please <a href="mailto:dev-subscribe@flink.apache.org">subscribe</a> to the Apache Flink mailing list before reaching out.
+	If you are not subscribed then responses to your message will not go through.
+	You can always <a href="mailto:dev-unsubscribe@flink.apache.org">unsubscribe</a> at any time. 
+</div>
+
 ## Project: Improve the Table API & SQL Documentation
 
 [Apache Flink](https://flink.apache.org/) is a stateful stream processor supporting a broad set of use cases and featuring APIs at different levels of abstraction that allow users to trade off expressiveness and usability, as well as work with their language of choice (Java/Scala, SQL or Python). The Table API & SQL are Flink’s high-level relational abstractions and focus on data analytics use cases. A core principle is that either API can be used to process static (batch) and continuous (streaming) data with the same syntax and yielding the same results.
