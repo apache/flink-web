@@ -18,7 +18,7 @@ _关于特定组件更改的附加指南。_
 
 配置选项应该放在哪里？
 
-* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为的配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的人设置的参数。
+* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的设置参数。
 
 * <span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。
 * <span style="text-decoration:underline;">ExecutionEnvironment (在代码里)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。
@@ -48,7 +48,7 @@ _关于特定组件更改的附加指南。_
   }
   ```
 
-* 因此生成的配置键应该是：
+* 因此生成的配置键应该：
 
   **不是** `"taskmanager.detailed.network.metrics"`
 
@@ -59,20 +59,19 @@ _关于特定组件更改的附加指南。_
 
 连接器历来很难实现，需要处理多线程、并发和检查点的许多方面。
 
-作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些源（source）更加简单。新的源应该不再处理并发/线程和检查点的任何方面。
+作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些源（source）更加简单。新的源应该不必处理并发/线程和检查点的任何方面。
 
 预计在不久的将来，会有类似针对 sink 的 FLIP。
 
 
 ### 示例
 
-示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。源/接收器可以使用 `StreamExecutionEnvironment.socketTextStream`，这个不应该在生产中使用，但对于研究示例如何运行的是相当方便的，以及基于文件的源/接收器。（对于流，有连续的文件源）
-
+示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。源/接收器可以使用 `StreamExecutionEnvironment.socketTextStream`，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的源/接收器。（对于流，有连续的文件源）
 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。
 
 示例中应该有不少的注释。他们可以在类级 Javadoc 中描述示例的总体思路，并且描述正在发生什么和整个代码里使用了什么功能。还应描述预期的输入数据和输出数据。
 
-示例应该包括参数解析，以便你可以运行一个示例（从为每个示例所创建的 Jar 使用`bin/flink run path/to/myExample.jar --param1 … --param2`。
+示例应该包括参数解析，以便你可以运行一个示例（使用 `bin/flink run path/to/myExample.jar --param1 … --param2` 从为每个示例创建的 jar 运行程序）。
 
 
 ### 表和 SQL API
@@ -116,7 +115,7 @@ _关于特定组件更改的附加指南。_
 * 也确保测试每个功能的可空性.
 
 
-避免仅用集成测试
+尽量避免集成测试
 
 * 生成 Flink 迷你集群并为 SQL 查询执行生成代码的编译是昂贵的。
 * 避免对计划测试或 API 调用的变更进行集成测试。
@@ -127,7 +126,7 @@ _关于特定组件更改的附加指南。_
 
 不要在次要版本中引入物理计划更改！
 
-* 流式 SQL 中状态的向后兼容性依赖于物理执行计划保持稳定的事实。否则，生成的操作名称/IDs将发生变化，并且无法匹配和恢复状态。
+* 流式 SQL 中状态的向后兼容性依赖于物理执行计划保持稳定的事实。否则，生成的操作名称/IDs 将发生变化，并且无法匹配和恢复状态。
 * 每个 bug 修复都会导致流式传输管道的优化物理规划发生变化，从而破坏兼容性。
 * 因此，导致不同优化器计划的更改现在只能在主版本中合并。
 
