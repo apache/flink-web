@@ -1,12 +1,11 @@
 ---
-title: "Stateful Functions — Event-driven Applications on Apache Flink"
-layout: base
+title: "什么是有状态的函数？"
 ---
 <div class="row-fluid">
 
   <div class="col-sm-12">
     <p class="lead" markdown="span">
-      **Stateful Functions — Event-driven Applications on Apache Flink<sup>®</sup>**
+      **有状态的函数 — Apache Flink上事件驱动的应用程序<sup>®</sup>**
     </p>
   </div>
 <div class="col-sm-12">
@@ -15,7 +14,7 @@ layout: base
 
 </div>
 
-Stateful Functions is an API that **simplifies building distributed stateful applications**. It's based on functions with persistent state that can interact dynamically with strong consistency guarantees.
+有状态函数是一种API，可 **简化构建分布式有状态应用程序**。 它基于具有持久状态的算子，可以在强大的一致性保证下进行动态交互。
 
 <div style="line-height:60%;">
     <br>
@@ -25,33 +24,33 @@ Stateful Functions is an API that **simplifies building distributed stateful app
   <img src="{{ site.baseurl }}/img/stateful-functions/statefun-overview.png" width="650px"/>
 </div>
 
-### Stateful Functions Applications
+### 有状态的函数应用
 
-A _stateful function_ is a small piece of logic/code existing in multiple instances that represent entities — similar to [actors](https://www.brianstorti.com/the-actor-model/). Functions are invoked through messages and are:
+一个 _有状态的函数_ 是存在于表示实体的多个实例中的一小段逻辑/代码 — 类似于 [执行器](https://www.brianstorti.com/the-actor-model/)。 函数是通过消息调用的:
 
 <div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
-  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Stateful</b></p> 
-  <p style="font-size:100%;">Functions have embedded, fault-tolerant state, accessed locally like a variable.</p>
-  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Virtual</b></p> 
-  <p style="font-size:100%;">Much like FaaS, functions don't reserve resources — inactive functions don't consume CPU/Memory.</p>
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> 有状态的</b></p> 
+  <p style="font-size:100%;">函数具有嵌入的、容错的状态，像变量一样在本地访问。</p>
+  <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> 虚拟的</b></p> 
+  <p style="font-size:100%;">与FaaS非常类似，函数不保留资源——不活跃的函数不消耗CPU/内存。</p>
 </div>
 
-Applications are composed of _modules_ of multiple functions that can interact arbitrarily with:
+应用程序由具有多种功能的 _模块_ 组成，可以与以下模块任意交互：
 
 <div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Exactly-once Semantics</b></p> 
-    <p style="font-size:100%;">State and messaging go hand-in-hand, providing exactly-once message/state semantics.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Logical Addressing</b></p> 
-    <p style="font-size:100%;">Functions message each other by logical addresses. No service discovery needed.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> Dynamic and Cyclic Messaging</b></p> 
-    <p style="font-size:100%;">Messaging patterns don't need to be pre-defined as dataflows (<i>dynamic</i>) and are also not restricted to DAGs (<i>cyclic</i>).</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> 精确一次语义</b></p> 
+    <p style="font-size:100%;">状态和消息传递密切相关，提供了精确一次消息/状态语义。</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> 逻辑寻址</b></p> 
+    <p style="font-size:100%;">函数通过逻辑地址相互发送消息，不需要服务发现。</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon glyphicon-check"></span><b> 动态和循环消息传递</b></p> 
+    <p style="font-size:100%;">消息传递模式不需要预先定义为(<i>动态</i>)数据流，也不限于DAGs (<i>循环</i>)。</p>
 </div>
 
 <hr />
 
-## A Runtime built for Serverless Architectures
+## 为无服务器架构构建的运行时
 
-The Stateful Functions runtime is designed to provide a set of properties similar to what characterizes [serverless functions](https://martinfowler.com/articles/serverless.html), but applied to stateful problems.
+有状态函数运行时的设计目的是提供一组属性，类似于描述 [无服务器函数](https://martinfowler.com/articles/serverless.html)的特性，但应用于有状态问题。
 
 <div style="line-height:60%;">
     <br>
@@ -62,22 +61,22 @@ The Stateful Functions runtime is designed to provide a set of properties simila
   <img src="{{ site.baseurl }}/img/stateful-functions/statefun-remote.png" width="600px"/>
 </div>
 
-The runtime is built on Apache Flink<sup>®</sup>, with the following design principles:
+运行时基于Apache Flink<sup>®</sup>, 设计原则如下:
 
 <div class="jumbotron" style="height:auto;padding-top: 18px;padding-bottom: 12px;">
-    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Logical Compute/State Co-location:</b></p> 
-    <p style="font-size:100%;">Messaging, state access/updates and function invocations are managed tightly together. This ensures a high-level of consistency out-of-the-box.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Physical Compute/State Separation:</b></p> 
-    <p style="font-size:100%;">Functions can be executed remotely, with message and state access provided as part of the invocation request. This way, functions can be managed like stateless processes and support rapid scaling, rolling upgrades and other common operational patterns.</p>
-    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> Language Independence:</b></p> 
-    <p style="font-size:100%;">Function invocations use a simple HTTP/gRPC-based protocol so that Functions can be easily implemented in various languages.</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> 逻辑计算/状态协同定位:</b></p> 
+    <p style="font-size:100%;">消息传递、状态访问/更新和函数调用被紧密地管理在一起。这确保了开箱即用的高级一致性。</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> 物理计算/状态分离:</b></p> 
+    <p style="font-size:100%;"> 函数可以远程执行，消息和状态访问作为调用请求的一部分提供。通过这种方式，可以像无状态流程一样管理功能，并支持快速扩展、滚动升级和其他常见的操作模式。</p>
+    <p style="font-size:100%;"><span class="glyphicon glyphicon-edit"></span><b> 语言独立性:</b></p> 
+    <p style="font-size:100%;">函数调用使用简单的基于HTTP/ grpc的协议，因此函数可以很容易地在各种语言中实现。</p>
 </div>
 
-This makes it possible to execute functions on a **Kubernetes deployment**, a **FaaS platform** or **behind a (micro)service**, while providing consistent state and lightweight messaging between functions.
+这使得在 **Kubernetes部署** 、**FaaS平台** 或 **后台(微)服务** 上执行函数成为可能，同时在函数之间提供一致的状态和轻量级消息传递。 
 
 <hr />
 
-## Key Benefits
+## 主要好处
 
 <div style="line-height:60%;">
     <br>
@@ -89,29 +88,29 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop3.png" alt="Arbitrary Messaging" width="90" height="90">
-      <h3>Dynamic Messaging</h3>
+      <h3>动态消息</h3>
     </div>
-    <p align="justify">The API allows you to build and compose functions that communicate dynamic- and arbitrarily with each other. This gives you much more flexibility compared to the acyclic nature of classical stream processing topologies.</p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
+    <p align="justify">该API允许你构建和组合需要动态进行通信的函数。与经典流处理拓扑的非循环特性相比，这提供了更大的灵活性。</p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#stateful-functions">了解更多</a></p>
   </div>
   <!-- Consistent State -->
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop1.png" alt="Consistent State" width="90" height="90">
-      <h3>Consistent State</h3>
-      <p align="justify">Functions can keep local state that is persistent and integrated with the messaging between functions. This gives you the effect of exactly-once state access/updates and guaranteed efficient messaging out-of-the-box.</p>
-      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#persisted-states">Learn More</a></p>
+      <h3>一致的状态</h3>
+      <p align="justify">函数可以保持持久的本地状态，并与函数之间的消息传递进行集成。这为你提供了精确一次状态访问/更新的效果，并保证开箱即用的高效消息传递。</p>
+      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#persisted-states">了解更多</a></p>
     </div>
   </div>
   <!-- Multi-language Support -->
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop4.png" alt="Multi-language Support" width="90" height="90">
-      <h3>Multi-language Support</h3>
+      <h3>多语言支持</h3>
     </div>
-    <p align="justify">Functions can be implemented in any programming language that can handle HTTP requests or bring up a gRPC server, with initial support for Python. More SDKs will be added for languages like Go, Javascript and Rust.
+    <p align="justify">函数可以在任何能够处理HTTP请求或启动gRPC服务器的编程语言中实现，并且最初支持Python。更多的sdk将被添加到像Go, Javascript和Rust这样的语言中。
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/sdk/modules.html#modules">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/sdk/modules.html#modules">了解更多</a></p>
   </div>
 </div>
 
@@ -122,35 +121,35 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop5.png" alt="No Database Required" width="90" height="90">
-      <h3>No Database Required</h3>
+      <h3>无需数据库</h3>
     </div>
-    <p align="justify">State durability and fault tolerance build on Apache Flink’s robust distributed snapshots model. This requires nothing but a simple blob storage tier (e.g. S3, GCS, HDFS) to store the state snapshots.</p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-docs-stable/internals/stream_checkpointing.html">Learn More</a></p>
+    <p align="justify">基于Apache Flink健壮的分布式快照模型构建状态持久能力和容错能力，只需要一个简单的blob存储层(如S3、GCS、HDFS)来存储状态快照。</p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-docs-stable/internals/stream_checkpointing.html">了解更多</a></p>
   </div>
   <!-- Cloud Native -->
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop6.png" alt="Ecosystem Integration" width="90" height="90">
-      <h3>Cloud Native</h3>
+      <h3>原生云</h3>
     </div>
-    <p align="justify">Stateful Function's approach to state and composition can be combined with the capabilities of modern serverless platforms like Kubernetes, Knative and AWS Lambda.</p>
-    <p align="justify" href="https://thenewstack.io/10-key-attributes-of-cloud-native-applications/"><a href="">Learn More</a></p>
+    <p align="justify">有状态函数的状态和组合方法可以与Kubernetes、Knative和AWS Lambda等现代无服务器平台的功能相结合。</p>
+    <p align="justify" href="https://thenewstack.io/10-key-attributes-of-cloud-native-applications/"><a href="">了解更多</a></p>
   </div>
   <!-- "Stateless" Operation -->
   <div class="col-lg-4">
     <div class="text-center">
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop2.png" alt="Stateless Operation" width="90" height="90">
-      <h3>"Stateless" Operation</h3>
+      <h3>“无状态”操作</h3>
     </div>
-    <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless processes that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
+    <p align="justify">状态访问是函数调用的一部分，因此有状态函数应用程序的行为类似于无状态流程，可以简单快捷的进行管理，比如快速伸缩、归零和滚动/零停机升级。
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/logical.html#function-lifecycle">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/logical.html#function-lifecycle">了解更多</a></p>
   </div>
 </div>
 
 <hr />
 
-## An Example: Transaction Scoring for Fraud Detection
+## 一个例子:用于欺诈检测的事务评分
 
 <div style="line-height:60%;">
     <br>
@@ -161,11 +160,11 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <img src="{{ site.baseurl }}/img/stateful-functions/model-score.svg" width="350px"/>
     </div>
     <div class="col-sm-7">
-      <p>Imagine an application that receives financial information and emits alerts for every transaction that exceeds a given threshold fraud score (i.e. fraudulent). To build this example with <b>Stateful Functions</b>, you can define four different functions, each tracking its own state:</p>
-      <p><b>Fraud Count:</b> tracks the total number of reported fraudulent transactions made against an account on a rolling 30 day period.</p>
-      <p><b>Merchant Scorer:</b> returns a trustworthiness score for each merchant, relying on a third party service.</p>
-      <p><b>Transaction Manager:</b> enriches transaction records to create feature vectors for scoring and emits fraud alert events.</b></p>
-      <p><b>Model:</b> scores transactions  based on input feature vectors from the Transaction Manager.</p>
+      <p>设想这样一个应用程序，它接收财务信息，并为每个超过给定阈值的欺诈评分(即欺诈)的交易发出警报。要用<b>有状态函数构建</b>这个例子，可以定义四个不同的函数，每个函数跟踪自己的状态: </p>
+      <p><b>欺诈计数:</b> 跟踪在一个滚动的30天期间对一个帐户进行的欺诈交易的报告总数。</p>
+      <p><b>商家计分器:</b> 返回每个依赖于第三方服务的商家的信任度得分。</p>
+      <p><b>事务管理器:</b> 丰富交易记录以创建用于评分的特征向量，并发出欺诈警报事件。</p>
+      <p><b>模型:</b> 根据事务管理器输入的特征向量对事务进行评分。</p>
     </div>
 </div>
 
@@ -173,31 +172,31 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
     <br>
 </div>
 
-**Keeping track of fraudulent reports**
+**跟踪虚假报告**
 
-The entry points to the application are the "Fraud Confirmation" and "Transactions" [_ingresses_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-ingress) (e.g. Kafka Topics). As events flow in from "Fraud Confirmation", the "Fraud Count" function increments its internal counter and sets a 30-day expiration timer on this state. Here, multiple instances of "Fraud Count" will exist — for example, one per customer account. After 30 days, the "Fraud Count" function will receive an expiration message (from itself) and clear its state.
+应用程序的入口点是“欺诈确认”和“交易”[_入口_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-ingress)(例如Kafka主题)。当事件从“欺诈确认”流入时，“欺诈计数”函数增加其内部计数器，并在此状态设置30天过期计时器。在这里，将存在多个“欺诈计数”实例——例如，每个客户帐户一个。30天后，“欺诈计数”函数将收到一条过期消息(来自自身)并清除其状态。
 
-**Enriching and scoring transactions**
+**丰富交易并评分**
 
-On receiving events from the "Transactions" ingress, the "Transaction Manager" function messages "Fraud Count" to get the current count of fraud cases reported for the customer account; it also messages the "Merchant Scorer" for the trustworthiness score of the transaction merchant. "Transaction Manager" creates a feature vector with the count of fraud cases reported and the merchant score for the customer account that is then sent to the "Model" function for scoring.
+在接收到来自“交易”入口的事件时，“事务管理器”函数给“欺诈计数”发送消息，获取客户账户当前上报的欺诈案件数量;它还会向“商家计分器”发送消息，显示交易商人的可信度得分。“事务管理器”创建一个特征向量，其中包含所报告的欺诈案件的数量和随后发送到“模型”函数的客户帐户的商家得分。
 
-**Emitting alerts**
+**发出警报**
 
-Depending on the score sent back to "Transaction Manager", it may emit an alert event to the "Alert User" [_egress_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-egress) if a given threshold is exceeded.
+根据发送回“事务管理器”的分数，如果超过给定阈值，它可能向“警报用户”[_出口_](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#event-egress) 发出警报事件。
 
 <hr />
 
-## Learn More
+## 了解更多
 
-If you find these ideas interesting, give Stateful Functions a try and get involved! Check out the [Getting Started](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/getting-started/project-setup.html) section for introduction walkthroughs and the [documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/) for a deeper look into the internals of Stateful Functions.
+如果您觉得这些想法很有趣，可以尝试一下有状态函数并参与其中!请参阅[入门](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/getting-started/project-setup.html)部分的演练和[文档](https://ci.apache.org/projects/flink/flink-statefun-docs-stable/)，以更深入地了解有状态函数的内部原理。
 
 <div style="line-height:60%;">
     <br>
 </div>
 
-<a href="https://github.com/apache/flink-statefun"><img src="{{ site.baseurl }}/img/stateful-functions/github-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>GitHub Repository</small>
+<a href="https://github.com/apache/flink-statefun"><img src="{{ site.baseurl }}/img/stateful-functions/github-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>GitHub仓库</small>
 
-<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Documentation</small>
+<a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/"><img src="{{ site.baseurl }}/img/stateful-functions/favicon.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun文档</small>
 
 <a href="https://twitter.com/statefun_io"><img src="{{ site.baseurl }}/img/stateful-functions/twitter-logo-link.png" class="rounded-circle" width="20px" height="20px"></a> <small>StateFun Twitter</small>
 
@@ -208,8 +207,8 @@ If you find these ideas interesting, give Stateful Functions a try and get invol
 
 <div class="row">
     <div class="col-sm-5">
-      <h3>For a quick overview,</h3>
-      watch <a href="https://youtu.be/fCeHCMJXXM0">this whiteboard session</a>.
+      <h3>如果想快速浏览，</h3>
+      watch <a href="https://youtu.be/fCeHCMJXXM0">参看这个会话</a>.
     </div>
     <div class="col-sm-7">
       <div class="bs-example" data-example-id="responsive-embed-16by9-iframe-youtube">
