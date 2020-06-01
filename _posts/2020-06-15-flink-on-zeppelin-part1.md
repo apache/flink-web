@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Flink on Zeppelin Notebooks for Interactive Data Analysis"
-date:   2020-05-25T08:00:00.000Z
+title:  "Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1"
+date:   2020-06-15T08:00:00.000Z
 categories: news
 authors:
 - zjffdu:
@@ -10,7 +10,7 @@ authors:
 ---
 
 The latest release of [Apache Zeppelin](https://zeppelin.apache.org/) comes with a redesigned interpreter for Apache Flink (version Flink 1.10+ is only supported moving forward) 
-that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. In this post, we explain how the Flink interpreter in Zeppelin works, 
+that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, 
 and provide a tutorial for running Streaming ETL with Flink on Zeppelin.
 
 # The Flink Interpreter in Zeppelin 0.9
@@ -48,31 +48,32 @@ You can use Flink SQL to perform streaming ETL by following the steps below
 * Step 1. Create source table to represent the source data.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table"/>
+<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table"/>
 </center>
 
 * Step 2. Create a sink table to represent the processed data.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table"/>
+<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table"/>
 </center>
 
 * Step 3. After creating the source and sink table, we can insert them to our statement to trigger the stream processing job as the following: 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin/etl.png" width="80%" alt="ETL"/>
+<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL"/>
 </center>
 
 * Step 4. After initiating the streaming job, you can use another SQL statement to query the sink table to verify the results of your job. Here you can see the top 10 records which will be refreshed every 3 seconds.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin/preview.png" width="80%" alt="Preview"/>
+<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview"/>
 </center>
 
 # Summary
 
 In this post, we explained how the redesigned Flink interpreter works in Zeppelin 0.9.0 and provided some examples for performing streaming ETL jobs with 
-Flink and Zeppelin. You can find an additional [tutorial for batch processing with Flink on Zeppelin](https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9) as well as using Flink on Zeppelin for 
+Flink and Zeppelin. In the next post, I will talk about how to do streaming data visualization via Flink on Zeppelin.
+Besides that, you can find an additional [tutorial for batch processing with Flink on Zeppelin](https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9) as well as using Flink on Zeppelin for 
 more advance operations like resource isolation, job concurrency & parallelism, multiple Hadoop & Hive environments and more on our series of posts on Medium.
 And here's a list of [Flink on Zeppelin tutorial videos](https://www.youtube.com/watch?v=YxPo0Fosjjg&list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX) for your reference.
 
