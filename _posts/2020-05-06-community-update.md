@@ -79,7 +79,7 @@ The Apache Flink community has welcomed **3 PMC Members** and **2 new Committers
   <div class="col-lg-3">
     <div class="text-center">
       <img class="img-circle" src="https://avatars1.githubusercontent.com/u/4971479?s=400&u=49d4f217e26186606ab13a17a23a038b62b86682&v=4" width="90" height="90">
-      <p><a href="https://twitter.com/HequnC">Hequn Chen</a></p>
+      <p><a href="https://twitter.com/HequnC">Hequn Cheng</a></p>
     </div>
   </div>
   <div class="col-lg-3">
