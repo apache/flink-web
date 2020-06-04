@@ -23,7 +23,7 @@ Overall Zeppelin supports 3 kinds of streaming data analytics:
 ### Single Mode
 Single mode is used for cases when the result of a SQL statement is always one row, such as the following example. 
 The output format is translated in HTML, and you can specify a paragraph local property template for the final output content template. 
-And you can use {i} as placeholder for the ith column of result.
+And you can use `{i}` as placeholder for the {i}th column of the result.
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin-part2/flink_single_mode.gif" width="80%" alt="Single Mode"/>
