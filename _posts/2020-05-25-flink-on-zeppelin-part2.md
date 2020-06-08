@@ -15,10 +15,12 @@ perform streaming data visualization via Flink on Zeppelin and how to use Apache
 # Streaming Data Visualization
 
 With [Zeppelin](https://zeppelin.apache.org/), you can build a real time streaming dashboard without writing any line of javascript/html/css code.
-Overall Zeppelin supports 3 kinds of streaming data analytics:
-* Single
-* Update
-* Append
+
+Overall, Zeppelin supports 3 kinds of streaming data analytics:
+
+* Single Mode
+* Update Mode
+* Append Mode
 
 ### Single Mode
 Single mode is used for cases when the result of a SQL statement is always one row, such as the following example. 
@@ -31,7 +33,7 @@ And you can use `{i}` as placeholder for the {i}th column of the result.
 
 ### Update Mode
 Update mode is suitable for the cases when the output format is more than one row, 
-and will always be continuously updated. Here’s one example where we use group by.
+and will always be continuously updated. Here’s one example where we use ``GROUP BY``.
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/2020-05-25-flink-on-zeppelin-part2/flink_update_mode.gif" width="80%" alt="Update Mode"/>
@@ -77,7 +79,7 @@ bt_env.register_function("python_upper", udf(PythonUpper(), DataTypes.STRING(), 
 
 ```
 
-After you define the UDFs, you can use them directly in SQL. e.g.
+After you define the UDFs, you can use them directly in SQL:
 
 * Use Scala UDF in SQL
 
@@ -94,7 +96,7 @@ After you define the UDFs, you can use them directly in SQL. e.g.
 # Summary
 
 In this post, we explained how to perform streaming data visualization via Flink on Zeppelin and how to use UDFs. 
-Besides that, you can do more in Zeppelin with Flink, such as batch processing, hive integration and more.
+Besides that, you can do more in Zeppelin with Flink, such as batch processing, Hive integration and more.
 You can check the following articles for more details and here's a list of [Flink on Zeppelin tutorial videos](https://www.youtube.com/watch?v=YxPo0Fosjjg&list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX) for your reference.
 
 # References
