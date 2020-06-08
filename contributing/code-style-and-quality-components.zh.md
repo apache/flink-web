@@ -18,15 +18,14 @@ _关于特定组件更改的附加指南。_
 
 配置选项应该放在哪里？
 
-* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的设置参数。
+* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的人。
 
 * <span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。
 * <span style="text-decoration:underline;">ExecutionEnvironment (在代码里)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。
 
 如何命名配置键：
 
-* 配置键名应该分层级。
-  将配置视为嵌套对象（JSON 样式）
+* 配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
 
   ```
   taskmanager: {
@@ -57,16 +56,16 @@ _关于特定组件更改的附加指南。_
 
 ### 连接器
 
-连接器历来很难实现，需要处理多线程、并发和检查点的许多方面。
+连接器历来很难实现，需要处理多线程、并发和检查点等许多方面。
 
-作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些 source 更加简单。新的 source 应该不必处理并发/线程和检查点的任何方面。
+作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力让这些数据源（source）更加简单。新的数据源应该不必处理并发/线程和检查点的任何方面。
 
-预计在不久的将来，会有类似针对 sink 的 FLIP。
+预计在不久的将来，会有类似针对数据汇（sink）的 FLIP。
 
 
 ### 示例
 
-示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。source/sink 可以使用 `StreamExecutionEnvironment.socketTextStream`，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的 source/sink。（对于流，有连续的文件 source）
+示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。数据源/数据汇可以使用 `StreamExecutionEnvironment.socketTextStream`，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的数据源/数据源。（对于流，Flink 提供了连续的文件数据源读取数据）
 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。
 
 示例中应该有不少的注释。他们可以在类级 Javadoc 中描述示例的总体思路，并且描述正在发生什么和整个代码里使用了什么功能。还应描述预期的输入数据和输出数据。
@@ -112,14 +111,14 @@ _关于特定组件更改的附加指南。_
 测试为空性
 
 * 几乎每个操作，SQL 都原生支持 `NULL`，并具有 3 值布尔逻辑。
-* 也确保测试每个功能的可空性.
+* 确保测试每个功能的可空性。
 
 
 尽量避免集成测试
 
-* 生成 Flink 迷你集群并为 SQL 查询执行生成代码的编译是昂贵的。
-* 避免对计划测试或 API 调用的变更进行集成测试。
-* 相反，使用单元测试验证计划器的优化计划。或者直接测试运行时的算子行为。
+* 启动一个 Flink 集群并且对 SQL 查询生成的代码进行编译会很耗时。
+* 避免对 planner 测试或 API 调用的变更进行集成测试。
+* 相反，使用单元测试验证计划器的优化计划。或者直接测试算子的运行时行为。
 
 
 #### 兼容性
