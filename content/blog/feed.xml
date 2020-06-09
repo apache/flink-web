@@ -7,6 +7,100 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Stateful Functions 2.1.0 Release Announcement</title>
+<description>&lt;p&gt;The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.1.0! This release introduces new features around state expiration and performance improvements for co-located deployments, as well as other important changes that improve the stability and testability of the project. As the community around StateFun grows, the release cycle will follow this pattern of smaller and more frequent releases to incorporate user feedback and allow for faster iteration.&lt;/p&gt;
+
+&lt;p&gt;The binary distribution and source artifacts are now available on the updated &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;Downloads&lt;/a&gt; page of the Flink website, and the most recent Python SDK distribution is available on &lt;a href=&quot;https://pypi.org/project/apache-flink-statefun/&quot;&gt;PyPI&lt;/a&gt;. For more details, check the complete &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12347861&quot;&gt;release changelog&lt;/a&gt; and the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/&quot;&gt;updated documentation&lt;/a&gt;. We encourage you to download the release and share your feedback with the community through the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Flink mailing lists&lt;/a&gt; or &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-18016?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Stateful%20Functions%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC&quot;&gt;JIRA&lt;/a&gt;!&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#new-features-and-improvements&quot; id=&quot;markdown-toc-new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#support-for-state-time-to-live-ttl&quot; id=&quot;markdown-toc-support-for-state-time-to-live-ttl&quot;&gt;Support for State Time-To-Live (TTL)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#improved-performance-with-unix-domain-sockets-uds&quot; id=&quot;markdown-toc-improved-performance-with-unix-domain-sockets-uds&quot;&gt;Improved Performance with UNIX Domain Sockets (UDS)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#important-changes&quot; id=&quot;markdown-toc-important-changes&quot;&gt;Important Changes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#release-notes&quot; id=&quot;markdown-toc-release-notes&quot;&gt;Release Notes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#list-of-contributors&quot; id=&quot;markdown-toc-list-of-contributors&quot;&gt;List of Contributors&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/h2&gt;
+
+&lt;h3 id=&quot;support-for-state-time-to-live-ttl&quot;&gt;Support for State Time-To-Live (TTL)&lt;/h3&gt;
+
+&lt;p&gt;Being able to define state expiration and a state cleanup strategy is a useful feature for stateful applications — for example, to keep state size from growing indefinitely or to work with sensitive data. In previous StateFun versions, users could implement this behavior manually using &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/sdk/java.html#sending-delayed-messages&quot;&gt;delayed messages&lt;/a&gt; as state expiration callbacks. For StateFun 2.1, the community has worked on enabling users to configure any persisted state to expire and be purged after a given duration (i.e. the state time-to-live) (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17644&quot;&gt;FLINK-17644&lt;/a&gt;, &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17875&quot;&gt;FLINK-17875&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Persisted state can be configured to expire after the last &lt;em&gt;write&lt;/em&gt; operation (&lt;code&gt;AFTER_WRITE&lt;/code&gt;) or after the last &lt;em&gt;read or write&lt;/em&gt; operation (&lt;code&gt;AFTER_READ_AND_WRITE&lt;/code&gt;). For the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/sdk/java.html#state-expiration&quot;&gt;Java SDK&lt;/a&gt;, users can configure State TTL in the definition of their persisted fields:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Persisted&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PersistedValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;table&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PersistedValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;my-value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Expiration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;expireAfterWriting&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ofHours&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#remote-functions&quot;&gt;remote functions&lt;/a&gt; using e.g. the Python SDK, users can configure State TTL in their &lt;code&gt;module.yaml&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;functions:
+  - function:
+     states:
+       - name: xxxx
+         expireAfter: 5min # optional key
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+	&lt;b&gt;Note:&lt;/b&gt;
+	The state expiration mode for remote functions is currently restricted to AFTER_READ_AND_WRITE, and the actual TTL being set is the longest duration across all registered state, not for each individual state entry. This is planned to be improved in upcoming releases (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17954&quot;&gt;FLINK-17954&lt;/a&gt;).
+&lt;/div&gt;
+
+&lt;h3 id=&quot;improved-performance-with-unix-domain-sockets-uds&quot;&gt;Improved Performance with UNIX Domain Sockets (UDS)&lt;/h3&gt;
+
+&lt;p&gt;Stateful functions can be &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#deployment-styles-for-functions&quot;&gt;deployed in multiple ways&lt;/a&gt;, even within the same application. For deployments where functions are &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#co-located-functions&quot;&gt;co-located&lt;/a&gt; with the Flink StateFun workers, it’s common to use Kubernetes to deploy pods consisting of a Flink StateFun container and the function sidecar container, communicating via the pod-local network. To improve the performance of such deployments, StateFun 2.1 allows using &lt;a href=&quot;https://troydhanson.github.io/network/Unix_domain_sockets.html&quot;&gt;Unix Domain Sockets&lt;/a&gt; (UDS) to communicate between containers in the same pod (i.e. the same machine) (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17611&quot;&gt;FLINK-17611&lt;/a&gt;), which drastically reduces the overhead of going through the network stack.&lt;/p&gt;
+
+&lt;p&gt;Users can &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/modules.html#defining-functions&quot;&gt;enable transport via UDS&lt;/a&gt; in a remote module by specifying the following in their &lt;code&gt;module.yaml&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;functions:
+  - function:
+     spec:
+       - endpoint: http(s)+unix://&amp;lt;socket-file-path&amp;gt;/&amp;lt;serve-url-path&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;important-changes&quot;&gt;Important Changes&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17712&quot;&gt;FLINK-17712&lt;/a&gt;] The Flink version in StateFun 2.1 has been upgraded to 1.10.1, the most recent patch version.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17533&quot;&gt;FLINK-17533&lt;/a&gt;] StateFun 2.1 now supports concurrent checkpoints, which means applications will no longer fail on savepoints that are triggered concurrently to a checkpoint.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-16928&quot;&gt;FLINK-16928&lt;/a&gt;] StateFun 2.0 was using the Flink legacy scheduler due to a &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-16927&quot;&gt;bug in Flink 1.10&lt;/a&gt;. In 2.1, this change is reverted to using the new Flink scheduler again.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17516&quot;&gt;FLINK-17516&lt;/a&gt;] The coverage for end-to-end StateFun tests has been extended to also include exactly-once semantics verification (with failure recovery).&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
+
+&lt;p&gt;Please review the &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12347861&quot;&gt;release notes&lt;/a&gt; for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 2.1.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank all contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;abc863377, Authuir, Chesnay Schepler, Congxian Qiu, David Anderson, Dian Fu, Francesco Guardiani, Igal Shilman, Marta Paes Moreira, Patrick Wiener, Rafi Aroch, Seth Wiesman, Stephan Ewen, Tzu-Li (Gordon) Tai&lt;/p&gt;
+
+&lt;p&gt;If you’d like to get involved, we’re always &lt;a href=&quot;https://github.com/apache/flink-statefun#contributing&quot;&gt;looking for new contributors&lt;/a&gt; — especially around SDKs for other languages like Go, Rust or Javascript.&lt;/p&gt;
+</description>
+<pubDate>Tue, 09 Jun 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/06/09/release-statefun-2.1.0.html</link>
+<guid isPermaLink="true">/news/2020/06/09/release-statefun-2.1.0.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.10.1 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.10 series.&lt;/p&gt;
 
@@ -16918,258 +17012,6 @@ The following figure shows how two objects are compared.&lt;/p&gt;
 <pubDate>Mon, 11 May 2015 12:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</link>
 <guid isPermaLink="true">/news/2015/05/11/Juggling-with-Bits-and-Bytes.html</guid>
-</item>
-
-<item>
-<title>Announcing Flink 0.9.0-milestone1 preview release</title>
-<description>&lt;p&gt;The Apache Flink community is pleased to announce the availability of
-the 0.9.0-milestone-1 release. The release is a preview of the
-upcoming 0.9.0 release. It contains many new features which will be
-available in the upcoming 0.9 release. Interested users are encouraged
-to try it out and give feedback. As the version number indicates, this
-release is a preview release that contains known issues.&lt;/p&gt;
-
-&lt;p&gt;You can download the release
-&lt;a href=&quot;http://flink.apache.org/downloads.html#preview&quot;&gt;here&lt;/a&gt; and check out the
-latest documentation
-&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-master/&quot;&gt;here&lt;/a&gt;. Feedback
-through the Flink &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing
-lists&lt;/a&gt; is, as
-always, very welcome!&lt;/p&gt;
-
-&lt;h2 id=&quot;new-features&quot;&gt;New Features&lt;/h2&gt;
-
-&lt;h3 id=&quot;table-api&quot;&gt;Table API&lt;/h3&gt;
-
-&lt;p&gt;Flink’s new Table API offers a higher-level abstraction for
-interacting with structured data sources. The Table API allows users
-to execute logical, SQL-like queries on distributed data sets while
-allowing them to freely mix declarative queries with regular Flink
-operators. Here is an example that groups and joins two tables:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clickCounts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clicks&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;userId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activeUsers&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clickCounts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;userId&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;username&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Tables consist of logical attributes that can be selected by name
-rather than physical Java and Scala data types. This alleviates a lot
-of boilerplate code for common ETL tasks and raises the abstraction
-for Flink programs. Tables are available for both static and streaming
-data sources (DataSet and DataStream APIs).&lt;/p&gt;
-
-&lt;p&gt;Check out the Table guide for Java and Scala
-&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/libs/table.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;gelly-graph-processing-api&quot;&gt;Gelly Graph Processing API&lt;/h3&gt;
-
-&lt;p&gt;Gelly is a Java Graph API for Flink. It contains a set of utilities
-for graph analysis, support for iterative graph processing and a
-library of graph algorithms. Gelly exposes a Graph data structure that
-wraps DataSets for vertices and edges, as well as methods for creating
-graphs from DataSets, graph transformations and utilities (e.g., in-
-and out- degrees of vertices), neighborhood aggregations, iterative
-vertex-centric graph processing, as well as a library of common graph
-algorithms, including PageRank, SSSP, label propagation, and community
-detection.&lt;/p&gt;
-
-&lt;p&gt;Gelly internally builds on top of Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/iterations.html&quot;&gt;delta
-iterations&lt;/a&gt;. Iterative
-graph algorithms are executed leveraging mutable state, achieving
-similar performance with specialized graph processing systems.&lt;/p&gt;
-
-&lt;p&gt;Gelly will eventually subsume Spargel, Flink’s Pregel-like API. Check
-out the Gelly guide
-&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/libs/gelly.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-machine-learning-library&quot;&gt;Flink Machine Learning Library&lt;/h3&gt;
-
-&lt;p&gt;This release includes the first version of Flink’s Machine Learning
-library. The library’s pipeline approach, which has been strongly
-inspired by scikit-learn’s abstraction of transformers and estimators,
-makes it easy to quickly set up a data processing pipeline and to get
-your job done.&lt;/p&gt;
-
-&lt;p&gt;Flink distinguishes between transformers and learners. Transformers
-are components which transform your input data into a new format
-allowing you to extract features, cleanse your data or to sample from
-it. Learners on the other hand constitute the components which take
-your input data and train a model on it. The model you obtain from the
-learner can then be evaluated and used to make predictions on unseen
-data.&lt;/p&gt;
-
-&lt;p&gt;Currently, the machine learning library contains transformers and
-learners to do multiple tasks. The library supports multiple linear
-regression using a stochastic gradient implementation to scale to
-large data sizes. Furthermore, it includes an alternating least
-squares (ALS) implementation to factorizes large matrices. The matrix
-factorization can be used to do collaborative filtering. An
-implementation of the communication efficient distributed dual
-coordinate ascent (CoCoA) algorithm is the latest addition to the
-library. The CoCoA algorithm can be used to train distributed
-soft-margin SVMs.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-on-yarn-leveraging-apache-tez&quot;&gt;Flink on YARN leveraging Apache Tez&lt;/h3&gt;
-
-&lt;p&gt;We are introducing a new execution mode for Flink to be able to run
-restricted Flink programs on top of &lt;a href=&quot;http://tez.apache.org&quot;&gt;Apache
-Tez&lt;/a&gt;. This mode retains Flink’s APIs,
-optimizer, as well as Flink’s runtime operators, but instead of
-wrapping those in Flink tasks that are executed by Flink TaskManagers,
-it wraps them in Tez runtime tasks and builds a Tez DAG that
-represents the program.&lt;/p&gt;
-
-&lt;p&gt;By using Flink on Tez, users have an additional choice for an
-execution platform for Flink programs. While Flink’s distributed
-runtime favors low latency, streaming shuffles, and iterative
-algorithms, Tez focuses on scalability and elastic resource usage in
-shared YARN clusters.&lt;/p&gt;
-
-&lt;p&gt;Get started with Flink on Tez
-&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-master/setup/flink_on_tez.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;reworked-distributed-runtime-on-akka&quot;&gt;Reworked Distributed Runtime on Akka&lt;/h3&gt;
-
-&lt;p&gt;Flink’s RPC system has been replaced by the widely adopted
-&lt;a href=&quot;http://akka.io&quot;&gt;Akka&lt;/a&gt; framework. Akka’s concurrency model offers the
-right abstraction to develop a fast as well as robust distributed
-system. By using Akka’s own failure detection mechanism the stability
-of Flink’s runtime is significantly improved, because the system can
-now react in proper form to node outages. Furthermore, Akka improves
-Flink’s scalability by introducing asynchronous messages to the
-system. These asynchronous messages allow Flink to be run on many more
-nodes than before.&lt;/p&gt;
-
-&lt;h3 id=&quot;exactly-once-processing-on-kafka-streaming-sources&quot;&gt;Exactly-once processing on Kafka Streaming Sources&lt;/h3&gt;
-
-&lt;p&gt;This release introduces stream processing with exacly-once delivery
-guarantees for Flink streaming programs that analyze streaming sources
-that are persisted by &lt;a href=&quot;http://kafka.apache.org&quot;&gt;Apache Kafka&lt;/a&gt;. The
-system is internally tracking the Kafka offsets to ensure that Flink
-can pick up data from Kafka where it left off in case of an failure.&lt;/p&gt;
-
-&lt;p&gt;Read
-&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming_guide.html#apache-kafka&quot;&gt;here&lt;/a&gt;
-on how to use the persistent Kafka source.&lt;/p&gt;
-
-&lt;h3 id=&quot;improved-yarn-support&quot;&gt;Improved YARN support&lt;/h3&gt;
-
-&lt;p&gt;Flink’s YARN client contains several improvements, such as a detached
-mode for starting a YARN session in the background, the ability to
-submit a single Flink job to a YARN cluster without starting a
-session, including a “fire and forget” mode. Flink is now also able to
-reallocate failed YARN containers to maintain the size of the
-requested cluster. This feature allows to implement fault-tolerant
-setups on top of YARN. There is also an internal Java API to deploy
-and control a running YARN cluster. This is being used by system
-integrators to easily control Flink on YARN within their Hadoop 2
-cluster.&lt;/p&gt;
-
-&lt;p&gt;See the YARN docs
-&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-master/setup/yarn_setup.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;more-improvements-and-fixes&quot;&gt;More Improvements and Fixes&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1605&quot;&gt;FLINK-1605&lt;/a&gt;:
-Flink is not exposing its Guava and ASM dependencies to Maven
-projects depending on Flink. We use the maven-shade-plugin to
-relocate these dependencies into our own namespace. This allows
-users to use any Guava or ASM version.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1605&quot;&gt;FLINK-1417&lt;/a&gt;:
-Automatic recognition and registration of Java Types at Kryo and the
-internal serializers: Flink has its own type handling and
-serialization framework falling back to Kryo for types that it cannot
-handle. To get the best performance Flink is automatically registering
-all types a user is using in their program with Kryo.Flink also
-registers serializers for Protocol Buffers, Thrift, Avro and YodaTime
-automatically.  Users can also manually register serializers to Kryo
-(https://issues.apache.org/jira/browse/FLINK-1399)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1296&quot;&gt;FLINK-1296&lt;/a&gt;: Add
-support for sorting very large records&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1679&quot;&gt;FLINK-1679&lt;/a&gt;:
-“degreeOfParallelism” methods renamed to “parallelism”&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1501&quot;&gt;FLINK-1501&lt;/a&gt;: Add
-metrics library for monitoring TaskManagers&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1760&quot;&gt;FLINK-1760&lt;/a&gt;: Add
-support for building Flink with Scala 2.11&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1648&quot;&gt;FLINK-1648&lt;/a&gt;: Add
-a mode where the system automatically sets the parallelism to the
-available task slots&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1622&quot;&gt;FLINK-1622&lt;/a&gt;: Add
-groupCombine operator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1589&quot;&gt;FLINK-1589&lt;/a&gt;: Add
-option to pass Configuration to LocalExecutor&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1504&quot;&gt;FLINK-1504&lt;/a&gt;: Add
-support for accessing secured HDFS clusters in standalone mode&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1478&quot;&gt;FLINK-1478&lt;/a&gt;: Add
-strictly local input split assignment&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1512&quot;&gt;FLINK-1512&lt;/a&gt;: Add
-CsvReader for reading into POJOs.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1461&quot;&gt;FLINK-1461&lt;/a&gt;: Add
-sortPartition operator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1450&quot;&gt;FLINK-1450&lt;/a&gt;: Add
-Fold operator to the Streaming api&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1389&quot;&gt;FLINK-1389&lt;/a&gt;:
-Allow setting custom file extensions for files created by the
-FileOutputFormat&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1236&quot;&gt;FLINK-1236&lt;/a&gt;: Add
-support for localization of Hadoop Input Splits&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1179&quot;&gt;FLINK-1179&lt;/a&gt;: Add
-button to JobManager web interface to request stack trace of a
-TaskManager&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1105&quot;&gt;FLINK-1105&lt;/a&gt;: Add
-support for locally sorted output&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1688&quot;&gt;FLINK-1688&lt;/a&gt;: Add
-socket sink&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1436&quot;&gt;FLINK-1436&lt;/a&gt;:
-Improve usability of command line interface&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Mon, 13 Apr 2015 12:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2015/04/13/release-0.9.0-milestone1.html</link>
-<guid isPermaLink="true">/news/2015/04/13/release-0.9.0-milestone1.html</guid>
 </item>
 
 </channel>
