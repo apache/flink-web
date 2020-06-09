@@ -336,13 +336,11 @@ overwriting.
   [Link Text](#heading-title) 
   ```
 
-* **Links to other pages of the Flink documentation.** The base relative path
-  to the domain of the documentation is available as a configuration variable
-  named `baseurl`.
+* **Links to other pages of the Flink documentation.**
 
   {% raw %}
   ```liquid 
-  [Link Text]({{ site.baseurl }}{% link path/to/link-page.md %})
+  [Link Text]({% link path/to/link-page.md %})
   ```
   {% endraw %}
 
