@@ -82,7 +82,7 @@ opening a pull-request.
 ## Repository
 
 Markdown files (.md) should have a short name that summarizes the topic
-covered, spelled in **lowercase** and with **underscores** separating the
+covered, spelled in **lowercase** and with **dashes (-)** separating the
 words. The Chinese version file should have the same name as the English
 version, but suffixed with **.zh.md**.
 
@@ -336,13 +336,11 @@ overwriting.
   [Link Text](#heading-title) 
   ```
 
-* **Links to other pages of the Flink documentation.** The base relative path
-  to the domain of the documentation is available as a configuration variable
-  named `baseurl`.
+* **Links to other pages of the Flink documentation.**
 
   {% raw %}
   ```liquid 
-  [Link Text]({{ site.baseurl }}{% link path/to/link-page.md %})
+  [Link Text]({% link path/to/link-page.md %})
   ```
   {% endraw %}
 
