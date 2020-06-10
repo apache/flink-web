@@ -82,7 +82,7 @@ opening a pull-request.
 ## Repository
 
 Markdown files (.md) should have a short name that summarizes the topic
-covered, spelled in **lowercase** and with **underscores** separating the
+covered, spelled in **lowercase** and with **dashes (-)** separating the
 words. The Chinese version file should have the same name as the English
 version, but suffixed with **.zh.md**.
 
