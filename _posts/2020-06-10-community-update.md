@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Flink Community Update - June'20"
-date: 2020-06-10T08:00:00.000Z
+date: 2020-06-11T08:00:00.000Z
 categories: news
 authors:
 - morsapaes:
@@ -29,7 +29,7 @@ As the community around StateFun grows, the release cycle will follow this patte
 
 ## Testing is ON for Flink 1.11
 
-Things have been pretty quiet in the Flink community, as all efforts shifted to testing the newest features shipping with Flink 1.11. While we wait for the first Release Candidate (RC) to be out, you can check the progress of testing in [this JIRA burndown board](https://issues.apache.org/jira/secure/RapidBoard.jspa?rapidView=364&projectKey=FLINK) and learn more about some of the [upcoming features](https://flink.apache.org/news/2020/05/07/community-update.html#warming-up-for-flink-111) in these Flink Forward videos:
+Things have been pretty quiet in the Flink community, as all efforts shifted to testing the newest features shipping with Flink 1.11. While we wait for a voting Release Candidate (RC) to be out, you can check the progress of testing in [this JIRA burndown board](https://issues.apache.org/jira/secure/RapidBoard.jspa?rapidView=364&projectKey=FLINK) and learn more about some of the [upcoming features](https://flink.apache.org/news/2020/05/07/community-update.html#warming-up-for-flink-111) in these Flink Forward videos:
 
 * [Rethinking of fault tolerance in Flink: what lies ahead?](https://www.youtube.com/watch?v=ssEmeLcL5Uk)
 
@@ -39,7 +39,7 @@ Things have been pretty quiet in the Flink community, as all efforts shifted to 
 
 * [Production-Ready Flink and Hive Integration - what story you can tell now?](https://www.youtube.com/watch?v=4ce1H9CRyEc)
 
-We encourage the wider community to also get involved in testing once an RC is out. Keep an eye on the [@dev mailing list](https://flink.apache.org/community.html#mailing-lists) for updates!
+We encourage the wider community to also get involved in testing once the voting RC is out. Keep an eye on the [@dev mailing list](https://flink.apache.org/community.html#mailing-lists) for updates!
 
 <hr>
 
