@@ -4,7 +4,8 @@ title: "培训课程"
 
 <hr/>
 
-Apache Flink 社区维护了一套自学培训课程，包括了一系列课程和上手练习。 这个对 Flink 的逐步介绍关注于学习如何使用 DataStream API 来满足常见的实际使用需求。
+Apache Flink 社区维护了一套自学培训课程，包括了一系列课程和上手练习。这个对 Flink 的分步介绍重点在于
+学习如何使用 DataStream API 来满足常见的实际使用需求。
 
 这个培训涵盖了 Flink 的基础知识，包括：
 
@@ -32,7 +33,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
                 <ul style="font-size: small;">
                     <li>数据类型和序列化</li>
                     <li>架构</li>
-                    <li>数据源和 Sink</li>
+                    <li>Source 和 Sink</li>
                 </ul>
             </div>
         </div>
@@ -61,7 +62,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
             <div class="panel-body">
                 <ul style="font-size: small;">
                 <li>事件时间处理</li>
-                <li>水印</li>
+                <li>Watermarks</li>
                 <li>窗口</li>
                 </ul>
             </div>
@@ -90,7 +91,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
                 <ul style="font-size: small;">
                 <li>Checkpoints 和 Savepoints</li>
                 <li>精确一次与至少一次</li>
-                <li>精确一次的端到端</li>
+                <li>端到端的精确一次</li>
                 </ul>
             </div>
         </div>
