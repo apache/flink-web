@@ -68,6 +68,15 @@ Principles](#general-guiding-principles).
   struggling to complete an action, using words like _quick_ or _easy_ can lead
   to a poor documentation experience.
 
+* **Avoid using uppercase words** to highlight or emphasize statements.
+  Highlighting key words with e.g. **bold** or _italic_ font usually appears more polite.
+  If you want to draw attention to important but not obvious statements,
+  try to group them into separate paragraphs starting with a label,
+  highlighted with a corresponding HTML tag:
+  * `<span class="label label-info">Note</span>`
+  * `<span class="label label-warning">Warning</span>`
+  * `<span class="label label-danger">Danger</span>`
+
 ### Using Flink-specific Terms
 
 Use clear definitions of terms or provide additional instructions on what
