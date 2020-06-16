@@ -18,7 +18,7 @@ _关于特定组件更改的附加指南。_
 
 配置选项应该放在哪里？
 
-* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准化的执行行为配置。可以将其想像成 Ops 的工作人员，或为其他团队提供流处理平台的人。
+* <span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。
 
 * <span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。
 * <span style="text-decoration:underline;">ExecutionEnvironment (在代码里)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。
@@ -58,7 +58,7 @@ _关于特定组件更改的附加指南。_
 
 连接器历来很难实现，需要处理多线程、并发和检查点等许多方面。
 
-作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力实现数据源（source）。新的数据源应该不必处理并发/线程和检查点的任何方面。
+作为 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 的一部分，我们正在努力使数据源（source）的实现更简单。新的数据源应该不必处理并发/线程和检查点的任何方面。
 
 预计在不久的将来，会有类似针对数据汇（sink）的 FLIP。
 
