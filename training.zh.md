@@ -47,7 +47,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
                 <ul style="font-size: small;">
                 <li>转换</li>
                 <li>有状态的流处理</li>
-                <li>关联的流</li>
+                <li>流的关联</li>
                 </ul>
             </div>
         </div>
