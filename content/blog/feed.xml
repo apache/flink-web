@@ -7,6 +7,117 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 2</title>
+<description>&lt;p&gt;In a previous post, we introduced the basics of Flink on Zeppelin and how to do Streaming ETL. In this second part of the “Flink on Zeppelin” series of posts, I will share how to 
+perform streaming data visualization via Flink on Zeppelin and how to use Apache Flink UDFs in Zeppelin.&lt;/p&gt;
+
+&lt;h1 id=&quot;streaming-data-visualization&quot;&gt;Streaming Data Visualization&lt;/h1&gt;
+
+&lt;p&gt;With &lt;a href=&quot;https://zeppelin.apache.org/&quot;&gt;Zeppelin&lt;/a&gt;, you can build a real time streaming dashboard without writing any line of javascript/html/css code.&lt;/p&gt;
+
+&lt;p&gt;Overall, Zeppelin supports 3 kinds of streaming data analytics:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Single Mode&lt;/li&gt;
+  &lt;li&gt;Update Mode&lt;/li&gt;
+  &lt;li&gt;Append Mode&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;single-mode&quot;&gt;Single Mode&lt;/h3&gt;
+&lt;p&gt;Single mode is used for cases when the result of a SQL statement is always one row, such as the following example. 
+The output format is translated in HTML, and you can specify a paragraph local property template for the final output content template. 
+And you can use &lt;code&gt;{i}&lt;/code&gt; as placeholder for the {i}th column of the result.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_single_mode.gif&quot; width=&quot;80%&quot; alt=&quot;Single Mode&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h3 id=&quot;update-mode&quot;&gt;Update Mode&lt;/h3&gt;
+&lt;p&gt;Update mode is suitable for the cases when the output format is more than one row, 
+and will always be continuously updated. Here’s one example where we use &lt;code&gt;GROUP BY&lt;/code&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_update_mode.gif&quot; width=&quot;80%&quot; alt=&quot;Update Mode&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h3 id=&quot;append-mode&quot;&gt;Append Mode&lt;/h3&gt;
+&lt;p&gt;Append mode is suitable for the cases when the output data is always appended. 
+For instance, the example below uses a tumble window.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_append_mode.gif&quot; width=&quot;80%&quot; alt=&quot;Append Mode&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h1 id=&quot;udf&quot;&gt;UDF&lt;/h1&gt;
+
+&lt;p&gt;SQL is a very powerful language, especially in expressing data flow. But most of the time, you need to handle complicated business logic that cannot be expressed by SQL.
+In these cases UDFs (user-defined functions) come particularly handy. In Zeppelin, you can write Scala or Python UDFs, while you can also import Scala, Python and Java UDFs.
+Here are 2 examples of Scala and Python UDFs:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Scala UDF&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flink&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ScalaUpper&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ScalarFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toUpperCase&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;btenv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;scala_upper&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ScalaUpper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Python UDF&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pyflink&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PythonUpper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ScalarFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;upper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;bt_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;python_upper&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PythonUpper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After you define the UDFs, you can use them directly in SQL:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Use Scala UDF in SQL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_scala_udf.png&quot; width=&quot;100%&quot; alt=&quot;Scala UDF&quot; /&gt;
+&lt;/center&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Use Python UDF in SQL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_python_udf.png&quot; width=&quot;100%&quot; alt=&quot;Python UDF&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post, we explained how to perform streaming data visualization via Flink on Zeppelin and how to use UDFs. 
+Besides that, you can do more in Zeppelin with Flink, such as batch processing, Hive integration and more.
+You can check the following articles for more details and here’s a list of &lt;a href=&quot;https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX&quot;&gt;Flink on Zeppelin tutorial videos&lt;/a&gt; for your reference.&lt;/p&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://zeppelin.apache.org&quot;&gt;Apache Zeppelin official website&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Flink on Zeppelin tutorials - &lt;a href=&quot;https://medium.com/@zjffdu/flink-on-zeppelin-part-1-get-started-2591aaa6aa47&quot;&gt;Part 1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Flink on Zeppelin tutorials - &lt;a href=&quot;https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9&quot;&gt;Part 2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Flink on Zeppelin tutorials - &lt;a href=&quot;https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754&quot;&gt;Part 3&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Flink on Zeppelin tutorials - &lt;a href=&quot;https://medium.com/@zjffdu/flink-on-zeppelin-part-4-advanced-usage-998b74908cd9&quot;&gt;Part 4&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX&quot;&gt;Flink on Zeppelin tutorial videos&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+<pubDate>Tue, 23 Jun 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/ecosystem/2020/06/23/flink-on-zeppelin-part2.html</link>
+<guid isPermaLink="true">/ecosystem/2020/06/23/flink-on-zeppelin-part2.html</guid>
+</item>
+
+<item>
 <title>Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1</title>
 <description>&lt;p&gt;The latest release of &lt;a href=&quot;https://zeppelin.apache.org/&quot;&gt;Apache Zeppelin&lt;/a&gt; comes with a redesigned interpreter for Apache Flink (version Flink 1.10+ is only supported moving forward) 
 that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, 
@@ -16770,245 +16881,6 @@ tools, graph database systems and sampling techniques.&lt;/p&gt;
 <pubDate>Mon, 24 Aug 2015 00:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2015/08/24/introducing-flink-gelly.html</link>
 <guid isPermaLink="true">/news/2015/08/24/introducing-flink-gelly.html</guid>
-</item>
-
-<item>
-<title>Announcing Apache Flink 0.9.0</title>
-<description>&lt;p&gt;The Apache Flink community is pleased to announce the availability of the 0.9.0 release. The release is the result of many months of hard work within the Flink community. It contains many new features and improvements which were previewed in the 0.9.0-milestone1 release and have been polished since then. This is the largest Flink release so far.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Download the release&lt;/a&gt; and check out &lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/&quot;&gt;the documentation&lt;/a&gt;. Feedback through the Flink&lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt; mailing lists&lt;/a&gt; is, as always, very welcome!&lt;/p&gt;
-
-&lt;h2 id=&quot;new-features&quot;&gt;New Features&lt;/h2&gt;
-
-&lt;h3 id=&quot;exactly-once-fault-tolerance-for-streaming-programs&quot;&gt;Exactly-once Fault Tolerance for streaming programs&lt;/h3&gt;
-
-&lt;p&gt;This release introduces a new fault tolerance mechanism for streaming dataflows. The new checkpointing algorithm takes data sources and also user-defined state into account and recovers failures such that all records are reflected exactly once in the operator states.&lt;/p&gt;
-
-&lt;p&gt;The checkpointing algorithm is lightweight and driven by barriers that are periodically injected into the data streams at the sources. As such, it has an extremely low coordination overhead and is able to sustain very high throughput rates. User-defined state can be automatically backed up to configurable storage by the fault tolerance mechanism.&lt;/p&gt;
-
-&lt;p&gt;Please refer to &lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/streaming_guide.html#stateful-computation&quot;&gt;the documentation on stateful computation&lt;/a&gt; for details in how to use fault tolerant data streams with Flink.&lt;/p&gt;
-
-&lt;p&gt;The fault tolerance mechanism requires data sources that can replay recent parts of the stream, such as &lt;a href=&quot;http://kafka.apache.org&quot;&gt;Apache Kafka&lt;/a&gt;. Read more &lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/streaming_guide.html#apache-kafka&quot;&gt;about how to use the persistent Kafka source&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;table-api&quot;&gt;Table API&lt;/h3&gt;
-
-&lt;p&gt;Flink’s new Table API offers a higher-level abstraction for interacting with structured data sources. The Table API allows users to execute logical, SQL-like queries on distributed data sets while allowing them to freely mix declarative queries with regular Flink operators. Here is an example that groups and joins two tables:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clickCounts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clicks&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;userId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activeUsers&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clickCounts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;userId&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;username&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Tables consist of logical attributes that can be selected by name rather than physical Java and Scala data types. This alleviates a lot of boilerplate code for common ETL tasks and raises the abstraction for Flink programs. Tables are available for both static and streaming data sources (DataSet and DataStream APIs).&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/table.html&quot;&gt;Check out the Table guide for Java and Scala&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;gelly-graph-processing-api&quot;&gt;Gelly Graph Processing API&lt;/h3&gt;
-
-&lt;p&gt;Gelly is a Java Graph API for Flink. It contains a set of utilities for graph analysis, support for iterative graph processing and a library of graph algorithms. Gelly exposes a Graph data structure that wraps DataSets for vertices and edges, as well as methods for creating graphs from DataSets, graph transformations and utilities (e.g., in- and out- degrees of vertices), neighborhood aggregations, iterative vertex-centric graph processing, as well as a library of common graph algorithms, including PageRank, SSSP, label propagation, and community detection.&lt;/p&gt;
-
-&lt;p&gt;Gelly internally builds on top of Flink’s&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/iterations.html&quot;&gt; delta iterations&lt;/a&gt;. Iterative graph algorithms are executed leveraging mutable state, achieving similar performance with specialized graph processing systems.&lt;/p&gt;
-
-&lt;p&gt;Gelly will eventually subsume Spargel, Flink’s Pregel-like API.&lt;/p&gt;
-
-&lt;p&gt;Note: The Gelly library is still in beta status and subject to improvements and heavy performance tuning.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/gelly_guide.html&quot;&gt;Check out the Gelly guide&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-machine-learning-library&quot;&gt;Flink Machine Learning Library&lt;/h3&gt;
-
-&lt;p&gt;This release includes the first version of Flink’s Machine Learning library. The library’s pipeline approach, which has been strongly inspired by scikit-learn’s abstraction of transformers and predictors, makes it easy to quickly set up a data processing pipeline and to get your job done.&lt;/p&gt;
-
-&lt;p&gt;Flink distinguishes between transformers and predictors. Transformers are components which transform your input data into a new format allowing you to extract features, cleanse your data or to sample from it. Predictors on the other hand constitute the components which take your input data and train a model on it. The model you obtain from the learner can then be evaluated and used to make predictions on unseen data.&lt;/p&gt;
-
-&lt;p&gt;Currently, the machine learning library contains transformers and predictors to do multiple tasks. The library supports multiple linear regression using stochastic gradient descent to scale to large data sizes. Furthermore, it includes an alternating least squares (ALS) implementation to factorizes large matrices. The matrix factorization can be used to do collaborative filtering. An implementation of the communication efficient distributed dual coordinate ascent (CoCoA) algorithm is the latest addition to the library. The CoCoA algorithm can be used to train distributed soft-margin SVMs.&lt;/p&gt;
-
-&lt;p&gt;Note: The ML library is still in beta status and subject to improvements and heavy performance tuning.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/ml/&quot;&gt;Check out FlinkML&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-on-yarn-leveraging-apache-tez&quot;&gt;Flink on YARN leveraging Apache Tez&lt;/h3&gt;
-
-&lt;p&gt;We are introducing a new execution mode for Flink to be able to run restricted Flink programs on top of&lt;a href=&quot;http://tez.apache.org&quot;&gt; Apache Tez&lt;/a&gt;. This mode retains Flink’s APIs, optimizer, as well as Flink’s runtime operators, but instead of wrapping those in Flink tasks that are executed by Flink TaskManagers, it wraps them in Tez runtime tasks and builds a Tez DAG that represents the program.&lt;/p&gt;
-
-&lt;p&gt;By using Flink on Tez, users have an additional choice for an execution platform for Flink programs. While Flink’s distributed runtime favors low latency, streaming shuffles, and iterative algorithms, Tez focuses on scalability and elastic resource usage in shared YARN clusters.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/setup/flink_on_tez.html&quot;&gt;Get started with Flink on Tez&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;reworked-distributed-runtime-on-akka&quot;&gt;Reworked Distributed Runtime on Akka&lt;/h3&gt;
-
-&lt;p&gt;Flink’s RPC system has been replaced by the widely adopted&lt;a href=&quot;http://akka.io&quot;&gt; Akka&lt;/a&gt; framework. Akka’s concurrency model offers the right abstraction to develop a fast as well as robust distributed system. By using Akka’s own failure detection mechanism the stability of Flink’s runtime is significantly improved, because the system can now react in proper form to node outages. Furthermore, Akka improves Flink’s scalability by introducing asynchronous messages to the system. These asynchronous messages allow Flink to be run on many more nodes than before.&lt;/p&gt;
-
-&lt;h3 id=&quot;improved-yarn-support&quot;&gt;Improved YARN support&lt;/h3&gt;
-
-&lt;p&gt;Flink’s YARN client contains several improvements, such as a detached mode for starting a YARN session in the background, the ability to submit a single Flink job to a YARN cluster without starting a session, including a “fire and forget” mode. Flink is now also able to reallocate failed YARN containers to maintain the size of the requested cluster. This feature allows to implement fault-tolerant setups on top of YARN. There is also an internal Java API to deploy and control a running YARN cluster. This is being used by system integrators to easily control Flink on YARN within their Hadoop 2 cluster.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/setup/yarn_setup.html&quot;&gt;See the YARN docs&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;static-code-analysis-for-the-flink-optimizer-opening-the-udf-blackboxes&quot;&gt;Static Code Analysis for the Flink Optimizer: Opening the UDF blackboxes&lt;/h3&gt;
-
-&lt;p&gt;This release introduces a first version of a static code analyzer that pre-interprets functions written by the user to get information about the function’s internal dataflow. The code analyzer can provide useful information about &lt;a href=&quot;http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/programming_guide.html#semantic-annotations&quot;&gt;forwarded fields&lt;/a&gt; to Flink’s optimizer and thus speedup job executions. It also informs if the code contains obvious mistakes. For stability reasons, the code analyzer is initially disabled by default. It can be activated through&lt;/p&gt;
-
-&lt;p&gt;ExecutionEnvironment.getExecutionConfig().setCodeAnalysisMode(…)&lt;/p&gt;
-
-&lt;p&gt;either as an assistant that gives hints during the implementation or by directly applying the optimizations that have been found.&lt;/p&gt;
-
-&lt;h2 id=&quot;more-improvements-and-fixes&quot;&gt;More Improvements and Fixes&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1605&quot;&gt;FLINK-1605&lt;/a&gt;: Flink is not exposing its Guava and ASM dependencies to Maven projects depending on Flink. We use the maven-shade-plugin to relocate these dependencies into our own namespace. This allows users to use any Guava or ASM version.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1605&quot;&gt;FLINK-1417&lt;/a&gt;: Automatic recognition and registration of Java Types at Kryo and the internal serializers: Flink has its own type handling and serialization framework falling back to Kryo for types that it cannot handle. To get the best performance Flink is automatically registering all types a user is using in their program with Kryo.Flink also registers serializers for Protocol Buffers, Thrift, Avro and YodaTime automatically. Users can also manually register serializers to Kryo (https://issues.apache.org/jira/browse/FLINK-1399)&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1296&quot;&gt;FLINK-1296&lt;/a&gt;: Add support for sorting very large records&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1679&quot;&gt;FLINK-1679&lt;/a&gt;: “degreeOfParallelism” methods renamed to “parallelism”&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1501&quot;&gt;FLINK-1501&lt;/a&gt;: Add metrics library for monitoring TaskManagers&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1760&quot;&gt;FLINK-1760&lt;/a&gt;: Add support for building Flink with Scala 2.11&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1648&quot;&gt;FLINK-1648&lt;/a&gt;: Add a mode where the system automatically sets the parallelism to the available task slots&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1622&quot;&gt;FLINK-1622&lt;/a&gt;: Add groupCombine operator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1589&quot;&gt;FLINK-1589&lt;/a&gt;: Add option to pass Configuration to LocalExecutor&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1504&quot;&gt;FLINK-1504&lt;/a&gt;: Add support for accessing secured HDFS clusters in standalone mode&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1478&quot;&gt;FLINK-1478&lt;/a&gt;: Add strictly local input split assignment&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1512&quot;&gt;FLINK-1512&lt;/a&gt;: Add CsvReader for reading into POJOs.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1461&quot;&gt;FLINK-1461&lt;/a&gt;: Add sortPartition operator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1450&quot;&gt;FLINK-1450&lt;/a&gt;: Add Fold operator to the Streaming api&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1389&quot;&gt;FLINK-1389&lt;/a&gt;: Allow setting custom file extensions for files created by the FileOutputFormat&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1236&quot;&gt;FLINK-1236&lt;/a&gt;: Add support for localization of Hadoop Input Splits&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1179&quot;&gt;FLINK-1179&lt;/a&gt;: Add button to JobManager web interface to request stack trace of a TaskManager&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1105&quot;&gt;FLINK-1105&lt;/a&gt;: Add support for locally sorted output&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1688&quot;&gt;FLINK-1688&lt;/a&gt;: Add socket sink&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1436&quot;&gt;FLINK-1436&lt;/a&gt;: Improve usability of command line interface&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2174&quot;&gt;FLINK-2174&lt;/a&gt;: Allow comments in ‘slaves’ file&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1698&quot;&gt;FLINK-1698&lt;/a&gt;: Add polynomial base feature mapper to ML library&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1697&quot;&gt;FLINK-1697&lt;/a&gt;: Add alternating least squares algorithm for matrix factorization to ML library&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1792&quot;&gt;FLINK-1792&lt;/a&gt;: FLINK-456 Improve TM Monitoring: CPU utilization, hide graphs by default and show summary only&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1672&quot;&gt;FLINK-1672&lt;/a&gt;: Refactor task registration/unregistration&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2001&quot;&gt;FLINK-2001&lt;/a&gt;: DistanceMetric cannot be serialized&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1676&quot;&gt;FLINK-1676&lt;/a&gt;: enableForceKryo() is not working as expected&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1959&quot;&gt;FLINK-1959&lt;/a&gt;: Accumulators BROKEN after Partitioning&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1696&quot;&gt;FLINK-1696&lt;/a&gt;: Add multiple linear regression to ML library&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1820&quot;&gt;FLINK-1820&lt;/a&gt;: Bug in DoubleParser and FloatParser - empty String is not casted to 0&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1985&quot;&gt;FLINK-1985&lt;/a&gt;: Streaming does not correctly forward ExecutionConfig to runtime&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1828&quot;&gt;FLINK-1828&lt;/a&gt;: Impossible to output data to an HBase table&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1952&quot;&gt;FLINK-1952&lt;/a&gt;: Cannot run ConnectedComponents example: Could not allocate a slot on instance&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1848&quot;&gt;FLINK-1848&lt;/a&gt;: Paths containing a Windows drive letter cannot be used in FileOutputFormats&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1954&quot;&gt;FLINK-1954&lt;/a&gt;: Task Failures and Error Handling&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2004&quot;&gt;FLINK-2004&lt;/a&gt;: Memory leak in presence of failed checkpoints in KafkaSource&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2132&quot;&gt;FLINK-2132&lt;/a&gt;: Java version parsing is not working for OpenJDK&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2098&quot;&gt;FLINK-2098&lt;/a&gt;: Checkpoint barrier initiation at source is not aligned with snapshotting&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2069&quot;&gt;FLINK-2069&lt;/a&gt;: writeAsCSV function in DataStream Scala API creates no file&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2092&quot;&gt;FLINK-2092&lt;/a&gt;: Document (new) behavior of print() and execute()&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2177&quot;&gt;FLINK-2177&lt;/a&gt;: NullPointer in task resource release&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2054&quot;&gt;FLINK-2054&lt;/a&gt;: StreamOperator rework removed copy calls when passing output to a chained operator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2196&quot;&gt;FLINK-2196&lt;/a&gt;: Missplaced Class in flink-java SortPartitionOperator&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2191&quot;&gt;FLINK-2191&lt;/a&gt;: Inconsistent use of Closure Cleaner in Streaming API&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2206&quot;&gt;FLINK-2206&lt;/a&gt;: JobManager webinterface shows 5 finished jobs at most&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2188&quot;&gt;FLINK-2188&lt;/a&gt;: Reading from big HBase Tables&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1781&quot;&gt;FLINK-1781&lt;/a&gt;: Quickstarts broken due to Scala Version Variables&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;notice&quot;&gt;Notice&lt;/h2&gt;
-
-&lt;p&gt;The 0.9 series of Flink is the last version to support Java 6. If you are still using Java 6, please consider upgrading to Java 8 (Java 7 ended its free support in April 2015).&lt;/p&gt;
-
-&lt;p&gt;Flink will require at least Java 7 in major releases after 0.9.0.&lt;/p&gt;
-</description>
-<pubDate>Wed, 24 Jun 2015 16:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</link>
-<guid isPermaLink="true">/news/2015/06/24/announcing-apache-flink-0.9.0-release.html</guid>
 </item>
 
 </channel>
