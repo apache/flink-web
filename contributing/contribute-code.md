@@ -12,6 +12,14 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 
 {% toc %}
 
+## Looking for what to contribute
+
+If you have a good idea for the contribution, you can proceed to [the code contribution process](#code-contribution-process).
+If you are looking for what you could contribute, you can browse open Jira issues in [Flink's bug tracker](https://issues.apache.org/jira/projects/FLINK/issues),
+which are not assigned, and then follow [the code contribution process](#code-contribution-process). If you are very new
+to the Flink project and want to learn about it and its contribution process, you can check
+[the starter issues](https://issues.apache.org/jira/issues/?filter=12349196), which are annotated with a _starter_ label.
+
 ## Code Contribution Process
 
 <style>
