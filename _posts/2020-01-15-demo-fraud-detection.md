@@ -13,7 +13,7 @@ excerpt: In this series of blog posts you will learn about three powerful Flink 
 
 In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
 
- - Dynamic updates of application logic
+ - [Dynamic updates of application logic]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html)
  - Dynamic data partitioning (shuffle), controlled at runtime
  - Low latency alerting based on custom windowing logic (without using the window API)
 
@@ -219,4 +219,4 @@ In the second part of this series, we will describe how the rules make their way
 </center>
 <br/>
 
-In the next article, we will see how Flink's broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).
+In the [next article]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html), we will see how Flink's broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).
