@@ -1,25 +1,26 @@
 ---
-title: "培训课程"
+title: "Training Course"
 ---
 
 <hr/>
 
-Apache Flink 社区维护了一套自学培训课程，包括了一系列课程和上手练习。这个对 Flink 的分步介绍重点在于
-学习如何使用 DataStream API 来满足常见的实际使用需求。
+The Apache Flink community maintains a self-paced training course that contains
+a set of lessons and hands-on exercises. This step-by-step introduction to Flink focuses
+on learning how to use the DataStream API to meet the needs of common, real-world use cases.
 
-这个培训涵盖了 Flink 的基础知识，包括：
+This training covers the fundamentals of Flink, including:
 
 <div class="row">
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-blackboard"></span>  <b>Flink 简介</b>
+                <span class="glyphicon glyphicon-blackboard"></span>  <b>Intro to Flink</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                    <li>批处理与流处理</li>
-                    <li>并行的数据流</li>
-                    <li>状态、时间和快照</li>
+                    <li>Batch vs. Streaming</li>
+                    <li>Parallel Dataflows</li>
+                    <li>State, Time, and Snapshots</li>
                 </ul>
             </div>
         </div>
@@ -27,13 +28,13 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-random"></span> <b>DataStream API 简介</b>
+                <span class="glyphicon glyphicon-random"></span> <b>Intro to the DataStream API</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                    <li>数据类型和序列化</li>
-                    <li>架构</li>
-                    <li>Source 和 Sink</li>
+                    <li>Data Types and Serialization</li>
+                    <li>Architecture</li>
+                    <li>Sources and Sinks</li>
                 </ul>
             </div>
         </div>
@@ -41,13 +42,13 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-copy"></span> <b>数据管道和 ETL</b>
+                <span class="glyphicon glyphicon-copy"></span> <b>Data Pipelines and ETL</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                <li>转换</li>
-                <li>有状态的流处理</li>
-                <li>流的关联</li>
+                <li>Transformations</li>
+                <li>Stateful Stream Processing</li>
+                <li>Connected Streams</li>
                 </ul>
             </div>
         </div>
@@ -57,13 +58,13 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-time"></span> <b>流式分析</b>
+                <span class="glyphicon glyphicon-time"></span> <b>Streaming Analytics</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                <li>事件时间处理</li>
+                <li>Event Time Processing</li>
                 <li>Watermarks</li>
-                <li>窗口</li>
+                <li>Windows</li>
                 </ul>
             </div>
         </div>
@@ -71,13 +72,13 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-log-in"></span> <b>事件驱动的应用</b>
+                <span class="glyphicon glyphicon-log-in"></span> <b>Event-driven Applications</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                <li>处理函数</li>
-                <li>定时器</li>
-                <li>旁路输出</li>
+                <li>Process Functions</li>
+                <li>Timers</li>
+                <li>Side Outputs</li>
                 </ul>
             </div>
         </div>
@@ -85,13 +86,13 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
     <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="glyphicon glyphicon-ok"></span> <b>容错</b>
+                <span class="glyphicon glyphicon-ok"></span> <b>Fault Tolerance</b>
             </div>
             <div class="panel-body">
                 <ul style="font-size: small;">
-                <li>Checkpoints 和 Savepoints</li>
-                <li>精确一次与至少一次</li>
-                <li>端到端的精确一次</li>
+                <li>Checkpoints and Savepoints</li>
+                <li>Exactly-once vs. At-least-once</li>
+                <li>Exactly-once End-to-end</li>
                 </ul>
             </div>
         </div>
@@ -99,7 +100,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
 </div>
 
 <div style="margin-bottom: 400px;">
-<a href="{{site.DOCS_BASE_URL}}flink-docs-stable/zh/learn-flink" target='_blank'>Apache Flink 培训课程 <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
+<a href="{{site.DOCS_BASE_URL}}flink-docs-stable/zh/learn-flink" target='_blank'>Apache Flink Training Course <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
 </div>
 
 <!-- 
