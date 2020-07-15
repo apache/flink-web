@@ -1,7 +1,8 @@
 ---
 layout: post
-title: "Lightweight application submission with the Application Mode"
+title: "Application Deployment in Flink: Current State and the new Application Mode"
 date: 2020-07-14T08:00:00.000Z
+category: news
 authors:
 - kostas:
   name: "Kostas Kloudas"
