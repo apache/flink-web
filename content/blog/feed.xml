@@ -7,6 +7,303 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Application Deployment in Flink: Current State and the new Application Mode</title>
+<description>&lt;p&gt;With the rise of stream processing and real-time analytics as a critical tool for modern 
+businesses, an increasing number of organizations build platforms with Apache Flink at their
+core and offer it internally as a service. Many talks with related topics from companies 
+like &lt;a href=&quot;https://www.youtube.com/watch?v=VX3S9POGAdU&quot;&gt;Uber&lt;/a&gt;, &lt;a href=&quot;https://www.youtube.com/watch?v=VX3S9POGAdU&quot;&gt;Netflix&lt;/a&gt;
+and &lt;a href=&quot;https://www.youtube.com/watch?v=cH9UdK0yYjc&quot;&gt;Alibaba&lt;/a&gt; in the latest editions of Flink Forward further 
+illustrate this trend.&lt;/p&gt;
+
+&lt;p&gt;These platforms aim at simplifying application submission internally by lifting all the 
+operational burden from the end user. To submit Flink applications, these platforms 
+usually expose only a centralized or low-parallelism endpoint (&lt;em&gt;e.g.&lt;/em&gt; a Web frontend) 
+for application submission that we will call the &lt;em&gt;Deployer&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;One of the roadblocks that platform developers and maintainers often mention is that the 
+Deployer can be a heavy resource consumer that is difficult to provision for. Provisioning 
+for average load can lead to the Deployer service being overwhelmed with deployment 
+requests (in the worst case, for all production applications in a short period of time), 
+while planning based on top load leads to unnecessary costs. Building on this observation, 
+Flink 1.11 introduces the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/#application-mode&quot;&gt;Application Mode&lt;/a&gt; 
+as a deployment option, which allows for a lightweight, more scalable application 
+submission process that manages to spread more evenly the application deployment load 
+across the nodes in the cluster.&lt;/p&gt;
+
+&lt;p&gt;In order to understand the problem and how the Application Mode solves it, we start by 
+describing briefly the current status of application execution in Flink, before 
+describing the architectural changes introduced by the new deployment mode and how to 
+leverage them.&lt;/p&gt;
+
+&lt;h1 id=&quot;application-execution-in-flink&quot;&gt;Application Execution in Flink&lt;/h1&gt;
+
+&lt;p&gt;The execution of an application in Flink mainly involves three entities: the &lt;em&gt;Client&lt;/em&gt;, 
+the &lt;em&gt;JobManager&lt;/em&gt; and the &lt;em&gt;TaskManagers&lt;/em&gt;. The Client is responsible for submitting the application to the 
+cluster, the JobManager is responsible for the necessary bookkeeping during execution, 
+and the TaskManagers are the ones doing the actual computation. For more details please 
+refer to &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/concepts/flink-architecture.html&quot;&gt;Flink’s Architecture&lt;/a&gt;
+documentation page.&lt;/p&gt;
+
+&lt;h2 id=&quot;current-deployment-modes&quot;&gt;Current Deployment Modes&lt;/h2&gt;
+
+&lt;p&gt;Before the introduction of the Application Mode in version 1.11, Flink allowed users to execute an application either on a 
+&lt;em&gt;Session&lt;/em&gt; or a &lt;em&gt;Per-Job Cluster&lt;/em&gt;. The differences between the two have to do with the cluster 
+lifecycle and the resource isolation guarantees they provide.&lt;/p&gt;
+
+&lt;h3 id=&quot;session-mode&quot;&gt;Session Mode&lt;/h3&gt;
+
+&lt;p&gt;Session Mode assumes an already running cluster and uses the resources of that cluster to 
+execute any submitted application. Applications executed in the same (session) cluster use,
+and consequently compete for, the same resources. This has the advantage that you do not 
+pay the resource overhead of spinning up a full cluster for every submitted job. But, if 
+one of the jobs misbehaves or brings down a TaskManager, then all jobs running on that 
+TaskManager will be affected by the failure. Apart from a negative impact on the job that 
+caused the failure, this implies a potential massive recovery process with all the 
+restarting jobs accessing the file system concurrently and making it unavailable to other 
+services. Additionally, having a single cluster running multiple jobs implies more load 
+for the JobManager, which is responsible for the bookkeeping of all the jobs in the 
+cluster. This mode is ideal for short jobs where startup latency is of high importance, 
+&lt;em&gt;e.g.&lt;/em&gt; interactive queries.&lt;/p&gt;
+
+&lt;h3 id=&quot;per-job-mode&quot;&gt;Per-Job Mode&lt;/h3&gt;
+
+&lt;p&gt;In Per-Job Mode, the available cluster manager framework (&lt;em&gt;e.g.&lt;/em&gt; YARN or Kubernetes) is 
+used to spin up a Flink cluster for each submitted job, which is available to that job 
+only. When the job finishes, the cluster is shut down and any lingering resources 
+(&lt;em&gt;e.g.&lt;/em&gt; files) are cleaned up. This mode allows for better resource isolation, as a 
+misbehaving job cannot affect any other job. In addition, it spreads the load of 
+bookkeeping across multiple entities, as each application has its own JobManager. 
+Given the aforementioned resource isolation concerns of the Session Mode, users often 
+opt for the Per-Job Mode for long-running jobs which are willing to accept some increase 
+in startup latency in favor of resilience.&lt;/p&gt;
+
+&lt;p&gt;To summarize, in Session Mode, the cluster lifecycle is independent of any job running on 
+the cluster and all jobs running on the cluster share its resources. The per-job mode 
+chooses to pay the price of spinning up a cluster for every submitted job, in order to 
+provide better resource isolation guarantees as the resources are not shared across jobs. 
+In this case, the lifecycle of the cluster is bound to that of the job.&lt;/p&gt;
+
+&lt;h2 id=&quot;application-submission&quot;&gt;Application Submission&lt;/h2&gt;
+
+&lt;p&gt;Flink application execution consists of two stages: &lt;em&gt;pre-flight&lt;/em&gt;, when the users’ &lt;code&gt;main()&lt;/code&gt;
+method is called; and &lt;em&gt;runtime&lt;/em&gt;, which is triggered as soon as the user code calls &lt;code&gt;execute()&lt;/code&gt;.
+The &lt;code&gt;main()&lt;/code&gt; method constructs the user program using one of Flink’s APIs 
+(DataStream API, Table API, DataSet API). When the &lt;code&gt;main()&lt;/code&gt; method calls &lt;code&gt;env.execute()&lt;/code&gt;, 
+the user-defined pipeline is translated into a form that Flink’s runtime can understand, 
+called the &lt;em&gt;job graph&lt;/em&gt;, and it is shipped to the cluster.&lt;/p&gt;
+
+&lt;p&gt;Despite their differences, both session and per-job modes execute the application’s &lt;code&gt;main()&lt;/code&gt; 
+method, &lt;em&gt;i.e.&lt;/em&gt; the &lt;em&gt;pre-flight&lt;/em&gt; phase, on the client side.&lt;sup id=&quot;fnref:1&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+
+&lt;p&gt;This is usually not a problem for individual users who already have all the dependencies
+of their jobs locally, and then submit their applications through a client running on
+their machine. But in the case of submission through a remote entity like the Deployer,
+this process includes:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;downloading the application’s dependencies locally,&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;executing the main()method to extract the job graph,&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;ship the job graph and its dependencies to the cluster for execution and,&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;potentially, wait for the result.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This makes the Client a heavy resource consumer as it may need substantial network
+bandwidth to download dependencies and ship binaries to the cluster, and CPU cycles to
+execute the &lt;code&gt;main()&lt;/code&gt; method. This problem is even more pronounced as more users share
+the same Client.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-07-14-application-mode/session-per-job.png&quot; width=&quot;75%&quot; alt=&quot;Session and Per-Job Mode&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:150%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The figure above illustrates the two deployment modes using 3 applications depicted in
+&lt;span style=&quot;color:red&quot;&gt;red&lt;/span&gt;, &lt;span style=&quot;color:blue&quot;&gt;blue&lt;/span&gt; and &lt;span style=&quot;color:green&quot;&gt;green&lt;/span&gt;. 
+Each one has a parallelism of 3. The black rectangles represent 
+different processes: TaskManagers, JobManagers and the Deployer; and we assume a single 
+Deployer process in all scenarios. The colored triangles represent the load of the 
+submission process, while the colored rectangles represent the load of the TaskManager 
+and JobManager processes. As shown in the figure, the Deployer in both per-job and 
+session mode share the same load. Their difference lies in the distribution of the 
+tasks and the JobManager load. In the Session Mode, there is a single JobManager for 
+all the jobs in the cluster while in the per-job mode, there is one for each job. In 
+addition, tasks in Session Mode are assigned randomly to TaskManagers while in Per-Job 
+Mode, each TaskManager can only have tasks of a single job.&lt;/p&gt;
+
+&lt;h1 id=&quot;application-mode&quot;&gt;Application Mode&lt;/h1&gt;
+
+&lt;p&gt;&lt;img style=&quot;float: right;margin-left:10px;margin-right: 15px;&quot; src=&quot;/img/blog/2020-07-14-application-mode/application.png&quot; width=&quot;320px&quot; alt=&quot;Application Mode&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The Application Mode builds on the above observations and tries to combine the resource
+isolation of the per-job mode with a lightweight and scalable application submission 
+process. To achieve this, it creates a cluster &lt;em&gt;per submitted application&lt;/em&gt;, but this 
+time, the &lt;code&gt;main()&lt;/code&gt; method of the application is executed on the JobManager.&lt;/p&gt;
+
+&lt;p&gt;Creating a cluster per application can be seen as creating a session cluster shared 
+only among the jobs of a particular application and torn down when the application 
+finishes. With this architecture, the Application Mode provides the same resource 
+isolation and load balancing guarantees as the Per-Job Mode, but at the granularity of 
+a whole application. This makes sense, as jobs belonging to the same application are 
+expected to be correlated and treated as a unit.&lt;/p&gt;
+
+&lt;p&gt;Executing the &lt;code&gt;main()&lt;/code&gt; method on the JobManager allows saving the CPU cycles required 
+for extracting the job graph, but also the bandwidth required on the client for 
+downloading the dependencies locally and shipping the job graph and its dependencies 
+to the cluster. Furthermore, it spreads the network load more evenly, as there is one 
+JobManager per application. This is illustrated in the figure above, where we have the 
+same scenario as in the session and per-job deployment mode section, but this time 
+the client load has shifted to the JobManager of each application.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+In the Application Mode, the main() method is executed on the cluster and not on the Client, as in the other modes. 
+This may have implications for your code as, for example, any paths you register in your 
+environment using the registerCachedFile() must be accessible by the JobManager of 
+your application.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Compared to the Per-Job Mode, the Application Mode allows the submission of applications
+consisting of multiple jobs. The order of job execution is not affected by the deployment
+mode but by the call used to launch the job. Using the blocking &lt;code&gt;execute()&lt;/code&gt; method 
+establishes an order and will lead to the execution of the “next” job being postponed 
+until “this” job finishes. In contrast, the non-blocking &lt;code&gt;executeAsync()&lt;/code&gt; method will 
+immediately continue to submit the “next” job as soon as the current job is submitted.&lt;/p&gt;
+
+&lt;h2 id=&quot;reducing-network-requirements&quot;&gt;Reducing Network Requirements&lt;/h2&gt;
+
+&lt;p&gt;As described above, by executing the application’s &lt;code&gt;main()&lt;/code&gt; method on the JobManager, 
+the Application Mode manages to save a lot of the resources previously required during 
+job submission. But there is still room for improvement.&lt;/p&gt;
+
+&lt;p&gt;Focusing on YARN, which already supports all the optimizations mentioned here&lt;sup id=&quot;fnref:2&quot;&gt;&lt;a href=&quot;#fn:2&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;, and
+even with the Application Mode in place, the Client is still required to send the user 
+jar to the JobManager. In addition, &lt;em&gt;for each application&lt;/em&gt;, the Client has to ship to 
+the cluster the “flink-dist” directory which contains the binaries of the framework 
+itself, including the &lt;code&gt;flink-dist.jar&lt;/code&gt;, &lt;code&gt;lib/&lt;/code&gt; and &lt;code&gt;plugin/&lt;/code&gt; directories. These two can 
+account for a substantial amount of bandwidth on the client side. Furthermore, shipping 
+the same flink-dist binaries on every submission is both a waste of bandwidth but also 
+of storage space which can be alleviated by simply allowing applications to share the 
+same binaries.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.11, we introduce options that allow the user to:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Specify a remote path to a directory where YARN can find the Flink distribution binaries, and&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Specify a remote path where YARN can find the user jar.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For 1., we leverage YARN’s distributed cache and allow applications to share these 
+binaries. So, if an application happens to find copies of Flink on the local storage 
+of its TaskManager due to a previous application that was executed on the same 
+TaskManager, it will not even have to download it internally.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Both optimizations are available to all deployment modes on YARN, and not only the Application Mode.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;example-application-mode-on-yarn&quot;&gt;Example: Application Mode on Yarn&lt;/h1&gt;
+
+&lt;p&gt;For a full description, please refer to the official Flink documentation and more 
+specifically to the page that refers to your cluster management framework, &lt;em&gt;e.g.&lt;/em&gt; 
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/yarn_setup.html#run-an-application-in-application-mode&quot;&gt;YARN&lt;/a&gt; 
+or &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/native_kubernetes.html#flink-kubernetes-application&quot;&gt;Kubernetes&lt;/a&gt;.
+Here we will give some examples around YARN, where all the above features are available.&lt;/p&gt;
+
+&lt;p&gt;To launch an application in Application Mode, you can use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&lt;b&gt;./bin/flink run-application -t yarn-application&lt;/b&gt; ./MyApplication.jar&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;With this command, all configuration parameters, such as the path to a savepoint to 
+be used to bootstrap the application’s state or the required JobManager/TaskManager 
+memory sizes, can be specified by their configuration option, prefixed by &lt;code&gt;-D&lt;/code&gt;. For 
+a catalog of the available configuration options, please refer to Flink’s 
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/ops/config.html&quot;&gt;configuration page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As an example, the command to specify the memory sizes of the JobManager and the 
+TaskManager would look like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./bin/flink run-application -t yarn-application \
+    &lt;b&gt;-Djobmanager.memory.process.size=2048m&lt;/b&gt; \
+    &lt;b&gt;-Dtaskmanager.memory.process.size=4096m&lt;/b&gt; \
+    ./MyApplication.jar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As discussed earlier, the above will make sure that your application’s &lt;code&gt;main()&lt;/code&gt; method 
+will be executed on the JobManager.&lt;/p&gt;
+
+&lt;p&gt;To further save the bandwidth of shipping the Flink distribution to the cluster, consider
+pre-uploading the Flink distribution to a location accessible by YARN and using the 
+&lt;code&gt;yarn.provided.lib.dirs&lt;/code&gt; configuration option, as shown below:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./bin/flink run-application -t yarn-application \
+    -Djobmanager.memory.process.size=2048m \
+    -Dtaskmanager.memory.process.size=4096m \
+    &lt;b&gt;-Dyarn.provided.lib.dirs=&quot;hdfs://myhdfs/remote-flink-dist-dir&quot;&lt;/b&gt; \
+    ./MyApplication.jar
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finally, in order to further save the bandwidth required to submit your application jar,
+you can pre-upload it to HDFS, and specify the remote path that points to 
+&lt;code&gt;./MyApplication.jar&lt;/code&gt;, as shown below:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./bin/flink run-application -t yarn-application \
+    -Djobmanager.memory.process.size=2048m \
+    -Dtaskmanager.memory.process.size=4096m \
+    -Dyarn.provided.lib.dirs=&quot;hdfs://myhdfs/remote-flink-dist-dir&quot; \
+    &lt;b&gt;hdfs://myhdfs/jars/MyApplication.jar&lt;/b&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will make the job submission extra lightweight as the needed Flink jars and the 
+application jar are going to be picked up from the specified remote locations rather 
+than be shipped to the cluster by the Client. The only thing the Client will ship to 
+the cluster is the configuration of your application which includes all the 
+aforementioned paths.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;We hope that this discussion helped you understand the differences between the various 
+deployment modes offered by Flink and will help you to make informed decisions about 
+which one is suitable in your own setup. Feel free to play around with them and report 
+any issues you may find. If you have any questions or requests, do not hesitate to post 
+them in the &lt;a href=&quot;https://wints.github.io/flink-web//community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt;
+and, hopefully, see you (virtually) at one of our conferences or meetups soon!&lt;/p&gt;
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot;&gt;
+      &lt;p&gt;The only exceptions are the Web Submission and the Standalone per-job implementation. &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:2&quot;&gt;
+      &lt;p&gt;Support for Kubernetes will come soon. &lt;a href=&quot;#fnref:2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+<pubDate>Tue, 14 Jul 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/07/14/application-mode.html</link>
+<guid isPermaLink="true">/news/2020/07/14/application-mode.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.11.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is proud to announce the release of Flink 1.11.0! More than 200 contributors worked on over 1.3k issues to bring significant improvements to usability as well as new features to Flink users across the whole API stack. Some highlights that we’re particularly excited about are:&lt;/p&gt;
 
@@ -16714,67 +17011,6 @@ register for the conference.&lt;/p&gt;
 <pubDate>Thu, 03 Sep 2015 10:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2015/09/03/flink-forward.html</link>
 <guid isPermaLink="true">/news/2015/09/03/flink-forward.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 0.9.1 available</title>
-<description>&lt;p&gt;The Flink community is happy to announce that Flink 0.9.1 is now available.&lt;/p&gt;
-
-&lt;p&gt;0.9.1 is a maintenance release, which includes a lot of minor fixes across
-several parts of the system. We suggest all users of Flink to work with this
-latest stable version.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;/downloads.html&quot;&gt;Download the release&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11&quot;&gt;check out the
-documentation&lt;/a&gt;. Feedback through the Flink mailing lists
-is, as always, very welcome!&lt;/p&gt;
-
-&lt;p&gt;The following &lt;a href=&quot;https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20status%20in%20(Resolved%2C%20Closed)%20AND%20fixVersion%20%3D%200.9.1&quot;&gt;issues were fixed&lt;/a&gt;
-for this release:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-1916&quot;&gt;FLINK-1916&lt;/a&gt; EOFException when running delta-iteration job&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2089&quot;&gt;FLINK-2089&lt;/a&gt; “Buffer recycled” IllegalStateException during cancelling&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2189&quot;&gt;FLINK-2189&lt;/a&gt; NullPointerException in MutableHashTable&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2205&quot;&gt;FLINK-2205&lt;/a&gt; Confusing entries in JM Webfrontend Job Configuration section&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2229&quot;&gt;FLINK-2229&lt;/a&gt; Data sets involving non-primitive arrays cannot be unioned&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2238&quot;&gt;FLINK-2238&lt;/a&gt; Scala ExecutionEnvironment.fromCollection does not work with Sets&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2248&quot;&gt;FLINK-2248&lt;/a&gt; Allow disabling of sdtout logging output&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2257&quot;&gt;FLINK-2257&lt;/a&gt; Open and close of RichWindowFunctions is not called&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2262&quot;&gt;FLINK-2262&lt;/a&gt; ParameterTool API misnamed function&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2280&quot;&gt;FLINK-2280&lt;/a&gt; GenericTypeComparator.compare() does not respect ascending flag&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2285&quot;&gt;FLINK-2285&lt;/a&gt; Active policy emits elements of the last window twice&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2286&quot;&gt;FLINK-2286&lt;/a&gt; Window ParallelMerge sometimes swallows elements of the last window&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2293&quot;&gt;FLINK-2293&lt;/a&gt; Division by Zero Exception&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2298&quot;&gt;FLINK-2298&lt;/a&gt; Allow setting custom YARN application names through the CLI&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2347&quot;&gt;FLINK-2347&lt;/a&gt; Rendering problem with Documentation website&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2353&quot;&gt;FLINK-2353&lt;/a&gt; Hadoop mapred IOFormat wrappers do not respect JobConfigurable interface&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2356&quot;&gt;FLINK-2356&lt;/a&gt; Resource leak in checkpoint coordinator&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2361&quot;&gt;FLINK-2361&lt;/a&gt; CompactingHashTable loses entries&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2362&quot;&gt;FLINK-2362&lt;/a&gt; distinct is missing in DataSet API documentation&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2381&quot;&gt;FLINK-2381&lt;/a&gt; Possible class not found Exception on failed partition producer&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2384&quot;&gt;FLINK-2384&lt;/a&gt; Deadlock during partition spilling&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2386&quot;&gt;FLINK-2386&lt;/a&gt; Implement Kafka connector using the new Kafka Consumer API&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2394&quot;&gt;FLINK-2394&lt;/a&gt; HadoopOutFormat OutputCommitter is default to FileOutputCommiter&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2412&quot;&gt;FLINK-2412&lt;/a&gt; Race leading to IndexOutOfBoundsException when querying for buffer while releasing SpillablePartition&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2422&quot;&gt;FLINK-2422&lt;/a&gt; Web client is showing a blank page if “Meta refresh” is disabled in browser&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2424&quot;&gt;FLINK-2424&lt;/a&gt; InstantiationUtil.serializeObject(Object) does not close output stream&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2437&quot;&gt;FLINK-2437&lt;/a&gt; TypeExtractor.analyzePojo has some problems around the default constructor detection&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2442&quot;&gt;FLINK-2442&lt;/a&gt; PojoType fields not supported by field position keys&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2447&quot;&gt;FLINK-2447&lt;/a&gt; TypeExtractor returns wrong type info when a Tuple has two fields of the same POJO type&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2450&quot;&gt;FLINK-2450&lt;/a&gt; IndexOutOfBoundsException in KryoSerializer&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2460&quot;&gt;FLINK-2460&lt;/a&gt; ReduceOnNeighborsWithExceptionITCase failure&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2527&quot;&gt;FLINK-2527&lt;/a&gt; If a VertexUpdateFunction calls setNewVertexValue more than once, the MessagingFunction will only see the first value set&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2540&quot;&gt;FLINK-2540&lt;/a&gt; LocalBufferPool.requestBuffer gets into infinite loop&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2542&quot;&gt;FLINK-2542&lt;/a&gt; It should be documented that it is required from a join key to override hashCode(), when it is not a POJO&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2555&quot;&gt;FLINK-2555&lt;/a&gt; Hadoop Input/Output Formats are unable to access secured HDFS clusters&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2560&quot;&gt;FLINK-2560&lt;/a&gt; Flink-Avro Plugin cannot be handled by Eclipse&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2572&quot;&gt;FLINK-2572&lt;/a&gt; Resolve base path of symlinked executable&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2584&quot;&gt;FLINK-2584&lt;/a&gt; ASM dependency is not shaded away&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Tue, 01 Sep 2015 10:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2015/09/01/release-0.9.1.html</link>
-<guid isPermaLink="true">/news/2015/09/01/release-0.9.1.html</guid>
 </item>
 
 </channel>
