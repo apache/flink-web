@@ -99,7 +99,7 @@ Apache Flink 社区维护了一套自学培训课程，包括了一系列课程�
 </div>
 
 <div style="margin-bottom: 400px;">
-<a href="{{site.DOCS_BASE_URL}}flink-docs-master/zh/training" target='_blank'>Apache Flink 培训课程 <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
+<a href="{{site.DOCS_BASE_URL}}flink-docs-stable/zh/learn-flink" target='_blank'>Apache Flink 培训课程 <small><span class="glyphicon glyphicon-new-window"></span></small> </a> 
 </div>
 
 <!-- 
