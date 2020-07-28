@@ -89,7 +89,7 @@ become available to downstream systems. 
 
 As you might know, Flink provides a powerful [Window
 API](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/windows.html)
-that is applicable for a wide range of use cases. However, If you go
+that is applicable for a wide range of use cases. However, if you go
 over all of the available types of supported windows, you will realize
 that none of them exactly match our main requirement for this use case -
 the low-latency evaluation of *each* incoming transaction. There is
