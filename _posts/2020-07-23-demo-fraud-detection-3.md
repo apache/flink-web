@@ -397,7 +397,7 @@ which enables a reasonable trade-off between the precision with which
 the timers will be triggered, and the number of timers being used.
 Timers are stored in Flink's fault-tolerant state, and managing them
 with millisecond-level precision can be wasteful. In our case, with this
-rounding, we will create at most one timer per key in any given second.
+rounding, we will create at most one timer per key in any given second. Flink documentation provides some additional [<u>details</u>](https://ci.apache.org/projects/flink/flink-docs-release-1.11/dev/stream/operators/process_function.html#timer-coalescing).
 </div>
 
 7) The `onTimer` method will trigger the clean-up of the window state.
