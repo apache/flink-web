@@ -592,7 +592,7 @@ the returned TypeInformation.
   <tr>
     <td class="tg-topcenter">
       <img src="{{ site.baseurl }}/img/blog/patterns-blog-3/type-pojo.png" alt="POJO"/></td>
-    <td class="tg-top">
+    <td class="tg-topcenter">
       <i>PojoTypeInfo</i> indicates that that an efficient Flink POJO serializer will be used.</td>
   </tr>
   <tr>
