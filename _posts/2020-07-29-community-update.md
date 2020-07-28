@@ -1,14 +1,14 @@
 ---
 layout: post
 title: "Flink Community Update - July'20"
-date: 2020-07-29T08:00:00.000Z
+date: 2020-07-27T08:00:00.000Z
 categories: news
 authors:
 - morsapaes:
   name: "Marta Paes"
   twitter: "morsapaes"
 
-excerpt: As July draws to an end, we look back at a monthful of activity in the Flink community, including two releases (!) and some work around improving the first-time contribution experience in the project. Also, events are starting to pick up again, so we've put together a list of some great conferences you can (virtually) attend in August!
+excerpt: As July draws to an end, we look back at a monthful of activity in the Flink community, including two releases (!) and some work around improving the first-time contribution experience in the project. Also, events are starting to pick up again, so we've put together a list of some great events you can (virtually) attend in August!
 ---
 
 As July draws to an end, we look back at a monthful of activity in the Flink community, including two releases (!) and some work around improving the first-time contribution experience in the project.
@@ -60,14 +60,6 @@ The Flink 1.12 release cycle has been kicked-off last week and a discussion abou
         <td><ul>
         <li><b>Support Python DataStream API</b></li>
         <p>Python support in Flink has so far been bounded to the Table API/SQL. These APIs are high-level and convenient, but have some limitations for more complex stream processing use cases. To expand the usability of PyFlink to a broader set of use cases, FLIP-130 proposes to support it also in the DataStream API, starting with stateless operations.</p>
-      </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866741">131</a></td>
-        <td><ul>
-         <li><b>Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API)</b></li>
-        <p>FLIP-131 proposes to deprecate the DataSet API in favor of the Table API/SQL and the DataStream API, in the long run. For this to be feasible, both APIs first need to be <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866741#FLIP131:ConsolidatetheuserfacingDataflowSDKs/APIs(anddeprecatetheDataSetAPI)-ProposedChanges">adapted and expanded</a> to support the additional use cases currently covered by the DataSet API.</p>
       </ul>
       </td>
     </tr>
@@ -192,7 +184,7 @@ As usual, we also leave you with some resources to read and explore.
         <b>Flink 1.11 Series</b>
         <li><a href="https://flink.apache.org/news/2020/07/14/application-mode.html">Application Deployment in Flink: Current State and the new Application Mode</a></li>
         <li><a href="https://flink.apache.org/2020/07/23/catalogs.html">Sharing is caring - Catalogs in Flink SQL (Tutorial)</a></li>
-        <li><a href="">Flink SQL Demo: Building an End-to-End Streaming Application (Tutorial)</a></li>
+        <li><a href="https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html">Flink SQL Demo: Building an End-to-End Streaming Application (Tutorial)</a></li>
         <p></p>
         <b>Other</b>
         <li><a href="https://blogs.oracle.com/javamagazine/streaming-analytics-with-java-and-apache-flink?source=:em:nw:mt::RC_WWMK200429P00043:NSL400072808&elq_mid=167902&sh=162609181316181313222609291604350235&cmid=WWMK200429P00043C0004">Streaming analytics with Java and Apache Flink (Tutorial)</a></li>
