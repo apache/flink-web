@@ -300,14 +300,14 @@ public class DynamicAlertFunction
       Keyed<Transaction, String, Integer> value, ReadOnlyContext ctx, Collector<Alert> out){
 
     // Add Transaction to state
-    long currentEventTime = value.getWrapped().getEventTime();
+    long currentEventTime = value.getWrapped().getEventTime();                            // <--- (1)
     addToStateValuesSet(windowState, currentEventTime, value.getWrapped());
 
     // Calculate the aggregate value
-    Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());
-    Long windowStartTimestampForEvent = rule.getWindowStartTimestampFor(currentEventTime);
-    SimpleAccumulator<BigDecimal> aggregator = RuleHelper.getAggregator(rule);
+    Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());    // <--- (2)
+    Long windowStartTimestampForEvent = rule.getWindowStartTimestampFor(currentEventTime);// <--- (3)
 
+    SimpleAccumulator<BigDecimal> aggregator = RuleHelper.getAggregator(rule);            // <--- (4)
     for (Long stateEventTime : windowState.keys()) {
       if (isStateValueInWindow(stateEventTime, windowStartForEvent, currentEventTime)) {
         aggregateValuesInState(stateEventTime, aggregator, rule);
@@ -315,7 +315,7 @@ public class DynamicAlertFunction
     }
 
     // Evaluate the rule and trigger an alert if violated
-    BigDecimal aggregateResult = aggregator.getLocalValue();
+    BigDecimal aggregateResult = aggregator.getLocalValue();                              // <--- (5)
     boolean isRuleViolated = rule.apply(aggregateResult);
     if (isRuleViolated) {
       long decisionTime = System.currentTimeMillis();
@@ -328,7 +328,7 @@ public class DynamicAlertFunction
     }
 
     // Register timers to ensure state cleanup
-    long cleanupTime = (currentEventTime / 1000) * 1000;
+    long cleanupTime = (currentEventTime / 1000) * 1000;                                  // <--- (6)
     ctx.timerService().registerEventTimeTimer(cleanupTime);
   }
 ```
