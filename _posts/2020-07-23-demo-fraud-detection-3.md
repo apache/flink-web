@@ -101,7 +101,7 @@ but they cannot themselves individually control the creation and
 evaluation of windows\*. As described above, our goal for the fraud
 detection engine is to achieve immediate evaluation of the previous
 relevant data points as soon as the new event is received. This raises
-the question of feasibility of applying the Window API in this case.
+the question of feasibility of applying the Window API in this case. The Window API offers some options for defining custom triggers, evictors, and window assigners, which may get to the required result. However, it is usually difficult to get this right (and easy to break). Moreover, this approach does not provide access to broadcast state, which is required for implementing dynamic reconfiguration of business rules.
 
 \*) apart from the session windows, but they are limited to assignments
 based on the session [gaps](https://ci.apache.org/projects/flink/flink-docs-release-1.11/dev/stream/operators/windows.html#session-windows)
