@@ -221,7 +221,7 @@ per event key*, in our case, `MapState` is the right choice.
 <br/>
 
 
-As described in the [first]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html) blog of the series, we are dispatching events based on the keys
+As described in the [first blog of the series]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html), we are dispatching events based on the keys
 specified in the active fraud detection rules. Multiple distinct rules
 can be based on the same grouping key. This means that our alerting
 function can potentially receive transactions scoped by the same key
@@ -264,7 +264,7 @@ private void updateWidestWindowRule(Rule rule, BroadcastState<Integer, Rule> bro
 Let's now look at the implementation of the main method,
 `processElement()`, in some detail.
 
-In the previous [blog post]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning), we described how `DynamicKeyFunction` allowed
+In the [previous blog post]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning), we described how `DynamicKeyFunction` allowed
 us to perform dynamic data partitioning based on the `groupingKeyNames`
 parameter in the rule definition. The subsequent description is focused
 around the `DynamicAlertFunction`, which makes use of the remaining rule
@@ -283,7 +283,7 @@ series, our alerting process function receives events of type
 `Keyed<Transaction, String, Integer>`, where `Transaction` is the main
 "wrapped" event, String is the key (*payer \#x - beneficiary \#y* in
 Figure 1), and `Integer` is the ID of the rule that caused the dispatch of
-this event. This rule was previously [stored]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html#broadcast-state-pattern) in the broadcast state and has to be retrieved from that state by the ID. Here is the
+this event. This rule was previously [stored in the broadcast state]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html#broadcast-state-pattern) and has to be retrieved from that state by the ID. Here is the
 outline of the implementation:
 
 ```java
@@ -459,8 +459,8 @@ This concludes the description of the implementation details. Our
 approach triggers evaluation of a time window as soon as a new
 transaction arrives. It therefore fulfills the main requirement that we
 have targeted - low delay for potentially issuing an alert. For the
-complete implementation, please follow
-[this](https://github.com/afedulov/fraud-detection-demo) link.
+complete implementation, please have a look at
+[the project on github](https://github.com/afedulov/fraud-detection-demo).
 
 ## Improvements and Optimizations
 
