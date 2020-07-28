@@ -211,14 +211,16 @@ compelled to do something like
 `mapState.value().get(inputEvent.getKey())`, you should probably be using
 `ValueState` instead of the `MapState`. As we want to store *multiple values
 per event key*, in our case, `MapState` is the right choice.
-</div>
+
+<br/>
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-3/keyed-state-scoping.png" width="800px" alt="Figure 4: Keyed State Scoping"/>
 <br/>
 <i><small>Figure 4: Keyed State Scoping</small></i>
 </center>
-<br/>
+
+</div>
 
 
 As described in the [first blog of the series]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html), we are dispatching events based on the keys
@@ -583,7 +585,7 @@ are being used.
 you can quickly determine which serializer is going to be
 used for your classes by setting a breakpoint and verifying the type of
 the returned TypeInformation.
-</div>
+<br/>
 
 <center>
 <table class="tg">
@@ -601,8 +603,11 @@ the returned TypeInformation.
   </tr>
 </table>
 </center>
+</div>
 
-<br/>
+
+
+
 
 **Event pruning**: instead of storing complete events and putting
 additional stress on the ser/de machinery, we can reduce individual
