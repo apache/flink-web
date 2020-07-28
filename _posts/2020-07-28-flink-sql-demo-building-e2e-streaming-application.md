@@ -14,7 +14,7 @@ Apache Flink 1.11 has released many exciting new features, including many develo
 In the following sections, we describe how to integrate Kafka, MySQL, Elasticsearch, and Kibana with Flink SQL to analyze e-commerce user behavior in real-time. All exercises in this blogpost are performed in the Flink SQL CLI, and the entire process uses standard SQL syntax, without a single line of Java/Scala code or IDE installation. The final result of this demo is shown in the following figure:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-03-flink-sql-demo/image1.gif" width="650px" alt="Demo Overview"/>
+<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image1.gif" width="650px" alt="Demo Overview"/>
 </center>
 <br>
 
