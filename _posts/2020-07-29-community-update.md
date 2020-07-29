@@ -56,7 +56,7 @@ The Flink 1.12 release cycle has been kicked-off last week and a discussion abou
   </thead>
   <tbody>
     <tr>
-      <td><a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866298">130</a></td>
+      <td><a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866298">FLIP-130</a></td>
         <td><ul>
         <li><b>Support Python DataStream API</b></li>
         <p>Python support in Flink has so far been bounded to the Table API/SQL. These APIs are high-level and convenient, but have some limitations for more complex stream processing use cases. To expand the usability of PyFlink to a broader set of use cases, FLIP-130 proposes to support it also in the DataStream API, starting with stateless operations.</p>
