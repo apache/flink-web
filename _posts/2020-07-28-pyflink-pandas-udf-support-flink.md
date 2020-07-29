@@ -244,7 +244,7 @@ print(pdf)
 
 # Conclusion & Upcoming work
 
-In this article, we introduce the integration of Pandas in Flink 1.11, including Pandas UDF and the conversion between Table and Pandas. In fact, in the latest Apache Flink release, there are many excellent features added to PyFlink, such as support of User-defined Table functions and User-defined Metrics for Python UDFs. What’s more, from Flink 1.11, you can build PyFlink with Cython support and “Cythonize” your Python UDFs to substantially improve code execution speed (up to 30x faster, compared to Python UDFs in Flink 1.10).
+In this article, we introduce the integration of Pandas in Flink 1.11, including Pandas UDF and the conversion between Table and Pandas. In fact, in the latest Apache Flink release, there are many excellent features added to PyFlink, such as support of User-defined Table functions and User-defined Metrics for Python UDFs. What’s more, from Flink 1.11, you can build PyFlink with Cython support and "Cythonize" your Python UDFs to substantially improve code execution speed (up to 30x faster, compared to Python UDFs in Flink 1.10).
 
 Future work by the community will focus on adding more features and bringing additional optimizations with follow up releases.  Such optimizations and additions include a Python DataStream API and more integration with the Python ecosystem, such as support for distributed Pandas in Flink. Stay tuned for more information and updates with the upcoming releases!
 
