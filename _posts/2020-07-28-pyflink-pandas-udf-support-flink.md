@@ -62,7 +62,7 @@ The performance of vectorized UDFs is usually much higher when compared to the n
 Pandas DataFrame is the de-facto standard for working with tabular data in the Python community while PyFlink Table is Flink’s representation of the tabular data in Python. Enabling the conversion between PyFlink Table and Pandas DataFrame allows switching between PyFlink and Pandas seamlessly when processing data in Python. Users can process data by utilizing one execution engine and switch to a different one effortlessly. For example, in case users already have a Pandas DataFrame at hand and want to perform some expensive transformation, they can easily convert it to a PyFlink Table and leverage the power of the Flink engine. On the other hand, users can also convert a PyFlink Table to a Pandas DataFrame and perform the same transformation with the rich functionalities provided by the Pandas ecosystem.
 
 
-## Examples
+# Examples
 
 Using Python in Apache Flink requires installing PyFlink, which is available on [PyPI](https://pypi.org/project/apache-flink/) and can be easily installed using `pip`. Before installing PyFlink, check the working version of Python running in your system using:
 
