@@ -15,21 +15,19 @@ excerpt: The Apache Flink community put some great effort into integrating Panda
 Python has evolved into one of the most important programming languages for many fields of data processing. So big has been Python’s popularity, that it has pretty much become the default data processing language for data scientists. On top of that, there is a plethora of Python-based data processing tools such as NumPy, Pandas, and Scikit-learn that have gained additional popularity due to their flexibility or powerful functionalities. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-pyflink-pandas/python-scientific-stack.png" width="600px" alt="Python Scientific Stack"/>
+<img src="{{ site.baseurl }}/img/blog/2020-07-28-pyflink-pandas/python-scientific-stack.png" width="450px" alt="Python Scientific Stack"/>
 </center>
 <center>
   <a href="https://speakerdeck.com/jakevdp/the-unexpected-effectiveness-of-python-in-science?slide=52">Pic source: VanderPlas 2017, slide 52.</a>
 </center>
 <br>
 
-In an effort to meet the user needs and demands, the Flink community hopes to leverage and make better use of these tools.  Along this direction, the Flink community put some great effort in integrating Pandas into PyFlink with the latest Flink version 1.11. Some of the added features include support for Pandas UDF and the conversion between Pandas DataFrame and Table. Pandas UDF not only greatly improve the execution performance of Python UDF, but also make it more convenient for users to leverage libraries such as Pandas and NumPy in Python UDF. Additionally, providing support for the conversion between Pandas DataFrame and Table enables users to switch processing engines seamlessly without the need for an intermediate connector. The following sections will introduce how these functionalities work and how to use them with a step-by-step example.
+In an effort to meet the user needs and demands, the Flink community hopes to leverage and make better use of these tools.  Along this direction, the Flink community put some great effort in integrating Pandas into PyFlink with the latest Flink version 1.11. Some of the added features include **support for Pandas UDF** and the **conversion between Pandas DataFrame and Table**. Pandas UDF not only greatly improve the execution performance of Python UDF, but also make it more convenient for users to leverage libraries such as Pandas and NumPy in Python UDF. Additionally, providing support for the conversion between Pandas DataFrame and Table enables users to switch processing engines seamlessly without the need for an intermediate connector. In the remainder of this article, we will introduce how these functionalities work and how to use them with a step-by-step example.
 
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
 Currently, only Scalar Pandas UDFs are supported in PyFlink.
 </div>
-
-<br>
 
 # Pandas UDF in Flink 1.11
 
@@ -52,9 +50,9 @@ While providing support for Python UDFs in PyFlink greatly improved the user exp
 The introduction of Pandas UDF is used to address these drawbacks. For Pandas UDF, a batch of rows is transferred between the JVM and PVM in a columnar format ([Arrow memory format](https://arrow.apache.org/docs/format/Columnar.html)). The batch of rows will be converted into a collection of Pandas Series and will be transferred to the Pandas UDF to then leverage popular Python libraries (such as Pandas, or NumPy) for the Python UDF implementation.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-pyflink-pandas/vm-communication.png" width="600px" alt="VM Communication"/>
+<img src="{{ site.baseurl }}/img/blog/2020-07-28-pyflink-pandas/vm-communication.png" width="550px" alt="VM Communication"/>
 </center>
-<br>
+
 
 The performance of vectorized UDFs is usually much higher when compared to the normal Python UDF, as the serialization/deserialization overhead is minimized by falling back to [Apache Arrow](https://arrow.apache.org/), while handling `pandas.Series` as input/output allows us to take full advantage of the Pandas and NumPy libraries, making it a popular solution to parallelize Machine Learning and other large-scale, distributed data science workloads (e.g. feature engineering, distributed model application).
 
@@ -66,7 +64,7 @@ Pandas DataFrame is the de-facto standard for working with tabular data in the P
 
 ## Examples
 
-Using Python in Apache Flink requires installing PyFlink. PyFlink is available through PyPI and can be easily installed using pip: 
+Using Python in Apache Flink requires installing PyFlink, which is available on [PyPI](https://pypi.org/project/apache-flink/) and can be easily installed using `pip`. Before installing PyFlink, check the working version of Python running in your system using:
 
 ```bash
 $ python --version
@@ -78,9 +76,7 @@ Python 3.7.6
 Please note that Python 3.5 or higher is required to install and run PyFlink
 </div>
 
-<br>
-
-If you don't have a version above 3.5, you can use virtualenv with the following commands:
+If you don't have a version above 3.5, you can create a virtual environment (i.e. [virtualenv](https://docs.python-guide.org/dev/virtualenvs/)) with the following commands:
 
 ```bash
 $ pip install virtualenv
@@ -95,9 +91,8 @@ $ source py37/bin/activate
 $ python -m pip install apache-flink
 
 ```
-<br>
 
-### Using Pandas UDF
+## Using Pandas UDF
 
 Pandas UDFs take `pandas.Series` as the input and return a `pandas.Series` of the same length as the output. Pandas UDFs can be used at the exact same place where non-Pandas functions are currently being utilized. To mark a UDF as a Pandas UDF, you only need to add an extra parameter udf_type="pandas" in the udf decorator:
 
@@ -216,7 +211,7 @@ $  cat /tmp/output
 
 ```
 
-### Conversion between PyFlink Table and Pandas DataFrame
+## Conversion between PyFlink Table and Pandas DataFrame
 
 You can use the `from_pandas()` method to create a PyFlink Table from a Pandas DataFrame or use the `to_pandas()` method to convert a PyFlink Table to a Pandas DataFrame.
 
