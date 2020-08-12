@@ -215,6 +215,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <th class="text-center">Apache ID</th>
   </thead>
   <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/43608?s=50" class="committer-avatar"></td>
+    <td class="text-center">David Anderson</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">danderson</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/5990983?s=50" class="committer-avatar"></td>
     <td class="text-center">Márton Balassi</td>
     <td class="text-center">PMC, Committer</td>
