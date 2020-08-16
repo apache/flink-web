@@ -6,8 +6,30 @@ title:  "Apache Flink Code Style and Quality Guide  — Common Rules"
 
 {% toc %}
 
+## 1. Copyright
 
-## 1. Tools
+Each file must include the Apache license information as a header.
+```
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+## 2. Tools
 
 We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
 
@@ -30,7 +52,7 @@ We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flin
 
 
 
-## 2. Comments And Code Readability
+## 3. Comments And Code Readability
 
 
 ### Comments
@@ -114,7 +136,7 @@ the main path
 ```
 
 
-## 3. Design and Structure
+## 4. Design and Structure
 
 While it is hard to exactly specify what constitutes a good design, there are some properties that can serve as a _litmus test_ for a good design. If these properties are given, the chances are good that the design is going into a good direction. If these properties cannot be achieved, there is a high probability that the design is flawed.
 
@@ -233,7 +255,7 @@ That means still applying the general idea of the sections above, but possibly f
 
 
 
-## 4. Concurrency and Threading
+## 5. Concurrency and Threading
 
 **Most code paths should not require any concurrency.** The right internal abstractions should obviate the need for concurrency in almost all cases.
 
@@ -278,7 +300,7 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
 
 
 
-## 5. Dependencies and Modules
+## 6. Dependencies and Modules
 
 * **Keep the dependency footprint small**
     * The more dependencies the harder it gets for the community to manage them as a whole.
