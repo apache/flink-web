@@ -6,8 +6,31 @@ title:  "Apache Flink Code Style and Quality Guide  — Common Rules"
 
 {% toc %}
 
+## 1. Copyright
 
-## 1. Tools
+Each file must include the Apache license information as a header.
+
+```
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+## 2. Tools
 
 We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
 
@@ -30,7 +53,7 @@ We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flin
 
 
 
-## 2. Comments And Code Readability
+## 3. Comments And Code Readability
 
 
 ### Comments
@@ -56,7 +79,7 @@ In-code comments help explain the <span style="text-decoration:underline;">“wh
 * Or `// nulling out this field here means future write attempts are fail-fast`
 * Or `// for arguments with which this method is actually called, this seemingly naive approach works actually better than any optimized/smart version`
 
-In-code comments should not state redundant information about the “what” and “how” that is already obvious in the code itself. 
+In-code comments should not state redundant information about the “what” and “how” that is already obvious in the code itself.
 
 JavaDocs should not state meaningless information (just to satisfy the Checkstyle checker).
 
@@ -87,7 +110,7 @@ __Don’t:__
 
 ```
 if (a) {
-    if (b) { 
+    if (b) {
         if (c) {
             the main path
         }
@@ -114,7 +137,7 @@ the main path
 ```
 
 
-## 3. Design and Structure
+## 4. Design and Structure
 
 While it is hard to exactly specify what constitutes a good design, there are some properties that can serve as a _litmus test_ for a good design. If these properties are given, the chances are good that the design is going into a good direction. If these properties cannot be achieved, there is a high probability that the design is flawed.
 
@@ -132,14 +155,14 @@ While it is hard to exactly specify what constitutes a good design, there are so
 For nullability, the Flink codebase aims to follow these conventions:
 
 * Fields, parameters, and return types are always non-null, unless indicated otherwise
-* All fields, parameters and method types that can be null should be annotated with `@javax.annotation.Nullable`. 
+* All fields, parameters and method types that can be null should be annotated with `@javax.annotation.Nullable`.
 That way, you get warnings from IntelliJ about all sections where you have to reason about potential null values.
 * For all mutable (non-final) fields that are not annotated, the assumption is that while the field value changes, there always is a value.
     * This should be double check whether these can in fact not be null throughout the lifetime of the object.
 
 _Note: This means that `@Nonnull` annotations are usually not necessary, but can be used in certain cases to override a previous annotation, or to point non-nullability out in a context where one would expect a nullable value._
 
-`Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`. 
+`Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`.
 See also [usage of Java Optional](code-style-and-quality-java.md#java-optional).
 
 
@@ -154,7 +177,7 @@ See also [usage of Java Optional](code-style-and-quality-java.md#java-optional).
 
 Code that is easily testable typically has good separation of concerns and is structured to be reusable outside the original context (by being easily reusable in tests).
 
-A good summary or problems / symptoms and recommended refactoring is in the PDF linked below. 
+A good summary or problems / symptoms and recommended refactoring is in the PDF linked below.
 Please note that while the examples in the PDF often use a dependency injection framework (Guice), it works in the same way without such a framework.[^1]
 
 [http://misko.hevery.com/attachments/Guide-Writing%20Testable%20Code.pdf](http://misko.hevery.com/attachments/Guide-Writing%20Testable%20Code.pdf)
@@ -193,10 +216,10 @@ then the S3 access should be factored out into an interface and test should repl
 
 * <span style="text-decoration:underline;">Test contracts not implementations</span>: Test that after a sequence of actions, the components are in a certain state, rather than testing that the components followed a sequence of internal state modifications.
     * For example, a typical antipattern is to check whether one specific method was called as part of the test
-* A way to enforce this is to try to follow the _Arrange_, _Act_, _Assert_ test structure when writing a unit test ([https://xp123.com/articles/3a-arrange-act-assert/](https://xp123.com/articles/3a-arrange-act-assert/)) 
+* A way to enforce this is to try to follow the _Arrange_, _Act_, _Assert_ test structure when writing a unit test ([https://xp123.com/articles/3a-arrange-act-assert/](https://xp123.com/articles/3a-arrange-act-assert/))
 
     This helps to communicate the intention of the test (what is the scenario under test) rather than the mechanics of the tests. The technical bits go to a static methods at the bottom of the test class.
- 
+
     Example of tests in Flink that follow this pattern are:
 
     * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
@@ -233,7 +256,7 @@ That means still applying the general idea of the sections above, but possibly f
 
 
 
-## 4. Concurrency and Threading
+## 5. Concurrency and Threading
 
 **Most code paths should not require any concurrency.** The right internal abstractions should obviate the need for concurrency in almost all cases.
 
@@ -245,7 +268,7 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
 
 **When developing a component think about threading model and synchronization points ahead.**
 
-* For example: single threaded, blocking, non-blocking, synchronous, asynchronous, multi threaded, thread pool, message queues, volatile, synchronized block/methods, mutexes, atomics, callbacks, … 
+* For example: single threaded, blocking, non-blocking, synchronous, asynchronous, multi threaded, thread pool, message queues, volatile, synchronized block/methods, mutexes, atomics, callbacks, …
 * Getting those things right and thinking about them ahead is even more important than designing classes interfaces/responsibilities, since it’s much harder to change later on.
 
 
@@ -266,19 +289,19 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
 
 **Be aware of the java.util.concurrent.CompletableFuture**
 
-* Like with other concurrent code, there should rarely be the need to use a CompletableFuture 
+* Like with other concurrent code, there should rarely be the need to use a CompletableFuture
 * Completing a future would also complete on the calling thread any chained futures that are waiting for the result to be completed, unless a completion executor specified explicitly.
 * This can be intentional, if the entire execution should be synchronous / single-threaded, as for example in parts of the Scheduler / ExecutionGraph.
     * Flink even makes use of a “main-thread executor” to allow calling chained handlers in the same thread as a single-threaded RPC endpoint runs
 * This can be unexpected, if the thread that completes the future is a sensitive thread.
     * It may be better to use `CompletableFuture.supplyAsync(value, executor)` in that case, instead of `future.complete(value)` when an executor is available
-* When blocking on a future awaiting completion, always supply a timeout for a result instead of waiting indefinitely, and handle timeouts explicitly. 
+* When blocking on a future awaiting completion, always supply a timeout for a result instead of waiting indefinitely, and handle timeouts explicitly.
 * Use `CompletableFuture.allOf()`/`anyOf()`, `ExecutorCompletionService`, or `org.apache.flink.runtime.concurrent.FutureUtils#waitForAll` if you need to wait for: all the results/any of the results/all the results but handled by (approximate) completion order.
 
 
 
 
-## 5. Dependencies and Modules
+## 6. Dependencies and Modules
 
 * **Keep the dependency footprint small**
     * The more dependencies the harder it gets for the community to manage them as a whole.
@@ -293,7 +316,7 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
     * [[source](https://stackoverflow.com/questions/15177661/maven-transitive-dependencies)]
 * **Location of classes in the Maven modules**
     * Whenever you create a new class, think about where to put it.
-    * A class might be used by multiple modules in the future and might belong into a `common` module in this case. 
+    * A class might be used by multiple modules in the future and might belong into a `common` module in this case.
 
 
 
