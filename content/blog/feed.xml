@@ -7,6 +7,225 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions</title>
+<description>&lt;p&gt;In this blog post, we’ll take a look at a class of use cases that is a natural fit for &lt;a href=&quot;https://flink.apache.org/stateful-functions.html&quot;&gt;Flink Stateful Functions&lt;/a&gt;: monitoring and controlling networks of connected devices (often called the “Internet of Things” (IoT)).&lt;/p&gt;
+
+&lt;p&gt;IoT networks are composed of many individual, but interconnected components, which makes getting some kind of high-level insight into the status, problems, or optimization opportunities in these networks not trivial. Each individual device “sees” only its own state, which means that the status of groups of devices, or even the network as a whole, is often a complex aggregation of the individual devices’ state. Diagnosing, controlling, or optimizing these groups of devices thus requires distributed logic that analyzes the “bigger picture” and then acts upon it.&lt;/p&gt;
+
+&lt;p&gt;A powerful approach to implement this is using &lt;em&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Digital_twin&quot;&gt;digital twins&lt;/a&gt;&lt;/em&gt;: each device has a corresponding virtual entity (i.e. the digital twin), which also captures their relationships and interactions. The digital twins track the status of their corresponding devices and send updates to other twins, representing groups (such as geographical regions) of devices. Those, in turn, handle the logic to obtain the network’s aggregated view, or this “bigger picture” we mentioned before.&lt;/p&gt;
+
+&lt;h1 id=&quot;our-scenario-datacenter-monitoring-and-alerting&quot;&gt;Our Scenario: Datacenter Monitoring and Alerting&lt;/h1&gt;
+
+&lt;figure style=&quot;float:right;padding-left:1px;padding-top: 20px&quot;&gt;
+  &lt;img src=&quot;/img/blog/2020-08-18-statefun/rack.png&quot; width=&quot;350px&quot; /&gt;
+  &lt;figcaption style=&quot;padding-top: 10px;text-align:center&quot;&gt;&lt;b&gt;Fig.1&lt;/b&gt; An oversimplified view of a data center.&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;There are many examples of the digital twins approach in the real world, such as &lt;a href=&quot;https://www.infoq.com/presentations/tesla-vpp/&quot;&gt;smart grids of batteries&lt;/a&gt;, &lt;a href=&quot;https://www.alibabacloud.com/solutions/intelligence-brain/city&quot;&gt;smart cities&lt;/a&gt;, or &lt;a href=&quot;https://www.youtube.com/watch?v=9y27FJgz5-M&quot;&gt;monitoring infrastructure software clusters&lt;/a&gt;. In this blogpost, we’ll use the example of data center monitoring and alert correlation implemented with Stateful Functions.&lt;/p&gt;
+
+&lt;p&gt;Consider a very simplified view of a data center, consisting of many thousands of commodity servers arranged in server racks. Each server rack typically contains up to 40 servers, with a ToR (Top of the Rack) network switch connected to each server. The switches from all the racks connect through a larger switch (&lt;strong&gt;Fig. 1&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;p&gt;In this datacenter, many things can go wrong: a disk in a server can stop working, network cards can start dropping packets, or ToR switches might cease to function. The entire data center might also be affected by power supply degradation, causing servers to operate at reduced capacity. On-site engineers must be able to identify these incidents quickly and fix them promptly.&lt;/p&gt;
+
+&lt;p&gt;Diagnosing individual server failures is rather straightforward: take a recent history of metric reports from that particular server, analyse it and pinpoint the anomaly. On the other hand, other incidents only make sense “together”, because they share a common root cause. Diagnosing or predicting causes of networking degradation at a rack or datacenter level requires an aggregate view of metrics (such as package drop rates) from the individual machines and racks, and possibly some prediction model or diagnosis code that runs under certain conditions.&lt;/p&gt;
+
+&lt;h2 id=&quot;monitoring-a-virtual-datacenter-via-digital-twins&quot;&gt;Monitoring a Virtual Datacenter via Digital Twins&lt;/h2&gt;
+
+&lt;p&gt;For the sake of this blog post, our oversimplified data center has some servers and racks, each with a unique ID. Each server has a metrics-collecting daemon that publishes metrics to a message queue, and there is a provisioning service that operators will use to ask for server commission- and decommissioning.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/1.png&quot; width=&quot;550px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Our application will consume these server metrics and commission/decommission events, and produce server/rack/datacenter alerts. There will also be an operator consuming any alerts triggered by the monitoring system. In the next section, we’ll show how this use case can be naturally modeled with Stateful Functions (StateFun).&lt;/p&gt;
+
+&lt;h2 id=&quot;implementing-the-use-case-with-flink-statefun&quot;&gt;Implementing the use case with Flink StateFun&lt;/h2&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;You can find the code for this example at: &lt;a href=&quot;https://github.com/igalshilman/iot-statefun-blogpost&quot;&gt;https://github.com/igalshilman/iot-statefun-blogpost&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The basic building block for modeling a StateFun application is a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/application-building-blocks.html#stateful-functions&quot;&gt;&lt;em&gt;stateful function&lt;/em&gt;&lt;/a&gt;, which has the following properties:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;It has a logical unique address; and persisted, fault tolerant state, scoped to that address.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;It can &lt;em&gt;react&lt;/em&gt; to messages, both internal (or, sent from other stateful functions) and external (e.g. a message from Kafka).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Invocations of a specific function are serializable, so messages sent to a specific address are &lt;strong&gt;not&lt;/strong&gt; executed concurrently.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;There can be many billions of function instances in a single StateFun cluster.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To model our use case, we’ll define three functions: &lt;strong&gt;ServerFun&lt;/strong&gt;, &lt;strong&gt;RackFun&lt;/strong&gt; and &lt;strong&gt;DataCenterFun&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ServerFun&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Each physical server is represented with its &lt;em&gt;digital twin&lt;/em&gt; stateful function. This function is responsible for:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Maintaining a sliding window of incoming metrics.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Applying a model that decides whether or not to trigger an alert.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Alerting if metrics are missing for too long.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Notifying its containing &lt;strong&gt;RackFun&lt;/strong&gt; about any open incidents.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;RackFun&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;While the &lt;em&gt;ServerFun&lt;/em&gt; is responsible for identifying server-local incidents, we need a function that correlates incidents happening on the different servers deployed in the same rack and:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Collects open incidents reported by the &lt;strong&gt;ServerFun&lt;/strong&gt; functions.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Maintains an histogram of currently opened incidents on this rack.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Applies a correlation model to the individual incidents sent by the &lt;strong&gt;ServerFun&lt;/strong&gt;, and reports high-level, related incidents as a single incident to the &lt;strong&gt;DataCenterFun&lt;/strong&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;DataCenterFun&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This function maintains a view of incidents across different racks in our datacenter.&lt;/p&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/2.png&quot; width=&quot;600px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;To summarize our plan:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Leaf functions ingest raw metric data (&lt;span style=&quot;color:blue&quot;&gt;blue&lt;/span&gt; lines), and apply localized logic to trigger an alert.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Intermediate functions operate on already summarized events (&lt;span style=&quot;color:orange&quot;&gt;orange&lt;/span&gt; lines) and correlate them into high-level events.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A root function correlates the high-level events across the intermediate functions and into a single &lt;em&gt;healthy/not healthy&lt;/em&gt; value.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;how-does-it-really-look&quot;&gt;How does it really look?&lt;/h2&gt;
+
+&lt;h3 id=&quot;serverfun&quot;&gt;ServerFun&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/3_1.png&quot; width=&quot;600px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;This section associates a behaviour for every message that the function expects to be invoked with.&lt;/li&gt;
+  &lt;li&gt;The &lt;code&gt;metricsHistory&lt;/code&gt; buffer is our sliding window of the last 15 minutes worth of &lt;code&gt;ServerMetricReports&lt;/code&gt;. Note that this buffer is configured to expire entries 15 minutes after they were written.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;serverHealthState&lt;/code&gt; represents the current physical server state, open incidents and so on.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Let’s take a look at what happens when a &lt;code&gt;ServerMetricReport&lt;/code&gt; message arrives:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/3_2.png&quot; width=&quot;600px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Retrieve the previously computed &lt;code&gt;serverHealthState&lt;/code&gt; that is kept in state.&lt;/li&gt;
+  &lt;li&gt;Evaluate a model on the sliding window of the previous metric reports + the current metric reported + the previously computed server state to obtain an assessment of the current server health.&lt;/li&gt;
+  &lt;li&gt;If the server is not believed to be healthy, emit an alert via an alerts topic, and also send a message to our containing rack with all the open incidents that this server currently has.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;alert alert-warning&quot;&gt;
+  &lt;p&gt;We’ll omit the other handlers for brevity, but it’s important to mention that &lt;b&gt;onTimer&lt;/b&gt; makes sure that metric reports are coming in periodically, otherwise it’d trigger an alert stating that we didn’t hear from that server for a long time.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;rackfun&quot;&gt;RackFun&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/5.png&quot; width=&quot;650px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;This function keeps a mapping between a &lt;code&gt;ServerId&lt;/code&gt; and a set of open incidents on that server.&lt;/li&gt;
+  &lt;li&gt;When new alerts are received, this function tries to correlate the alert with any other open alerts on that rack. If a correlated rack alert is present, this function notifies the &lt;strong&gt;DataCenterFun&lt;/strong&gt; about it.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;datacenterfun&quot;&gt;DataCenterFun&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/6.png&quot; width=&quot;650px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;A persisted mapping between a &lt;code&gt;RackId&lt;/code&gt; and the latest alert that rack reported.&lt;/li&gt;
+  &lt;li&gt;Throughout the usage of ingress/egress pairs, this function can report back its current view of the world of what racks are currently known to be unhealthy.&lt;/li&gt;
+  &lt;li&gt;An operator (via a front-end) can send a &lt;code&gt;GetUnhealthyRacks&lt;/code&gt; message addressed to that &lt;strong&gt;DataCenterFun&lt;/strong&gt;, and wait for the corresponding response &lt;code&gt;message(UnhealthyRacks)&lt;/code&gt;. Whenever a rack reports &lt;em&gt;OK&lt;/em&gt;, it’ll be removed from the unhealthy racks map.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This pattern — where each layer of functions performs a stateful aggregation of events sent from the previous layer (or the input) — is useful for a whole class of problems. And, although we used connected devices to motivate this use case, it’s not limited to the IoT domain.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-08-18-statefun/7.png&quot; width=&quot;500px&quot; alt=&quot;&quot; /&gt;
+&lt;/center&gt;
+
+&lt;div style=&quot;line-height:60%;&quot;&gt;
+    &lt;br /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Stateful Functions provides the building blocks necessary for building complex distributed applications (here the digital twins that support analysis and interactions of the physical entities), while removing common complexities of distributed systems like service discovery, retires, circuit breakers, state management, scalability and similar challenges. If you’d like to learn more about Stateful Functions, head over to the official &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/&quot;&gt;documentation&lt;/a&gt;, where you can also find more hands-on tutorials to try out yourself!&lt;/p&gt;
+</description>
+<pubDate>Wed, 19 Aug 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2020/08/19/statefun.html</link>
+<guid isPermaLink="true">/2020/08/19/statefun.html</guid>
+</item>
+
+<item>
 <title>Accelerating your workload with GPU and other external resources</title>
 <description>&lt;p&gt;Apache Flink 1.11 introduces a new &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/external_resources.html&quot;&gt;External Resource Framework&lt;/a&gt;,
 which allows you to request external resources from the underlying resource management systems (e.g., Kubernetes) and accelerate your workload with
@@ -17153,43 +17372,6 @@ When using this backend, active state in streaming programs can grow well beyond
 <pubDate>Tue, 08 Mar 2016 14:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2016/03/08/release-1.0.0.html</link>
 <guid isPermaLink="true">/news/2016/03/08/release-1.0.0.html</guid>
-</item>
-
-<item>
-<title>Flink 0.10.2 Released</title>
-<description>&lt;p&gt;Today, the Flink community released Flink version &lt;strong&gt;0.10.2&lt;/strong&gt;, the second bugfix release of the 0.10 series.&lt;/p&gt;
-
-&lt;p&gt;We &lt;strong&gt;recommend all users updating to this release&lt;/strong&gt; by bumping the version of your Flink dependencies to &lt;code&gt;0.10.2&lt;/code&gt; and updating the binaries on the server.&lt;/p&gt;
-
-&lt;h2 id=&quot;issues-fixed&quot;&gt;Issues fixed&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3242&quot;&gt;FLINK-3242&lt;/a&gt;: Adjust StateBackendITCase for 0.10 signatures of state backends&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3236&quot;&gt;FLINK-3236&lt;/a&gt;: Flink user code classloader as parent classloader from Flink core classes&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2962&quot;&gt;FLINK-2962&lt;/a&gt;: Cluster startup script refers to unused variable&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3151&quot;&gt;FLINK-3151&lt;/a&gt;: Downgrade to Netty version 4.0.27.Final&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3224&quot;&gt;FLINK-3224&lt;/a&gt;: Call setInputType() on output formats that implement InputTypeConfigurable&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3218&quot;&gt;FLINK-3218&lt;/a&gt;: Fix overriding of user parameters when merging Hadoop configurations&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3189&quot;&gt;FLINK-3189&lt;/a&gt;: Fix argument parsing of CLI client INFO action&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3176&quot;&gt;FLINK-3176&lt;/a&gt;: Improve documentation for window apply&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3185&quot;&gt;FLINK-3185&lt;/a&gt;: Log error on failure during recovery&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3185&quot;&gt;FLINK-3185&lt;/a&gt;: Don’t swallow test failure Exception&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3147&quot;&gt;FLINK-3147&lt;/a&gt;: Expose HadoopOutputFormatBase fields as protected&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3145&quot;&gt;FLINK-3145&lt;/a&gt;: Pin Kryo version of transitive dependencies&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3143&quot;&gt;FLINK-3143&lt;/a&gt;: Update Closure Cleaner’s ASM references to ASM5&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3136&quot;&gt;FLINK-3136&lt;/a&gt;: Fix shaded imports in ClosureCleaner.scala&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3108&quot;&gt;FLINK-3108&lt;/a&gt;: JoinOperator’s with() calls the wrong TypeExtractor method&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3125&quot;&gt;FLINK-3125&lt;/a&gt;: Web server starts also when JobManager log files cannot be accessed.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3080&quot;&gt;FLINK-3080&lt;/a&gt;: Relax restrictions of DataStream.union()&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3081&quot;&gt;FLINK-3081&lt;/a&gt;: Properly stop periodic Kafka committer&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3082&quot;&gt;FLINK-3082&lt;/a&gt;: Fixed confusing error about an interface that no longer exists&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3067&quot;&gt;FLINK-3067&lt;/a&gt;: Enforce zkclient 0.7 for Kafka&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3020&quot;&gt;FLINK-3020&lt;/a&gt;: Set number of task slots to maximum parallelism in local execution&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Thu, 11 Feb 2016 09:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2016/02/11/release-0.10.2.html</link>
-<guid isPermaLink="true">/news/2016/02/11/release-0.10.2.html</guid>
 </item>
 
 </channel>
