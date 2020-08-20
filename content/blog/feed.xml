@@ -7,6 +7,98 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>The State of Flink on Docker</title>
+<description>&lt;p&gt;With over 50 million downloads from Docker Hub, the Flink docker images are a very popular deployment option.&lt;/p&gt;
+
+&lt;p&gt;The Flink community recently put some effort into improving the Docker experience for our users with the goal to reduce confusion and improve usability.&lt;/p&gt;
+
+&lt;p&gt;Let’s quickly break down the recent improvements:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Reduce confusion: Flink used to have 2 Dockerfiles and a 3rd file maintained outside of the official repository — all with different features and varying stability. Now, we have one central place for all images: &lt;a href=&quot;https://github.com/apache/flink-docker&quot;&gt;apache/flink-docker&lt;/a&gt;.&lt;/p&gt;
+
+    &lt;p&gt;Here, we keep all the Dockerfiles for the different releases. Check out the &lt;a href=&quot;https://github.com/apache/flink-docker/blob/master/README.md&quot;&gt;detailed readme&lt;/a&gt; of that repository for further explanation on the different branches, as well as the &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-111%3A+Docker+image+unification&quot;&gt;Flink Improvement Proposal (FLIP-111)&lt;/a&gt; that contains the detailed planning.&lt;/p&gt;
+
+    &lt;p&gt;The &lt;code&gt;apache/flink-docker&lt;/code&gt; repository also seeds the &lt;a href=&quot;https://hub.docker.com/_/flink&quot;&gt;official Flink image on Docker Hub&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Improve Usability: The Dockerfiles are used for various purposes: &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/docker.html&quot;&gt;Native Docker deployments&lt;/a&gt;, &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/native_kubernetes.html&quot;&gt;Flink on Kubernetes&lt;/a&gt;, the (unofficial) &lt;a href=&quot;https://github.com/docker-flink/examples&quot;&gt;Flink helm example&lt;/a&gt; and the project’s &lt;a href=&quot;https://github.com/apache/flink/tree/master/flink-end-to-end-tests&quot;&gt;internal end to end tests&lt;/a&gt;. With one unified image, all these consumers of the images benefit from the same set of features, documentation and testing.&lt;/p&gt;
+
+    &lt;p&gt;The new images support &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/docker.html#configure-options&quot;&gt;passing configuration variables&lt;/a&gt; via a &lt;code&gt;FLINK_PROPERTIES&lt;/code&gt; environment variable. Users can &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/docker.html#using-plugins&quot;&gt;enable default plugins&lt;/a&gt; with the &lt;code&gt;ENABLE_BUILT_IN_PLUGINS&lt;/code&gt; environment variable. The images also allow loading custom jar paths and configuration files.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Looking into the future, there are already some interesting potential improvements lined up:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-16260&quot;&gt;Java 11 Docker images&lt;/a&gt; (already completed)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15793&quot;&gt;Use vanilla docker-entrypoint with flink-kubernetes&lt;/a&gt; (in progress)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17167&quot;&gt;History server support&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15587&quot;&gt;Support for OpenShift&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;how-do-i-get-started&quot;&gt;How do I get started?&lt;/h2&gt;
+
+&lt;p&gt;This is a short tutorial on &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/docker.html#start-a-session-cluster&quot;&gt;how to start a Flink Session Cluster&lt;/a&gt; with Docker.&lt;/p&gt;
+
+&lt;p&gt;A &lt;em&gt;Flink Session cluster&lt;/em&gt; can be used to run multiple jobs. Each job needs to be submitted to the cluster after it has been deployed. To deploy a &lt;em&gt;Flink Session cluster&lt;/em&gt; with Docker, you need to start a &lt;em&gt;JobManager&lt;/em&gt; container. To enable communication between the containers, we first set a required Flink configuration property and create a network:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;FLINK_PROPERTIES=&quot;jobmanager.rpc.address: jobmanager&quot;
+docker network create flink-network
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then we launch the JobManager:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;docker run \
+       --rm \
+       --name=jobmanager \
+       --network flink-network \
+       -p 8081:8081 \
+       --env FLINK_PROPERTIES=&quot;${FLINK_PROPERTIES}&quot; \
+       flink:1.11.1 jobmanager
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;and one or more &lt;em&gt;TaskManager&lt;/em&gt; containers:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;docker run \
+      --rm \
+      --name=taskmanager \
+      --network flink-network \
+      --env FLINK_PROPERTIES=&quot;${FLINK_PROPERTIES}&quot; \
+      flink:1.11.1 taskmanager
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You now have a fully functional Flink cluster running! You can access the the web front end here: &lt;a href=&quot;http://localhost:8081/&quot;&gt;localhost:8081&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Let’s now submit one of Flink’s example jobs:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 1: (optional) Download the Flink distribution, and unpack it&lt;/span&gt;
+wget https://archive.apache.org/dist/flink/flink-1.11.1/flink-1.11.1-bin-scala_2.12.tgz
+tar xf flink-1.11.1-bin-scala_2.12.tgz
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;flink-1.11.1
+
+&lt;span class=&quot;c&quot;&gt;# 2: Start the Flink job&lt;/span&gt;
+./bin/flink run ./examples/streaming/TopSpeedWindowing.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The main steps of the tutorial are also recorded in this short screencast:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/flink-docker/flink-docker.gif&quot; width=&quot;882px&quot; height=&quot;730px&quot; alt=&quot;Demo video&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;strong&gt;Next steps&lt;/strong&gt;: Now that you’ve successfully completed this tutorial, we recommend you checking out the full &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/ops/deployment/docker.html&quot;&gt;Flink on Docker documentation&lt;/a&gt; for implementing more advanced deployment scenarios, such as Job Clusters, Docker Compose or our native Kubernetes integration.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;We encourage all readers to try out Flink on Docker to provide the community with feedback to further improve the experience.
+Please refer to the user@flink.apache.org (&lt;a href=&quot;https://flink.apache.org/community.html#how-to-subscribe-to-a-mailing-list&quot;&gt;remember to subscribe first&lt;/a&gt;) for general questions and our &lt;a href=&quot;https://issues.apache.org/jira/issues/?jql=project+%3D+FLINK+AND+component+%3D+flink-docker&quot;&gt;issue tracker&lt;/a&gt; for specific bugs or improvements, or &lt;a href=&quot;https://flink.apache.org/contributing/how-to-contribute.html&quot;&gt;ideas for contributions&lt;/a&gt;!&lt;/p&gt;
+</description>
+<pubDate>Thu, 20 Aug 2020 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/08/20/flink-docker.html</link>
+<guid isPermaLink="true">/news/2020/08/20/flink-docker.html</guid>
+</item>
+
+<item>
 <title>Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions</title>
 <description>&lt;p&gt;In this blog post, we’ll take a look at a class of use cases that is a natural fit for &lt;a href=&quot;https://flink.apache.org/stateful-functions.html&quot;&gt;Flink Stateful Functions&lt;/a&gt;: monitoring and controlling networks of connected devices (often called the “Internet of Things” (IoT)).&lt;/p&gt;
 
@@ -17245,133 +17337,6 @@ This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
 <pubDate>Wed, 06 Apr 2016 10:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2016/04/06/release-1.0.1.html</link>
 <guid isPermaLink="true">/news/2016/04/06/release-1.0.1.html</guid>
-</item>
-
-<item>
-<title>Announcing Apache Flink 1.0.0</title>
-<description>&lt;p&gt;The Apache Flink community is pleased to announce the availability of the 1.0.0 release. The community put significant effort into improving and extending Apache Flink since the last release, focusing on improving the experience of writing and executing data stream processing pipelines in production.&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/flink-1.0.png&quot; style=&quot;height:200px;margin:15px&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;Flink version 1.0.0 marks the beginning of the 1.X.X series of releases, which will maintain backwards compatibility with 1.0.0. This means that applications written against stable APIs of Flink 1.0.0 will compile and run with all Flink versions in the 1. series. This is the first time we are formally guaranteeing compatibility in Flink’s history, and we therefore see this release as a major milestone of the project, perhaps the most important since graduation as a top-level project.&lt;/p&gt;
-
-&lt;p&gt;Apart from backwards compatibility, Flink 1.0.0 brings a variety of new user-facing features, as well as tons of bug fixes. About 64 contributors provided bug fixes, improvements, and new features such that in total more than 450 JIRA issues could be resolved.&lt;/p&gt;
-
-&lt;p&gt;We encourage everyone to &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;download the release&lt;/a&gt; and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/&quot;&gt;check out the documentation&lt;/a&gt;. Feedback through the Flink &lt;a href=&quot;http://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; is, as always, very welcome!&lt;/p&gt;
-
-&lt;h2 id=&quot;interface-stability-annotations&quot;&gt;Interface stability annotations&lt;/h2&gt;
-
-&lt;p&gt;Flink 1.0.0 introduces interface stability annotations for API classes and methods. Interfaces defined as &lt;code&gt;@Public&lt;/code&gt; are guaranteed to remain stable across all releases of the 1.x series. The &lt;code&gt;@PublicEvolving&lt;/code&gt; annotation marks API features that may be subject to change in future versions.&lt;/p&gt;
-
-&lt;p&gt;Flink’s stability annotations will help users to implement applications that compile and execute unchanged against future versions of Flink 1.x. This greatly reduces the complexity for users when upgrading to a newer Flink release.&lt;/p&gt;
-
-&lt;h2 id=&quot;out-of-core-state-support&quot;&gt;Out-of-core state support&lt;/h2&gt;
-
-&lt;p&gt;Flink 1.0.0 adds a new state backend that uses RocksDB to store state (both windows and user-defined key-value state). &lt;a href=&quot;http://rocksdb.org/&quot;&gt;RocksDB&lt;/a&gt; is an embedded key/value store database, originally developed by Facebook.
-When using this backend, active state in streaming programs can grow well beyond memory. The RocksDB files are stored in a distributed file system such as HDFS or S3 for backups.&lt;/p&gt;
-
-&lt;h2 id=&quot;savepoints-and-version-upgrades&quot;&gt;Savepoints and version upgrades&lt;/h2&gt;
-
-&lt;p&gt;Savepoints are checkpoints of the state of a running streaming job that can be manually triggered by the user while the job is running. Savepoints solve several production headaches, including code upgrades (both application and framework), cluster maintenance and migration, A/B testing and what-if scenarios, as well as testing and debugging. Read more about savepoints at the &lt;a href=&quot;http://data-artisans.com/how-apache-flink-enables-new-streaming-applications/&quot;&gt;data Artisans blog&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;library-for-complex-event-processing-cep&quot;&gt;Library for Complex Event Processing (CEP)&lt;/h2&gt;
-
-&lt;p&gt;Complex Event Processing has been one of the oldest and more important use cases from stream processing. The new CEP functionality in Flink allows you to use a distributed general-purpose stream processor instead of a specialized CEP system to detect complex patterns in event streams. Get started with &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/libs/cep.html&quot;&gt;CEP on Flink&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;enhanced-monitoring-interface-job-submission-checkpoint-statistics-and-backpressure-monitoring&quot;&gt;Enhanced monitoring interface: job submission, checkpoint statistics and backpressure monitoring&lt;/h2&gt;
-
-&lt;p&gt;The web interface now allows users to submit jobs. Previous Flink releases had a separate service for submitting jobs. The new interface is part of the JobManager frontend. It also works on YARN now.&lt;/p&gt;
-
-&lt;p&gt;Backpressure monitoring allows users to trigger a sampling mechanism which analyzes the time operators are waiting for new network buffers. When senders are spending most of their time for new network buffers, they are experiencing backpressure from their downstream operators. Many users requested this feature for understanding bottlenecks in both batch and streaming applications.&lt;/p&gt;
-
-&lt;h2 id=&quot;improved-checkpointing-control-and-monitoring&quot;&gt;Improved checkpointing control and monitoring&lt;/h2&gt;
-
-&lt;p&gt;The checkpointing has been extended by a more fine-grained control mechanism: In previous versions, new checkpoints were triggered independent of the speed at which old checkpoints completed. This can lead to situations where new checkpoints are piling up, because they are triggered too frequently.&lt;/p&gt;
-
-&lt;p&gt;The checkpoint coordinator now exposes statistics through our REST monitoring API and the web interface. Users can review the checkpoint size and duration on a per-operator basis and see the last completed checkpoints. This is helpful for identifying performance issues, such as processing slowdown by the checkpoints.&lt;/p&gt;
-
-&lt;h2 id=&quot;improved-kafka-connector-and-support-for-kafka-09&quot;&gt;Improved Kafka connector and support for Kafka 0.9&lt;/h2&gt;
-
-&lt;p&gt;Flink 1.0 supports both Kafka 0.8 and 0.9. With the new release, Flink exposes Kafka metrics for the producers and the 0.9 consumer through Flink’s accumulator system. We also enhanced the existing connector for Kafka 0.8, allowing users to subscribe to multiple topics in one source.&lt;/p&gt;
-
-&lt;h2 id=&quot;changelog-and-known-issues&quot;&gt;Changelog and known issues&lt;/h2&gt;
-
-&lt;p&gt;This release resolves more than 450 issues, including bug fixes, improvements, and new features. See the &lt;a href=&quot;/blog/release_1.0.0-changelog_known_issues.html#changelog&quot;&gt;complete changelog&lt;/a&gt; and &lt;a href=&quot;/blog/release_1.0.0-changelog_known_issues.html#known-issues&quot;&gt;known issues&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of contributors&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Abhishek Agarwal&lt;/li&gt;
-  &lt;li&gt;Ajay Bhat&lt;/li&gt;
-  &lt;li&gt;Aljoscha Krettek&lt;/li&gt;
-  &lt;li&gt;Andra Lungu&lt;/li&gt;
-  &lt;li&gt;Andrea Sella&lt;/li&gt;
-  &lt;li&gt;Chesnay Schepler&lt;/li&gt;
-  &lt;li&gt;Chiwan Park&lt;/li&gt;
-  &lt;li&gt;Daniel Pape&lt;/li&gt;
-  &lt;li&gt;Fabian Hueske&lt;/li&gt;
-  &lt;li&gt;Filipe Correia&lt;/li&gt;
-  &lt;li&gt;Frederick F. Kautz IV&lt;/li&gt;
-  &lt;li&gt;Gabor Gevay&lt;/li&gt;
-  &lt;li&gt;Gabor Horvath&lt;/li&gt;
-  &lt;li&gt;Georgios Andrianakis&lt;/li&gt;
-  &lt;li&gt;Greg Hogan&lt;/li&gt;
-  &lt;li&gt;Gyula Fora&lt;/li&gt;
-  &lt;li&gt;Henry Saputra&lt;/li&gt;
-  &lt;li&gt;Hilmi Yildirim&lt;/li&gt;
-  &lt;li&gt;Hubert Czerpak&lt;/li&gt;
-  &lt;li&gt;Jark Wu&lt;/li&gt;
-  &lt;li&gt;Johannes&lt;/li&gt;
-  &lt;li&gt;Jun Aoki&lt;/li&gt;
-  &lt;li&gt;Jun Aoki&lt;/li&gt;
-  &lt;li&gt;Kostas Kloudas&lt;/li&gt;
-  &lt;li&gt;Li Chengxiang&lt;/li&gt;
-  &lt;li&gt;Lun Gao&lt;/li&gt;
-  &lt;li&gt;Martin Junghanns&lt;/li&gt;
-  &lt;li&gt;Martin Liesenberg&lt;/li&gt;
-  &lt;li&gt;Matthias J. Sax&lt;/li&gt;
-  &lt;li&gt;Maximilian Michels&lt;/li&gt;
-  &lt;li&gt;Márton Balassi&lt;/li&gt;
-  &lt;li&gt;Nick Dimiduk&lt;/li&gt;
-  &lt;li&gt;Niels Basjes&lt;/li&gt;
-  &lt;li&gt;Omer Katz&lt;/li&gt;
-  &lt;li&gt;Paris Carbone&lt;/li&gt;
-  &lt;li&gt;Patrice Freydiere&lt;/li&gt;
-  &lt;li&gt;Peter Vandenabeele&lt;/li&gt;
-  &lt;li&gt;Piotr Godek&lt;/li&gt;
-  &lt;li&gt;Prez Cannady&lt;/li&gt;
-  &lt;li&gt;Robert Metzger&lt;/li&gt;
-  &lt;li&gt;Romeo Kienzler&lt;/li&gt;
-  &lt;li&gt;Sachin Goel&lt;/li&gt;
-  &lt;li&gt;Saumitra Shahapure&lt;/li&gt;
-  &lt;li&gt;Sebastian Klemke&lt;/li&gt;
-  &lt;li&gt;Stefano Baghino&lt;/li&gt;
-  &lt;li&gt;Stephan Ewen&lt;/li&gt;
-  &lt;li&gt;Stephen Samuel&lt;/li&gt;
-  &lt;li&gt;Subhobrata Dey&lt;/li&gt;
-  &lt;li&gt;Suneel Marthi&lt;/li&gt;
-  &lt;li&gt;Ted Yu&lt;/li&gt;
-  &lt;li&gt;Theodore Vasiloudis&lt;/li&gt;
-  &lt;li&gt;Till Rohrmann&lt;/li&gt;
-  &lt;li&gt;Timo Walther&lt;/li&gt;
-  &lt;li&gt;Trevor Grant&lt;/li&gt;
-  &lt;li&gt;Ufuk Celebi&lt;/li&gt;
-  &lt;li&gt;Ulf Karlsson&lt;/li&gt;
-  &lt;li&gt;Vasia Kalavri&lt;/li&gt;
-  &lt;li&gt;fversaci&lt;/li&gt;
-  &lt;li&gt;madhukar&lt;/li&gt;
-  &lt;li&gt;qingmeng.wyh&lt;/li&gt;
-  &lt;li&gt;ramkrishna&lt;/li&gt;
-  &lt;li&gt;rtudoran&lt;/li&gt;
-  &lt;li&gt;sahitya-pavurala&lt;/li&gt;
-  &lt;li&gt;zhangminglei&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Tue, 08 Mar 2016 14:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2016/03/08/release-1.0.0.html</link>
-<guid isPermaLink="true">/news/2016/03/08/release-1.0.0.html</guid>
 </item>
 
 </channel>
