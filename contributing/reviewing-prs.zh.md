@@ -51,7 +51,7 @@ title:  "如何审核 Pull Request"
 
 * *Does not need specific attention*
 * *Needs specific attention for X (X 可以是例如 checkpointing、jobmanager 等)*
-* *Has specific attention for X by @commiterA, @contributorB*
+* *Has specific attention for X by @committerA, @contributorB*
 
 **如果 pull request 需要特别关注，则其中一个标记的 committers 或 contributors 应该给出最终批准。**
 
