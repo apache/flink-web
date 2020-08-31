@@ -4,14 +4,23 @@ This repository contains the Flink website: https://flink.apache.org/.
 
 You find instructions for this repository here: https://flink.apache.org/contributing/improve-website.html.
 
-You can build the website using Docker such as below (without augmenting your host environment):
+## Testing changes locally
 
-```
-make docker-run
+You can build the website using Docker such as below (without augmenting your host environment). Parameters passed as 
+part of this call will be forwarded to `build.sh`.
+```bash
+# starts website with future post being disabled
+bash docker-build.sh -p
+
+# starts website including also future posts
+bash docker-build.sh -f
 ```
 
-And then rebuild the site before merging into the branch asf-site.
+Both commands will start a webserver providing the website via `http://0.0.0.0:4000`.
 
-```
-make docker-rebuild
+## Building website
+
+The site needs to be rebuild before merging into the branch asf-site.
+```bash
+bash docker-build.sh
 ```
