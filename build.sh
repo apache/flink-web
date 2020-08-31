@@ -51,10 +51,14 @@ DOCS_DST=${DOCS_SRC}/content
 JEKYLL_CMD="build"
 
 # if -p flag is provided, serve site on localhost
-while getopts ":p" opt; do
+while getopts ":pf" opt; do
     case $opt in
         p)
         JEKYLL_CMD="serve --baseurl= --watch --trace --incremental"
+        break;;
+        f)
+        JEKYLL_CMD="serve --baseurl= --watch --trace --incremental --future"
+        break;;
     esac
 done
 
