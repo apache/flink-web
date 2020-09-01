@@ -7,6 +7,118 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Memory Management improvements for Flink’s JobManager in Apache Flink 1.11</title>
+<description>&lt;p&gt;Apache Flink 1.11 comes with significant changes to the memory model of Flink’s JobManager and configuration options for your Flink clusters.
+These recently-introduced changes make Flink adaptable to all kinds of deployment environments (e.g. Kubernetes, Yarn, Mesos),
+providing better control over its memory consumption.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://flink.apache.org/news/2020/04/21/memory-management-improvements-flink-1.10.html&quot;&gt;previous blog post&lt;/a&gt;
+focused on the memory model of the TaskManagers and how it was improved in Flink 1.10. This post addresses the same topic but for the JobManager instead.
+Flink 1.11 unifies the memory model of Flink’s processes. The newly-introduced memory model of the JobManager follows a similar approach to that of the TaskManagers;
+it is simpler and has fewer components and tuning knobs. This post might consequently seem very similar to our previous story on Flink’s memory
+but aims at providing a complete overview of Flink’s JobManager memory model as of Flink 1.11. Read on for a full list of updates and changes below!&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction-to-flinks-process-memory-model&quot;&gt;Introduction to Flink’s process memory model&lt;/h2&gt;
+
+&lt;p&gt;Having a clear understanding of Apache Flink’s process memory model allows you to manage resources for the various workloads more efficiently.
+The following diagram illustrates the main memory components of a Flink process:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-09-01-flink-1.11-memory-management-improvements/total-process-memory-flink-1.11.png&quot; width=&quot;400px&quot; alt=&quot;Backpressure sampling:high&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Flink: Total Process Memory&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The JobManager process is a JVM process. On a high level, its memory consists of the JVM Heap and Off-Heap memory.
+These types of memory are consumed by Flink directly or by the JVM for its specific purposes (i.e. metaspace).
+There are two major memory consumers within the JobManager process: the framework itself consuming memory for internal data structures, network communication, etc.
+and the user code which runs within the JobManager process, e.g. in certain batch sources or during checkpoint completion callbacks.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+Please note that the user code has direct access to all memory types: JVM Heap, Direct and Native memory. Therefore, Flink cannot really control its allocation and usage.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;how-to-set-up-jobmanager-memory&quot;&gt;How to set up JobManager memory&lt;/h2&gt;
+
+&lt;p&gt;With the release of Flink 1.11 and in order to provide better user experience, the Flink community introduced three alternatives to setting up memory in JobManagers.&lt;/p&gt;
+
+&lt;p&gt;The first two — and simplest — alternatives are configuring one of the two following options for total memory available for the JVM process of the JobManager:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;Total Process Memory:&lt;/em&gt;&lt;/strong&gt; total memory consumed by the Flink Java application (including user code) and by the JVM to run the whole process.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;Total Flink Memory:&lt;/em&gt;&lt;/strong&gt; only the memory consumed by the Flink Java application, including user code but excluding any memory allocated by the JVM to run it.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;It is advisable to configure the &lt;em&gt;Total Flink Memory&lt;/em&gt; for standalone deployments where explicitly declaring how much memory is given to Flink is a common practice,
+while the outer JVM overhead is of little interest. For the cases of deploying Flink in containerized environments
+(such as &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/deployment/kubernetes.html&quot;&gt;Kubernetes&lt;/a&gt;,
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/deployment/yarn_setup.html&quot;&gt;Yarn&lt;/a&gt; or
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/deployment/mesos.html&quot;&gt;Mesos&lt;/a&gt;),
+the &lt;em&gt;Total Process Memory&lt;/em&gt; option is recommended instead, because it becomes the size for the total memory of the requested container.
+Containerized environments usually strictly enforce this memory limit.&lt;/p&gt;
+
+&lt;p&gt;If you want more fine-grained control over the size of the &lt;em&gt;JVM Heap&lt;/em&gt;, there is also the third alternative of configuring it directly.
+This alternative gives a clear separation between the heap memory and any other memory types.&lt;/p&gt;
+
+&lt;p&gt;The remaining memory components will be automatically adjusted either based on their default values or additionally-configured parameters.
+Apache Flink also checks the overall consistency. You can find more information about the different memory components in the corresponding
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html&quot;&gt;documentation&lt;/a&gt;.
+You can try different configuration options with the &lt;a href=&quot;https://docs.google.com/spreadsheets/d/1mJaMkMPfDJJ-w6nMXALYmTc4XxiV30P5U7DzgwLkSoE/edit#gid=605121894&quot;&gt;configuration spreadsheet&lt;/a&gt;
+(you have to make a copy of the spreadsheet to edit it) of &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-116%3A+Unified+Memory+Configuration+for+Job+Managers&quot;&gt;FLIP-116&lt;/a&gt;
+and check the corresponding results for your individual case.&lt;/p&gt;
+
+&lt;p&gt;If you are migrating from a Flink version older than 1.11, we suggest following the steps in the
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_migration.html#migrate-job-manager-memory-configuration&quot;&gt;migration guide&lt;/a&gt; of the Flink documentation.&lt;/p&gt;
+
+&lt;p&gt;Additionally, you can configure separately the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html#configure-off-heap-memory&quot;&gt;Off-heap memory&lt;/a&gt;
+(&lt;em&gt;JVM direct and non-direct memory&lt;/em&gt;) as well as the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html#detailed-configuration&quot;&gt;JVM metaspace &amp;amp; overhead&lt;/a&gt;.
+The &lt;em&gt;JVM overhead&lt;/em&gt; is a &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup.html#capped-fractionated-components&quot;&gt;fraction&lt;/a&gt; of the &lt;em&gt;Total Process Memory&lt;/em&gt;.
+The &lt;em&gt;JVM overhead&lt;/em&gt; can be configured in a similar way as other fractions described in &lt;a href=&quot;https://flink.apache.org/news/2020/04/21/memory-management-improvements-flink-1.10.html#fractions-of-the-total-flink-memory&quot;&gt;our previous blog post&lt;/a&gt;
+about the TaskManager’s memory model.&lt;/p&gt;
+
+&lt;h2 id=&quot;more-hints-to-control-the-container-memory-limit&quot;&gt;More hints to control the container memory limit&lt;/h2&gt;
+
+&lt;p&gt;The heap and direct memory usage are managed by the JVM. There are also many other possible sources of native memory consumption in Apache Flink or its user applications
+which are not managed directly by Flink or the JVM. Controlling their limits is often difficult which complicates debugging of potential memory leaks.
+If Flink’s process allocates too much memory in an unmanaged way, it can often result in killing its containers for containerized environments.
+In this case, understanding which type of memory consumption has exceeded its limit might be difficult to grasp and resolve.
+Flink 1.11 introduces some specific tuning options to clearly represent such components for the JobManager’s process.
+Although Flink cannot always enforce strict limits and borders among them, the idea here is to explicitly plan the memory usage.
+Below we provide some examples of how memory setup can prevent containers from exceeding their memory limit:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html#configure-off-heap-memory&quot;&gt;User code or its dependencies consume significant off-heap memory&lt;/a&gt;.&lt;/strong&gt;
+Tuning the &lt;em&gt;Off-heap&lt;/em&gt; option can assign additional direct or native memory to the user code or any of its dependencies.
+Flink cannot control native allocations but it sets the limit for &lt;em&gt;JVM Direct&lt;/em&gt; memory allocations. The Direct memory limit is enforced by the JVM.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html#detailed-configuration&quot;&gt;JVM metaspace requires additional memory&lt;/a&gt;.&lt;/strong&gt;
+If you encounter &lt;code&gt;OutOfMemoryError: Metaspace&lt;/code&gt;, Flink provides an option to increase its default limit and the JVM will ensure that it is not exceeded.
+The metaspace size of a Flink JVM process is always explicitly set in contrast to the default JVM settings where it is not limited.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/ops/memory/mem_setup_jobmanager.html#detailed-configuration&quot;&gt;JVM requires more internal memory&lt;/a&gt;.&lt;/strong&gt;
+There is no direct control over certain types of JVM process allocations but Flink provides &lt;em&gt;JVM Overhead&lt;/em&gt; options.
+The &lt;em&gt;JVM Overhead&lt;/em&gt; options allow declaring an additional amount of memory, anticipated for those allocations and not covered by other options.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;The latest Flink release (&lt;a href=&quot;https://flink.apache.org/downloads.html#apache-flink-1111&quot;&gt;Flink 1.11&lt;/a&gt;) introduces some notable changes to the memory configuration of Flink’s JobManager,
+making its memory management significantly easier than before. Stay tuned for more additions and features in upcoming releases.
+If you have any suggestions or questions for the Flink community, we encourage you to sign up to the Apache Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt;
+and become part of the discussion.&lt;/p&gt;
+</description>
+<pubDate>Tue, 01 Sep 2020 17:30:00 +0200</pubDate>
+<link>https://flink.apache.org/2020/09/01/flink-1.11-memory-management-improvements.html</link>
+<guid isPermaLink="true">/2020/09/01/flink-1.11-memory-management-improvements.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.10.2 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.10 series.&lt;/p&gt;
 
@@ -17285,199 +17397,6 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 <pubDate>Thu, 14 Apr 2016 12:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2016/04/14/flink-forward-announce.html</link>
 <guid isPermaLink="true">/news/2016/04/14/flink-forward-announce.html</guid>
-</item>
-
-<item>
-<title>Introducing Complex Event Processing (CEP) with Apache Flink</title>
-<description>&lt;p&gt;With the ubiquity of sensor networks and smart devices continuously collecting more and more data, we face the challenge to analyze an ever growing stream of data in near real-time. 
-Being able to react quickly to changing trends or to deliver up to date business intelligence can be a decisive factor for a company’s success or failure. 
-A key problem in real time processing is the detection of event patterns in data streams.&lt;/p&gt;
-
-&lt;p&gt;Complex event processing (CEP) addresses exactly this problem of matching continuously incoming events against a pattern. 
-The result of a matching are usually complex events which are derived from the input events. 
-In contrast to traditional DBMSs where a query is executed on stored data, CEP executes data on a stored query. 
-All data which is not relevant for the query can be immediately discarded. 
-The advantages of this approach are obvious, given that CEP queries are applied on a potentially infinite stream of data. 
-Furthermore, inputs are processed immediately. 
-Once the system has seen all events for a matching sequence, results are emitted straight away. 
-This aspect effectively leads to CEP’s real time analytics capability.&lt;/p&gt;
-
-&lt;p&gt;Consequently, CEP’s processing paradigm drew significant interest and found application in a wide variety of use cases. 
-Most notably, CEP is used nowadays for financial applications such as stock market trend and credit card fraud detection. 
-Moreover, it is used in RFID-based tracking and monitoring, for example, to detect thefts in a warehouse where items are not properly checked out. 
-CEP can also be used to detect network intrusion by specifying patterns of suspicious user behaviour.&lt;/p&gt;
-
-&lt;p&gt;Apache Flink with its true streaming nature and its capabilities for low latency as well as high throughput stream processing is a natural fit for CEP workloads. 
-Consequently, the Flink community has introduced the first version of a new &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/libs/cep.html&quot;&gt;CEP library&lt;/a&gt; with &lt;a href=&quot;http://flink.apache.org/news/2016/03/08/release-1.0.0.html&quot;&gt;Flink 1.0&lt;/a&gt;. 
-In the remainder of this blog post, we introduce Flink’s CEP library and we illustrate its ease of use through the example of monitoring a data center.&lt;/p&gt;
-
-&lt;h2 id=&quot;monitoring-and-alert-generation-for-data-centers&quot;&gt;Monitoring and alert generation for data centers&lt;/h2&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/cep-monitoring.svg&quot; style=&quot;width:600px;margin:15px&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;Assume we have a data center with a number of racks. 
-For each rack the power consumption and the temperature are monitored. 
-Whenever such a measurement takes place, a new power or temperature event is generated, respectively. 
-Based on this monitoring event stream, we want to detect racks that are about to overheat, and dynamically adapt their workload and cooling.&lt;/p&gt;
-
-&lt;p&gt;For this scenario we use a two staged approach. 
-First, we monitor the temperature events. 
-Whenever we see two consecutive events whose temperature exceeds a threshold value, we generate a temperature warning with the current average temperature. 
-A temperature warning does not necessarily indicate that a rack is about to overheat. 
-But whenever we see two consecutive warnings with increasing temperatures, then we want to issue an alert for this rack. 
-This alert can then lead to countermeasures to cool the rack.&lt;/p&gt;
-
-&lt;h3 id=&quot;implementation-with-apache-flink&quot;&gt;Implementation with Apache Flink&lt;/h3&gt;
-
-&lt;p&gt;First, we define the messages of the incoming monitoring event stream. 
-Every monitoring message contains its originating rack ID. 
-The temperature event additionally contains the current temperature and the power consumption event contains the current voltage. 
-We model the events as POJOs:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MonitoringEvent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rackID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TemperatureEvent&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;temperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PowerEvent&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;voltage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we can ingest the monitoring event stream using one of Flink’s connectors (e.g. Kafka, RabbitMQ, etc.). 
-This will give us a &lt;code&gt;DataStream&amp;lt;MonitoringEvent&amp;gt; inputEventStream&lt;/code&gt; which we will use as the input for Flink’s CEP operator. 
-But first, we have to define the event pattern to detect temperature warnings. 
-The CEP library offers an intuitive &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/libs/cep.html#the-pattern-api&quot;&gt;Pattern API&lt;/a&gt; to easily define these complex patterns.&lt;/p&gt;
-
-&lt;p&gt;Every pattern consists of a sequence of events which can have optional filter conditions assigned. 
-A pattern always starts with a first event to which we will assign the name &lt;code&gt;“First Event”&lt;/code&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This pattern will match every monitoring event. 
-Since we are only interested in &lt;code&gt;TemperatureEvents&lt;/code&gt; whose temperature is above a threshold value, we have to add an additional subtype constraint and a where clause:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;subtype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TEMPERATURE_THRESHOLD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As stated before, we want to generate a &lt;code&gt;TemperatureWarning&lt;/code&gt; if and only if we see two consecutive &lt;code&gt;TemperatureEvents&lt;/code&gt; for the same rack whose temperatures are too high. 
-The Pattern API offers the &lt;code&gt;next&lt;/code&gt; call which allows us to add a new event to our pattern. 
-This event has to follow directly the first matching event in order for the whole pattern to match.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;warningPattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;subtype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TEMPERATURE_THRESHOLD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Second Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;subtype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TEMPERATURE_THRESHOLD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;within&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The final pattern definition also contains the &lt;code&gt;within&lt;/code&gt; API call which defines that two consecutive &lt;code&gt;TemperatureEvents&lt;/code&gt; have to occur within a time interval of 10 seconds for the pattern to match. 
-Depending on the time characteristic setting, this can either be processing, ingestion or event time.&lt;/p&gt;
-
-&lt;p&gt;Having defined the event pattern, we can now apply it on the &lt;code&gt;inputEventStream&lt;/code&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;PatternStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempPatternStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CEP&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;inputEventStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;rackID&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;warningPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Since we want to generate our warnings for each rack individually, we &lt;code&gt;keyBy&lt;/code&gt; the input event stream by the &lt;code&gt;“rackID”&lt;/code&gt; POJO field. 
-This enforces that matching events of our pattern will all have the same rack ID.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code&gt;PatternStream&amp;lt;MonitoringEvent&amp;gt;&lt;/code&gt; gives us access to successfully matched event sequences. 
-They can be accessed using the &lt;code&gt;select&lt;/code&gt; API call. 
-The &lt;code&gt;select&lt;/code&gt; API call takes a &lt;code&gt;PatternSelectFunction&lt;/code&gt; which is called for every matching event sequence. 
-The event sequence is provided as a &lt;code&gt;Map&amp;lt;String, MonitoringEvent&amp;gt;&lt;/code&gt; where each &lt;code&gt;MonitoringEvent&lt;/code&gt; is identified by its assigned event name. 
-Our pattern select function generates for each matching pattern a &lt;code&gt;TemperatureWarning&lt;/code&gt; event.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TemperatureWarning&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rackID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;averageTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;warnings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempPatternStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MonitoringEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;first&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Second Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRackID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; 
-            &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we have generated a new complex event stream &lt;code&gt;DataStream&amp;lt;TemperatureWarning&amp;gt; warnings&lt;/code&gt; from the initial monitoring event stream. 
-This complex event stream can again be used as the input for another round of complex event processing. 
-We use the &lt;code&gt;TemperatureWarnings&lt;/code&gt; to generate &lt;code&gt;TemperatureAlerts&lt;/code&gt; whenever we see two consecutive &lt;code&gt;TemperatureWarnings&lt;/code&gt; for the same rack with increasing temperatures. 
-The &lt;code&gt;TemperatureAlerts&lt;/code&gt; have the following definition:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TemperatureAlert&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rackID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;At first, we have to define our alert event pattern:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertPattern&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Second Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;within&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This definition says that we want to see two &lt;code&gt;TemperatureWarnings&lt;/code&gt; within 20 seconds. 
-The first event has the name &lt;code&gt;“First Event”&lt;/code&gt; and the second consecutive event has the name &lt;code&gt;“Second Event”&lt;/code&gt;. 
-The individual events don’t have a where clause assigned, because we need access to both events in order to decide whether the temperature is increasing. 
-Therefore, we apply the filter condition in the select clause. 
-But first, we obtain again a &lt;code&gt;PatternStream&lt;/code&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;PatternStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertPatternStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CEP&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;warnings&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;rackID&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;alertPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Again, we &lt;code&gt;keyBy&lt;/code&gt; the warnings input stream by the &lt;code&gt;&quot;rackID&quot;&lt;/code&gt; so that we generate our alerts for each rack individually. 
-Next we apply the &lt;code&gt;flatSelect&lt;/code&gt; method which will give us access to matching event sequences and allows us to output an arbitrary number of complex events. 
-Thus, we will only generate a &lt;code&gt;TemperatureAlert&lt;/code&gt; if and only if the temperature is increasing.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureAlert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alerts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertPatternStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;flatSelect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TemperatureAlert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;first&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;First Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;TemperatureWarning&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Second Event&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getAverageTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getAverageTemperature&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TemperatureAlert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRackID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()));&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code&gt;DataStream&amp;lt;TemperatureAlert&amp;gt; alerts&lt;/code&gt; is the data stream of temperature alerts for each rack. 
-Based on these alerts we can now adapt the workload or cooling for overheating racks.&lt;/p&gt;
-
-&lt;p&gt;The full source code for the presented example as well as an example data source which generates randomly monitoring events can be found in &lt;a href=&quot;https://github.com/tillrohrmann/cep-monitoring&quot;&gt;this repository&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this blog post we have seen how easy it is to reason about event streams using Flink’s CEP library. 
-Using the example of monitoring and alert generation for a data center, we have implemented a short program which notifies us when a rack is about to overheat and potentially to fail.&lt;/p&gt;
-
-&lt;p&gt;In the future, the Flink community will further extend the CEP library’s functionality and expressiveness. 
-Next on the road map is support for a regular expression-like pattern specification, including Kleene star, lower and upper bounds, and negation. 
-Furthermore, it is planned to allow the where-clause to access fields of previously matched events. 
-This feature will allow to prune unpromising event sequences early.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; The example code requires Flink 1.0.1 or higher.&lt;/p&gt;
-
-</description>
-<pubDate>Wed, 06 Apr 2016 12:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2016/04/06/cep-monitoring.html</link>
-<guid isPermaLink="true">/news/2016/04/06/cep-monitoring.html</guid>
 </item>
 
 </channel>
