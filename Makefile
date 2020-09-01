@@ -18,8 +18,8 @@
 
 .PHONY: docker-run 
 docker-run: 
-	docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.5 bash -c 'cd /srv/flink-web && ./build.sh -p'
+	docker run --rm --volume="$$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.5 bash -c 'cd /srv/flink-web && ./build.sh -p'
 
 .PHONY: docker-rebuild
 docker-rebuild:
-	docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.5 bash -c 'cd /srv/flink-web && ./build.sh'
+	docker run --rm --volume="$$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.5 bash -c 'cd /srv/flink-web && ./build.sh'
