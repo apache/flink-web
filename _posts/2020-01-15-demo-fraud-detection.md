@@ -15,7 +15,7 @@ In this series of blog posts you will learn about three powerful Flink patterns 
 
  - [Dynamic updates of application logic]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html)
  - Dynamic data partitioning (shuffle), controlled at runtime
- - Low latency alerting based on custom windowing logic (without using the window API)
+ - [Low latency alerting]({{ site.baseurl }}/news/2020/07/30/demo-fraud-detection-3.html) based on custom windowing logic (without using the window API)
 
 These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
 
