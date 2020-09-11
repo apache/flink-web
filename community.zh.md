@@ -419,6 +419,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">shixg</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6509172?s=50" class="committer-avatar"></td>
+    <td class="text-center">Xintong Song</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">xtsong</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/22488084?s=50" class="committer-avatar"></td>
     <td class="text-center">Jincheng Sun</td>
     <td class="text-center">PMC, Committer</td>
