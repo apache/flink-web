@@ -8,7 +8,7 @@ title: "社区 & 项目信息"
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
 
 ## 邮件列表
 
@@ -205,7 +205,7 @@ Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 Flink Forward 大会每年都会在世界的不同地方举办。关于大会最新的信息可以到 <a href="https://www.flink-forward.org/">Flink-Forward.org</a> 网站获取到。
 
-# PMC 和 Commiter 列表
+# PMC 和 Committer 列表
 
 <table class="table table-striped">
   <thead>
@@ -510,7 +510,7 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   </tr>
 </table>
 
-可以通过 `<apache-id>@apache.org` 直接联系 commiter。可以在 [这里]({{ site.FLINK_CONTRIBUTORS_URL }}) 找到所有的贡献者。
+可以通过 `<apache-id>@apache.org` 直接联系 committer。可以在 [这里]({{ site.FLINK_CONTRIBUTORS_URL }}) 找到所有的贡献者。
 
 ## 前导师们
 

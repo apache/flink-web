@@ -53,7 +53,7 @@ This question can be answered with
 
 * *Does not need specific attention*
 * *Needs specific attention for X (X can be for example checkpointing, jobmanager, etc.).*
-* *Has specific attention for X by @commiterA, @contributorB*
+* *Has specific attention for X by @committerA, @contributorB*
 
 **If the pull request needs specific attention, one of the tagged committers/contributors should give the final approval.**
 
