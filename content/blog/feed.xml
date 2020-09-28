@@ -7,6 +7,198 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Stateful Functions 2.2.0 Release Announcement</title>
+<description>&lt;p&gt;The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.2.0! This release
+introduces major features that extend the SDKs, such as support for asynchronous functions in the Python SDK, new
+persisted state constructs, and a new SDK that allows embedding StateFun functions within a Flink DataStream job.
+Moreover, we’ve also included important changes that improve out-of-the-box stability for common workloads,
+as well as increased observability for operational purposes.&lt;/p&gt;
+
+&lt;p&gt;We’ve also seen new 3rd party SDKs for StateFun being developed since the last release. While they are not part of the
+release artifacts, it’s great seeing these community-driven additions! We’ve highlighted these efforts below
+in this announcement.&lt;/p&gt;
+
+&lt;p&gt;The binary distribution and source artifacts are now available on the updated &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;Downloads&lt;/a&gt;
+page of the Flink website, and the most recent Python SDK distribution is available on &lt;a href=&quot;https://pypi.org/project/apache-flink-statefun/&quot;&gt;PyPI&lt;/a&gt;.
+For more details, check the complete &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12348350&quot;&gt;release changelog&lt;/a&gt;
+and the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/&quot;&gt;updated documentation&lt;/a&gt;.
+We encourage you to download the release and share your feedback with the community through the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Flink mailing lists&lt;/a&gt;
+or &lt;a href=&quot;https://issues.apache.org/jira/browse/&quot;&gt;JIRA&lt;/a&gt;!&lt;/p&gt;
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#new-features&quot; id=&quot;markdown-toc-new-features&quot;&gt;New Features&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#asynchronous-functions-in-python-sdk&quot; id=&quot;markdown-toc-asynchronous-functions-in-python-sdk&quot;&gt;Asynchronous functions in Python SDK&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#flink-datastream-integration-sdk&quot; id=&quot;markdown-toc-flink-datastream-integration-sdk&quot;&gt;Flink DataStream Integration SDK&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#construct-for-dynamic-state-registration&quot; id=&quot;markdown-toc-construct-for-dynamic-state-registration&quot;&gt;Construct for Dynamic State Registration&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#improvements&quot; id=&quot;markdown-toc-improvements&quot;&gt;Improvements&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#remote-functions-communication-stability&quot; id=&quot;markdown-toc-remote-functions-communication-stability&quot;&gt;Remote Functions Communication Stability&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#operational-observability-of-a-statefun-application&quot; id=&quot;markdown-toc-operational-observability-of-a-statefun-application&quot;&gt;Operational observability of a StateFun Application&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#fine-grained-control-over-remote-connection-lifecycle&quot; id=&quot;markdown-toc-fine-grained-control-over-remote-connection-lifecycle&quot;&gt;Fine-grained control over remote connection lifecycle&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#rd-party-sdks&quot; id=&quot;markdown-toc-rd-party-sdks&quot;&gt;3rd Party SDKs&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#important-patch-notes&quot; id=&quot;markdown-toc-important-patch-notes&quot;&gt;Important Patch Notes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#release-notes&quot; id=&quot;markdown-toc-release-notes&quot;&gt;Release Notes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#list-of-contributors&quot; id=&quot;markdown-toc-list-of-contributors&quot;&gt;List of Contributors&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;new-features&quot;&gt;New Features&lt;/h2&gt;
+
+&lt;h3 id=&quot;asynchronous-functions-in-python-sdk&quot;&gt;Asynchronous functions in Python SDK&lt;/h3&gt;
+
+&lt;p&gt;This release enables registering asynchronous Python functions as stateful functions by introducing a new handler
+in the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/sdk/python.html&quot;&gt;Python SDK&lt;/a&gt;: &lt;code&gt;AsyncRequestReplyHandler&lt;/code&gt;.
+This allows serving StateFun functions with Python web frameworks that support asynchronous IO natively (for example,
+&lt;a href=&quot;https://pypi.org/project/aiohttp/&quot;&gt;aiohttp&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;statefun&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StatefulFunctions&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;statefun&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AsyncRequestReplyHandler&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;functions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StatefulFunctions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@functions.bind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;example/greeter&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;greeter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;html&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;session&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;http://....&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pack_and_reply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SomeProtobufMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# expose this handler via an async web framework&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;handler&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AsyncRequestReplyHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;functions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For more details, please see the docs on &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/sdk/python.html#exposing-functions&quot;&gt;exposing Python functions&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;flink-datastream-integration-sdk&quot;&gt;Flink DataStream Integration SDK&lt;/h3&gt;
+
+&lt;p&gt;Using this SDK, you may combine pipelines written with the Flink &lt;code&gt;DataStream&lt;/code&gt; API or higher-level libraries
+(such as Table API, CEP etc., basically anything that can consume or produce a &lt;code&gt;DataStream&lt;/code&gt;) with the programming constructs
+provided by Stateful Functions, as demonstrated below:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RoutableMessage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;namesIngress&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;StatefulFunctionEgressStreams&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;egresses&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;StatefulFunctionDataStreamBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withDataStreamAsIngress&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;namesIngress&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withRequestReplyRemoteFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;RequestReplyFunctionBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;requestReplyFunctionBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;REMOTE_GREET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;http://...&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withPersistedState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;seen_count&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withFunctionProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GREET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unused&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MyFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withEgressId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GREETINGS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;responsesEgress&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getDataStreamForEgressId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GREETINGS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Events from &lt;code&gt;DataStream&lt;/code&gt; ingresses are being routed to bound functions, and events sent to
+egresses are captured as &lt;code&gt;DataStream&lt;/code&gt; egresses. This opens up the possibility of building complex streaming
+applications.&lt;/p&gt;
+
+&lt;h3 id=&quot;construct-for-dynamic-state-registration&quot;&gt;Construct for Dynamic State Registration&lt;/h3&gt;
+
+&lt;p&gt;Prior to this release, the persisted state constructs in the Java SDK, such as &lt;code&gt;PersistedValue&lt;/code&gt;, &lt;code&gt;PersistedTable&lt;/code&gt; etc.,
+had to be eagerly defined in a stateful function’s class. In certain scenarios, what state a function requires is not
+known in advance, and may only be dynamically registered at runtime (e.g., when a function is invoked).&lt;/p&gt;
+
+&lt;p&gt;This release enables that by providing a new &lt;code&gt;PersistedStateRegistry&lt;/code&gt; construct:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyFunction&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StatefulFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;@Persisted&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PersistedStateRegistry&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;registry&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PersistedStateRegistry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PersistedValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;myValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;registry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PersistedValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;my-value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;improvements&quot;&gt;Improvements&lt;/h2&gt;
+
+&lt;h3 id=&quot;remote-functions-communication-stability&quot;&gt;Remote Functions Communication Stability&lt;/h3&gt;
+
+&lt;p&gt;After observing common workloads, a few configurations for communicating with remote functions were adjusted for a better
+out-of-the-box connection stability. This includes the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The underlying connection pool was tuned for low latency, high throughput workloads. This allows StateFun to reuse
+existing connections much more aggressively and avoid re-establishing a connection for each request.&lt;/li&gt;
+  &lt;li&gt;StateFun applies backpressure once the total number of uncompleted requests reaches a per JVM threshold (&lt;code&gt;statefun.async.max-per-task&lt;/code&gt;),
+but observing typical workloads we have discovered that the default value is set too high. In this release the default
+was reduced to improve stability and resource consumption, in the face of a slow-responding remote function.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;operational-observability-of-a-statefun-application&quot;&gt;Operational observability of a StateFun Application&lt;/h3&gt;
+
+&lt;p&gt;One major goal of this release was to take a necessary step towards supporting auto-scaling of remote functions. Towards that end,
+we’ve exposed several metrics related to workload of remote functions and resulting backpressure applied by the function
+dispatchers. This includes the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Per function type invocation duration / latency histograms&lt;/li&gt;
+  &lt;li&gt;Per function type backlog size&lt;/li&gt;
+  &lt;li&gt;Per JVM (StateFun worker) and per function type number of in-flight invocations&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The full list of metrics and their descriptions can be found &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/deployment-and-operations/metrics.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;fine-grained-control-over-remote-connection-lifecycle&quot;&gt;Fine-grained control over remote connection lifecycle&lt;/h3&gt;
+
+&lt;p&gt;With this release, it’s possible to set individual timeouts for overall duration and individual read and write IO operations
+of HTTP requests with remote functions. You can find the corresponding field names in a function spec that defines
+these timeout values &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/sdk/index.html#defining-functions&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;rd-party-sdks&quot;&gt;3rd Party SDKs&lt;/h2&gt;
+
+&lt;p&gt;Since the last release, we’ve seen new 3rd party SDKs for different languages being implemented on top of StateFun’s
+remote function HTTP request-reply protocol, including &lt;a href=&quot;https://github.com/sjwiesman/statefun-go/&quot;&gt;Go&lt;/a&gt; and &lt;a href=&quot;https://github.com/aljoscha/statefun-rust&quot;&gt;Rust&lt;/a&gt; implementations. While these SDKs are not
+endorsed or maintained by the Apache Flink PMC and currently not part of the current releases, it is great to see these
+new additions that demonstrate the extensibility of the framework.&lt;/p&gt;
+
+&lt;p&gt;For that reason, we’ve added
+a new &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.2/sdk/external.html&quot;&gt;page in the documentation&lt;/a&gt;
+to list the 3rd party SDKs that the community is aware of. If you’ve also worked on a new language SDK for StateFun that
+is stable and you plan to continue maintaining, please consider letting the community know of your work by
+submitting a pull request to add your project to the list!&lt;/p&gt;
+
+&lt;h2 id=&quot;important-patch-notes&quot;&gt;Important Patch Notes&lt;/h2&gt;
+
+&lt;p&gt;Below is a list of user-facing interface and configuration changes, dependency version upgrades, or removal of supported versions that would be
+important to be aware of when upgrading your StateFun applications to this version:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-18812&quot;&gt;FLINK-18812&lt;/a&gt;] The Flink version in StateFun 2.2 has been upgraded to 1.11.1.&lt;/li&gt;
+  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19203&quot;&gt;FLINK-19203&lt;/a&gt;] Upgraded Scala version to 2.12, and dropped support for 2.11.&lt;/li&gt;
+  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19190&quot;&gt;FLINK-19190&lt;/a&gt;] All existing metric names have been renamed to be camel-cased instead of snake-cased, to conform with the Flink metric naming conventions. &lt;strong&gt;This breaks existing deployments if you depended on previous metrics&lt;/strong&gt;.&lt;/li&gt;
+  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19192&quot;&gt;FLINK-19192&lt;/a&gt;] The connection pool size for remote function HTTP requests have been increased to 1024, with a stale TTL of 1 minute.&lt;/li&gt;
+  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19191&quot;&gt;FLINK-19191&lt;/a&gt;] The default max number of asynchronous operations per JVM (StateFun worker) has been decreased to 1024.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
+
+&lt;p&gt;Please review the &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12348350&quot;&gt;release notes&lt;/a&gt;
+for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 2.2.0.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank all contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;abc863377, Authuir, Chesnay Schepler, Congxian Qiu, David Anderson, Dian Fu, Francesco Guardiani, Igal Shilman, Marta Paes Moreira, Patrick Wiener, Rafi Aroch, Seth Wiesman, Stephan Ewen, Tzu-Li (Gordon) Tai, Ufuk Celebi&lt;/p&gt;
+
+&lt;p&gt;If you’d like to get involved, we’re always &lt;a href=&quot;https://github.com/apache/flink-statefun#contributing&quot;&gt;looking for new contributors&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+<pubDate>Mon, 28 Sep 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/09/28/release-statefun-2.2.0.html</link>
+<guid isPermaLink="true">/news/2020/09/28/release-statefun-2.2.0.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.11.2 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.11 series.&lt;/p&gt;
 
@@ -17798,50 +17990,6 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 <pubDate>Tue, 24 May 2016 12:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2016/05/24/stream-sql.html</link>
 <guid isPermaLink="true">/news/2016/05/24/stream-sql.html</guid>
-</item>
-
-<item>
-<title>Flink 1.0.3 Released</title>
-<description>&lt;p&gt;Today, the Flink community released Flink version &lt;strong&gt;1.0.3&lt;/strong&gt;, the third bugfix release of the 1.0 series.&lt;/p&gt;
-
-&lt;p&gt;We &lt;strong&gt;recommend all users updating to this release&lt;/strong&gt; by bumping the version of your Flink dependencies to &lt;code&gt;1.0.3&lt;/code&gt; and updating the binaries on the server. You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;fixed-issues&quot;&gt;Fixed Issues&lt;/h2&gt;
-
-&lt;h3 id=&quot;bug&quot;&gt;Bug&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3790&quot;&gt;FLINK-3790&lt;/a&gt;] [streaming] Use proper hadoop config in rolling sink&lt;/li&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3840&quot;&gt;FLINK-3840&lt;/a&gt;] Remove Testing Files in RocksDB Backend&lt;/li&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3835&quot;&gt;FLINK-3835&lt;/a&gt;] [optimizer] Add input id to JSON plan to resolve ambiguous input names&lt;/li&gt;
-  &lt;li&gt;[hotfix] OptionSerializer.duplicate to respect stateful element serializer&lt;/li&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3803&quot;&gt;FLINK-3803&lt;/a&gt;] [runtime] Pass CheckpointStatsTracker to ExecutionGraph&lt;/li&gt;
-  &lt;li&gt;[hotfix] [cep] Make cep window border treatment consistent&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;improvement&quot;&gt;Improvement&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3678&quot;&gt;FLINK-3678&lt;/a&gt;] [dist, docs] Make Flink logs directory configurable&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;docs&quot;&gt;Docs&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[docs] Add note about S3AFileSystem ‘buffer.dir’ property&lt;/li&gt;
-  &lt;li&gt;[docs] Update AWS S3 docs&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;tests&quot;&gt;Tests&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3860&quot;&gt;FLINK-3860&lt;/a&gt;] [connector-wikiedits] Add retry loop to WikipediaEditsSourceTest&lt;/li&gt;
-  &lt;li&gt;[streaming-contrib] Fix port clash in DbStateBackend tests&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Wed, 11 May 2016 10:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2016/05/11/release-1.0.3.html</link>
-<guid isPermaLink="true">/news/2016/05/11/release-1.0.3.html</guid>
 </item>
 
 </channel>
