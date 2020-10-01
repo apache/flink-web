@@ -1,4 +1,4 @@
-# flink-web
+# Flink-Web
 
 This repository contains the Flink website: https://flink.apache.org/.
 
