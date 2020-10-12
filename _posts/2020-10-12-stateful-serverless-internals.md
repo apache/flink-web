@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Stateful Functions: Behind the scenes of Stateful Serverless"
+title:  "Stateful Functions Internals: Behind the scenes of Stateful Serverless"
 subtitle: "A look at how Apache Flink Stateful Functions' runtime facilitates consistent and fault-tolerant stateful serverless applications"
 date: 2020-10-12T08:00:00.000Z
 categories: news
@@ -36,7 +36,7 @@ what they've learnt to deploy their StateFun applications on other public cloud 
 You can find the full code [here](https://github.com/tzulitai/statefun-aws-demo/blob/master/app/shopping_cart.py), which
 uses StateFun's [Python SDK](https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/python.html). Alternatively, if you are
 unfamiliar with StateFun's API, you can check out this [earlier blog](https://flink.apache.org/2020/08/19/statefun.html)
-on modeling applications and stateful entities using StateFun's programming constructs.
+on modeling applications and stateful entities using [StateFun's programming constructs](https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html).
 </div>
 
 Let’s first take a look at a high-level overview of the motivating demo for this blog post: a shopping cart application.
@@ -68,7 +68,7 @@ function, representing a request to reserve an item, and `ItemReserved`, which i
 
 ## What happens in the Stateful Functions runtime?
 
-Now that we understand the business logic of the shopping cart application, lets take a closer look at what keeps the state
+Now that we understand the business logic of the shopping cart application, let's take a closer look at what keeps the state
 of the functions and messages sent between them consistent and fault-tolerant: the StateFun cluster.
 
 <figure style="float:right;padding-left:1px;padding-top: 0px">
@@ -76,10 +76,10 @@ of the functions and messages sent between them consistent and fault-tolerant: t
   <figcaption style="padding-top: 10px;text-align:center"><i><b>Fig.2:</b> Simplified view of a StateFun app deployment.</i></figcaption>
 </figure>
 
-The StateFun runtime is built on-top of Apache Flink, and applies the same battle-tested technique that Flink has
-successfully used for strongly consistent stateful streaming applications - <i><b>co-location of state and messaging</b></i>.
+The StateFun runtime is built on-top of Apache Flink, and applies the same battle-tested technique that Flink uses as the
+basis for strongly consistent stateful streaming applications - <i><b>co-location of state and messaging</b></i>.
 In a StateFun application, all messages are routed through the StateFun cluster, including messages sent from ingresses,
-messages sent between functions, and messages sent from functions to egresses. Moreover, state of all functions is
+messages sent between functions, and messages sent from functions to egresses. Moreover, the state of all functions is
 maintained in the StateFun cluster as well. Like Flink, the message streams flowing through the StateFun cluster and
 function state are co-partitioned so that compute has local state access, and any updates to the state can be handled
 atomically with computed side-effects, i.e. messages to send to other functions.
@@ -121,7 +121,7 @@ as long as the language can handle HTTP requests and responses.
 
 The runtime makes sure that only one invocation per function instance (e.g. `(cart, "Kim")`) is ongoing at any point in
 time (i.e. invocations per entity are serial). If an invocation is ongoing while new messages for the same function
-instance arrives, it is buffered in state and sent as a single batch as soon as the ongoing invocation completes.
+instance arrives, the messages are buffered in state and sent as a single batch as soon as the ongoing invocation completes.
 
 In addition, since each request happens in complete isolation and all relevant information is encapsulated in each
 request and response, <i><b>function invocations are effectively idempotent</b></i>
@@ -133,46 +133,46 @@ to a blob storage (e.g. HDFS, S3, GCS) using Flink’s [original distributed sna
 These checkpoints contain <i><b>a globally consistent view of state across all functions of the application</b></i>,
 including the offset positions in ingresses and the ongoing transaction state in egresses. In the case of an abrupt failure,
 the system may restore from the latest available checkpoint: all function states will be restored and all events between
-the checkpoint and the crash will be re-processed (and the functions re-invoked) with identical routing, like the failure
+the checkpoint and the crash will be re-processed (and the functions re-invoked) with identical routing, all as if the failure
 never happened.
 
 ### Step-by-step walkthrough of function invocations
 
-Lets conclude this section by going through the actual messages that flow between StateFun and the functions in our shopping
+Let's conclude this section by going through the actual messages that flow between StateFun and the functions in our shopping
 cart demo application!
 
-<strong>Customer "Kim" puts 2 socks into his shopping cart</strong>
+<strong>Customer "Kim" puts 2 socks into his shopping cart (Fig. 4):</strong>
 
 <center>
 	<figure>
 	<img src="{{ site.baseurl }}/img/blog/2020-10-12-stateful-serverless-internals/protocol-walkthrough-1.png" width="750px"/>
-	<figcaption><i><b>Fig.3:</b> Message flow walkthrough.</i></figcaption>
+	<figcaption><i><b>Fig.4:</b> Message flow walkthrough.</i></figcaption>
 	</figure>
 </center>
 <br>
 
-* An event `AddToCart("Kim", "socks", 2)` comes through one of the ingress partitions `(1)`. The ingress event router is
-configured to route `AddToCart` events to the function type `cart`, taking the userId (`"Kim"`) as the instance ID. The
+* An event `AddToCart("Kim", "socks", 2)` comes through one of the ingress partitions <b>`(1)`</b>. The ingress event router is
+configured to route `AddToCart` events to the function type `cart`, taking the user ID (`"Kim"`) as the instance ID. The
 function type and instance ID together define the logical address of the target function instance for the event `(cart:Kim)`.
 
 * Let's assume the event is read by StateFun partition B, but the `(cart:Kim)` address is owned by partition A.
-The event is thus routed to partition A (2).
+The event is thus routed to partition A <b>`(2)`</b>.
 
 * StateFun Partition A receives the event and processes it:
-  - First, the runtime fetches the state for `(cart:Kim)` from the local state store, i.e. the existing items in Kim’s cart (3).
-  - Next, it marks `(cart:Kim)` as <i>"busy"</i>, meaning an invocation is happening. This blocks other messages targeted for
-  `(cart:Kim)` until this invocation is completed.
+  - First, the runtime fetches the state for `(cart:Kim)` from the local state store, i.e. the existing items in Kim’s cart <b>`(3)`</b>.
+  - Next, it marks `(cart:Kim)` as <i>"busy"</i>, meaning an invocation is happening. This buffers other messages targeted for
+  `(cart:Kim)` in state until this invocation is completed.
   - The runtime grabs a free HTTP client connection and sends a request to the `cart` function type's service endpoint.
-  The request contains the `AddToCart("Kim", "socks", 2)` message and the current state for `(cart:Kim)` (4).
+  The request contains the `AddToCart("Kim", "socks", 2)` message and the current state for `(cart:Kim)` <b>`(4)`</b>.
   - The remote `cart` function service receives the event and attempts to reserve socks with the `inventory` function.
   Therefore, it replies to the invocation with a new message `RequestItem("socks", 2)` targeted at the address `(inventory:socks)`.
   Any state modifications will be included in the response as well, but in this case there aren’t any state modifications yet
-  (i.e. Kim’s cart is still empty until a reservation acknowledgement is received from the inventory service) (5).
-  - The StateFim runtime receives the response, routes the `RequestItem` message to other partitions,
+  (i.e. Kim’s cart is still empty until a reservation acknowledgement is received from the inventory service) <b>`(5)`</b>.
+  - The StateFun runtime receives the response, routes the `RequestItem` message to other partitions,
   and marks `(cart:Kim)` as <i>"available"</i> again for invocation.
 
 
-* Assuming that the `(inventory:socks)` address is owned by partition B, the message is routed to partition B (6).
+* Assuming that the `(inventory:socks)` address is owned by partition B, the message is routed to partition B <b>`(6)`</b>.
 
 * Once partition B receives the `RequestItem` message, the runtime invokes the function `(inventory:socks)` in the same
 way as described above, and receives a reply with a modification of the state of the inventory (the number of reserved socks is now increased by 2).
@@ -181,8 +181,8 @@ message targeted for `(cart:Kim)` is also included in the response (7), which wi
 
 ## Stateful Serverless in the Cloud with FaaS and StateFun
 
-We'd like to wrap up this blog by re-emphasizing how the StateFun runtime is designed to work with cloud-native
-architectures, and provide with an overview of what your complete StateFun application deployment would look like
+We'd like to wrap up this blog by re-emphasizing how the StateFun runtime works well with cloud-native
+architectures, and provide an overview of what your complete StateFun application deployment would look like
 using public cloud services.
 
 As you've already learnt in previous sections, invocation requests themselves are stateless, with all necessary information
@@ -191,7 +191,7 @@ included in the HTTP response (i.e. outgoing messages and state modifications).
 
 <figure style="float:right;padding-left:1px;padding-top: 0px">
   <img src="{{ site.baseurl }}/img/blog/2020-10-12-stateful-serverless-internals/aws-deployment.png" width="450px">
-  <figcaption style="padding-top: 10px;text-align:center"><i><b>Fig.4:</b> Complete deployment example on AWS.</i></figcaption>
+  <figcaption style="padding-top: 10px;text-align:center"><i><b>Fig.5:</b> Complete deployment example on AWS.</i></figcaption>
 </figure>
 
 A natural consequence of this characteristic is that there is no session-related dependency between individual HTTP
@@ -201,9 +201,9 @@ with zero-downtime.
 
 In our complementary demo code, you can find [here](https://github.com/tzulitai/statefun-aws-demo/blob/master/app/shopping_cart.py#L49)
 the exact code on how to expose and service StateFun functions through AWS Lambda. Likewise, this is possible for any other
-FaaS platform that support triggering the functions using HTTP endpoints (and other transports as well in the future).
+FaaS platform that supports triggering the functions using HTTP endpoints (and other transports as well in the future).
 
-**Fig. 4** on the right illustrates what a complete AWS deployment of a StateFun application would look like, with functions
+**Fig. 5** on the right illustrates what a complete AWS deployment of a StateFun application would look like, with functions
 serviced via AWS Lambda, AWS Kinesis streams as ingresses and egresses, AWS EKS managed Kubernetes cluster to run the
 StateFun cluster, and an AWS S3 bucket to store the periodic checkpoints. You can also follow the
 [instructions](https://github.com/tzulitai/statefun-aws-demo#running-the-demo) in the demo code to try it out and deploy this yourself right away!
