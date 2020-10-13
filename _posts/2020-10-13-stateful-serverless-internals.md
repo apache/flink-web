@@ -177,7 +177,7 @@ The event is thus routed to partition A <b>`(2)`</b>.
 * Once partition B receives the `RequestItem` message, the runtime invokes the function `(inventory:socks)` in the same
 way as described above, and receives a reply with a modification of the state of the inventory (the number of reserved socks is now increased by 2).
 `(inventory:socks)` now also wants to reply reservation of 2 socks for Kim, so an `ItemReserved("socks", 2)`
-message targeted for `(cart:Kim)` is also included in the response (7), which will again be routed by the StateFun runtime.
+message targeted for `(cart:Kim)` is also included in the response <b>`(7)`</b>, which will again be routed by the StateFun runtime.
 
 ## Stateful Serverless in the Cloud with FaaS and StateFun
 
