@@ -7,6 +7,231 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Stateful Functions Internals: Behind the scenes of Stateful Serverless</title>
+<description>&lt;p&gt;Stateful Functions (StateFun) simplifies the building of distributed stateful applications by combining the best of two worlds:
+the strong messaging and state consistency guarantees of stateful stream processing, and the elasticity and serverless experience of today’s cloud-native architectures and
+popular event-driven FaaS platforms. Typical StateFun applications consist of functions deployed behind simple services
+using these modern platforms, with a separate StateFun cluster playing the role of an “&lt;a href=&quot;https://flink.apache.org/news/2020/04/07/release-statefun-2.0.0.html&quot;&gt;event-driven database&lt;/a&gt;”
+that provides consistency and fault-tolerance for the functions’ state and messaging.&lt;/p&gt;
+
+&lt;p&gt;But how exactly does StateFun achieve that? How does the StateFun cluster communicate with the functions?&lt;/p&gt;
+
+&lt;p&gt;This blog dives deep into the internals of the StateFun runtime. The entire walkthrough is complemented by a
+&lt;a href=&quot;https://github.com/tzulitai/statefun-aws-demo/&quot;&gt;demo application&lt;/a&gt; which can be completely deployed on AWS services.
+Most significantly, in the demo, the stateful functions are deployed and serviced using &lt;a href=&quot;https://aws.amazon.com/lambda/&quot;&gt;AWS Lambda&lt;/a&gt;,
+a popular FaaS platform among many others. The goal here is to allow readers to have a good grasp of the interaction between
+the StateFun runtime and the functions, how that works cohesively to provide a Stateful Serverless experience, and how they can apply
+what they’ve learnt to deploy their StateFun applications on other public cloud offerings such as GCP or Microsoft Azure.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#introducing-the-example-shopping-cart&quot; id=&quot;markdown-toc-introducing-the-example-shopping-cart&quot;&gt;Introducing the example: Shopping Cart&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#what-happens-in-the-stateful-functions-runtime&quot; id=&quot;markdown-toc-what-happens-in-the-stateful-functions-runtime&quot;&gt;What happens in the Stateful Functions runtime?&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#remote-invocation-request-reply-protocol&quot; id=&quot;markdown-toc-remote-invocation-request-reply-protocol&quot;&gt;Remote Invocation Request-Reply Protocol&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#function-state-consistency-and-fault-tolerance&quot; id=&quot;markdown-toc-function-state-consistency-and-fault-tolerance&quot;&gt;Function state consistency and fault-tolerance&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#step-by-step-walkthrough-of-function-invocations&quot; id=&quot;markdown-toc-step-by-step-walkthrough-of-function-invocations&quot;&gt;Step-by-step walkthrough of function invocations&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#stateful-serverless-in-the-cloud-with-faas-and-statefun&quot; id=&quot;markdown-toc-stateful-serverless-in-the-cloud-with-faas-and-statefun&quot;&gt;Stateful Serverless in the Cloud with FaaS and StateFun&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;introducing-the-example-shopping-cart&quot;&gt;Introducing the example: Shopping Cart&lt;/h2&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+You can find the full code &lt;a href=&quot;https://github.com/tzulitai/statefun-aws-demo/blob/master/app/shopping_cart.py&quot;&gt;here&lt;/a&gt;, which
+uses StateFun’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/python.html&quot;&gt;Python SDK&lt;/a&gt;. Alternatively, if you are
+unfamiliar with StateFun’s API, you can check out this &lt;a href=&quot;https://flink.apache.org/2020/08/19/statefun.html&quot;&gt;earlier blog&lt;/a&gt;
+on modeling applications and stateful entities using &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/concepts/application-building-blocks.html&quot;&gt;StateFun’s programming constructs&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Let’s first take a look at a high-level overview of the motivating demo for this blog post: a shopping cart application.
+The diagram below covers the functions that build up the application, the state that the functions would keep, and the messages
+that flow between them. We’ll be referencing this example throughout the blog post.&lt;/p&gt;
+
+&lt;center&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-10-13-stateful-serverless-internals/shopping-cart-overview.png&quot; width=&quot;600px&quot; alt=&quot;Shopping cart application&quot; /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.1:&lt;/b&gt; An overly simplified shopping cart application.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;The application consists of two function types: a &lt;code&gt;cart&lt;/code&gt; function and an &lt;code&gt;inventory&lt;/code&gt; function.
+Each instance of the &lt;code&gt;cart&lt;/code&gt; function is associated with a single user entity, with its state being the items in the cart
+for that user (&lt;code&gt;ItemsInCart&lt;/code&gt;). In the same way, each instance of the &lt;code&gt;inventory&lt;/code&gt; function represents a single inventory,
+maintaining as state the number of items in stock (&lt;code&gt;NumInStock&lt;/code&gt;) as well as the number of items reserved across all
+user carts (&lt;code&gt;NumReserved&lt;/code&gt;). Messages can be sent to function instances using their logical addresses, which consists
+of the function type and the instance’s entity ID, e.g. &lt;code&gt;(cart:Kim)&lt;/code&gt; or &lt;code&gt;(inventory:socks)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There are two external messages being sent to and from the shopping cart application via ingresses and egresses:
+&lt;code&gt;AddToCart&lt;/code&gt;, which is sent to the ingress when an item is added to a user’s cart (e.g. sent by a front-end web application),
+and &lt;code&gt;AddToCartResult&lt;/code&gt;, which is sent back from our application to acknowledge the action.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AddToCart&lt;/code&gt; messages are handled by the &lt;code&gt;cart&lt;/code&gt; function, which in turn invokes other functions to form the main logic of the application.
+To keep things simple, only two messages between functions are demonstrated: &lt;code&gt;RequestItem&lt;/code&gt;, sent from the &lt;code&gt;cart&lt;/code&gt; function to the &lt;code&gt;inventory&lt;/code&gt;
+function, representing a request to reserve an item, and &lt;code&gt;ItemReserved&lt;/code&gt;, which is a response from the inventory function to acknowledge the request.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-happens-in-the-stateful-functions-runtime&quot;&gt;What happens in the Stateful Functions runtime?&lt;/h2&gt;
+
+&lt;p&gt;Now that we understand the business logic of the shopping cart application, let’s take a closer look at what keeps the state
+of the functions and messages sent between them consistent and fault-tolerant: the StateFun cluster.&lt;/p&gt;
+
+&lt;figure style=&quot;float:right;padding-left:1px;padding-top: 0px&quot;&gt;
+  &lt;img src=&quot;/img/blog/2020-10-13-stateful-serverless-internals/abstract-deployment.png&quot; width=&quot;400px&quot; /&gt;
+  &lt;figcaption style=&quot;padding-top: 10px;text-align:center&quot;&gt;&lt;i&gt;&lt;b&gt;Fig.2:&lt;/b&gt; Simplified view of a StateFun app deployment.&lt;/i&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;The StateFun runtime is built on-top of Apache Flink, and applies the same battle-tested technique that Flink uses as the
+basis for strongly consistent stateful streaming applications - &lt;i&gt;&lt;b&gt;co-location of state and messaging&lt;/b&gt;&lt;/i&gt;.
+In a StateFun application, all messages are routed through the StateFun cluster, including messages sent from ingresses,
+messages sent between functions, and messages sent from functions to egresses. Moreover, the state of all functions is
+maintained in the StateFun cluster as well. Like Flink, the message streams flowing through the StateFun cluster and
+function state are co-partitioned so that compute has local state access, and any updates to the state can be handled
+atomically with computed side-effects, i.e. messages to send to other functions.&lt;/p&gt;
+
+&lt;p&gt;In more solid terms, take for example a message that is targeted for the logical address &lt;code&gt;(cart, &quot;Kim&quot;)&lt;/code&gt; being routed
+through StateFun. Logical addresses are used in StateFun as the partitioning key for both message streams and state, so
+that the resulting StateFun cluster partition that this message ends up in will have the state for &lt;code&gt;(cart, &quot;Kim&quot;)&lt;/code&gt;
+locally available.&lt;/p&gt;
+
+&lt;p&gt;The only difference here for StateFun, compared to Flink, is that the actual compute doesn’t happen within the StateFun
+cluster partitions - &lt;i&gt;&lt;b&gt;computation happens remotely in the function services&lt;/b&gt;&lt;/i&gt;. So how does StateFun
+route input messages to the remote function services and provide them with state access, all the while
+preserving the same consistency guarantees as if state and compute were co-located?&lt;/p&gt;
+
+&lt;h3 id=&quot;remote-invocation-request-reply-protocol&quot;&gt;Remote Invocation Request-Reply Protocol&lt;/h3&gt;
+
+&lt;p&gt;A StateFun cluster partition communicates with the functions using a slim and well-defined request-reply protocol, as
+illustrated in &lt;strong&gt;Fig. 3&lt;/strong&gt;. Upon receiving an input message, the cluster partition invokes the target functions via their
+HTTP service endpoint. The service request body carries input events and current state for the functions, retrieved from
+local state. Any outgoing messages and state mutations as a result of invocations are sent back through StateFun as part
+of the service response. When the StateFun cluster partition receives the response, all state mutations are written back
+to local state and outgoing messages are routed to other cluster partitions, which in turn invokes other function
+services.&lt;/p&gt;
+
+&lt;center&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-10-13-stateful-serverless-internals/request-reply-protocol.png&quot; width=&quot;750px&quot; /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.3:&lt;/b&gt; The remote invocation request/reply protocol.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Under the hood, StateFun SDKs like the Python SDK and other &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/external.html&quot;&gt;3rd party SDKs for other languages&lt;/a&gt;
+all implement this protocol. From the user’s perspective, they are programming with state local to their function deployment,
+whereas in reality, state is maintained in StateFun and supplied through this protocol. It is easy to add more language SDKs,
+as long as the language can handle HTTP requests and responses.&lt;/p&gt;
+
+&lt;h3 id=&quot;function-state-consistency-and-fault-tolerance&quot;&gt;Function state consistency and fault-tolerance&lt;/h3&gt;
+
+&lt;p&gt;The runtime makes sure that only one invocation per function instance (e.g. &lt;code&gt;(cart, &quot;Kim&quot;)&lt;/code&gt;) is ongoing at any point in
+time (i.e. invocations per entity are serial). If an invocation is ongoing while new messages for the same function
+instance arrives, the messages are buffered in state and sent as a single batch as soon as the ongoing invocation completes.&lt;/p&gt;
+
+&lt;p&gt;In addition, since each request happens in complete isolation and all relevant information is encapsulated in each
+request and response, &lt;i&gt;&lt;b&gt;function invocations are effectively idempotent&lt;/b&gt;&lt;/i&gt;
+(i.e. results depend purely on the provided context of the invocation) and can be retried. This naturally avoids
+violating consistency in case any function service hiccups occur.&lt;/p&gt;
+
+&lt;p&gt;For fault tolerance, all function state managed in the StateFun cluster is periodically and asynchronously checkpointed
+to a blob storage (e.g. HDFS, S3, GCS) using Flink’s &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/concepts/stateful-stream-processing.html#checkpointing&quot;&gt;original distributed snapshot mechanism&lt;/a&gt;.
+These checkpoints contain &lt;i&gt;&lt;b&gt;a globally consistent view of state across all functions of the application&lt;/b&gt;&lt;/i&gt;,
+including the offset positions in ingresses and the ongoing transaction state in egresses. In the case of an abrupt failure,
+the system may restore from the latest available checkpoint: all function states will be restored and all events between
+the checkpoint and the crash will be re-processed (and the functions re-invoked) with identical routing, all as if the failure
+never happened.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-by-step-walkthrough-of-function-invocations&quot;&gt;Step-by-step walkthrough of function invocations&lt;/h3&gt;
+
+&lt;p&gt;Let’s conclude this section by going through the actual messages that flow between StateFun and the functions in our shopping
+cart demo application!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Customer “Kim” puts 2 socks into his shopping cart (Fig. 4):&lt;/strong&gt;&lt;/p&gt;
+
+&lt;center&gt;
+	&lt;figure&gt;
+	&lt;img src=&quot;/img/blog/2020-10-13-stateful-serverless-internals/protocol-walkthrough-1.png&quot; width=&quot;750px&quot; /&gt;
+	&lt;figcaption&gt;&lt;i&gt;&lt;b&gt;Fig.4:&lt;/b&gt; Message flow walkthrough.&lt;/i&gt;&lt;/figcaption&gt;
+	&lt;/figure&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;An event &lt;code&gt;AddToCart(&quot;Kim&quot;, &quot;socks&quot;, 2)&lt;/code&gt; comes through one of the ingress partitions &lt;b&gt;&lt;code&gt;(1)&lt;/code&gt;&lt;/b&gt;. The ingress event router is
+configured to route &lt;code&gt;AddToCart&lt;/code&gt; events to the function type &lt;code&gt;cart&lt;/code&gt;, taking the user ID (&lt;code&gt;&quot;Kim&quot;&lt;/code&gt;) as the instance ID. The
+function type and instance ID together define the logical address of the target function instance for the event &lt;code&gt;(cart:Kim)&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Let’s assume the event is read by StateFun partition B, but the &lt;code&gt;(cart:Kim)&lt;/code&gt; address is owned by partition A.
+The event is thus routed to partition A &lt;b&gt;&lt;code&gt;(2)&lt;/code&gt;&lt;/b&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;StateFun Partition A receives the event and processes it:
+    &lt;ul&gt;
+      &lt;li&gt;First, the runtime fetches the state for &lt;code&gt;(cart:Kim)&lt;/code&gt; from the local state store, i.e. the existing items in Kim’s cart &lt;b&gt;&lt;code&gt;(3)&lt;/code&gt;&lt;/b&gt;.&lt;/li&gt;
+      &lt;li&gt;Next, it marks &lt;code&gt;(cart:Kim)&lt;/code&gt; as &lt;i&gt;“busy”&lt;/i&gt;, meaning an invocation is happening. This buffers other messages targeted for
+&lt;code&gt;(cart:Kim)&lt;/code&gt; in state until this invocation is completed.&lt;/li&gt;
+      &lt;li&gt;The runtime grabs a free HTTP client connection and sends a request to the &lt;code&gt;cart&lt;/code&gt; function type’s service endpoint.
+The request contains the &lt;code&gt;AddToCart(&quot;Kim&quot;, &quot;socks&quot;, 2)&lt;/code&gt; message and the current state for &lt;code&gt;(cart:Kim)&lt;/code&gt; &lt;b&gt;&lt;code&gt;(4)&lt;/code&gt;&lt;/b&gt;.&lt;/li&gt;
+      &lt;li&gt;The remote &lt;code&gt;cart&lt;/code&gt; function service receives the event and attempts to reserve socks with the &lt;code&gt;inventory&lt;/code&gt; function.
+Therefore, it replies to the invocation with a new message &lt;code&gt;RequestItem(&quot;socks&quot;, 2)&lt;/code&gt; targeted at the address &lt;code&gt;(inventory:socks)&lt;/code&gt;.
+Any state modifications will be included in the response as well, but in this case there aren’t any state modifications yet
+(i.e. Kim’s cart is still empty until a reservation acknowledgement is received from the inventory service) &lt;b&gt;&lt;code&gt;(5)&lt;/code&gt;&lt;/b&gt;.&lt;/li&gt;
+      &lt;li&gt;The StateFun runtime receives the response, routes the &lt;code&gt;RequestItem&lt;/code&gt; message to other partitions,
+and marks &lt;code&gt;(cart:Kim)&lt;/code&gt; as &lt;i&gt;“available”&lt;/i&gt; again for invocation.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Assuming that the &lt;code&gt;(inventory:socks)&lt;/code&gt; address is owned by partition B, the message is routed to partition B &lt;b&gt;&lt;code&gt;(6)&lt;/code&gt;&lt;/b&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Once partition B receives the &lt;code&gt;RequestItem&lt;/code&gt; message, the runtime invokes the function &lt;code&gt;(inventory:socks)&lt;/code&gt; in the same
+way as described above, and receives a reply with a modification of the state of the inventory (the number of reserved socks is now increased by 2).
+&lt;code&gt;(inventory:socks)&lt;/code&gt; now also wants to reply reservation of 2 socks for Kim, so an &lt;code&gt;ItemReserved(&quot;socks&quot;, 2)&lt;/code&gt;
+message targeted for &lt;code&gt;(cart:Kim)&lt;/code&gt; is also included in the response (7), which will again be routed by the StateFun runtime.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;stateful-serverless-in-the-cloud-with-faas-and-statefun&quot;&gt;Stateful Serverless in the Cloud with FaaS and StateFun&lt;/h2&gt;
+
+&lt;p&gt;We’d like to wrap up this blog by re-emphasizing how the StateFun runtime works well with cloud-native
+architectures, and provide an overview of what your complete StateFun application deployment would look like
+using public cloud services.&lt;/p&gt;
+
+&lt;p&gt;As you’ve already learnt in previous sections, invocation requests themselves are stateless, with all necessary information
+for an invocation included in the HTTP request (i.e. input events and state access), and all side-effects of the invocation
+included in the HTTP response (i.e. outgoing messages and state modifications).&lt;/p&gt;
+
+&lt;figure style=&quot;float:right;padding-left:1px;padding-top: 0px&quot;&gt;
+  &lt;img src=&quot;/img/blog/2020-10-13-stateful-serverless-internals/aws-deployment.png&quot; width=&quot;450px&quot; /&gt;
+  &lt;figcaption style=&quot;padding-top: 10px;text-align:center&quot;&gt;&lt;i&gt;&lt;b&gt;Fig.5:&lt;/b&gt; Complete deployment example on AWS.&lt;/i&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;A natural consequence of this characteristic is that there is no session-related dependency between individual HTTP
+requests, making it very easy to horizontally scale the function deployments. This makes it very easy to deploy your
+stateful functions using FaaS platforms solutions, allowing them to rapidly scale out, scale to zero, or be upgraded
+with zero-downtime.&lt;/p&gt;
+
+&lt;p&gt;In our complementary demo code, you can find &lt;a href=&quot;https://github.com/tzulitai/statefun-aws-demo/blob/master/app/shopping_cart.py#L49&quot;&gt;here&lt;/a&gt;
+the exact code on how to expose and service StateFun functions through AWS Lambda. Likewise, this is possible for any other
+FaaS platform that supports triggering the functions using HTTP endpoints (and other transports as well in the future).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Fig. 5&lt;/strong&gt; on the right illustrates what a complete AWS deployment of a StateFun application would look like, with functions
+serviced via AWS Lambda, AWS Kinesis streams as ingresses and egresses, AWS EKS managed Kubernetes cluster to run the
+StateFun cluster, and an AWS S3 bucket to store the periodic checkpoints. You can also follow the
+&lt;a href=&quot;https://github.com/tzulitai/statefun-aws-demo#running-the-demo&quot;&gt;instructions&lt;/a&gt; in the demo code to try it out and deploy this yourself right away!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;If you’d like to learn more about Stateful Functions, head over to the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-statefun-docs-master/&quot;&gt;official documentation&lt;/a&gt;, where you can also find more hands-on tutorials to try out yourself!&lt;/p&gt;
+</description>
+<pubDate>Tue, 13 Oct 2020 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2020/10/13/stateful-serverless-internals.html</link>
+<guid isPermaLink="true">/news/2020/10/13/stateful-serverless-internals.html</guid>
+</item>
+
+<item>
 <title>Stateful Functions 2.2.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.2.0! This release
 introduces major features that extend the SDKs, such as support for asynchronous functions in the Python SDK, new
@@ -17861,135 +18086,6 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 <pubDate>Mon, 08 Aug 2016 15:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2016/08/08/release-1.1.0.html</link>
 <guid isPermaLink="true">/news/2016/08/08/release-1.1.0.html</guid>
-</item>
-
-<item>
-<title>Stream Processing for Everyone with SQL and Apache Flink</title>
-<description>&lt;p&gt;The capabilities of open source systems for distributed stream processing have evolved significantly over the last years. Initially, the first systems in the field (notably &lt;a href=&quot;https://storm.apache.org&quot;&gt;Apache Storm&lt;/a&gt;) provided low latency processing, but were limited to at-least-once guarantees, processing-time semantics, and rather low-level APIs. Since then, several new systems emerged and pushed the state of the art of open source stream processing in several dimensions. Today, users of Apache Flink or &lt;a href=&quot;https://beam.incubator.apache.org&quot;&gt;Apache Beam&lt;/a&gt; can use fluent Scala and Java APIs to implement stream processing jobs that operate in event-time with exactly-once semantics at high throughput and low latency.&lt;/p&gt;
-
-&lt;p&gt;In the meantime, stream processing has taken off in the industry. We are witnessing a rapidly growing interest in stream processing which is reflected by prevalent deployments of streaming processing infrastructure such as &lt;a href=&quot;https://kafka.apache.org&quot;&gt;Apache Kafka&lt;/a&gt; and Apache Flink. The increasing number of available data streams results in a demand for people that can analyze streaming data and turn it into real-time insights. However, stream data analysis requires a special skill set including knowledge of streaming concepts such as the characteristics of unbounded streams, windows, time, and state as well as the skills to implement stream analysis jobs usually against Java or Scala APIs. People with this skill set are rare and hard to find.&lt;/p&gt;
-
-&lt;p&gt;About six months ago, the Apache Flink community started an effort to add a SQL interface for stream data analysis. SQL is &lt;em&gt;the&lt;/em&gt; standard language to access and process data. Everybody who occasionally analyzes data is familiar with SQL. Consequently, a SQL interface for stream data processing will make this technology accessible to a much wider audience. Moreover, SQL support for streaming data will also enable new use cases such as interactive and ad-hoc stream analysis and significantly simplify many applications including stream ingestion and simple transformations. In this blog post, we report on the current status, architectural design, and future plans of the Apache Flink community to implement support for SQL as a language for analyzing data streams.&lt;/p&gt;
-
-&lt;h2 id=&quot;where-did-we-come-from&quot;&gt;Where did we come from?&lt;/h2&gt;
-
-&lt;p&gt;With the &lt;a href=&quot;http://flink.apache.org/news/2015/04/13/release-0.9.0-milestone1.html&quot;&gt;0.9.0-milestone1&lt;/a&gt; release, Apache Flink added an API to process relational data with SQL-like expressions called the Table API. The central concept of this API is a Table, a structured data set or stream on which relational operations can be applied. The Table API is tightly integrated with the DataSet and DataStream API. A Table can be easily created from a DataSet or DataStream and can also be converted back into a DataSet or DataStream as the following example shows&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;execEnv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// obtain a DataSet from somewhere&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempData&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// convert the DataSet to a Table&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempTable&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;location&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;tempF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// compute your result&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;avgTempCTable&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tempTable&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;location&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;like&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;room%&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-   &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3600&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;day&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
-   &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;Location&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;room&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
-   &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;tempF&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.556&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;tempC&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;day&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;room&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;day&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;room&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;tempC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;avgTempC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// convert result Table back into a DataSet and print it&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;avgTempCTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDataSet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Although the example shows Scala code, there is also an equivalent Java version of the Table API. The following picture depicts the original architecture of the Table API.&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/stream-sql/old-table-api.png&quot; style=&quot;width:75%;margin:15px&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;A Table is created from a DataSet or DataStream and transformed into a new Table by applying relational transformations such as &lt;code&gt;filter&lt;/code&gt;, &lt;code&gt;join&lt;/code&gt;, or &lt;code&gt;select&lt;/code&gt; on them. Internally, a logical table operator tree is constructed from the applied Table transformations. When a Table is translated back into a DataSet or DataStream, the respective translator translates the logical operator tree into DataSet or DataStream operators. Expressions like &lt;code&gt;&#39;location.like(&quot;room%&quot;)&lt;/code&gt; are compiled into Flink functions via code generation.&lt;/p&gt;
-
-&lt;p&gt;However, the original Table API had a few limitations. First of all, it could not stand alone. Table API queries had to be always embedded into a DataSet or DataStream program. Queries against batch Tables did not support outer joins, sorting, and many scalar functions which are commonly used in SQL queries. Queries against streaming tables only supported filters, union, and projections and no aggregations or joins. Also, the translation process did not leverage query optimization techniques except for the physical optimization that is applied to all DataSet programs.&lt;/p&gt;
-
-&lt;h2 id=&quot;table-api-joining-forces-with-sql&quot;&gt;Table API joining forces with SQL&lt;/h2&gt;
-
-&lt;p&gt;The discussion about adding support for SQL came up a few times in the Flink community. With Flink 0.9 and the availability of the Table API, code generation for relational expressions, and runtime operators, the foundation for such an extension seemed to be there and SQL support the next logical step. On the other hand, the community was also well aware of the multitude of dedicated “SQL-on-Hadoop” solutions in the open source landscape (&lt;a href=&quot;https://hive.apache.org&quot;&gt;Apache Hive&lt;/a&gt;, &lt;a href=&quot;https://drill.apache.org&quot;&gt;Apache Drill&lt;/a&gt;, &lt;a href=&quot;http://impala.io&quot;&gt;Apache Impala&lt;/a&gt;, &lt;a href=&quot;https://tajo.apache.org&quot;&gt;Apache Tajo&lt;/a&gt;, just to name a few). Given these alternatives, we figured that time would be better spent improving Flink in other ways than implementing yet another SQL-on-Hadoop solution.&lt;/p&gt;
-
-&lt;p&gt;However, with the growing popularity of stream processing and the increasing adoption of Flink in this area, the Flink community saw the need for a simpler API to enable more users to analyze streaming data. About half a year ago, we decided to take the Table API to the next level, extend the stream processing capabilities of the Table API, and add support for SQL on streaming data. What we came up with was a revised architecture for a Table API that supports SQL (and Table API) queries on streaming and static data sources. We did not want to reinvent the wheel and decided to build the new Table API on top of &lt;a href=&quot;https://calcite.apache.org&quot;&gt;Apache Calcite&lt;/a&gt;, a popular SQL parser and optimizer framework. Apache Calcite is used by many projects including Apache Hive, Apache Drill, Cascading, and many &lt;a href=&quot;https://calcite.apache.org/docs/powered_by.html&quot;&gt;more&lt;/a&gt;. Moreover, the Calcite community put &lt;a href=&quot;https://calcite.apache.org/docs/stream.html&quot;&gt;SQL on streams&lt;/a&gt; on their roadmap which makes it a perfect fit for Flink’s SQL interface.&lt;/p&gt;
-
-&lt;p&gt;Calcite is central in the new design as the following architecture sketch shows:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/stream-sql/new-table-api.png&quot; style=&quot;width:75%;margin:15px&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;The new architecture features two integrated APIs to specify relational queries, the Table API and SQL. Queries of both APIs are validated against a catalog of registered tables and converted into Calcite’s representation for logical plans. In this representation, stream and batch queries look exactly the same. Next, Calcite’s cost-based optimizer applies transformation rules and optimizes the logical plans. Depending on the nature of the sources (streaming or static) we use different rule sets. Finally, the optimized plan is translated into a regular Flink DataStream or DataSet program. This step involves again code generation to compile relational expressions into Flink functions.&lt;/p&gt;
-
-&lt;p&gt;The new architecture of the Table API maintains the basic principles of the original Table API and improves it. It keeps a uniform interface for relational queries on streaming and static data. In addition, we take advantage of Calcite’s query optimization framework and SQL parser. The design builds upon Flink’s established APIs, i.e., the DataStream API that offers low-latency, high-throughput stream processing with exactly-once semantics and consistent results due to event-time processing, and the DataSet API with robust and efficient in-memory operators and pipelined data exchange. Any improvements to Flink’s core APIs and engine will automatically improve the execution of Table API and SQL queries.&lt;/p&gt;
-
-&lt;p&gt;With this effort, we are adding SQL support for both streaming and static data to Flink. However, we do not want to see this as a competing solution to dedicated, high-performance SQL-on-Hadoop solutions, such as Impala, Drill, and Hive. Instead, we see the sweet spot of Flink’s SQL integration primarily in providing access to streaming analytics to a wider audience. In addition, it will facilitate integrated applications that use Flink’s API’s as well as SQL while being executed on a single runtime engine.&lt;/p&gt;
-
-&lt;h2 id=&quot;how-will-flinks-sql-on-streams-look-like&quot;&gt;How will Flink’s SQL on streams look like?&lt;/h2&gt;
-
-&lt;p&gt;So far we discussed the motivation for and architecture of Flink’s stream SQL interface, but how will it actually look like? The new SQL interface is integrated into the Table API. DataStreams, DataSets, and external data sources can be registered as tables at the &lt;code&gt;TableEnvironment&lt;/code&gt; in order to make them queryable with SQL. The &lt;code&gt;TableEnvironment.sql()&lt;/code&gt; method states a SQL query and returns its result as a Table. The following example shows a complete program that reads a streaming table from a JSON encoded Kafka topic, processes it with a SQL query and writes the resulting stream into another Kafka topic. Please note that the KafkaJsonSource and KafkaJsonSink are under development and not available yet. In the future, TableSources and TableSinks can be persisted to and loaded from files to ease reuse of source and sink definitions and to reduce boilerplate code.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// get environments&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;execEnv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// configure Kafka connection&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProps&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// define a JSON encoded Kafka topic as external table&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sensorSource&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaJsonSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)](&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;quot;sensorTopic&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;kafkaProps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;location&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;tempF&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// register external table&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTableSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sensorData&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sensorSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// define query in external table&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;roomSensors&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;quot;SELECT STREAM time, location AS room, (tempF - 32) * 0.556 AS tempC &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;quot;FROM sensorData &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;quot;WHERE location LIKE &amp;#39;room%&amp;#39;&amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// define a JSON encoded Kafka topic as external sink&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;roomSensorSink&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaJsonSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// define sink for room sensor data and execute query&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;roomSensors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;roomSensorSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;execEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You might have noticed that this example left out the most interesting aspects of stream data processing: window aggregates and joins. How will these operations be expressed in SQL? Well, that is a very good question. The Apache Calcite community put out an excellent proposal that discusses the syntax and semantics of &lt;a href=&quot;https://calcite.apache.org/docs/stream.html&quot;&gt;SQL on streams&lt;/a&gt;. It describes Calcite’s stream SQL as &lt;em&gt;“an extension to standard SQL, not another ‘SQL-like’ language”&lt;/em&gt;. This has several benefits. First, people who are familiar with standard SQL will be able to analyze data streams without learning a new syntax. Queries on static tables and streams are (almost) identical and can be easily ported. Moreover it is possible to specify queries that reference static and streaming tables at the same time which goes well together with Flink’s vision to handle batch processing as a special case of stream processing, i.e., as processing finite streams. Finally, using standard SQL for stream data analysis means following a well established standard that is supported by many tools.&lt;/p&gt;
-
-&lt;p&gt;Although we haven’t completely fleshed out the details of how windows will be defined in Flink’s SQL syntax and Table API, the following examples show how a tumbling window query could look like in SQL and the Table API.&lt;/p&gt;
-
-&lt;h3 id=&quot;sql-following-the-syntax-proposal-of-calcites-streaming-sql-document&quot;&gt;SQL (following the syntax proposal of Calcite’s streaming SQL document)&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;STREAM&lt;/span&gt; 
-  &lt;span class=&quot;n&quot;&gt;TUMBLE_END&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;INTERVAL&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;1&amp;#39;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;day&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
-  &lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;room&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
-  &lt;span class=&quot;k&quot;&gt;AVG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tempF&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;556&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;avgTempC&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sensorData&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;LIKE&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;room%&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;GROUP&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TUMBLE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;INTERVAL&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;1&amp;#39;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;location&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;table-api&quot;&gt;Table API&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;avgRoomTemp&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tableEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ingest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sensorData&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;location&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;like&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;room%&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;location&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Tumbling&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;every&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;time&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;location&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;tempF&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.556&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;-Symbol&quot;&gt;&amp;#39;avgTempCs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;whats-up-next&quot;&gt;What’s up next?&lt;/h2&gt;
-
-&lt;p&gt;The Flink community is actively working on SQL support for the next minor version Flink 1.1.0. In the first version, SQL (and Table API) queries on streams will be limited to selection, filter, and union operators. Compared to Flink 1.0.0, the revised Table API will support many more scalar functions and be able to read tables from external sources and write them back to external sinks. A lot of work went into reworking the architecture of the Table API and integrating Apache Calcite.&lt;/p&gt;
-
-&lt;p&gt;In Flink 1.2.0, the feature set of SQL on streams will be significantly extended. Among other things, we plan to support different types of window aggregates and maybe also streaming joins. For this effort, we want to closely collaborate with the Apache Calcite community and help extending Calcite’s support for relational operations on streaming data when necessary.&lt;/p&gt;
-
-&lt;p&gt;If this post made you curious and you want to try out Flink’s SQL interface and the new Table API, we encourage you to do so! Simply clone the SNAPSHOT &lt;a href=&quot;https://github.com/apache/flink/tree/master&quot;&gt;master branch&lt;/a&gt; and check out the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/table.html&quot;&gt;Table API documentation for the SNAPSHOT version&lt;/a&gt;. Please note that the branch is under heavy development, and hence some code examples in this blog post might not work. We are looking forward to your feedback and welcome contributions.&lt;/p&gt;
-</description>
-<pubDate>Tue, 24 May 2016 12:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2016/05/24/stream-sql.html</link>
-<guid isPermaLink="true">/news/2016/05/24/stream-sql.html</guid>
 </item>
 
 </channel>
