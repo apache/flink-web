@@ -2,7 +2,7 @@
 layout: post
 title:  "Stateful Functions Internals: Behind the scenes of Stateful Serverless"
 subtitle: "A look at how Apache Flink Stateful Functions' runtime enables consistent and fault-tolerant stateful serverless applications"
-date: 2020-10-13T08:00:00.000Z
+date: 2020-10-13T00:00:00.000Z
 categories: news
 authors:
 - tzulitai:
