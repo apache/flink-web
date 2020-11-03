@@ -61,12 +61,16 @@ If you would you like to be included on this page, please reach out to the [Flin
       Ericsson used Flink to build a real-time anomaly detector with machine learning over large infrastructures. <br><br><a href="https://www.oreilly.com/ideas/applying-the-kappa-architecture-in-the-telco-industry" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read a detailed overview on O'Reilly Ideas</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" alt="Gojek" /><br />
+      Gojek is a Super App: one app with over 20 services uses Flink to power their self-serve platform empowering data-driven decisions across functions. <br><br><a href="https://blog.gojekengineering.com/how-our-diy-platform-creates-value-through-network-effects-76e1e8bad0db" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Gojek engineering blog</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" alt="Huawei" /><br />
       Huawei is a leading global provider of ICT infrastructure and smart devices. Huawei Cloud provides Cloud Service based on Flink. <br><br><a href="https://www.slideshare.net/FlinkForward/flink-forward-san-francisco-2018-jinkui-shi-and-radu-tudoran-flink-realtime-analysis-in-cloudstream-service-of-huawei-cloud" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn about how Flink powers Cloud Service</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/king-logo.png" alt="King" /><br />
-      King, the creators of Candy Crush Saga, uses Flink to provide data science teams a real-time analytics dashboard. <br><br><a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read about King's Flink implementation</a>
+      King, the creators of Candy Crush Saga, uses Flink to provide data science teams a real-time analytics dashboard. <br><br><a href="https://www.youtube.com/watch?v=17tUR4TsvpM" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn more about King's Flink implementation</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/klaviyo-logo.png" alt="Klaviyo" /><br />
@@ -102,6 +106,14 @@ If you would you like to be included on this page, please reach out to the [Flin
       OVH leverages Flink to develop streaming-oriented applications such as real-time Business Intelligence or alerting systems. <br><br><a href="https://www.ovh.com/fr/blog/handling-ovhs-alerts-with-apache-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about how OVH is using Flink</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" alt="Pinterest" /><br />
+      Pinterest runs thousands of experiments every day on a platform for real-time experiment analytics that is based on Apache Flink. <br><br><a href="https://medium.com/pinterest-engineering/real-time-experiment-analytics-at-pinterest-using-apache-flink-841c8df98dc2" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about real-time experiment analytics at Pinterest</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" alt="Razorpay" /><br />
+      Razorpay, one of India's largest payment gateways, built their in-house platform Mitra with Apache Flink to scale AI feature generation and model serving in real-time. <br><br><a href=" https://medium.com/razorpay-unfiltered/data-science-at-scale-using-apache-flink-982cb18848b" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about data science with Flink at Razorpay</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" alt="ResearchGate" /><br />
       ResearchGate, a social network for scientists, uses Flink for network analysis and near-duplicate detection. <br><br><a href="http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> See ResearchGate at Flink Forward 2016</a>
   </div>
@@ -111,7 +123,7 @@ If you would you like to be included on this page, please reach out to the [Flin
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" alt="Telefonica Next" /><br />
-      Telefónica NEXT's TÜV-certified Data Anonymization Platform is powered by Flink. <br><br><a href="https://next.telefonica.de/en/solutions/big-data-privacy-services" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Telefónica NEXT</a>
+      Telefónica NEXT's TÜV-certified Data Anonymization Platform is powered by Flink. <br><br><a href="https://2016.flink-forward.org/index.html%3Fp=592.html" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Telefónica NEXT</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" alt="Tencent" /><br />
@@ -120,6 +132,14 @@ If you would you like to be included on this page, please reach out to the [Flin
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" alt="Uber" /><br />
       Uber built their internal SQL-based, open-source streaming analytics platform AthenaX on Apache Flink. <br><br><a href="https://eng.uber.com/athenax/" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more on the Uber engineering blog</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/vip-logo.png" alt="Vip" /><br />
+      Vip, one of the largest warehouse sale website for big brands in China, uses Flink to stream and ETL data into Apache Hive in real-time for data processing and analytics. <br><br><a href="https://yq.aliyun.com/articles/652548" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Read more about Vip's story.</a>
+  </div>
+  <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
+    <img src="{{ site.baseurl }}/img/poweredby/xiaomi-logo.png" alt="Xiaomi" /><br />
+        Xiaomi, one of the largest electronics companies in China, built a platform with Flink to improve the efficiency of developing and operating real-time applications and use it in real-time recommendations. <br><br><a href="https://files.alicdn.com/tpsservice/d77d3ed3f2709790f0d84f4ec279a486.pdf" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Learn more about how Xiaomi is using Flink.</a>
   </div>
   <div class="powered-by-tile col-md-3 col-sm-4 col-xs-6">
     <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" alt="Yelp" /><br />

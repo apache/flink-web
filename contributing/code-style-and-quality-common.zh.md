@@ -6,20 +6,34 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 {% toc %}
 
+## 1. 版权
 
-## 1. 工具
+=======
+每个文件的头部都必须包含Apache许可证信息。
 
+```
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+## 2. 工具
 我们建议你按照 [IDE 设置指南](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) 配置 IDE 工具。
 
-
-<!---
-### 在IntelliJ中使用检查
-
-* 将检查设置导入到 IDE (参阅 IDE 设置指南)
-    * TODO: 需要同意导出配置文件 (如 checkstyle)
-* 编码解决检查警告
-    * 当出现没有意义的检查警告时，应该禁止该警告，虽然这种情况很少。
--->
 
 ### 警告
 
@@ -30,7 +44,7 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 
 
-## 2. 注释和代码可读性
+## 3. 注释和代码可读性
 
 
 ### 注释
@@ -55,6 +69,7 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 * 例如 `// 这种特定的代码布局可以让 JIT 更好的进行工作`
 * 或 `// 此字段为空将会导致写入尝试 fail-fast`
 * 或 `// 用于实际调用该方法的参数，这种看似简单的方式实际上比任何优化/智能版本更好`
+
 
 在代码注释中，不应该有关于 “what” 和 “how” 这么明显的冗余信息。
 
@@ -87,7 +102,7 @@ __反例：__
 
 ```
 if (a) {
-    if (b) { 
+    if (b) {
         if (c) {
             the main path
         }
@@ -114,7 +129,7 @@ the main path
 ```
 
 
-## 3. 设计和结构
+## 4. 设计和结构
 
 虽然很难确切地指定一个好的设计是由什么构成的，但是有一些属性可以作为好的设计的试金石。如果设计上拥有这些属性，那么就有可能得到好的发展。否则，设计就很有可能存在缺陷。
 
@@ -153,6 +168,7 @@ _注意: 大部分情况下是不需要 `@Nonnull` 注解的，但有些时候�
 ### 可测性设计（Design for Testability）
 
 容易进行测试的代码通常能够很好的使关注点分离，并且可以在其他地方重复使用（测试的时候很容易重复使用）。
+
 
 下面的 PDF 链接中有对问题的总结和重构的建议。需要注意的是，虽然 PDF 中的示例使用 Guice 作为依赖注入框架，但是如果没有使用这个框架，它也能达到相同的效果。[^1]
 
@@ -196,7 +212,6 @@ _注意: 大部分情况下是不需要 `@Nonnull` 注解的，但有些时候�
     这有助于传递测试的意图（测试的场景是什么），而不是测试的机制。技术部分进入到测试类底部的静态方法。
  
     Flink 中遵循此模式的测试示例如下:
-
     * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
     * [https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java](https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java)
 
@@ -231,7 +246,7 @@ _注意: 大部分情况下是不需要 `@Nonnull` 注解的，但有些时候�
 
 
 
-## 4. 线程和并发性
+## 5. 线程和并发性
 
 **大多数的代码不需要任何的并发** 正确的内部抽象应该是所有情况下都不需要考虑并发性的问题。
 
@@ -243,6 +258,7 @@ _注意: 大部分情况下是不需要 `@Nonnull` 注解的，但有些时候�
 
 * 例如：单线程、阻塞、非阻塞、同步、异步、多线程、线程池、消息队列、可见性（Volatile）、同步代码块/方法、互斥、原子、回调等等。
 * 提前把这些事情都考虑好甚至比设计类接口/职责更重要，因为后面想要修改的话就难了。
+
 
 
 **尽可能的避免以任何方式共享线程**
@@ -273,8 +289,8 @@ _注意: 大部分情况下是不需要 `@Nonnull` 注解的，但有些时候�
 
 
 
+## 6. 模块和依赖
 
-## 5. 模块和依赖
 
 * **保持较小的依赖**
     * 依赖的越多，社区就越难以将它们作为一个整体来进行管理。

@@ -21,9 +21,7 @@ $( document ).ready(function() {
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
 如果你计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于
-Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的下载包，且另外下載对应版本的 Hadoop 库，并且把下载后的 Hadoop 库放置
-到 Flink 安装目录下的 lib 目录
-包并[设置 HADOOP_CLASSPATH 环境变量](https://ci.apache.org/projects/flink/flink-docs-stable/ops/deployment/hadoop.html)。
+Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/zh/ops/deployment/hadoop.html)文档。
 
 {% for flink_release in site.flink_releases %}
 
@@ -61,7 +59,7 @@ Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的
 {% endif %}
 
 {% if flink_release.optional_components %}
-### 可选组件
+#### 可选组件
 
 {% assign components = flink_release.optional_components | | sort: 'name' %}
 {% for component in components %}
@@ -96,7 +94,7 @@ Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的
 {% endif %}
 
 {% if flink_release.alternative_binaries %}
-### 其他替代执行包
+#### 其他替代执行包
 
 {% assign alternatives = flink_release.alternative_binaries | | sort: 'name' %}
 {% for alternative in alternatives %}
@@ -125,9 +123,9 @@ Hadoop 文件系统的 connector ），请选择包含匹配的 Hadoop 版本的
 
 {% endif %}
 
-## 发布说明
+#### 发布说明
 
-如果你计划从以前的版本升级 Flink，请查看 [Flink {{ site.FLINK_VERSION_STABLE_SHORT }} 的发布说明]({{ site.DOCS_BASE_URL }}
+如果你计划从以前的版本升级 Flink，请查看 [Flink {{ flink_release.version_short }} 的发布说明]({{ site.DOCS_BASE_URL }}
 flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flink_release.version_short }}.html)。
 
 {% endfor %}
@@ -138,19 +136,16 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
 
 {% for additional_component in site.component_releases %}
 
-{% if additional_component.source_release %}
-{% assign source_release = additional_component.source_release %}
 <p>
-<a href="{{ source_release.url }}" class="ga-track" id="{{ source_release.id }}">{{ source_release.name }}</a>
-(<a href="{{ source_release.asc_url }}">asc</a>, <a href="{{ source_release.sha512_url }}">sha512</a>)
+<a href="{{ additional_component.url }}" class="ga-track" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
+(<a href="{{ additional_component.asc_url }}">asc</a>, <a href="{{ additional_component.sha512_url }}">sha512</a>)
 </p>
-{% endif %}
 
 {% endfor %}
 
 ## 验证哈希和签名
 
-随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://www.apache.org/dist/flink/KEYS) 来校验它们。
+随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://downloads.apache.org/flink/KEYS) 来校验它们。
 
 ## Maven 依赖
 

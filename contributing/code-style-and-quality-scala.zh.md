@@ -1,5 +1,5 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide  — Scala"
+title:  "Apache Flink 代码样式与质量指南  — Scala"
 ---
 
 {% include code-style-navbar.zh.md %}
@@ -8,68 +8,67 @@ title:  "Apache Flink Code Style and Quality Guide  — Scala"
 
 
 
-## Scala Language Features
+## Scala 语言特性
 
-### Where to use (and not use) Scala
+### 在哪儿使用（和不使用） Scala
 
-**We use Scala for Scala APIs or pure Scala Libraries.**
+**对于 Scala 的 API 或者纯 Scala libraries，我们会选择使用 Scala。**
 
-**We do not use Scala in the core APIs and runtime components. We aim to remove existing Scala use (code and dependencies) from those components.**
+**在 core API 和 运行时的组件中，我们不使用 Scala。我们的目标是从这些组件中删除现有的 Scala 使用(代码和依赖项)。**
 
-⇒ This is not because we do not like Scala, it is a consequence of “the right tool for the right job” approach (see below).
+⇒ 这并不是因为我们不喜欢 Scala，而是考虑到“用正确的工具做正确的事”的结果（见下文）。
 
-For APIs, we develop the foundation in Java, and layer Scala on top.
+对于 API，我们使用 Java 开发基础内容，并在上层使用 Scala。
 
-* This has traditionally given the best interoperability for both Java and Scala
-* It does mean dedicated effort to keep the Scala API up to date
+* 这在传统上为 Java 和 Scala 提供了最佳的互通性
+* 这意味着要致力于保持 Scala API 的更新
 
-Why don’t we use Scala in the core APIs and runtime?
+为什么我们不在 Core API 和 Runtime 中使用 Scala ？
 
-* The past has shown that Scala evolves too quickly with tricky changes in functionality. Each Scala version upgrade was a rather big effort process for the Flink community.
-* Scala does not always interact nicely with Java classes, e.g. Scala’s visibility scopes work differently and often expose more to Java consumers than desired
-* Scala adds an additional layer of complexity to artifact/dependency management.
-    * We may want to keep Scala dependent libraries like Akka in the runtime, but abstract them via an interface and load them in a separate classloader, to keep them shielded and avoid version conflicts.
-* Scala makes it very easy for knowledgeable Scala programmers to write code that is very hard to understand for programmers that are less knowledgeable in Scala. That is especially tricky for an open source project with a broad community of diverse experience levels. Working around this means restricting the Scala feature set by a lot, which defeats a good amount of the purpose of using Scala in the first place.
-
-
-### API Parity
-
-Keep Java API and Scala API in sync in terms of functionality and code quality.
-
-The Scala API should cover all the features of the Java APIs as well.
-
-Scala APIs should have a “completeness test”, like the following example from the DataStream API: [https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala](https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala)
+* 过去的经验显示， Scala 在功能上的变化太快了。对于 Flink 社区来说，每次 Scala 版本升级都是一个比较棘手的处理过程。
+* Scala 并不总能很好地与 Java 的类交互，例如 Scala 的可见性范围的工作方式不同，而且常常向 Java 消费者公开的内容比预期的要多。
+* 由于使用 Scala ，所以 Flink 的 artifact/dependency 管理增加了一层额外的复杂性。
+    * 我们希望通过接口抽象，同时也在运行时保留像 Akka 这样依赖 Scala 的库，然后将它们加载到单独的类加载器中，以保护它们并避免版本冲突。
+* Scala 让懂 Scala 的程序员很容易编写代码，而对于不太懂 Scala 的程序员来说，这些代码很难理解。对于一个拥有不同经验水平的广大社区的开源项目来说，这尤其棘手。解决这个问题意味着大量限制 Scala 特性集，这首先就违背了使用 Scala 的很多目的。
 
 
-### Language Features
+### API 等价
 
-* **Avoid Scala implicits.**
-    * Scala’s implicits should only be used for user-facing API improvements such as the Table API expressions or type information extraction.
-    * Don’t use them for internal “magic”.
-* **Add explicit types for class members.**
-    * Don’t rely on implicit type inference for class fields and methods return types: 
+保持 Java API 和 Scala API 在功能和代码质量方面的同步。
+
+Scala API 也应该涵盖 Java API 的所有特性。
+
+Scala API 应该有一个“完整性测试”，就如下面 DataStream API 的示例中的一样： [https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala](https://github.com/apache/flink/blob/master/flink-streaming-scala/src/test/scala/org/apache/flink/streaming/api/scala/StreamingScalaAPICompletenessTest.scala)
+
+
+### 语言特性
+
+* **避免 Scala 隐式转换。**
+    * Scala 的隐式转换应该只用于面向用户的 API 改进，例如 Table API 表达式或类型信息提取。
+    * 不要把它们用于内部 “magic”。
+* **为类成员添加显式类型。**
+    * 对于类字段和方法返回类型，不要依赖隐式类型推断:
  
-        **Don’t:**
+        **不要这样：**
         ```
         var expressions = new java.util.ArrayList[String]()
         ```
 
-        **Do:**
+        **要这样：**
         ```
         var expressions: java.util.List[String] = new java.util.ArrayList[]()
         ```
 
-    * Type inference for local variables on the stack is fine.
-* **Use strict visibility.**
-    * Avoid Scala’s package private features (such as private[flink]) and use regular private/protected instead.
-    * Keep in mind that `private[flink]` and `protected` members are public in Java.
-    * Keep in mind that `private[flink]` still exposes all members in Flink provided examples.
+    * 堆栈上局部变量的类型推断是可以的。
+* **用严格的可见性。**
+    * 避免使用 Scala 的包私有特性(如 private[flink])，而是使用常规 private/protected 替代。
+    * 请注意：在 Java 中，`private[flink]` 和 `protected` 的成员是公开的。
+    * 请注意：在 Flink 提供的示例中， `private[flink]` 仍然会暴露所有成员。
 
+### 编码格式
 
-### Coding Formatting
+**使用换行来构造你的代码。**
 
-**Use line wrapping to structure your code.**
-
-* Scala’s functional nature allows for long transformation chains (`x.map().map().foreach()`).
-* In order to force implementers to structure their code, the line length is therefore limited to 100 characters.
-* Use one line per transformation for better maintainability.
+* Scala 的函数性质允许长的转换链（ `x.map().map().foreach()` ）。
+* 为了强制让实现者构造其代码，因此将行长度限制为 100 个字符以内。
+* 为了更好的可维护性，每次转换使用一行。

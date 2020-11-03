@@ -160,30 +160,39 @@ We use Jira to track all code related issues: [{{ site.jira }}]({{ site.jira }})
 
 All issue activity is also mirrored to the issues mailing list.
 
+## Reporting Security Issues
+
+If you wish to report a security vulnerability, please contact [security@apache.org](mailto:security@apache.org). Apache Flink follows the typical [Apache vulnerability handling process](https://www.apache.org/security/) for reporting vulnerabilities. Note that vulnerabilities should not be publicly disclosed until the project has responded.
+
 ## Meetups
 
 There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-flink/) featuring Flink.
 
 ## Source Code
 
-### Main source repositories
+### Flink core repository
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+
+### Flink Stateful Functions repository
+
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+- **GitHub mirror**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
 ### Flink-shaded repositories (shaded dependency libraries)
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
 - **GitHub mirror**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
 
 ### Flink Website repositories
 
-- **ASF writable**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
 - **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
 ### Bahir Flink repositories (additional connectors)
 
-- **ASF writable**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
+- **ASF repository**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
 - **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
 
 
@@ -211,6 +220,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <th class="text-center">Apache ID</th>
   </thead>
   <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/43608?s=50" class="committer-avatar"></td>
+    <td class="text-center">David Anderson</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">danderson</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/5990983?s=50" class="committer-avatar"></td>
     <td class="text-center">Márton Balassi</td>
     <td class="text-center">PMC, Committer</td>
@@ -235,6 +250,18 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">shuyichen</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/18818196?v=4" class="committer-avatar"/></td>
+    <td class="text-center">Zili Chen</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">tison</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/4971479?s=50" class="committer-avatar"/></td>
+    <td class="text-center">Hequn Cheng</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">hequn</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1452518?s=50" class="committer-avatar"></td>
     <td class="text-center">Xingcan Cui</td>
     <td class="text-center">Committer</td>
@@ -251,6 +278,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Gyula Fóra</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">gyfora</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5466492?s=50" class="committer-avatar"></td>
+    <td class="text-center">Dian Fu</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">dianfu</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/332352?s=50" class="committer-avatar"></td>
@@ -279,8 +312,14 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Kostas Kloudas</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">kkloudas</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center">Konstantin Knauf</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">knaufk</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/68551?s=50" class="committer-avatar"></td>
@@ -293,6 +332,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Nico Kruber</td>
     <td class="text-center">Committer</td>
     <td class="text-center">nkruber</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/9601882?s=50" class="committer-avatar"></td>
+    <td class="text-center">Jingsong Lee</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">lzljs3620320</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1892692?s=50" class="committer-avatar"></td>
@@ -379,6 +424,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">shixg</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6509172?s=50" class="committer-avatar"></td>
+    <td class="text-center">Xintong Song</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">xtsong</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/22488084?s=50" class="committer-avatar"></td>
     <td class="text-center">Jincheng Sun</td>
     <td class="text-center">PMC, Committer</td>
@@ -411,13 +462,13 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
     <td class="text-center">Shaoxuan Wang</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">shaoxuan</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/12387855?s=50" class="committer-avatar"></td>
     <td class="text-center">Zhijiang Wang</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">zhijiang</td>
   </tr>
   <tr>
@@ -429,13 +480,13 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5378924?s=50" class="committer-avatar"></td>
     <td class="text-center">Jark Wu</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">jark</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/6242259?s=50" class="committer-avatar"></td>
     <td class="text-center">Dawid Wysakowicz</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">dwysakowicz</td>
   </tr>
   <tr>
@@ -447,7 +498,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/955396?s=50" class="committer-avatar"></td>
     <td class="text-center">Kurt Young</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">kurt</td>
   </tr>
   <tr>
@@ -455,6 +506,18 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Andrey Zagrebin</td>
     <td class="text-center">Committer</td>
     <td class="text-center">azagrebin</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6239804?s=50" class="committer-avatar"></td>
+    <td class="text-center">Yu Li</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">liyu</td>
+  </tr>
+  <tr>
+	<td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1891970?s=50" class="committer-avatar"></td>
+	<td class="text-center">Seth Wiesman</td>
+	<td class="text-center">Committer</td>
+	<td class="text-center">sjwiesman</td>
   </tr>
 
 </table>

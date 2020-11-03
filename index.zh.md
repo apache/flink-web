@@ -211,6 +211,12 @@ layout: base
          
         </li>
         <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" width="175"  alt="Gojek" />
+          </a></div>
+
+        </li>
+        <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" width="175" alt="Huawei" />
           </a></div>
@@ -266,9 +272,27 @@ layout: base
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" width="175" alt="Razorpay" />
+          </a></div>
+          
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" width="175" alt="Pinterest" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
           </a></div>
           
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" width="175" alt="SK telecom" />
+          </a></div>
+                  
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">
@@ -281,6 +305,18 @@ layout: base
             <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
           </a></div>
           
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/vip-logo.png" width="175" alt="Vip" />
+          </a></div>
+
+        </li>
+        <li>
+          <div><a href="{{ site.baseurl }}/zh/poweredby.html">
+            <img src="{{ site.baseurl }}/img/poweredby/xiaomi-logo.png" width="175" alt="Xiaomi" />
+          </a></div>
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/zh/poweredby.html">

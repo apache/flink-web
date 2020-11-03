@@ -4,7 +4,7 @@ title:  "How to Review a Pull Request"
 
 <hr />
 
-This guide is for all committers and contributors that want to help with reviewing code contributions. Thank you for your effort - good reviews are one the most important and crucial parts of an open source project. This guide should help the community to make reviews such that:
+This guide is for all committers and contributors that want to help with reviewing code contributions. Thank you for your effort - good reviews are one of the most important and crucial parts of an open source project. This guide should help the community to make reviews such that:
 
 * Contributors have a good contribution experience.
 * Our reviews are structured and check all important aspects of a contribution.
@@ -53,7 +53,7 @@ This question can be answered with
 
 * *Does not need specific attention*
 * *Needs specific attention for X (X can be for example checkpointing, jobmanager, etc.).*
-* *Has specific attention for X by @commiterA, @contributorB*
+* *Has specific attention for X by @committerA, @contributorB*
 
 **If the pull request needs specific attention, one of the tagged committers/contributors should give the final approval.**
 

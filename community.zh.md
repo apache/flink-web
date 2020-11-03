@@ -8,7 +8,7 @@ title: "社区 & 项目信息"
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink commiter 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
 
 ## 邮件列表
 
@@ -134,7 +134,7 @@ title: "社区 & 项目信息"
 
 在往邮件列表中发送消息前，需要先订阅邮件列表。
 
-1. 发送一封不包含任何内容或主题的邮件到 subscribe-*listname*@flink.apache.org（替换 *listname* 为 dev, user, user-zh 等等）
+1. 发送一封不包含任何内容或主题的邮件到 *listname*-subscribe@flink.apache.org（替换 *listname* 为 dev, user, user-zh 等等）
 2. 等待直到收到一封主题为 "confirm subscribe to *listname*@flink.apache.org" 的邮件。回复该邮件，不用修改主题和添加邮件内容。
 3. 等待直到收到一封主题为 "WELCOME to *listname*@flink.apache.org" 的邮件。
 
@@ -158,6 +158,10 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 
 所有 issue 的活动也会同步到 issue 邮件列表。
 
+## 报告安全漏洞
+
+如果你希望报告安全漏洞, 请联系 [security@apache.org](mailto:security@apache.org)。 Apache Flink 遵循标准的 [Apache漏洞处理流程](https://www.apache.org/security/) 来报告漏洞。请注意，在项目做出响应之前，请不要公开披露漏洞。
+
 ## Meetups
 
 在 [meetup.com](http://www.meetup.com/topics/apache-flink/) 上可以找到很多 Flink 相关的 meetup。
@@ -168,6 +172,11 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 
 - **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub 镜像**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+
+### Flink Stateful Functions 仓库
+
+- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+- **GitHub 镜像**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
 ### Flink-shaded 仓库 (shaded 的依赖包)
 
@@ -196,7 +205,7 @@ Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 Flink Forward 大会每年都会在世界的不同地方举办。关于大会最新的信息可以到 <a href="https://www.flink-forward.org/">Flink-Forward.org</a> 网站获取到。
 
-# PMC 和 Commiter 列表
+# PMC 和 Committer 列表
 
 <table class="table table-striped">
   <thead>
@@ -205,6 +214,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <th class="text-center">角色</th>
     <th class="text-center">Apache ID</th>
   </thead>
+  <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/43608?s=50" class="committer-avatar"></td>
+    <td class="text-center">David Anderson</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">danderson</td>
+  </tr>
   <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/5990983?s=50" class="committer-avatar"></td>
     <td class="text-center">Márton Balassi</td>
@@ -230,6 +245,18 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">shuyichen</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/18818196?v=4" class="committer-avatar"/></td>
+    <td class="text-center">Zili Chen</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">tison</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/4971479?s=50" class="committer-avatar"/></td>
+    <td class="text-center">Hequn Cheng</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">hequn</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1452518?s=50" class="committer-avatar"></td>
     <td class="text-center">Xingcan Cui</td>
     <td class="text-center">Committer</td>
@@ -246,6 +273,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">Gyula Fóra</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">gyfora</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5466492?s=50" class="committer-avatar"></td>
+    <td class="text-center">Dian Fu</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">dianfu</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/332352?s=50" class="committer-avatar"></td>
@@ -274,8 +307,14 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Kostas Kloudas</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">kkloudas</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center">Konstantin Knauf</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">knaufk</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/68551?s=50" class="committer-avatar"></td>
@@ -288,6 +327,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">Nico Kruber</td>
     <td class="text-center">Committer</td>
     <td class="text-center">nkruber</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/9601882?s=50" class="committer-avatar"></td>
+    <td class="text-center">Jingsong Lee</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">lzljs3620320</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1892692?s=50" class="committer-avatar"></td>
@@ -374,6 +419,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">shixg</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6509172?s=50" class="committer-avatar"></td>
+    <td class="text-center">Xintong Song</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">xtsong</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/22488084?s=50" class="committer-avatar"></td>
     <td class="text-center">Jincheng Sun</td>
     <td class="text-center">PMC, Committer</td>
@@ -406,13 +457,13 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
     <td class="text-center">Shaoxuan Wang</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">shaoxuan</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/12387855?s=50" class="committer-avatar"></td>
     <td class="text-center">Zhijiang Wang</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">zhijiang</td>
   </tr>
   <tr>
@@ -424,7 +475,7 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5378924?s=50" class="committer-avatar"></td>
     <td class="text-center">Jark Wu</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">jark</td>
   </tr>
   <tr>
@@ -442,13 +493,24 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/955396?s=50" class="committer-avatar"></td>
     <td class="text-center">Kurt Young</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">kurt</td>
   </tr>
-
+  <tr>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6239804?s=50" class="committer-avatar"></td>
+    <td class="text-center">Yu Li</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">liyu</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/1891970?s=50" class="committer-avatar"></td>
+    <td class="text-center">Seth Wiesman</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">sjwiesman</td>
+  </tr>
 </table>
 
-可以通过 `<apache-id>@apache.org` 直接联系 commiter。可以在 [这里]({{ site.FLINK_CONTRIBUTORS_URL }}) 找到所有的贡献者。
+可以通过 `<apache-id>@apache.org` 直接联系 committer。可以在 [这里]({{ site.FLINK_CONTRIBUTORS_URL }}) 找到所有的贡献者。
 
 ## 前导师们
 
