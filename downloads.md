@@ -51,9 +51,11 @@ file system connector), please check out the [Hadoop Integration]({{ site.DOCS_B
 </p>
 {% endif %}
 
-{% if flink_release.optional_components %}
+{% if flink_release.optional_components or flink_release.sql_components_url %}
 #### Optional components
+{% endif %}
 
+{% if flink_release.optional_components %}
 {% assign components = flink_release.optional_components | | sort: 'name' %}
 {% for component in components %}
 
@@ -80,6 +82,12 @@ file system connector), please check out the [Hadoop Integration]({{ site.DOCS_B
 {% endfor %}
 
 {% endif %}
+
+{% if flink_release.sql_components_url != nil %}
+<p>
+<a href="{{ flink_release.sql_components_url }}" class="ga-track">SQL components download page</a>
+</p>
+{% endif %} 
 
 {% if flink_release.alternative_binaries %}
 #### Alternative Binaries
