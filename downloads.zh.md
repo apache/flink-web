@@ -58,9 +58,11 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 </p>
 {% endif %}
 
-{% if flink_release.optional_components %}
+{% if flink_release.optional_components or flink_release.sql_components_url %}
 #### 可选组件
+{% endif %}
 
+{% if flink_release.optional_components %}
 {% assign components = flink_release.optional_components | | sort: 'name' %}
 {% for component in components %}
 
@@ -92,6 +94,12 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 {% endfor %}
 
 {% endif %}
+
+{% if flink_release.sql_components_url != nil %}
+<p>
+<a href="{{ flink_release.sql_components_url }}" class="ga-track">SQL 组件下载页面</a>
+</p>
+{% endif %} 
 
 {% if flink_release.alternative_binaries %}
 #### 其他替代执行包
