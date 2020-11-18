@@ -36,7 +36,7 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 
 <!---
-### 在IntelliJ中使用检查
+### 在 IntelliJ 中使用检查
 
 * 将检查设置导入到 IDE (参阅 IDE 设置指南)
     * TODO: 需要同意导出配置文件 (如 checkstyle)
