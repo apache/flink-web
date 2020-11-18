@@ -57,6 +57,8 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 
 
+<a name="comments-and-code-readability"></a>
+
 ## 3. 注释和代码可读性
 
 
