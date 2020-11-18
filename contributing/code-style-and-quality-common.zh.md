@@ -32,6 +32,8 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
  */
 ```
 
+<a name="tools"></a>
+
 ## 2. 工具
 
 我们建议你按照 [IDE 设置指南](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) 配置 IDE 工具。
