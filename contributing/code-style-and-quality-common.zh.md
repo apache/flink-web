@@ -6,6 +6,8 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 {% toc %}
 
+<a name="copyright"></a>
+
 ## 1. 版权
 
 每个文件的头部必须包含 Apache 许可信息。
