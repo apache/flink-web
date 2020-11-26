@@ -514,6 +514,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
         <td class="text-center">Committer</td>
         <td class="text-center">klion26</td>
   </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/8777671?s=50" class="committer-avatar"></td>
+        <td class="text-center">Godfrey He</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">godfrey</td>
+  </tr>
 </table>
 
 可以通过 `<apache-id>@apache.org` 直接联系 committer。可以在 [这里]({{ site.FLINK_CONTRIBUTORS_URL }}) 找到所有的贡献者。
