@@ -77,7 +77,6 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 * 使用 JavaDocs 来描述类的作用和方法的协议，以防止不能从方法名看出协议（“what”）。
 * 代码流程应该能够很好的描述 “how”。
-将变量和方法名看作是代码文档的一部分。
 * 如果将组成单元较大块的代码移动到 private 方法中，并且该方法具有描述性的名称，那么代码的可读性就会更强。
 
 代码内部的注释有助于解释 <span style="text-decoration:underline;">“why”</span>
