@@ -34,7 +34,6 @@ title:  "Apache Flink 代码样式和质量指南  — 通用规则"
 
 <a name="tools"></a>
 
-<a name="tools"></a>
 
 ## 2. 工具
 
