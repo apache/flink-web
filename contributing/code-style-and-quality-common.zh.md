@@ -117,7 +117,7 @@ __反例：__
 
 ```
 if (a) {
-    if (b) { 
+    if (b) {
         if (c) {
             the main path
         }
