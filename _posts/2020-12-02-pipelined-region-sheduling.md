@@ -1,27 +1,29 @@
 ---
 layout: post
-title: "Improvements in scheduling of batch workloads in Apache Flink 1.11 and 1.12"
-date: 2020-12-02T15:30:00.000Z
+title: "Improvements in task scheduling for batch workloads in Apache Flink 1.12"
+date: 2020-12-15T08:00:00.000Z
 authors:
 - Andrey:
   name: "Andrey Zagrebin"
-excerpt: In this blogpost, we’ll take a closer look at how far the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the Flink 1.12 release with the new pipelined region scheduler.
+excerpt: In this blogpost, we’ll take a closer look at how far the community has come in improving task scheduling for batch workloads, why this matters and what you can expect in Flink 1.12 with the new pipelined region scheduler.
 ---
 
-The Flink community has been working for some time now on making Flink a
+The Flink community has been working for some time on making Flink a
 [truly unified batch and stream processing system](https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html).
 Achieving this involves touching a lot of different components of the Flink stack, from the user-facing APIs all the way
 to low-level operator processes such as task scheduling. In this blogpost, we’ll take a closer look at how far
 the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the
 Flink 1.12 release with the new _pipelined region scheduler_.
 
+{% toc %}
+
 # Towards unified scheduling
 
 Flink has an internal [scheduler](#what-is-scheduling) to distribute work to all available cluster nodes, taking resource utilization, state locality and recovery into account.
 How do you write a scheduler for a unified batch and streaming system? To answer this question,
-let's first have a look into the high level differences between batch and streaming scheduling requirements.
+let's first have a look into the high-level differences between batch and streaming scheduling requirements.
 
-### Streaming
+#### Streaming
 
 _Streaming_ jobs usually require that all _[operator subtasks](#executiongraph)_ are running in parallel at the same time, for an indefinite time.
 Therefore, all the required resources to run these jobs have to be provided upfront, and all _operator subtasks_ must be deployed at once.
@@ -38,10 +40,10 @@ Because there are no finite intermediate results, a _streaming job_ always has t
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
 A _streaming job_ may generally consist of multiple disjoint pipelines which can be restarted independently.
-Hence, the full job restart is not required in this case but you can think of each such disjoint pipeline as if it were a separate job.
+Hence, the full job restart is not required in this case but you can think of each disjoint pipeline as if it were a separate job.
 </div>
 
-### Batch
+#### Batch
 
 In contrast to _streaming_ jobs, _batch_ jobs usually consist of one or more stages that can have dependencies between them.
 Each stage will only run for a finite amount of time and produce some finite output (i.e. at some point, the batch job will be _finished_).
@@ -69,15 +71,15 @@ Given these differences, a unified scheduler would have to be good at resource m
 be it finite (_batch_) or infinite (_streaming_), and also across multiple stages.
 The existing [scheduling strategies](#scheduling-strategy) in older Flink versions up to 1.11 have been largely designed to address these concerns separately.
 
-### “All at once (Eager)”
+**“All at once (Eager)”**
 
 This strategy is the simplest: Flink just tries to allocate resources and deploy all _subtasks_ at once.
-As of Flink 1.11, this is the scheduling strategy used for all _streaming_ jobs.
+Up to Flink 1.11, this is the scheduling strategy used for all _streaming_ jobs.
 For _batch_ jobs, using “all at once” scheduling would lead to suboptimal resource utilization,
 since it’s unlikely that such jobs would require all resources upfront, and any resources allocated to subtasks
 that could not run at a given moment would be idle and therefore wasted.
 
-### “Lazy from sources”
+**“Lazy from sources”**
 
 To account for _blocking results_ and make sure that no consumer is deployed before their respective producers are finished,
 Flink provides a different scheduling strategy for _batch_ workloads.
@@ -99,7 +101,7 @@ CREATE TABLE orders (
     orderCustomerId int
 );
 
-// fill tables with data
+--fill tables with data
 
 SELECT customerId, name
 FROM customers, orders
@@ -155,20 +157,20 @@ Last but not least, let’s consider what happens in the case of _failover_: if 
 then we do not have to reload the customer table (**A**); we only need to restart **B->C**. This did not work prior to Flink 1.9.
 
 To satisfy the scheduling requirements for _batch_ and _streaming_ and overcome these limitations,
-the Flink community is working on a new unified scheduling and failover strategy that is suitable for both types of workloads: _pipelined region scheduling_.
+the Flink community has worked on a new unified scheduling and failover strategy that is suitable for both types of workloads: _pipelined region scheduling_.
 
 # The new pipelined region scheduling
 
 As you read in the previous introductory sections, an optimal [scheduler](#what-is-scheduling) should efficiently allocate resources
 for the sub-stages of the pipeline, finite or infinite, running in a _streaming_ fashion. Those stages are called _pipelined regions_ in Flink.
-In this part, we will take a deeper dive into the new _Pipelined region scheduling and failover_.
+In this section, we will take a deeper dive into _pipelined region scheduling and failover_.
 
 ## Pipelined regions
 
 The new scheduling strategy analyses the _[ExecutionGraph](#executiongraph)_ before starting the _subtask_ deployment in order to identify its _pipelined regions_.
 A _pipelined region_ is a subset of _subtasks_ in the _ExecutionGraph_ connected by _[pipelined](#intermediate-results)_ data exchanges.
 _Subtasks_ from different _pipelined regions_ are connected only by _[blocking](#intermediate-results)_ data exchanges.
-The depicted example of an _ExecutionGraph_ has four _pipelined regions_ and _subtasks_ A to H:
+The depicted example of an _ExecutionGraph_ has four _pipelined regions_ and _subtasks_, A to H:
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/2020-12-02-pipelined-region-sheduling/pipelined-regions.png" width="250px" alt="Pipelined regions:high"/>
@@ -198,7 +200,7 @@ You can read more about this effort in the original [FLIP-119 proposal](https://
 ## Failover strategy
 
 As mentioned before, only certain regions are running at the same time. Others have already produced their _[blocking](#intermediate-results)_ results.
-The results are stored locally in _TaskManagers_ where the corresponding _subtasks_ run and produce them.
+The results are stored locally in _TaskManagers_ where the corresponding _subtasks_ run.
 If a currently running region fails, it gets restarted to consume its inputs again.
 If some input results got lost (e.g. the hosting _TaskManager_ failed as well), Flink will rerun their producing regions.
 You can read more about this effort in the [user documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.11/dev/task_failure_recovery.html#failover-strategies)
@@ -206,7 +208,7 @@ and the original [FLIP-1 proposal](https://cwiki.apache.org/confluence/display/F
 
 ## Benefits
 
-### Run any batch job, possibly with limited resources
+**Run any batch job, possibly with limited resources**
 
 The _subtasks_ of a _pipelined region_ are deployed only when all necessary conditions for their success are fulfilled:
 inputs are ready and all needed resources are allocated. Hence, the _batch_ job never gets stuck without notifying the user.
@@ -217,27 +219,27 @@ it is often the case that the whole _pipelined region_ can run within one _slot_
 making it generally possible to run the whole _batch_ job with only a single _slot_.
 At the same time, if the cluster provides more resources, Flink will run as many regions as possible in parallel to improve the overall job performance.
 
-### No resource waste
+**No resource waste**
 
-As mentioned in the definition of the _pipelined region_, all its _subtasks_ have to run simultaneously.
+As mentioned in the definition of _pipelined region_, all its _subtasks_ have to run simultaneously.
 The _subtasks_ of other regions either cannot or do not have to run at the same time.
-Hence, the _pipelined region_ is the minimum subgraph of a _batch_ job’s _ExecutionGraph_ which has to be scheduled at once.
-There is no way to run the job with fewer resources than needed to run the largest region. Hence, there can be no resource waste.
+This means that a _pipelined region_ is the minimum subgraph of a _batch_ job’s _ExecutionGraph_ that has to be scheduled at once.
+There is no way to run the job with fewer resources than needed to run the largest region, and so there can be no resource waste.
 
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note (out of scope)</span>
-The amount of resources, required to run a region, can be further optimized separately.
+The amount of resources required to run a region can be further optimized separately.
 It depends on _co-location constraints_ and _slot sharing groups_ of the region’s _subtasks_.
 Check [FLINK-18689](https://issues.apache.org/jira/browse/FLINK-18689) for details.
 </div>
 
 # Conclusion
 
-Scheduling is a fundamental component of the Flink stack. In this blogpost, how scheduling affects resource utilization and failover as a part of the user experience.
-We described the limitations of Flink’s old scheduler and introduced a new approach to tackle them: the  _pipelined region scheduler_, which will be available with Flink 1.12.
-The blogpost also explained how the new _pipelined region failover_ works, which has been introduced in Flink 1.11.
+Scheduling is a fundamental component of the Flink stack. In this blogpost, we recapped how scheduling affects resource utilization and failover as a part of the user experience.
+We described the limitations of Flink’s old scheduler and introduced a new approach to tackle them: the  _pipelined region scheduler_, which ships with Flink 1.12.
+The blogpost also explained how _pipelined region failover_ (introduced in Flink 1.11) works.
 
-Stay tuned for more additions and features in upcoming releases. If you have any suggestions or questions for the community,
+Stay tuned for more improvements to scheduling in upcoming releases. If you have any suggestions or questions for the community,
 we encourage you to sign up to the Apache Flink [mailing lists](https://flink.apache.org/community.html#mailing-lists) and become part of the discussion.
 
 # Appendix
@@ -246,8 +248,8 @@ we encourage you to sign up to the Apache Flink [mailing lists](https://flink.ap
 
 ### ExecutionGraph
 
-A _job_, written against Flink API, is a pipeline of connected _operators_ to process data.
-Together the operators form a _[JobGraph](https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
+A Flink _job_ is a pipeline of connected _operators_ to process data.
+Together, the operators form a _[JobGraph](https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
 Each _operator_ has a certain number of _subtasks_ executed in parallel. The _subtask_ is the actual execution unit in Flink.
 Each subtask can consume user records from other subtasks (inputs), process them and produce records for further consumption by other _subtasks_ (outputs) down the stream.
 There are _source subtasks_ without inputs and _sink subtasks_ without outputs. Hence, the _subtasks_ form the nodes of the
@@ -257,22 +259,20 @@ _[ExecutionGraph](https://ci.apache.org/projects/flink/flink-docs-release-1.11/i
 ### Intermediate results
 
 There are also two major data-exchange types to produce and consume results by _operators_ and their _subtasks_: _pipelined_ and _blocking_.
-They are basically types of the edges in the _ExecutionGraph_.
+They are basically types of edges in the _ExecutionGraph_.
 
-The _pipelined_ result can be consumed record by record. It means that the consumer can already run once the first result records have been produced.
-The _pipelined_ result can be a never ending output of records, e.g. in case of a _streaming job_.
+A _pipelined_ result can be consumed record by record. This means that the consumer can already run once the first result records have been produced.
+A _pipelined_ result can be a never ending output of records, e.g. in case of a _streaming job_.
 
-The _blocking_ result can be consumed only when its _production_ is done. Hence, the _blocking_ result is always finite
+A _blocking_ result can be consumed only when its _production_ is done. Hence, the _blocking_ result is always finite
 and the consumer of the _blocking_ result can run only when the producer has finished its execution.
 
 ### Slots and resources
 
-Each _[TaskManager](https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster)_
+A _[TaskManager](https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster)_
 instance has a certain number of virtual _[slots](https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#task-slots-and-resources)_.
-Each _slot_ represents a certain part of the _TaskManager’s physical resources_ to run the operator _subtasks_.
-Each _subtask_ is deployed into a _slot_ of the _TaskManager_.
-Each _slot_ can run multiple _[subtasks](https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_
-at the same time from different _operators_, usually [chained](https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains) together.
+Each _slot_ represents a certain part of the _TaskManager’s physical resources_ to run the operator _subtasks_, and each _subtask_ is deployed into a _slot_ of the _TaskManager_.
+A _slot_ can run multiple _[subtasks](https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_ from different _operators_ at the same time, usually [chained](https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains) together.
 
 ### Scheduling strategy
 
@@ -280,5 +280,5 @@ _[Scheduling](https://ci.apache.org/projects/flink/flink-docs-release-1.11/inter
 in Flink is a process of searching for and allocating appropriate resources (_slots_) from the _TaskManagers_ to run the _subtasks_ and produce results.
 The _scheduling strategy_ reacts on scheduling events (like start job, _subtask_ failed or finished etc) to decide which _subtask_ to deploy next.
 
-For instance, it does not make sense to schedule _subtasks_ which inputs are not ready to consume yet to avoid waste of resources.
-Another example is to schedule _subtasks_, which are connected with _pipelined_ edges, together to avoid deadlocks caused by backpressure.
+For instance, it does not make sense to schedule _subtasks_ whose inputs are not ready to consume yet to avoid wasting resources.
+Another example is to schedule _subtasks_ which are connected with _pipelined_ edges together, to avoid deadlocks caused by backpressure.
