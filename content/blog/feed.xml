@@ -7,6 +7,321 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Improvements in task scheduling for batch workloads in Apache Flink 1.12</title>
+<description>&lt;p&gt;The Flink community has been working for some time on making Flink a
+&lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;truly unified batch and stream processing system&lt;/a&gt;.
+Achieving this involves touching a lot of different components of the Flink stack, from the user-facing APIs all the way
+to low-level operator processes such as task scheduling. In this blogpost, we’ll take a closer look at how far
+the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the
+Flink 1.12 release with the new &lt;em&gt;pipelined region scheduler&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#towards-unified-scheduling&quot; id=&quot;markdown-toc-towards-unified-scheduling&quot;&gt;Towards unified scheduling&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#scheduling-strategies-in-flink-before-112&quot; id=&quot;markdown-toc-scheduling-strategies-in-flink-before-112&quot;&gt;Scheduling Strategies in Flink before 1.12&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#a-practical-example&quot; id=&quot;markdown-toc-a-practical-example&quot;&gt;A practical example&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#the-new-pipelined-region-scheduling&quot; id=&quot;markdown-toc-the-new-pipelined-region-scheduling&quot;&gt;The new pipelined region scheduling&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#pipelined-regions&quot; id=&quot;markdown-toc-pipelined-regions&quot;&gt;Pipelined regions&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#pipelined-region-scheduling-strategy&quot; id=&quot;markdown-toc-pipelined-region-scheduling-strategy&quot;&gt;Pipelined region scheduling strategy&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#failover-strategy&quot; id=&quot;markdown-toc-failover-strategy&quot;&gt;Failover strategy&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#benefits&quot; id=&quot;markdown-toc-benefits&quot;&gt;Benefits&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot; id=&quot;markdown-toc-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#appendix&quot; id=&quot;markdown-toc-appendix&quot;&gt;Appendix&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#what-is-scheduling&quot; id=&quot;markdown-toc-what-is-scheduling&quot;&gt;What is scheduling?&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#executiongraph&quot; id=&quot;markdown-toc-executiongraph&quot;&gt;ExecutionGraph&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#intermediate-results&quot; id=&quot;markdown-toc-intermediate-results&quot;&gt;Intermediate results&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#slots-and-resources&quot; id=&quot;markdown-toc-slots-and-resources&quot;&gt;Slots and resources&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#scheduling-strategy&quot; id=&quot;markdown-toc-scheduling-strategy&quot;&gt;Scheduling strategy&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;towards-unified-scheduling&quot;&gt;Towards unified scheduling&lt;/h1&gt;
+
+&lt;p&gt;Flink has an internal &lt;a href=&quot;#what-is-scheduling&quot;&gt;scheduler&lt;/a&gt; to distribute work to all available cluster nodes, taking resource utilization, state locality and recovery into account.
+How do you write a scheduler for a unified batch and streaming system? To answer this question,
+let’s first have a look into the high-level differences between batch and streaming scheduling requirements.&lt;/p&gt;
+
+&lt;h4 id=&quot;streaming&quot;&gt;Streaming&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;Streaming&lt;/em&gt; jobs usually require that all &lt;em&gt;&lt;a href=&quot;#executiongraph&quot;&gt;operator subtasks&lt;/a&gt;&lt;/em&gt; are running in parallel at the same time, for an indefinite time.
+Therefore, all the required resources to run these jobs have to be provided upfront, and all &lt;em&gt;operator subtasks&lt;/em&gt; must be deployed at once.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-12-02-pipelined-region-sheduling/streaming-job-example.png&quot; width=&quot;400px&quot; alt=&quot;Streaming job example:high&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Flink: Streaming job example&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Because there are no finite intermediate results, a &lt;em&gt;streaming job&lt;/em&gt; always has to be restarted fully from a checkpoint or a savepoint in case of failure.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+A &lt;em&gt;streaming job&lt;/em&gt; may generally consist of multiple disjoint pipelines which can be restarted independently.
+Hence, the full job restart is not required in this case but you can think of each disjoint pipeline as if it were a separate job.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;batch&quot;&gt;Batch&lt;/h4&gt;
+
+&lt;p&gt;In contrast to &lt;em&gt;streaming&lt;/em&gt; jobs, &lt;em&gt;batch&lt;/em&gt; jobs usually consist of one or more stages that can have dependencies between them.
+Each stage will only run for a finite amount of time and produce some finite output (i.e. at some point, the batch job will be &lt;em&gt;finished&lt;/em&gt;).
+Independent stages can run in parallel to improve execution time, but for cases where there are dependencies between stages,
+a stage may have to wait for upstream results to be produced before it can run.
+These are called &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;blocking results&lt;/a&gt;&lt;/em&gt;, and in this case stages cannot run in parallel.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-12-02-pipelined-region-sheduling/batch-job-example.png&quot; width=&quot;600px&quot; alt=&quot;Batch job example:high&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Flink: Batch job example&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;As an example, in the figure above &lt;strong&gt;Stage 0&lt;/strong&gt; and &lt;strong&gt;Stage 1&lt;/strong&gt; can run simultaneously, as there is no dependency between them.
+&lt;strong&gt;Stage 3&lt;/strong&gt;, on the other hand, can only be scheduled once both its inputs are available. There are a few implications from this:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;(a)&lt;/strong&gt; You can use available resources more efficiently by only scheduling stages that have data to perform work;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;(b)&lt;/strong&gt; You can use this mechanism also for failover: if a stage fails, it can be restarted individually, without recomputing the results of other stages.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;scheduling-strategies-in-flink-before-112&quot;&gt;Scheduling Strategies in Flink before 1.12&lt;/h3&gt;
+
+&lt;p&gt;Given these differences, a unified scheduler would have to be good at resource management for each individual stage,
+be it finite (&lt;em&gt;batch&lt;/em&gt;) or infinite (&lt;em&gt;streaming&lt;/em&gt;), and also across multiple stages.
+The existing &lt;a href=&quot;#scheduling-strategy&quot;&gt;scheduling strategies&lt;/a&gt; in older Flink versions up to 1.11 have been largely designed to address these concerns separately.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;“All at once (Eager)”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This strategy is the simplest: Flink just tries to allocate resources and deploy all &lt;em&gt;subtasks&lt;/em&gt; at once.
+Up to Flink 1.11, this is the scheduling strategy used for all &lt;em&gt;streaming&lt;/em&gt; jobs.
+For &lt;em&gt;batch&lt;/em&gt; jobs, using “all at once” scheduling would lead to suboptimal resource utilization,
+since it’s unlikely that such jobs would require all resources upfront, and any resources allocated to subtasks
+that could not run at a given moment would be idle and therefore wasted.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;“Lazy from sources”&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;To account for &lt;em&gt;blocking results&lt;/em&gt; and make sure that no consumer is deployed before their respective producers are finished,
+Flink provides a different scheduling strategy for &lt;em&gt;batch&lt;/em&gt; workloads.
+“Lazy from sources” scheduling deploys subtasks only once all their inputs are ready.
+This strategy operates on each &lt;em&gt;subtask&lt;/em&gt; individually; it does not identify all &lt;em&gt;subtasks&lt;/em&gt; which can (or have to) run at the same time.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-practical-example&quot;&gt;A practical example&lt;/h3&gt;
+
+&lt;p&gt;Let’s take a closer look at the specific case of &lt;em&gt;batch&lt;/em&gt; jobs, using as motivation a simple SQL query:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-SQL&quot;&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customers&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;customerId&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;orderId&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;orderCustomerId&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;--fill tables with data&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customerId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orders&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customerId&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orderCustomerId&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Assume that two tables were created in some database: the &lt;code&gt;customers&lt;/code&gt; table is relatively small and fits into the local memory (or also on disk). The &lt;code&gt;orders&lt;/code&gt; table is bigger, as it contains all orders created by customers, and doesn’t fit in memory. To enrich the orders with the customer name, you have to join these two tables. There are basically two stages in this &lt;em&gt;batch&lt;/em&gt; job:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Load the complete &lt;code&gt;customers&lt;/code&gt; table into a local map: &lt;code&gt;(customerId, name)&lt;/code&gt;; because this table is smaller,&lt;/li&gt;
+  &lt;li&gt;Process the &lt;code&gt;orders&lt;/code&gt; table record by record, enriching it with the &lt;code&gt;name&lt;/code&gt; value from the map.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;executing-the-job&quot;&gt;Executing the job&lt;/h4&gt;
+
+&lt;p&gt;The batch job described above will have three operators. For simplicity, each operator is represented with a parallelism of 1,
+so the resulting &lt;em&gt;&lt;a href=&quot;#executiongraph&quot;&gt;ExecutionGraph&lt;/a&gt;&lt;/em&gt; will consist of three &lt;em&gt;subtasks&lt;/em&gt;: A, B and C.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;A&lt;/strong&gt;: load full &lt;code&gt;customers&lt;/code&gt; table&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;B&lt;/strong&gt;: load &lt;code&gt;orders&lt;/code&gt; table record by record in a &lt;em&gt;streaming&lt;/em&gt; (pipelined) fashion&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;C&lt;/strong&gt;: join order table records with the loaded customer table&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This translates into &lt;strong&gt;A&lt;/strong&gt; and &lt;strong&gt;C&lt;/strong&gt; being connected with a &lt;em&gt;blocking&lt;/em&gt; data exchange,
+because the &lt;code&gt;customers&lt;/code&gt; table needs to be loaded locally (&lt;strong&gt;A&lt;/strong&gt;) before we start processing the order table (&lt;strong&gt;B&lt;/strong&gt;).
+&lt;strong&gt;B&lt;/strong&gt; and &lt;strong&gt;C&lt;/strong&gt; are connected with a &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;pipelined&lt;/a&gt;&lt;/em&gt; data exchange,
+because the consumer (&lt;strong&gt;C&lt;/strong&gt;) can run as soon as the first result records from &lt;strong&gt;B&lt;/strong&gt; have been produced.
+You can think of &lt;strong&gt;B-&amp;gt;C&lt;/strong&gt; as a &lt;em&gt;finite streaming&lt;/em&gt; job. It’s then possible to identify two separate stages within the &lt;em&gt;ExecutionGraph&lt;/em&gt;: &lt;strong&gt;A&lt;/strong&gt; and &lt;strong&gt;B-&amp;gt;C&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-12-02-pipelined-region-sheduling/sql-join-job-example.png&quot; width=&quot;450px&quot; alt=&quot;SQL Join job example:high&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Flink: SQL Join job example&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;scheduling-limitations&quot;&gt;Scheduling Limitations&lt;/h4&gt;
+
+&lt;p&gt;Imagine that the cluster this job will run in has only one &lt;em&gt;&lt;a href=&quot;#slots-and-resources&quot;&gt;slot&lt;/a&gt;&lt;/em&gt; and can therefore only execute one &lt;em&gt;subtask&lt;/em&gt;.
+If Flink deploys &lt;strong&gt;B&lt;/strong&gt; &lt;em&gt;&lt;a href=&quot;#slots-and-resources&quot;&gt;chained&lt;/a&gt;&lt;/em&gt; with &lt;strong&gt;C&lt;/strong&gt; first into this one &lt;em&gt;slot&lt;/em&gt; (as &lt;strong&gt;B&lt;/strong&gt; and &lt;strong&gt;C&lt;/strong&gt; are connected with a &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;pipelined&lt;/a&gt;&lt;/em&gt; edge),
+&lt;strong&gt;C&lt;/strong&gt; cannot run because A has not produced its &lt;em&gt;blocking result&lt;/em&gt; yet. Flink will try to deploy &lt;strong&gt;A&lt;/strong&gt; and the job will fail, because there are no more &lt;em&gt;slots&lt;/em&gt;.
+If there were two &lt;em&gt;slots&lt;/em&gt; available, Flink would be able to deploy &lt;strong&gt;A&lt;/strong&gt; and the job would eventually succeed.
+Nonetheless, the resources of the first &lt;em&gt;slot&lt;/em&gt; occupied by &lt;strong&gt;B&lt;/strong&gt; and &lt;strong&gt;C&lt;/strong&gt; would be wasted while &lt;strong&gt;A&lt;/strong&gt; was running.&lt;/p&gt;
+
+&lt;p&gt;Both scheduling strategies available as of Flink 1.11 (&lt;em&gt;“all at once”&lt;/em&gt; and &lt;em&gt;“lazy from source”&lt;/em&gt;) would be affected by these limitations.
+What would be the optimal approach? In this case, if &lt;strong&gt;A&lt;/strong&gt; was deployed first, then &lt;strong&gt;B&lt;/strong&gt; and &lt;strong&gt;C&lt;/strong&gt; could also complete afterwards using the same &lt;em&gt;slot&lt;/em&gt;.
+The job would succeed even if only a single &lt;em&gt;slot&lt;/em&gt; was available.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
+If we could load the &lt;code&gt;orders&lt;/code&gt; table into local memory (making B -&amp;gt; C blocking), then the previous strategy would also succeed with one slot.
+Nonetheless, we would have to allocate a lot of resources to accommodate the table locally, which may not be required.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Last but not least, let’s consider what happens in the case of &lt;em&gt;failover&lt;/em&gt;: if the processing of the &lt;code&gt;orders&lt;/code&gt; table fails (&lt;strong&gt;B-&amp;gt;C&lt;/strong&gt;),
+then we do not have to reload the customer table (&lt;strong&gt;A&lt;/strong&gt;); we only need to restart &lt;strong&gt;B-&amp;gt;C&lt;/strong&gt;. This did not work prior to Flink 1.9.&lt;/p&gt;
+
+&lt;p&gt;To satisfy the scheduling requirements for &lt;em&gt;batch&lt;/em&gt; and &lt;em&gt;streaming&lt;/em&gt; and overcome these limitations,
+the Flink community has worked on a new unified scheduling and failover strategy that is suitable for both types of workloads: &lt;em&gt;pipelined region scheduling&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-new-pipelined-region-scheduling&quot;&gt;The new pipelined region scheduling&lt;/h1&gt;
+
+&lt;p&gt;As you read in the previous introductory sections, an optimal &lt;a href=&quot;#what-is-scheduling&quot;&gt;scheduler&lt;/a&gt; should efficiently allocate resources
+for the sub-stages of the pipeline, finite or infinite, running in a &lt;em&gt;streaming&lt;/em&gt; fashion. Those stages are called &lt;em&gt;pipelined regions&lt;/em&gt; in Flink.
+In this section, we will take a deeper dive into &lt;em&gt;pipelined region scheduling and failover&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;pipelined-regions&quot;&gt;Pipelined regions&lt;/h2&gt;
+
+&lt;p&gt;The new scheduling strategy analyses the &lt;em&gt;&lt;a href=&quot;#executiongraph&quot;&gt;ExecutionGraph&lt;/a&gt;&lt;/em&gt; before starting the &lt;em&gt;subtask&lt;/em&gt; deployment in order to identify its &lt;em&gt;pipelined regions&lt;/em&gt;.
+A &lt;em&gt;pipelined region&lt;/em&gt; is a subset of &lt;em&gt;subtasks&lt;/em&gt; in the &lt;em&gt;ExecutionGraph&lt;/em&gt; connected by &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;pipelined&lt;/a&gt;&lt;/em&gt; data exchanges.
+&lt;em&gt;Subtasks&lt;/em&gt; from different &lt;em&gt;pipelined regions&lt;/em&gt; are connected only by &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;blocking&lt;/a&gt;&lt;/em&gt; data exchanges.
+The depicted example of an &lt;em&gt;ExecutionGraph&lt;/em&gt; has four &lt;em&gt;pipelined regions&lt;/em&gt; and &lt;em&gt;subtasks&lt;/em&gt;, A to H:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2020-12-02-pipelined-region-sheduling/pipelined-regions.png&quot; width=&quot;250px&quot; alt=&quot;Pipelined regions:high&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Flink: Pipelined regions&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Why do we need the &lt;em&gt;pipelined region&lt;/em&gt;? Within the &lt;em&gt;pipelined region&lt;/em&gt; all consumers have to constantly consume the produced results
+to not block the producers and avoid backpressure. Hence, all &lt;em&gt;subtasks&lt;/em&gt; of a &lt;em&gt;pipelined region&lt;/em&gt; have to be scheduled, restarted in case of failure and run at the same time.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note (out of scope)&lt;/span&gt;
+In certain cases the &lt;em&gt;subtasks&lt;/em&gt; can be connected by &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;blocking&lt;/a&gt;&lt;/em&gt; data exchanges within one region.
+Check &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-17330&quot;&gt;FLINK-17330&lt;/a&gt; for details.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;pipelined-region-scheduling-strategy&quot;&gt;Pipelined region scheduling strategy&lt;/h2&gt;
+
+&lt;p&gt;Once the &lt;em&gt;pipelined regions&lt;/em&gt; are identified, each region is scheduled only when all the regions it depends on (i.e. its inputs),
+have produced their &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;blocking&lt;/a&gt;&lt;/em&gt; results (for the depicted graph: R2 and R3 after R1; R4 after R2 and R3).
+If the &lt;em&gt;JobManager&lt;/em&gt; has enough resources available, it will try to run as many schedulable &lt;em&gt;pipelined regions&lt;/em&gt; in parallel as possible.
+The &lt;em&gt;subtasks&lt;/em&gt; of a &lt;em&gt;pipelined region&lt;/em&gt; are either successfully deployed all at once or none at all.
+The job fails if there are not enough resources to run any of its &lt;em&gt;pipelined regions&lt;/em&gt;.
+You can read more about this effort in the original &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-119+Pipelined+Region+Scheduling#FLIP119PipelinedRegionScheduling-BulkSlotAllocation&quot;&gt;FLIP-119 proposal&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;failover-strategy&quot;&gt;Failover strategy&lt;/h2&gt;
+
+&lt;p&gt;As mentioned before, only certain regions are running at the same time. Others have already produced their &lt;em&gt;&lt;a href=&quot;#intermediate-results&quot;&gt;blocking&lt;/a&gt;&lt;/em&gt; results.
+The results are stored locally in &lt;em&gt;TaskManagers&lt;/em&gt; where the corresponding &lt;em&gt;subtasks&lt;/em&gt; run.
+If a currently running region fails, it gets restarted to consume its inputs again.
+If some input results got lost (e.g. the hosting &lt;em&gt;TaskManager&lt;/em&gt; failed as well), Flink will rerun their producing regions.
+You can read more about this effort in the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/dev/task_failure_recovery.html#failover-strategies&quot;&gt;user documentation&lt;/a&gt;
+and the original &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures&quot;&gt;FLIP-1 proposal&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;benefits&quot;&gt;Benefits&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Run any batch job, possibly with limited resources&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;subtasks&lt;/em&gt; of a &lt;em&gt;pipelined region&lt;/em&gt; are deployed only when all necessary conditions for their success are fulfilled:
+inputs are ready and all needed resources are allocated. Hence, the &lt;em&gt;batch&lt;/em&gt; job never gets stuck without notifying the user.
+The job either eventually finishes or fails after a timeout.&lt;/p&gt;
+
+&lt;p&gt;Depending on how the &lt;em&gt;subtasks&lt;/em&gt; are allowed to &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;share slots&lt;/a&gt;,
+it is often the case that the whole &lt;em&gt;pipelined region&lt;/em&gt; can run within one &lt;em&gt;slot&lt;/em&gt;,
+making it generally possible to run the whole &lt;em&gt;batch&lt;/em&gt; job with only a single &lt;em&gt;slot&lt;/em&gt;.
+At the same time, if the cluster provides more resources, Flink will run as many regions as possible in parallel to improve the overall job performance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;No resource waste&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;As mentioned in the definition of &lt;em&gt;pipelined region&lt;/em&gt;, all its &lt;em&gt;subtasks&lt;/em&gt; have to run simultaneously.
+The &lt;em&gt;subtasks&lt;/em&gt; of other regions either cannot or do not have to run at the same time.
+This means that a &lt;em&gt;pipelined region&lt;/em&gt; is the minimum subgraph of a &lt;em&gt;batch&lt;/em&gt; job’s &lt;em&gt;ExecutionGraph&lt;/em&gt; that has to be scheduled at once.
+There is no way to run the job with fewer resources than needed to run the largest region, and so there can be no resource waste.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note (out of scope)&lt;/span&gt;
+The amount of resources required to run a region can be further optimized separately.
+It depends on &lt;em&gt;co-location constraints&lt;/em&gt; and &lt;em&gt;slot sharing groups&lt;/em&gt; of the region’s &lt;em&gt;subtasks&lt;/em&gt;.
+Check &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-18689&quot;&gt;FLINK-18689&lt;/a&gt; for details.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;Scheduling is a fundamental component of the Flink stack. In this blogpost, we recapped how scheduling affects resource utilization and failover as a part of the user experience.
+We described the limitations of Flink’s old scheduler and introduced a new approach to tackle them: the  &lt;em&gt;pipelined region scheduler&lt;/em&gt;, which ships with Flink 1.12.
+The blogpost also explained how &lt;em&gt;pipelined region failover&lt;/em&gt; (introduced in Flink 1.11) works.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned for more improvements to scheduling in upcoming releases. If you have any suggestions or questions for the community,
+we encourage you to sign up to the Apache Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; and become part of the discussion.&lt;/p&gt;
+
+&lt;h1 id=&quot;appendix&quot;&gt;Appendix&lt;/h1&gt;
+
+&lt;h2 id=&quot;what-is-scheduling&quot;&gt;What is scheduling?&lt;/h2&gt;
+
+&lt;h3 id=&quot;executiongraph&quot;&gt;ExecutionGraph&lt;/h3&gt;
+
+&lt;p&gt;A Flink &lt;em&gt;job&lt;/em&gt; is a pipeline of connected &lt;em&gt;operators&lt;/em&gt; to process data.
+Together, the operators form a &lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures&quot;&gt;JobGraph&lt;/a&gt;&lt;/em&gt;.
+Each &lt;em&gt;operator&lt;/em&gt; has a certain number of &lt;em&gt;subtasks&lt;/em&gt; executed in parallel. The &lt;em&gt;subtask&lt;/em&gt; is the actual execution unit in Flink.
+Each subtask can consume user records from other subtasks (inputs), process them and produce records for further consumption by other &lt;em&gt;subtasks&lt;/em&gt; (outputs) down the stream.
+There are &lt;em&gt;source subtasks&lt;/em&gt; without inputs and &lt;em&gt;sink subtasks&lt;/em&gt; without outputs. Hence, the &lt;em&gt;subtasks&lt;/em&gt; form the nodes of the
+&lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures&quot;&gt;ExecutionGraph&lt;/a&gt;&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;intermediate-results&quot;&gt;Intermediate results&lt;/h3&gt;
+
+&lt;p&gt;There are also two major data-exchange types to produce and consume results by &lt;em&gt;operators&lt;/em&gt; and their &lt;em&gt;subtasks&lt;/em&gt;: &lt;em&gt;pipelined&lt;/em&gt; and &lt;em&gt;blocking&lt;/em&gt;.
+They are basically types of edges in the &lt;em&gt;ExecutionGraph&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;em&gt;pipelined&lt;/em&gt; result can be consumed record by record. This means that the consumer can already run once the first result records have been produced.
+A &lt;em&gt;pipelined&lt;/em&gt; result can be a never ending output of records, e.g. in case of a &lt;em&gt;streaming job&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;A &lt;em&gt;blocking&lt;/em&gt; result can be consumed only when its &lt;em&gt;production&lt;/em&gt; is done. Hence, the &lt;em&gt;blocking&lt;/em&gt; result is always finite
+and the consumer of the &lt;em&gt;blocking&lt;/em&gt; result can run only when the producer has finished its execution.&lt;/p&gt;
+
+&lt;h3 id=&quot;slots-and-resources&quot;&gt;Slots and resources&lt;/h3&gt;
+
+&lt;p&gt;A &lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster&quot;&gt;TaskManager&lt;/a&gt;&lt;/em&gt;
+instance has a certain number of virtual &lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#task-slots-and-resources&quot;&gt;slots&lt;/a&gt;&lt;/em&gt;.
+Each &lt;em&gt;slot&lt;/em&gt; represents a certain part of the &lt;em&gt;TaskManager’s physical resources&lt;/em&gt; to run the operator &lt;em&gt;subtasks&lt;/em&gt;, and each &lt;em&gt;subtask&lt;/em&gt; is deployed into a &lt;em&gt;slot&lt;/em&gt; of the &lt;em&gt;TaskManager&lt;/em&gt;.
+A &lt;em&gt;slot&lt;/em&gt; can run multiple &lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#scheduling&quot;&gt;subtasks&lt;/a&gt;&lt;/em&gt; from different &lt;em&gt;operators&lt;/em&gt; at the same time, usually &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains&quot;&gt;chained&lt;/a&gt; together.&lt;/p&gt;
+
+&lt;h3 id=&quot;scheduling-strategy&quot;&gt;Scheduling strategy&lt;/h3&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.11/internals/job_scheduling.html#scheduling&quot;&gt;Scheduling&lt;/a&gt;&lt;/em&gt;
+in Flink is a process of searching for and allocating appropriate resources (&lt;em&gt;slots&lt;/em&gt;) from the &lt;em&gt;TaskManagers&lt;/em&gt; to run the &lt;em&gt;subtasks&lt;/em&gt; and produce results.
+The &lt;em&gt;scheduling strategy&lt;/em&gt; reacts on scheduling events (like start job, &lt;em&gt;subtask&lt;/em&gt; failed or finished etc) to decide which &lt;em&gt;subtask&lt;/em&gt; to deploy next.&lt;/p&gt;
+
+&lt;p&gt;For instance, it does not make sense to schedule &lt;em&gt;subtasks&lt;/em&gt; whose inputs are not ready to consume yet to avoid wasting resources.
+Another example is to schedule &lt;em&gt;subtasks&lt;/em&gt; which are connected with &lt;em&gt;pipelined&lt;/em&gt; edges together, to avoid deadlocks caused by backpressure.&lt;/p&gt;
+</description>
+<pubDate>Tue, 15 Dec 2020 09:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2020/12/15/pipelined-region-sheduling.html</link>
+<guid isPermaLink="true">/2020/12/15/pipelined-region-sheduling.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.12.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is excited to announce the release of Flink 1.12.0! Close to 300 contributors worked on over 1k threads to bring significant improvements to usability as well as new features that simplify (and unify) Flink handling across the API stack.&lt;/p&gt;
 
@@ -357,7 +672,7 @@ With the new release, Flink SQL supports &lt;strong&gt;metadata columns&lt;/stro
 
 &lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
 
-&lt;p&gt;Please review the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.12/release-notes/flink-1.12.html&quot;&gt;release notes&lt;/a&gt; carefully for a detailed list of changes and new features if you plan to upgrade your setup to Flink 1.11. This version is API-compatible with previous 1.x releases for APIs annotated with the @Public annotation.&lt;/p&gt;
+&lt;p&gt;Please review the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.12/release-notes/flink-1.12.html&quot;&gt;release notes&lt;/a&gt; carefully for a detailed list of changes and new features if you plan to upgrade your setup to Flink 1.12. This version is API-compatible with previous 1.x releases for APIs annotated with the @Public annotation.&lt;/p&gt;
 
 &lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
 
@@ -18294,80 +18609,6 @@ enable the joining of a main, high-throughput stream with one more more inputs w
 <pubDate>Wed, 12 Oct 2016 11:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2016/10/12/release-1.1.3.html</link>
 <guid isPermaLink="true">/news/2016/10/12/release-1.1.3.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.1.2 Released</title>
-<description>&lt;p&gt;The Apache Flink community released another bugfix version of the Apache Flink 1.1. series.&lt;/p&gt;
-
-&lt;p&gt;We recommend all users to upgrade to Flink 1.1.2.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2&gt;Release Notes - Flink - Version 1.1.2&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4236&quot;&gt;FLINK-4236&lt;/a&gt;] -         Flink Dashboard stops showing list of uploaded jars if main method cannot be looked up
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4309&quot;&gt;FLINK-4309&lt;/a&gt;] -         Potential null pointer dereference in DelegatingConfiguration#keySet()
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4334&quot;&gt;FLINK-4334&lt;/a&gt;] -         Shaded Hadoop1 jar not fully excluded in Quickstart
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4341&quot;&gt;FLINK-4341&lt;/a&gt;] -         Kinesis connector does not emit maximum watermark properly
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4402&quot;&gt;FLINK-4402&lt;/a&gt;] -         Wrong metrics parameter names in documentation 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4409&quot;&gt;FLINK-4409&lt;/a&gt;] -         class conflict between jsr305-1.3.9.jar and flink-shaded-hadoop2-1.1.1.jar
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4411&quot;&gt;FLINK-4411&lt;/a&gt;] -         [py] Chained dual input children are not properly propagated
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4412&quot;&gt;FLINK-4412&lt;/a&gt;] -         [py] Chaining does not properly handle broadcast variables
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4425&quot;&gt;FLINK-4425&lt;/a&gt;] -         &amp;quot;Out Of Memory&amp;quot; during savepoint deserialization
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4454&quot;&gt;FLINK-4454&lt;/a&gt;] -         Lookups for JobManager address in config
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4480&quot;&gt;FLINK-4480&lt;/a&gt;] -         Incorrect link to elastic.co in documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4486&quot;&gt;FLINK-4486&lt;/a&gt;] -         JobManager not fully running when yarn-session.sh finishes
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4488&quot;&gt;FLINK-4488&lt;/a&gt;] -         Prevent cluster shutdown after job execution for non-detached jobs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4514&quot;&gt;FLINK-4514&lt;/a&gt;] -         ExpiredIteratorException in Kinesis Consumer on long catch-ups to head of stream
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4526&quot;&gt;FLINK-4526&lt;/a&gt;] -         ApplicationClient: remove redundant proxy messages
-&lt;/li&gt;
-
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3866&quot;&gt;FLINK-3866&lt;/a&gt;] -         StringArraySerializer claims type is immutable; shouldn&amp;#39;t
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3899&quot;&gt;FLINK-3899&lt;/a&gt;] -         Document window processing with Reduce/FoldFunction + WindowFunction
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4302&quot;&gt;FLINK-4302&lt;/a&gt;] -         Add JavaDocs to MetricConfig
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4495&quot;&gt;FLINK-4495&lt;/a&gt;] -         Running multiple jobs on yarn (without yarn-session)
-&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-<pubDate>Mon, 05 Sep 2016 11:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2016/09/05/release-1.1.2.html</link>
-<guid isPermaLink="true">/news/2016/09/05/release-1.1.2.html</guid>
 </item>
 
 </channel>
