@@ -149,7 +149,7 @@ main Flink release:
 
 <p>
 <a href="{{ additional_component.url }}" class="ga-track" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
-(<a href="{{ additional_component.asc_url }}">asc</a>, <a href="{{ additional_component.sha512_url }}">sha512</a>)
+(<a href="{{ additional_component.asc_url }}">asc</a>, {% if additional_component.sha512_url %}<a href="{{ additional_component.sha512_url }}">sha512</a> {% else %} <a href="{{ additional_component.sha_url }}">sha1</a>{% endif %})
 </p>
 
 {% endfor %}
