@@ -13,7 +13,7 @@ Apache Flink puts a strong focus on the operational aspects of stream processing
 
 Machine and process failures are ubiquitous in distributed systems. A distributed stream processors like Flink must recover from failures in order to be able to run streaming applications 24/7. Obviously, this does not only mean to restart an application after a failure but also to ensure that its internal state remains consistent, such that the application can continue processing as if the failure had never happened.
 
-Flink provides a several features to ensure that applications keep running and remain consistent:
+Flink provides several features to ensure that applications keep running and remain consistent:
 
 * **Consistent Checkpoints**: Flink's recovery mechanism is based on consistent checkpoints of an application's state. In case of a failure, the application is restarted and its state is loaded from the latest checkpoint. In combination with resettable stream sources, this feature can guarantee *exactly-once state consistency*.
 * **Efficient Checkpoints**: Checkpointing the state of an application can be quite expensive if the application maintains terabytes of state. Flink's can perform asynchronous and incremental checkpoints, in order to keep the impact of checkpoints on the application's latency SLAs very small.
@@ -23,7 +23,7 @@ Flink provides a several features to ensure that applications keep running and r
 
 ## Update, Migrate, Suspend, and Resume Your Applications
 
-Streaming applications that power business-critical services need to be maintained. Bugs need to be fixed and improvements or new features need to be implemented. However, updating a stateful streaming application is not trivial. Often one cannot simply stop the applications and restart an fixed or improved version because one cannot afford to lose the state of the application.
+Streaming applications that power business-critical services need to be maintained. Bugs need to be fixed and improvements or new features need to be implemented. However, updating a stateful streaming application is not trivial. Often one cannot simply stop the applications and restart a fixed or improved version because one cannot afford to lose the state of the application.
 
 Flink's *Savepoints* are a unique and powerful feature that solves the issue of updating stateful applications and many other related challenges. A savepoint is a consistent snapshot of an application's state and therefore very similar to a checkpoint. However in contrast to checkpoints, savepoints need to be manually triggered and are not automatically removed when an application is stopped. A savepoint can be used to start a state-compatible application and initialize its state. Savepoints enable the following features:
 
