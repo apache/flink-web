@@ -1,6 +1,6 @@
 ---
 layout: post 
-title:  "What's New in Pulsar Flink Connector 2.7.0"
+title:  "What's New in the Pulsar Flink Connector 2.7.0"
 date: 2020-12-22T08:00:00.000Z
 categories: news
 authors:
