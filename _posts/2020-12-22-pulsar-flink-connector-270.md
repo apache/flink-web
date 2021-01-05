@@ -11,7 +11,7 @@ authors:
   name: "Jennifer Huang"
   twitter: "Jennife06125739"
 
-excerpt: Batch and streaming is the future, Pulsar Flink Connector provides an ideal solution for unified batch and streaming with Apache Pulsar and Apache Flink. Pulsar Flink Connector 2.7.0 supports features in Pulsar 2.7 and Flink 1.12, and is fully compatible with Flink data format. Pulsar Flink Connector 2.7.0 will be contributed to the Flink repository, the contribution process is ongoing.
+excerpt: With the unification of batch and streaming regarded as the future in data processing, the Pulsar Flink Connector provides an ideal solution for unified batch and stream processing with Apache Pulsar and Apache Flink. The Pulsar Flink Connector 2.7.0 supports features in Pulsar 2.7 and Flink 1.12 and is fully compatible with Flink's data format. The Pulsar Flink Connector 2.7.0 will be contributed to the Flink repository soon and the contribution process is ongoing.
 ---
 
 ## About Pulsar Flink Connector
