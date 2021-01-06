@@ -60,15 +60,15 @@ This section lists fixed vulnerabilities in Flink.
 
 ### During a security analysis of Flink, I noticed that Flink allows for remote code execution, is this an issue?
 
-Apache Flink is a framework for executing user-supplied code in clusters. Users can submit jar files to Flink processes, which will be executed unconditionally, without any attempts to limit what code can run. Starting other processes, establishing network connections or accessing and modifing local files is possible.
+Apache Flink is a framework for executing user-supplied code in clusters. Users can submit code to Flink processes, which will be executed unconditionally, without any attempts to limit what code can run. Starting other processes, establishing network connections or accessing and modifying local files is possible.
 
 Historically, we've received numerous remote code execution vulnerability reports, which we had to reject, as this is by design.
 
-**We strongly discourage users to expose Flink processes to the public internet**. Within company networks or "cloud" accounts, we recommend restricting the access to a Flink cluster via appropriate means.
+**We strongly discourage users to expose Flink processes to the public internet**. Within company networks or "cloud" accounts, we recommend restricting access to a Flink cluster via appropriate means.
 
 
 ### I found a vulnerability in Flink, how do I report it?
 
-Thanks a lot for lookiing into the security of Apache Flink! We appreciate reports improving the security of Flink. We accept vulnerability reports through the [Apache Security Team](http://www.apache.org/security/), via their private email address [security@apache.org](mailto:security@apache.org).
+Thanks a lot for looking into the security of Apache Flink! We appreciate reports improving the security of Flink. We accept vulnerability reports through the [Apache Security Team](http://www.apache.org/security/), via their private email address [security@apache.org](mailto:security@apache.org).
 
 If you want to discuss a potential security issue privately with the Flink PMC, you can reach us also via [private@flink.apache.org](mailto:private@flink.apache.org).
