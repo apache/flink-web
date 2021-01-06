@@ -25,8 +25,7 @@ This section lists fixed vulnerabilities in Flink.
 			1.1.0 to 1.1.5, 1.2.0 to 1.2.1, 1.3.0 to 1.3.3, 1.4.0 to 1.4.2, 1.5.0 to 1.5.6, 1.6.0 to 1.6.4, 1.7.0 to 1.7.2, 1.8.0 to 1.8.3, 1.9.0 to 1.9.2, 1.10.0
 		</td>
 		<td>
-			<a href="https://github.com/apache/flink/commit/804ae70024bf8be7c0c7093d02addb080c318662">Fixed in commit 804ae70024bf8be7c0c7093d02addb080c318662</a> <br>
-			Users are advised to upgrade to Flink 1.9.3 or 1.10.1 or later versions.
+			Users are advised to upgrade to Flink 1.9.3 or 1.10.1 or later versions or remove the port parameter from the reporter configuration (see advisory for details).
 		</td>
 	</tr>
 	<tr>
@@ -60,11 +59,11 @@ This section lists fixed vulnerabilities in Flink.
 
 ### During a security analysis of Flink, I noticed that Flink allows for remote code execution, is this an issue?
 
-Apache Flink is a framework for executing user-supplied code in clusters. Users can submit jar files to Flink processes, which will be executed unconditionally, without any attempts to limit what code can run. Starting other processes, establishing network connections or accessing and modifing local files is possible.
+Apache Flink is a framework for executing user-supplied code in clusters. Users can submit code to Flink processes, which will be executed unconditionally, without any attempts to limit what code can run. Starting other processes, establishing network connections or accessing and modifying local files is possible.
 
 Historically, we've received numerous remote code execution vulnerability reports, which we had to reject, as this is by design.
 
-**We strongly discourage users to expose Flink processes to the public internet**. Within company networks or "cloud" accounts, we recommend restricting the access to a Flink cluster via appropriate means.
+**We strongly discourage users to expose Flink processes to the public internet**. Within company networks or "cloud" accounts, we recommend restricting access to a Flink cluster via appropriate means.
 
 
 ### I found a vulnerability in Flink, how do I report it?
