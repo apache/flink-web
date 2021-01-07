@@ -7,6 +7,170 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>What&#39;s New in the Pulsar Flink Connector 2.7.0</title>
+<description>&lt;h2 id=&quot;about-the-pulsar-flink-connector&quot;&gt;About the Pulsar Flink Connector&lt;/h2&gt;
+&lt;p&gt;In order for companies to access real-time data insights, they need unified batch and streaming capabilities. Apache Flink unifies batch and stream processing into one single computing engine with “streams” as the unified data representation. Although developers have done extensive work at the computing and API layers, very little work has been done at the data messaging and storage layers. In reality, data is segregated into data silos, created by various storage and messaging technologies. As a result, there is still no single source-of-truth and the overall operation for the developer teams poses significant challenges. To address such operational challenges, we need to store data in streams. Apache Pulsar (together with Apache BookKeeper) perfectly meets the criteria: data is stored as one copy (source-of-truth) and can be accessed in streams (via pub-sub interfaces) and segments (for batch processing). When Flink and Pulsar come together, the two open source technologies create a unified data architecture for real-time, data-driven businesses.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://github.com/streamnative/pulsar-flink/&quot;&gt;Pulsar Flink connector&lt;/a&gt; provides elastic data processing with &lt;a href=&quot;https://pulsar.apache.org/&quot;&gt;Apache Pulsar&lt;/a&gt; and &lt;a href=&quot;https://flink.apache.org/&quot;&gt;Apache Flink&lt;/a&gt;, allowing Apache Flink to read/write data from/to Apache Pulsar. The Pulsar Flink Connector enables you to concentrate on your business logic without worrying about the storage details.&lt;/p&gt;
+
+&lt;h2 id=&quot;challenges&quot;&gt;Challenges&lt;/h2&gt;
+&lt;p&gt;When we first developed the Pulsar Flink Connector, it received wide adoption from both the Flink and Pulsar communities. Leveraging the Pulsar Flink connector, &lt;a href=&quot;https://www.hpe.com/us/en/home.html&quot;&gt;Hewlett Packard Enterprise (HPE)&lt;/a&gt; built a real-time computing platform, &lt;a href=&quot;https://www.bigo.sg/&quot;&gt;BIGO&lt;/a&gt; built a &lt;a href=&quot;https://pulsar-summit.org/en/event/asia-2020/sessions/how-bigo-builds-real-time-message-system-with-apache-pulsar-and-flink&quot;&gt;real-time message processing system&lt;/a&gt;, and &lt;a href=&quot;https://www.zhihu.com/&quot;&gt;Zhihu&lt;/a&gt; is in the process of assessing the Connector’s fit for a real-time computing system.&lt;/p&gt;
+
+&lt;p&gt;With more users adopting the Pulsar Flink Connector, it became clear that one of the common issues was evolving around data formats and specifically performing serialization and deserialization. While the Pulsar Flink connector leverages the Pulsar serialization, the previous connector versions did not support the Flink data format. As a result, users had to manually configure their setup in order to use the connector for real-time computing scenarios.&lt;/p&gt;
+
+&lt;p&gt;To improve the user experience and make the Pulsar Flink connector easier-to-use, we built the capabilities to fully support the Flink data format, so users of the connector do not spend time on manual tuning and configuration.&lt;/p&gt;
+
+&lt;h2 id=&quot;whats-new-in-the-pulsar-flink-connector-270&quot;&gt;What’s New in the Pulsar Flink Connector 2.7.0?&lt;/h2&gt;
+&lt;p&gt;The Pulsar Flink Connector 2.7.0 supports features in Apache Pulsar 2.7.0 and Apache Flink 1.12 and is fully compatible with the Flink connector and Flink message format. With the latest version, you can use important features in Flink, such as exactly-once sink, upsert Pulsar mechanism, Data Definition Language (DDL) computed columns, watermarks, and metadata. You can also leverage the Key-Shared subscription in Pulsar, and conduct serialization and deserialization without much configuration. Additionally, you can easily customize the configuration based on your business requirements.&lt;/p&gt;
+
+&lt;p&gt;Below, we provide more details about the key features in the Pulsar Flink Connector 2.7.0.&lt;/p&gt;
+
+&lt;h3 id=&quot;ordered-message-queue-with-high-performance&quot;&gt;Ordered message queue with high-performance&lt;/h3&gt;
+&lt;p&gt;When users needed to strictly guarantee the ordering of messages, only one consumer was allowed to consume them. This had a severe impact on throughput. To address this, we designed a Key_Shared subscription model in Pulsar that guarantees the ordering of messages and improves throughput by adding a Key to each message and routes messages with the same Key Hash to one consumer.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-01-07-pulsar-flink/pulsar-key-shared.png&quot; width=&quot;640px&quot; alt=&quot;Apache Pulsar Key-Shared Subscription&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Pulsar Flink Connector 2.7.0 supports the Key_Shared subscription model. You can enable this feature by setting &lt;code&gt;enable-key-hash-range&lt;/code&gt; to &lt;code&gt;true&lt;/code&gt;. The Key Hash range processed by each consumer is decided by the parallelism of tasks.&lt;/p&gt;
+
+&lt;h3 id=&quot;introducing-exactly-once-semantics-for-pulsar-sink-based-on-the-pulsar-transaction&quot;&gt;Introducing exactly-once semantics for Pulsar sink (based on the Pulsar transaction)&lt;/h3&gt;
+&lt;p&gt;In previous versions, sink operators only supported at-least-once semantics, which could not fully meet requirements for end-to-end consistency. To deduplicate messages, users had to do some dirty work, which was not user-friendly.&lt;/p&gt;
+
+&lt;p&gt;Transactions are supported in Pulsar 2.7.0, which greatly improves the fault tolerance capability of the Flink sink. In the Pulsar Flink Connector 2.7.0, we designed exactly-once semantics for sink operators based on Pulsar transactions. Flink uses the two-phase commit protocol to implement TwoPhaseCommitSinkFunction. The main life cycle methods are beginTransaction(), preCommit(), commit(), abort(), recoverAndCommit(), recoverAndAbort().&lt;/p&gt;
+
+&lt;p&gt;You can flexibly select semantics when creating a sink operator while the internal logic changes are transparent. Pulsar transactions are similar to the two-phase commit protocol in Flink, which greatly improves the reliability of the Connector Sink.&lt;/p&gt;
+
+&lt;p&gt;It’s easy to implement beginTransaction and preCommit. You only need to start a Pulsar transaction and persist the TID of the transaction after the checkpoint. In the preCommit phase, you need to ensure that all messages are flushed to Pulsar, while any pre-committed messages will be committed eventually.&lt;/p&gt;
+
+&lt;p&gt;We focus on recoverAndCommit and recoverAndAbort in implementation. Limited by Kafka features, Kafka connector adopts hack styles for recoverAndCommit. Pulsar transactions do not rely on the specific Producer, so it’s easy for you to commit and abort transactions based on TID.&lt;/p&gt;
+
+&lt;p&gt;Pulsar transactions are highly efficient and flexible. Taking advantages of Pulsar and Flink, the Pulsar Flink connector is even more powerful. We will continue to improve transactional sink in the Pulsar Flink connector.&lt;/p&gt;
+
+&lt;h3 id=&quot;introducing-upsert-pulsar-connector&quot;&gt;Introducing upsert-pulsar connector&lt;/h3&gt;
+
+&lt;p&gt;Users in the Flink community expressed their needs for the upsert Pulsar. After looking through mailing lists and issues, we’ve summarized the following three reasons.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Interpret Pulsar topic as a changelog stream that interprets records with keys as upsert (aka insert/update) events.&lt;/li&gt;
+  &lt;li&gt;As a part of the real time pipeline, join multiple streams for enrichment and store results into a Pulsar topic for further calculation later. However, the result may contain update events.&lt;/li&gt;
+  &lt;li&gt;As a part of the real time pipeline, aggregate on data streams and store results into a Pulsar topic for further calculation later. However, the result may contain update events.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Based on the requirements, we add support for Upsert Pulsar. The upsert-pulsar connector allows for reading data from and writing data to Pulsar topics in the upsert fashion.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;As a source, the upsert-pulsar connector produces a changelog stream, where each data record represents an update or delete event. More precisely, the value in a data record is interpreted as an UPDATE of the last value for the same key, if any (if a corresponding key does not exist yet, the update will be considered an INSERT). Using the table analogy, a data record in a changelog stream is interpreted as an UPSERT (aka INSERT/UPDATE) because any existing row with the same key is overwritten. Also, null values are interpreted in a special way: a record with a null value represents a “DELETE”.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;As a sink, the upsert-pulsar connector can consume a changelog stream. It will write INSERT/UPDATE_AFTER data as normal Pulsar message values and write DELETE data as Pulsar message with null values (indicate tombstone for the key). Flink will guarantee the message ordering on the primary key by partitioning data on the values of the primary key columns, so the update/deletion messages on the same key will fall into the same partition.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;support-new-source-interface-and-table-api-introduced-in-flip-27httpscwikiapacheorgconfluencedisplayflinkflip-273arefactorsourceinterfaceflip27refactorsourceinterface-batchandstreamingunification-and-flip-95httpscwikiapacheorgconfluencedisplayflinkflip-953anewtablesourceandtablesinkinterfaces&quot;&gt;Support new source interface and Table API introduced in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface#FLIP27:RefactorSourceInterface-BatchandStreamingUnification&quot;&gt;FLIP-27&lt;/a&gt; and &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-95%3A+New+TableSource+and+TableSink+interfaces&quot;&gt;FLIP-95&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;This feature unifies the source of the batch stream and optimizes the mechanism for task discovery and data reading. It is also the cornerstone of our implementation of Pulsar batch and streaming unification. The new Table API supports DDL computed columns, watermarks and metadata.&lt;/p&gt;
+
+&lt;h3 id=&quot;support-sql-read-and-write-metadata-as-described-in-flip-107httpscwikiapacheorgconfluencedisplayflinkflip-1073ahandlingofmetadatainsqlconnectors&quot;&gt;Support SQL read and write metadata as described in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-107%3A+Handling+of+metadata+in+SQL+connectors&quot;&gt;FLIP-107&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;FLIP-107 enables users to access connector metadata as a metadata column in table definitions. In real-time computing, users normally need additional information, such as eventTime, or customized fields. The Pulsar Flink connector supports SQL read and write metadata, so it is flexible and easy for users to manage metadata of Pulsar messages in the Pulsar Flink Connector 2.7.0. For details on the configuration, refer to &lt;a href=&quot;https://github.com/streamnative/pulsar-flink#pulsar-message-metadata-manipulation&quot;&gt;Pulsar Message metadata manipulation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;add-flink-format-type-atomic-to-support-pulsar-primitive-types&quot;&gt;Add Flink format type &lt;code&gt;atomic&lt;/code&gt; to support Pulsar primitive types&lt;/h3&gt;
+&lt;p&gt;In the Pulsar Flink Connector 2.7.0, we add Flink format type &lt;code&gt;atomic&lt;/code&gt; to support Pulsar primitive types. When processing with Flink requires a Pulsar primitive type, you can use &lt;code&gt;atomic&lt;/code&gt; as the connector format. You can find more information on Pulsar primitive types &lt;a href=&quot;https://pulsar.apache.org/docs/en/schema-understand/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;migration&quot;&gt;Migration&lt;/h2&gt;
+&lt;p&gt;If you’re using the previous Pulsar Flink Connector version, you need to adjust your SQL and API parameters accordingly. Below we provide details on each.&lt;/p&gt;
+
+&lt;h2 id=&quot;sql&quot;&gt;SQL&lt;/h2&gt;
+&lt;p&gt;In SQL, we’ve changed the Pulsar configuration parameters in the DDL declaration. The name of some parameters are changed, but the values are not.&lt;br /&gt;
+- Remove the &lt;code&gt;connector.&lt;/code&gt; prefix from the parameter names. 
+- Change the name of the &lt;code&gt;connector.type&lt;/code&gt; parameter into &lt;code&gt;connector&lt;/code&gt;.
+- Change the startup mode parameter name from &lt;code&gt;connector.startup-mode&lt;/code&gt; into &lt;code&gt;scan.startup.mode&lt;/code&gt;.
+- Adjust Pulsar properties as &lt;code&gt;properties.pulsar.reader.readername=testReaderName&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;If you use SQL in the Pulsar Flink Connector, you need to adjust your SQL configuration accordingly when migrating to Pulsar Flink Connector 2.7.0. The following sample shows the differences between previous versions and the 2.7.0 version for SQL.&lt;/p&gt;
+
+&lt;p&gt;SQL in previous versions：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;create table topic1(
+    `rip` VARCHAR,
+    `rtime` VARCHAR,
+    `uid` bigint,
+    `client_ip` VARCHAR,
+    `day` as TO_DATE(rtime),
+    `hour` as date_format(rtime,&#39;HH&#39;)
+) with (
+    &#39;connector.type&#39; =&#39;pulsar&#39;,
+    &#39;connector.version&#39; = &#39;1&#39;,
+    &#39;connector.topic&#39; =&#39;persistent://public/default/test_flink_sql&#39;,
+    &#39;connector.service-url&#39; =&#39;pulsar://xxx&#39;,
+    &#39;connector.admin-url&#39; =&#39;http://xxx&#39;,
+    &#39;connector.startup-mode&#39; =&#39;earliest&#39;,
+    &#39;connector.properties.0.key&#39; =&#39;pulsar.reader.readerName&#39;,
+    &#39;connector.properties.0.value&#39; =&#39;testReaderName&#39;,
+    &#39;format.type&#39; =&#39;json&#39;,
+    &#39;update-mode&#39; =&#39;append&#39;
+);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;SQL in Pulsar Flink Connector 2.7.0:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;create table topic1(
+    `rip` VARCHAR,
+    `rtime` VARCHAR,
+    `uid` bigint,
+    `client_ip` VARCHAR,
+    `day` as TO_DATE(rtime),
+    `hour` as date_format(rtime,&#39;HH&#39;)
+) with (
+    &#39;connector&#39; =&#39;pulsar&#39;,
+    &#39;topic&#39; =&#39;persistent://public/default/test_flink_sql&#39;,
+    &#39;service-url&#39; =&#39;pulsar://xxx&#39;,
+    &#39;admin-url&#39; =&#39;http://xxx&#39;,
+    &#39;scan.startup.mode&#39; =&#39;earliest&#39;,
+    &#39;properties.pulsar.reader.readername&#39; = &#39;testReaderName&#39;,
+    &#39;format&#39; =&#39;json&#39;
+);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;api&quot;&gt;API&lt;/h2&gt;
+&lt;p&gt;From an API perspective, we adjusted some classes and enabled easier customization.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;To solve serialization issues, we changed the signature of the construction method &lt;code&gt;FlinkPulsarSink&lt;/code&gt;, and added &lt;code&gt;PulsarSerializationSchema&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;We removed inappropriate classes related to row, such as &lt;code&gt;FlinkPulsarRowSink&lt;/code&gt;, &lt;code&gt;FlinkPulsarRowSource&lt;/code&gt;. If you need to deal with Row formats, you can use Apache Flink’s Row related serialization components.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can build &lt;code&gt;PulsarSerializationSchema&lt;/code&gt; by using &lt;code&gt;PulsarSerializationSchemaWrapper.Builder&lt;/code&gt;. &lt;code&gt;TopicKeyExtractor&lt;/code&gt; is moved into &lt;code&gt;PulsarSerializationSchemaWrapper&lt;/code&gt;. When you adjust your API, you can take the following sample as reference.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;new PulsarSerializationSchemaWrapper.Builder&amp;lt;&amp;gt;(new SimpleStringSchema())
+    .setTopicExtractor(str -&amp;gt; getTopic(str))
+    .build();
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;future-plan&quot;&gt;Future Plan&lt;/h2&gt;
+&lt;p&gt;Future plans involve the design of a batch and stream solution integrated with Pulsar Source, based on the new Flink Source API (FLIP-27). The new solution will overcome the limitations of the current streaming source interface (SourceFunction) and simultaneously unify the source interfaces between the batch and streaming APIs.&lt;/p&gt;
+
+&lt;p&gt;Pulsar offers a hierarchical architecture where data is divided into streaming, batch, and cold data, which enables Pulsar to provide infinite capacity. This makes Pulsar an ideal solution for unified batch and streaming.&lt;/p&gt;
+
+&lt;p&gt;The batch and stream solution based on the new Flink Source API is divided into two simple parts: SplitEnumerator and Reader. SplitEnumerator discovers and assigns partitions, and Reader reads data from the partition.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-01-07-pulsar-flink/pulsar-flink-batch-stream.png&quot; width=&quot;640px&quot; alt=&quot;Batch and Stream Solution with Apache Pulsar and Apache Flink&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Apache Pulsar stores messages in the ledger block for users to locate the ledgers through Pulsar admin, and then provide broker partition, BookKeeper partition, Offloader partition, and other information through different partitioning policies. For more details, you can refer &lt;a href=&quot;https://github.com/streamnative/pulsar-flink/issues/187&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;The latest version of the Pulsar Flink Connector is now available and we encourage everyone to use/upgrade to the Pulsar Flink Connector 2.7.0. The new version provides significant user enhancements, enabled by various features in Pulsar 2.7 and Flink 1.12. We will be contributing the Pulsar Flink Connector 2.7.0 to the &lt;a href=&quot;https://github.com/apache/flink/&quot;&gt;Apache Flink repository&lt;/a&gt; soon. If you have any questions or concerns about the Pulsar Flink Connector, feel free to open issues in &lt;a href=&quot;https://github.com/streamnative/pulsar-flink/issues&quot;&gt;this repository&lt;/a&gt;.&lt;/p&gt;
+</description>
+<pubDate>Thu, 07 Jan 2021 09:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2021/01/07/pulsar-flink-connector-270.html</link>
+<guid isPermaLink="true">/2021/01/07/pulsar-flink-connector-270.html</guid>
+</item>
+
+<item>
 <title>Stateful Functions 2.2.2 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community released the second bugfix release of the Stateful Functions (StateFun) 2.2 series, version 2.2.2.&lt;/p&gt;
 
@@ -18505,221 +18669,6 @@ If you have, for example, a flatMap() operator that keeps a running aggregate pe
 <pubDate>Mon, 06 Feb 2017 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2017/02/06/release-1.2.0.html</link>
 <guid isPermaLink="true">/news/2017/02/06/release-1.2.0.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.1.4 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the next bugfix version of the Apache Flink 1.1 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes major robustness improvements for checkpoint cleanup on failures and consumption of intermediate streams. We highly recommend all users to upgrade to Flink 1.1.4.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.1.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;note-for-rocksdb-backend-users&quot;&gt;Note for RocksDB Backend Users&lt;/h2&gt;
-
-&lt;p&gt;We updated Flink’s RocksDB dependency version from &lt;code&gt;4.5.1&lt;/code&gt; to &lt;code&gt;4.11.2&lt;/code&gt;. Between these versions some of RocksDB’s internal configuration defaults changed that would affect the memory footprint of running Flink with RocksDB. Therefore, we manually reset them to the previous defaults. If you want to run with the new Rocks 4.11.2 defaults, you can do this via:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;RocksDBStateBackend&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;backend&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;...&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Use the new default options. Otherwise, the default for RocksDB 4.5.1&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// `PredefinedOptions.DEFAULT_ROCKS_4_5_1` will be used.&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;backend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setPredefinedOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PredefinedOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;DEFAULT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;release-notes---flink---version-114&quot;&gt;Release Notes - Flink - Version 1.1.4&lt;/h2&gt;
-
-&lt;h3 id=&quot;sub-task&quot;&gt;Sub-task&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4510&quot;&gt;FLINK-4510&lt;/a&gt;] -         Always create CheckpointCoordinator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4984&quot;&gt;FLINK-4984&lt;/a&gt;] -         Add Cancellation Barriers to BarrierTracker and BarrierBuffer
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4985&quot;&gt;FLINK-4985&lt;/a&gt;] -         Report Declined/Canceled Checkpoints to Checkpoint Coordinator
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bug&quot;&gt;Bug&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2662&quot;&gt;FLINK-2662&lt;/a&gt;] -         CompilerException: &amp;quot;Bug: Plan generation for Unions picked a ship strategy between binary plan operators.&amp;quot;
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3680&quot;&gt;FLINK-3680&lt;/a&gt;] -         Remove or improve (not set) text in the Job Plan UI
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3813&quot;&gt;FLINK-3813&lt;/a&gt;] -         YARNSessionFIFOITCase.testDetachedMode failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4108&quot;&gt;FLINK-4108&lt;/a&gt;] -         NPE in Row.productArity
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4506&quot;&gt;FLINK-4506&lt;/a&gt;] -         CsvOutputFormat defaults allowNullValues to false, even though doc and declaration says true
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4581&quot;&gt;FLINK-4581&lt;/a&gt;] -         Table API throws &amp;quot;No suitable driver found for jdbc:calcite&amp;quot;
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4586&quot;&gt;FLINK-4586&lt;/a&gt;] -         NumberSequenceIterator and Accumulator threading issue
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4619&quot;&gt;FLINK-4619&lt;/a&gt;] -         JobManager does not answer to client when restore from savepoint fails
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4727&quot;&gt;FLINK-4727&lt;/a&gt;] -         Kafka 0.9 Consumer should also checkpoint auto retrieved offsets even when no data is read
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4862&quot;&gt;FLINK-4862&lt;/a&gt;] -         NPE on EventTimeSessionWindows with ContinuousEventTimeTrigger
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4932&quot;&gt;FLINK-4932&lt;/a&gt;] -         Don&amp;#39;t let ExecutionGraph fail when in state Restarting
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4933&quot;&gt;FLINK-4933&lt;/a&gt;] -         ExecutionGraph.scheduleOrUpdateConsumers can fail the ExecutionGraph
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4977&quot;&gt;FLINK-4977&lt;/a&gt;] -         Enum serialization does not work in all cases
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4991&quot;&gt;FLINK-4991&lt;/a&gt;] -         TestTask hangs in testWatchDogInterruptsTask
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4998&quot;&gt;FLINK-4998&lt;/a&gt;] -         ResourceManager fails when num task slots &amp;gt; Yarn vcores
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5013&quot;&gt;FLINK-5013&lt;/a&gt;] -         Flink Kinesis connector doesn&amp;#39;t work on old EMR versions
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5028&quot;&gt;FLINK-5028&lt;/a&gt;] -         Stream Tasks must not go through clean shutdown logic on cancellation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5038&quot;&gt;FLINK-5038&lt;/a&gt;] -         Errors in the &amp;quot;cancelTask&amp;quot; method prevent closeables from being closed early
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5039&quot;&gt;FLINK-5039&lt;/a&gt;] -         Avro GenericRecord support is broken
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5040&quot;&gt;FLINK-5040&lt;/a&gt;] -         Set correct input channel types with eager scheduling
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5050&quot;&gt;FLINK-5050&lt;/a&gt;] -         JSON.org license is CatX
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5057&quot;&gt;FLINK-5057&lt;/a&gt;] -         Cancellation timeouts are picked from wrong config
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5058&quot;&gt;FLINK-5058&lt;/a&gt;] -         taskManagerMemory attribute set wrong value in FlinkShell
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5063&quot;&gt;FLINK-5063&lt;/a&gt;] -         State handles are not properly cleaned up for declined or expired checkpoints
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5073&quot;&gt;FLINK-5073&lt;/a&gt;] -         ZooKeeperCompleteCheckpointStore executes blocking delete operation in ZooKeeper client thread
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5075&quot;&gt;FLINK-5075&lt;/a&gt;] -         Kinesis consumer incorrectly determines shards as newly discovered when tested against Kinesalite
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5082&quot;&gt;FLINK-5082&lt;/a&gt;] -         Pull ExecutionService lifecycle management out of the JobManager
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5085&quot;&gt;FLINK-5085&lt;/a&gt;] -         Execute CheckpointCoodinator&amp;#39;s state discard calls asynchronously
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5114&quot;&gt;FLINK-5114&lt;/a&gt;] -         PartitionState update with finished execution fails
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5142&quot;&gt;FLINK-5142&lt;/a&gt;] -         Resource leak in CheckpointCoordinator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5149&quot;&gt;FLINK-5149&lt;/a&gt;] -         ContinuousEventTimeTrigger doesn&amp;#39;t fire at the end of the window
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5154&quot;&gt;FLINK-5154&lt;/a&gt;] -         Duplicate TypeSerializer when writing RocksDB Snapshot
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5158&quot;&gt;FLINK-5158&lt;/a&gt;] -         Handle ZooKeeperCompletedCheckpointStore exceptions in CheckpointCoordinator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5172&quot;&gt;FLINK-5172&lt;/a&gt;] -         In RocksDBStateBackend, set flink-core and flink-streaming-java to &amp;quot;provided&amp;quot;
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5173&quot;&gt;FLINK-5173&lt;/a&gt;] -         Upgrade RocksDB dependency
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5184&quot;&gt;FLINK-5184&lt;/a&gt;] -         Error result of compareSerialized in RowComparator class
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5193&quot;&gt;FLINK-5193&lt;/a&gt;] -         Recovering all jobs fails completely if a single recovery fails
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5197&quot;&gt;FLINK-5197&lt;/a&gt;] -         Late JobStatusChanged messages can interfere with running jobs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5214&quot;&gt;FLINK-5214&lt;/a&gt;] -         Clean up checkpoint files when failing checkpoint operation on TM
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5215&quot;&gt;FLINK-5215&lt;/a&gt;] -         Close checkpoint streams upon cancellation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5216&quot;&gt;FLINK-5216&lt;/a&gt;] -         CheckpointCoordinator&amp;#39;s &amp;#39;minPauseBetweenCheckpoints&amp;#39; refers to checkpoint start rather then checkpoint completion
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5218&quot;&gt;FLINK-5218&lt;/a&gt;] -         Eagerly close checkpoint streams on cancellation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5228&quot;&gt;FLINK-5228&lt;/a&gt;] -         LocalInputChannel re-trigger request and release deadlock
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5229&quot;&gt;FLINK-5229&lt;/a&gt;] -         Cleanup StreamTaskStates if a checkpoint operation of a subsequent operator fails 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5246&quot;&gt;FLINK-5246&lt;/a&gt;] -         Don&amp;#39;t discard unknown checkpoint messages in the CheckpointCoordinator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5248&quot;&gt;FLINK-5248&lt;/a&gt;] -         SavepointITCase doesn&amp;#39;t catch savepoint restore failure
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5274&quot;&gt;FLINK-5274&lt;/a&gt;] -         LocalInputChannel throws NPE if partition reader is released
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5275&quot;&gt;FLINK-5275&lt;/a&gt;] -         InputChanelDeploymentDescriptors throws misleading Exception if producer failed/cancelled
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5276&quot;&gt;FLINK-5276&lt;/a&gt;] -         ExecutionVertex archiving can throw NPE with many previous attempts
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5285&quot;&gt;FLINK-5285&lt;/a&gt;] -         CancelCheckpointMarker flood when using at least once mode
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5326&quot;&gt;FLINK-5326&lt;/a&gt;] -         IllegalStateException: Bug in Netty consumer logic: reader queue got notified by partition about available data,  but none was available
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5352&quot;&gt;FLINK-5352&lt;/a&gt;] -         Restore RocksDB 1.1.3 memory behavior
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;improvement&quot;&gt;Improvement&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3347&quot;&gt;FLINK-3347&lt;/a&gt;] -         TaskManager (or its ActorSystem) need to restart in case they notice quarantine
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3787&quot;&gt;FLINK-3787&lt;/a&gt;] -         Yarn client does not report unfulfillable container constraints
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4445&quot;&gt;FLINK-4445&lt;/a&gt;] -         Ignore unmatched state when restoring from savepoint
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4715&quot;&gt;FLINK-4715&lt;/a&gt;] -         TaskManager should commit suicide after cancellation failure
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4894&quot;&gt;FLINK-4894&lt;/a&gt;] -         Don&amp;#39;t block on buffer request after broadcastEvent 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4975&quot;&gt;FLINK-4975&lt;/a&gt;] -         Add a limit for how much data may be buffered during checkpoint alignment
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4996&quot;&gt;FLINK-4996&lt;/a&gt;] -         Make CrossHint @Public
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5046&quot;&gt;FLINK-5046&lt;/a&gt;] -         Avoid redundant serialization when creating the TaskDeploymentDescriptor
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5123&quot;&gt;FLINK-5123&lt;/a&gt;] -         Add description how to do proper shading to Flink docs.
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5169&quot;&gt;FLINK-5169&lt;/a&gt;] -         Make consumption of input channels fair
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5192&quot;&gt;FLINK-5192&lt;/a&gt;] -         Provide better log config templates
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5194&quot;&gt;FLINK-5194&lt;/a&gt;] -         Log heartbeats on TRACE level
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5196&quot;&gt;FLINK-5196&lt;/a&gt;] -         Don&amp;#39;t log InputChannelDescriptor
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5198&quot;&gt;FLINK-5198&lt;/a&gt;] -         Overwrite TaskState toString
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5199&quot;&gt;FLINK-5199&lt;/a&gt;] -         Improve logging of submitted job graph actions in HA case
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5201&quot;&gt;FLINK-5201&lt;/a&gt;] -         Promote loaded config properties to INFO
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5207&quot;&gt;FLINK-5207&lt;/a&gt;] -         Decrease HadoopFileSystem logging
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5249&quot;&gt;FLINK-5249&lt;/a&gt;] -         description of datastream rescaling doesn&amp;#39;t match the figure
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5259&quot;&gt;FLINK-5259&lt;/a&gt;] -         wrong execution environment in retry delays example
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5278&quot;&gt;FLINK-5278&lt;/a&gt;] -         Improve Task and checkpoint logging 
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;new-feature&quot;&gt;New Feature&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4976&quot;&gt;FLINK-4976&lt;/a&gt;] -         Add a way to abort in flight checkpoints
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;task&quot;&gt;Task&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4778&quot;&gt;FLINK-4778&lt;/a&gt;] -         Update program example in /docs/setup/cli.md due to the change in FLINK-2021
-&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-<pubDate>Wed, 21 Dec 2016 10:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2016/12/21/release-1.1.4.html</link>
-<guid isPermaLink="true">/news/2016/12/21/release-1.1.4.html</guid>
 </item>
 
 </channel>
