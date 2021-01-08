@@ -463,6 +463,32 @@ Or using plain HTML:
     might not be obvious from reading it. Use comments to clarify
     implementation details and to describe the expected output.
 
+* **Commands in code blocks.** Commands can be documented using `bash` syntax 
+  highlighted code blocks. The following items should be considered when adding 
+  commands to the docummentation:
+  * **Use long parameter names.** Long parameter names help the reader to 
+    understand the purpose of the command. They should be preferred over their 
+    short counterparts.
+  * **One parameter per line.** Using long parameter names makes the command 
+    possibly harder to read. Putting one parameter per line improves the 
+    readability. You need to add a backslash `\` escaping the newline at 
+    the end of each intermediate line to support copy&paste.
+  * **Indentation**. Each new parameter line should be indented by 6 spaces.
+  * **Use `$` prefix to indicate command start**. The readability of the code 
+    block might worsen having multiple commands in place. Putting a dollar sign 
+    `$` in front of each new commands helps identifying the start of a 
+    command.
+
+  A properly formatted command would look like this:
+
+  ```bash
+$ ./bin/flink run-application \
+        --target kubernetes-application \
+        -Dkubernetes.cluster-id=my-first-application-cluster \
+        -Dkubernetes.container.image=custom-image-name \
+        local:///opt/flink/usrlib/my-flink-job.jar
+  ```
+
 [Back to top](#top)
 
 ## General Guiding Principles
