@@ -7,6 +7,7 @@ authors:
 - rmetzger:
   name: "Robert Metzger"
   twitter: "rmetzger_"
+excerpt: Apache Flink 1.9 introduced fine-grained recovery through FLIP-1. The Flink APIs that are made for bounded workloads benefit from this change by individually recovering failed operators, re-using results from the previous processing step. This blog post gives an overview over these changes and evaluates their effectiveness.
 ---
 
 {% toc %}
@@ -15,7 +16,7 @@ Apache Flink is a very versatile tool for all kinds of data processing workloads
 
 Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.
 
-Apache Flink 1.9 introduced [fine-grained recovery](https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures) into it's internal workload scheduler. The Flink APIs that are made for bounded workloads benefit from this change by individually recovering failed operators, re-using results from the previous processing step.
+Apache Flink 1.9 introduced [fine-grained recovery](https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures) into its internal workload scheduler. The Flink APIs that are made for bounded workloads benefit from this change by individually recovering failed operators, re-using results from the previous processing step.
 
 In this blog post, we are going to give an overview over these changes, and we will experimentally validate their effectiveness.
 
@@ -112,6 +113,6 @@ Based on these results, it makes a lot of sense to use the batch execution mode 
 
 In general, we recommend conducting your own performance experiments on your own hardware and with your own workloads, as results might vary from what we’ve presented here. Despite the findings here, the pipelined mode probably has some performance advantages in environments with rare failures and slower I/O (for example when using spinning disks, or network attached disks). On the other hand, CPU intensive workloads might benefit from the batch mode even in slow I/O environments.
 
-We should also note that the caching (and subsequent reprocessing on failure) only works if the cached results are still present -- this is currently only the case, if the TaskManager survives a failure. However, this is an unrealistic assumption as many failures would cause the TaskManager process to die. To mitigate this limitation, data processing frameworks employ external shuffle services that persist the cached results independent of the data processing framework. Since Flink 1.9, there is support for a [pluggable shuffle service](https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A+Pluggable+Shuffle+Service), and there are tickets for adding implementations for [YARN](https://issues.apache.org/jira/browse/FLINK-13247) and [Kubernetes](https://issues.apache.org/jira/browse/FLINK-13246). Once these implementations are added, TaskManagers can recover cached results even if the process or machine got killed.
+We should also note that the caching (and subsequent reprocessing on failure) only works if the cached results are still present -- this is currently only the case, if the TaskManager survives a failure. However, this is an unrealistic assumption as many failures would cause the TaskManager process to die. To mitigate this limitation, data processing frameworks employ external shuffle services that persist the cached results independent of the data processing framework. Since Flink 1.9, there is support for a [pluggable shuffle service](https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A+Pluggable+Shuffle+Service), and there are tickets for adding implementations for YARN ([FLINK-13247](https://issues.apache.org/jira/browse/FLINK-13247)) and Kubernetes ([FLINK-13246](https://issues.apache.org/jira/browse/FLINK-13246)). Once these implementations are added, TaskManagers can recover cached results even if the process or machine got killed.
 
 Despite these considerations, we believe that fine-grained recovery is a great improvement for Flink’s batch capabilities, as it makes the framework much more efficient, even in unstable environments.
