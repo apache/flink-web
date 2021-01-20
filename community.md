@@ -262,6 +262,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">hequn</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4950503?s=50" class="committer-avatar"/></td>
+    <td class="text-center">Danny Cranmer</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">dannycranmer</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1452518?s=50" class="committer-avatar"></td>
     <td class="text-center">Xingcan Cui</td>
     <td class="text-center">Committer</td>
