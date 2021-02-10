@@ -7,6 +7,158 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>How to natively deploy Flink on Kubernetes with High-Availability (HA)</title>
+<description>&lt;p&gt;Flink has supported resource management systems like YARN and Mesos since the early days; however, these were not designed for the fast-moving cloud-native architectures that are increasingly gaining popularity these days, or the growing need to support complex, mixed workloads (e.g. batch, streaming, deep learning, web services).
+For these reasons, more and more users are using Kubernetes to automate the deployment, scaling and management of their Flink applications.&lt;/p&gt;
+
+&lt;p&gt;From release to release, the Flink community has made significant progress in &lt;strong&gt;integrating natively with Kubernetes&lt;/strong&gt;, from active resource management to “Zookeeperless” High Availability (HA).
+In this blogpost, we’ll recap the technical details of deploying Flink applications natively on Kubernetes, diving deeper into Flink’s Kubernetes HA architecture. We’ll then walk you through a &lt;a href=&quot;#example-application-cluster-with-ha&quot;&gt;&lt;strong&gt;hands-on example&lt;/strong&gt;&lt;/a&gt; of running a Flink &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/deployment/#application-mode&quot;&gt;application cluster&lt;/a&gt; on Kubernetes with HA enabled.
+We’ll end with a conclusion covering the advantages of running Flink natively on Kubernetes, and an outlook into future work.&lt;/p&gt;
+
+&lt;h1 id=&quot;native-flink-on-kubernetes-integration&quot;&gt;Native Flink on Kubernetes Integration&lt;/h1&gt;
+
+&lt;p&gt;Before we dive into the technical details of how the Kubernetes-based HA service works, let us briefly explain what &lt;em&gt;native&lt;/em&gt; means in the context of Flink deployments on Kubernetes:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Flink is &lt;strong&gt;self-contained&lt;/strong&gt;. There will be an embedded Kubernetes client in the Flink client, and so you will not need other external tools (&lt;em&gt;e.g.&lt;/em&gt; kubectl, Kubernetes dashboard) to create a Flink cluster on Kubernetes.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The Flink client will contact the Kubernetes API server &lt;strong&gt;directly&lt;/strong&gt; to create the JobManager deployment. The configuration located on the client side will be shipped to the JobManager pod, as well as the log4j and Hadoop configurations.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Flink’s ResourceManager will talk to the Kubernetes API server to &lt;strong&gt;allocate and release&lt;/strong&gt; the TaskManager pods dynamically &lt;strong&gt;on-demand&lt;/strong&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;All in all, this is similar to how Flink integrates with other resource management systems (&lt;em&gt;e.g.&lt;/em&gt; YARN, Mesos), so it should be somewhat straightforward to integrate with Kubernetes if you’ve managed such deployments before — and especially if you already had some internal deployer for the lifecycle management of multiple Flink jobs.&lt;/p&gt;
+
+&lt;center&gt;
+    &lt;img vspace=&quot;8&quot; style=&quot;width:75%&quot; src=&quot;/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-architecture.png&quot; /&gt;
+    &lt;p&gt;
+    &lt;em&gt;&lt;b&gt;Fig. 1:&lt;/b&gt; Architecture of Flink&#39;s native Kubernetes integration.&lt;/em&gt;
+    &lt;/p&gt;
+&lt;/center&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;kubernetes-high-availability-service&quot;&gt;Kubernetes High Availability Service&lt;/h1&gt;
+
+&lt;p&gt;High Availability (HA) is a common requirement when bringing Flink to production: it helps prevent a single point of failure for Flink clusters.
+Previous to the &lt;a href=&quot;https://flink.apache.org/news/2020/12/10/release-1.12.0.html&quot;&gt;1.12 release&lt;/a&gt;, Flink has provided a Zookeeper HA service that has been widely used in production setups and that can be integrated in standalone cluster, YARN, or Kubernetes deployments.
+However, managing a Zookeeper cluster on Kubernetes for HA would require an additional operational cost that could be avoided because, in the end, Kubernetes also provides some public APIs for leader election and configuration storage (&lt;em&gt;i.e.&lt;/em&gt; ConfigMap).
+From Flink 1.12, we leverage these features to make running a HA-configured Flink cluster on Kubernetes more convenient to users.&lt;/p&gt;
+
+&lt;center&gt;
+    &lt;img vspace=&quot;8&quot; style=&quot;width:72%&quot; src=&quot;/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-ha-architecture.png&quot; /&gt;
+    &lt;p&gt;
+    &lt;em&gt;&lt;b&gt;Fig. 2:&lt;/b&gt; Architecture of Flink&#39;s Kubernetes High Availability (HA) service.&lt;/em&gt;
+    &lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;
+The above diagram shows the architecture of Flink’s Kubernetes HA service, which works as follows:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;For the &lt;strong&gt;leader election&lt;/strong&gt;, a set of eligible JobManagers is identified. They all race to declare themselves as the leader, with one eventually becoming the active leader. The active JobManager then continually “heartbeats” to renew its position as the leader. In the meantime, all other standby JobManagers periodically make new attempts to become the leader — this ensures that the JobManager could &lt;strong&gt;failover quickly&lt;/strong&gt;. Different components (&lt;em&gt;e.g.&lt;/em&gt; ResourceManager, JobManager, Dispatcher, RestEndpoint) have separate leader election services and ConfigMaps.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The active leader publishes its address to the ConfigMap. It’s important to note that Flink will use the same ConfigMap for contending lock and storing the leader address. This ensures that there is &lt;strong&gt;no unexpected change&lt;/strong&gt; snuck in during a periodic update.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The leader retrieval service is used to find the active leader’s address and allow the components to then &lt;strong&gt;register&lt;/strong&gt; themselves. For example, TaskManagers retrieve the address of ResourceManager and JobManager for registration and to offer slots. Flink uses a &lt;strong&gt;Kubernetes watch&lt;/strong&gt; in the leader retrieval service — once the content of ConfigMap changes, it usually means that the leader has changed, and so the listener can &lt;strong&gt;get the latest leader address immediately&lt;/strong&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;All other meta information (&lt;em&gt;e.g.&lt;/em&gt; running jobs, job graphs, completed checkpoints and checkpointer counter) will be directly stored in the corresponding ConfigMaps. Only the leader can update the ConfigMap. The HA data will only be &lt;strong&gt;cleaned up&lt;/strong&gt; once the Flink cluster reaches the global &lt;strong&gt;terminal state&lt;/strong&gt;. Please note that only the pointers are stored in the ConfigMap; the concrete data will be stored in the DistributedStorage. This level of indirection is necessary to keep the amount of data in ConfigMap small (ConfigMap is built for data less than 1MB whereas state can grow to multiple GBs).&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;example-application-cluster-with-ha&quot;&gt;Example: Application Cluster with HA&lt;/h1&gt;
+
+&lt;p&gt;You’ll need a running Kubernetes cluster and to get &lt;code&gt;kubeconfig&lt;/code&gt; properly set to follow along.
+You can use &lt;code&gt;kubectl get nodes&lt;/code&gt; to verify that you’re all set!
+In this blog post, we’re using &lt;a href=&quot;https://minikube.sigs.k8s.io/docs/start/&quot;&gt;minikube&lt;/a&gt; for local testing.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1. Build a Docker image with the Flink job&lt;/strong&gt; (&lt;code&gt;my-flink-job.jar&lt;/code&gt;) &lt;strong&gt;baked in&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-dockerfile&quot;&gt;&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; flink:1.12.1
+&lt;span class=&quot;k&quot;&gt;RUN&lt;/span&gt; mkdir -p &lt;span class=&quot;nv&quot;&gt;$FLINK_HOME&lt;/span&gt;/usrlib
+COPY /path/of/my-flink-job.jar &lt;span class=&quot;nv&quot;&gt;$FLINK_HOME&lt;/span&gt;/usrlib/my-flink-job.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Use the above Dockerfile to build a user image (&lt;code&gt;&amp;lt;user-image&amp;gt;&lt;/code&gt;) and then push it to your remote image repository:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;docker build -t &amp;lt;user-image&amp;gt; .
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;docker push &amp;lt;user-image&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;2. Start a Flink Application Cluster&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./bin/flink run-application &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    --detached &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    --parallelism &lt;span class=&quot;m&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    --target kubernetes-application &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dkubernetes.cluster-id&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;k8s-ha-app-1 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dkubernetes.container.image&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;user-image&amp;gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dkubernetes.jobmanager.cpu&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0.5 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dkubernetes.taskmanager.cpu&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0.5 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dtaskmanager.numberOfTaskSlots&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dkubernetes.rest-service.exposed.type&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;NodePort &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dhigh-availability&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dhigh-availability.storageDir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;s3://flink-bucket/flink-ha &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Drestart-strategy&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;fixed-delay &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Drestart-strategy.fixed-delay.attempts&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dcontainerized.master.env.ENABLE_BUILT_IN_PLUGINS&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;flink-s3-fs-hadoop-1.12.1.jar &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    -Dcontainerized.taskmanager.env.ENABLE_BUILT_IN_PLUGINS&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;flink-s3-fs-hadoop-1.12.1.jar &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;local&lt;/span&gt;:///opt/flink/usrlib/my-flink-job.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;3. Access the Flink Web UI&lt;/strong&gt; (http://minikube-ip-address:node-port) &lt;strong&gt;and check that the job is running!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;2021-02-05 17:26:13,403 INFO  org.apache.flink.kubernetes.KubernetesClusterDescriptor      [] - Create flink application cluster k8s-ha-app-1 successfully, JobManager Web Interface: http://192.168.64.21:32388
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You should be able to find a similar log in the Flink client and get the JobManager web interface URL.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;4. Kill the JobManager to simulate failure&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;kubectl &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;jobmanager_pod_name&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; -- /bin/sh -c &lt;span class=&quot;s2&quot;&gt;&amp;quot;kill 1&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;5. Verify that the job recovers from the latest successful checkpoint&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Refresh the Flink Web UI until the new JobManager is launched, and then search for the following JobManager logs to verify that the job recovers from the latest successful checkpoint:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;2021-02-05 09:44:01,636 INFO  org.apache.flink.runtime.checkpoint.CheckpointCoordinator    [] - Restoring job 00000000000000000000000000000000 from Checkpoint 101 @ 1612518074802 for 00000000000000000000000000000000 located at &amp;lt;checkpoint-not-externally-addressable&amp;gt;.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;6. Cancel the job&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The job can be cancelled through the Flink the Web UI, or using the following command:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./bin/flink cancel --target kubernetes-application -Dkubernetes.cluster-id&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;ClusterID&amp;gt; &amp;lt;JobID&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;When the job is cancelled, all the Kubernetes resources created by Flink (e.g. JobManager deployment, TaskManager pods, service, Flink configuration ConfigMap, leader-related ConfigMaps) will be deleted automatically.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;The native Kubernetes integration was first introduced in Flink 1.10, abstracting a lot of the complexities of hosting, configuring, managing and operating Flink clusters in cloud-native environments.
+After three major releases, the community has made great progress in supporting multiple deployment modes (i.e. session and application) and an alternative HA setup that doesn’t depend on Zookeeper.&lt;/p&gt;
+
+&lt;p&gt;Compared with &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/deployment/resource-providers/standalone/kubernetes.html&quot;&gt;standalone&lt;/a&gt; Kubernetes deployments, the native integration is more &lt;strong&gt;user-friendly&lt;/strong&gt; and requires less upfront knowledge about Kubernetes.
+Given that Flink is now aware of the underlying Kubernetes cluster, it also can benefit from dynamic resource allocation and make &lt;strong&gt;more efficient use of Kubernetes cluster resources&lt;/strong&gt;.
+The next building block to deepen Flink’s native integration with Kubernetes is the pod template (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15656&quot;&gt;FLINK-15656&lt;/a&gt;), which will greatly enhance the flexibility of using advanced Kubernetes features (&lt;em&gt;e.g.&lt;/em&gt; volumes, init container, sidecar container).
+This work is already in progress and will be added in the upcoming 1.13 release!&lt;/p&gt;
+</description>
+<pubDate>Wed, 10 Feb 2021 01:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2021/02/10/native-k8s-with-ha.html</link>
+<guid isPermaLink="true">/2021/02/10/native-k8s-with-ha.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.10.3 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the third bugfix version of the Apache Flink 1.10 series.&lt;/p&gt;
 
@@ -18342,222 +18494,6 @@ list&lt;/a&gt;.&lt;/p&gt;
 <pubDate>Tue, 16 May 2017 11:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2017/05/16/official-docker-image.html</link>
 <guid isPermaLink="true">/news/2017/05/16/official-docker-image.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.2.1 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.2 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes many critical fixes for Flink 1.2.0. The list below includes a detailed list of all fixes.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.2.1.&lt;/p&gt;
-
-&lt;p&gt;Please note that there are two unresolved major issues in Flink 1.2.1 and 1.2.0:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6353&quot;&gt;FLINK-6353&lt;/a&gt; Restoring using CheckpointedRestoring does not work from 1.2 to 1.2&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6188&quot;&gt;FLINK-6188&lt;/a&gt; Some setParallelism() methods can’t cope with default parallelism&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.2.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.2.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.10&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.2.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2&gt;Release Notes - Flink - Version 1.2.1&lt;/h2&gt;
-
-&lt;h3&gt;        Sub-task
-&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5546&quot;&gt;FLINK-5546&lt;/a&gt;] -         java.io.tmpdir setted as project build directory in surefire plugin
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5640&quot;&gt;FLINK-5640&lt;/a&gt;] -         configure the explicit Unit Test file suffix
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5723&quot;&gt;FLINK-5723&lt;/a&gt;] -         Use &amp;quot;Used&amp;quot; instead of &amp;quot;Initial&amp;quot; to make taskmanager tag more readable
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5825&quot;&gt;FLINK-5825&lt;/a&gt;] -         In yarn mode, a small pic can not be loaded
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;        Bug
-&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4813&quot;&gt;FLINK-4813&lt;/a&gt;] -         Having flink-test-utils as a dependency outside Flink fails the build
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4848&quot;&gt;FLINK-4848&lt;/a&gt;] -         keystoreFilePath should be checked against null in SSLUtils#createSSLServerContext
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5628&quot;&gt;FLINK-5628&lt;/a&gt;] -         CheckpointStatsTracker implements Serializable but isn&amp;#39;t
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5644&quot;&gt;FLINK-5644&lt;/a&gt;] -         Task#lastCheckpointSize metric broken
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5650&quot;&gt;FLINK-5650&lt;/a&gt;] -         Flink-python tests executing cost too long time
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5652&quot;&gt;FLINK-5652&lt;/a&gt;] -         Memory leak in AsyncDataStream
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5669&quot;&gt;FLINK-5669&lt;/a&gt;] -         flink-streaming-contrib DataStreamUtils.collect in local environment mode fails when offline
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5678&quot;&gt;FLINK-5678&lt;/a&gt;] -         User-defined TableFunctions do not support all types of parameters
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5699&quot;&gt;FLINK-5699&lt;/a&gt;] -         Cancel with savepoint fails with a NPE if savepoint target directory not set
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5701&quot;&gt;FLINK-5701&lt;/a&gt;] -         FlinkKafkaProducer should check asyncException on checkpoints
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5708&quot;&gt;FLINK-5708&lt;/a&gt;] -         we should remove duplicated configuration options 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5732&quot;&gt;FLINK-5732&lt;/a&gt;] -         Java quick start mvn command line is incorrect
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5749&quot;&gt;FLINK-5749&lt;/a&gt;] -             unset HADOOP_HOME and HADOOP_CONF_DIR to avoid env in build machine failing the UT and IT
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5751&quot;&gt;FLINK-5751&lt;/a&gt;] -         404 in documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5771&quot;&gt;FLINK-5771&lt;/a&gt;] -         DelimitedInputFormat does not correctly handle multi-byte delimiters
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5773&quot;&gt;FLINK-5773&lt;/a&gt;] -         Cannot cast scala.util.Failure to org.apache.flink.runtime.messages.Acknowledge
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5806&quot;&gt;FLINK-5806&lt;/a&gt;] -         TaskExecutionState toString format have wrong key
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5814&quot;&gt;FLINK-5814&lt;/a&gt;] -         flink-dist creates wrong symlink when not used with cleaned before
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5817&quot;&gt;FLINK-5817&lt;/a&gt;] -         Fix test concurrent execution failure by test dir conflicts.
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5828&quot;&gt;FLINK-5828&lt;/a&gt;] -         BlobServer create cache dir has concurrency safety problem
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5885&quot;&gt;FLINK-5885&lt;/a&gt;] -         Java code snippet instead of scala in documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5907&quot;&gt;FLINK-5907&lt;/a&gt;] -         RowCsvInputFormat bug on parsing tsv
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5934&quot;&gt;FLINK-5934&lt;/a&gt;] -         Scheduler in ExecutionGraph null if failure happens in ExecutionGraph.restoreLatestCheckpointedState
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5940&quot;&gt;FLINK-5940&lt;/a&gt;] -         ZooKeeperCompletedCheckpointStore cannot handle broken state handles
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5942&quot;&gt;FLINK-5942&lt;/a&gt;] -         Harden ZooKeeperStateHandleStore to deal with corrupted data
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5945&quot;&gt;FLINK-5945&lt;/a&gt;] -         Close function in OuterJoinOperatorBase#executeOnCollections
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5949&quot;&gt;FLINK-5949&lt;/a&gt;] -         Flink on YARN checks for Kerberos credentials for non-Kerberos authentication methods
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5962&quot;&gt;FLINK-5962&lt;/a&gt;] -         Cancel checkpoint canceller tasks in CheckpointCoordinator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5965&quot;&gt;FLINK-5965&lt;/a&gt;] -         Typo on DropWizard wrappers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5972&quot;&gt;FLINK-5972&lt;/a&gt;] -         Don&amp;#39;t allow shrinking merging windows
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5985&quot;&gt;FLINK-5985&lt;/a&gt;] -         Flink treats every task as stateful (making topology changes impossible)
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6000&quot;&gt;FLINK-6000&lt;/a&gt;] -         Can not start HA cluster with start-cluster.sh
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6001&quot;&gt;FLINK-6001&lt;/a&gt;] -         NPE on TumblingEventTimeWindows with ContinuousEventTimeTrigger and allowedLateness
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6002&quot;&gt;FLINK-6002&lt;/a&gt;] -         Documentation: &amp;#39;MacOS X&amp;#39; under &amp;#39;Download and Start Flink&amp;#39; in Quickstart page is not rendered correctly
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6006&quot;&gt;FLINK-6006&lt;/a&gt;] -         Kafka Consumer can lose state if queried partition list is incomplete on restore
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6025&quot;&gt;FLINK-6025&lt;/a&gt;] -         User code ClassLoader not used when KryoSerializer fallbacks to serialization for copying
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6051&quot;&gt;FLINK-6051&lt;/a&gt;] -         Wrong metric scope names in documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6084&quot;&gt;FLINK-6084&lt;/a&gt;] -         Cassandra connector does not declare all dependencies
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6133&quot;&gt;FLINK-6133&lt;/a&gt;] -         fix build status in README.md
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6170&quot;&gt;FLINK-6170&lt;/a&gt;] -         Some checkpoint metrics rely on latest stat snapshot
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6181&quot;&gt;FLINK-6181&lt;/a&gt;] -         Zookeeper scripts use invalid regex
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6182&quot;&gt;FLINK-6182&lt;/a&gt;] -         Fix possible NPE in SourceStreamTask
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6183&quot;&gt;FLINK-6183&lt;/a&gt;] -         TaskMetricGroup may not be cleanup when Task.run() is never called or exits early
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6184&quot;&gt;FLINK-6184&lt;/a&gt;] -         Buffer metrics can cause NPE
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6203&quot;&gt;FLINK-6203&lt;/a&gt;] -         DataSet Transformations
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6207&quot;&gt;FLINK-6207&lt;/a&gt;] -         Duplicate type serializers for async snapshots of CopyOnWriteStateTable
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6308&quot;&gt;FLINK-6308&lt;/a&gt;] -         Task managers are not attaching to job manager on macos
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;        Improvement
-&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-4326&quot;&gt;FLINK-4326&lt;/a&gt;] -         Flink start-up scripts should optionally start services on the foreground
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5217&quot;&gt;FLINK-5217&lt;/a&gt;] -         Deprecated interface Checkpointed make clear suggestion
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5331&quot;&gt;FLINK-5331&lt;/a&gt;] -         PythonPlanBinderTest idling extremely long
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5581&quot;&gt;FLINK-5581&lt;/a&gt;] -         Improve Kerberos security related documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5639&quot;&gt;FLINK-5639&lt;/a&gt;] -         Clarify License implications of RabbitMQ Connector
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5680&quot;&gt;FLINK-5680&lt;/a&gt;] -         Document env.ssh.opts
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5681&quot;&gt;FLINK-5681&lt;/a&gt;] -         Make ReaperThread for SafetyNetCloseableRegistry a singleton
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5702&quot;&gt;FLINK-5702&lt;/a&gt;] -         Kafka Producer docs should warn if using setLogFailuresOnly, at-least-once is compromised
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5705&quot;&gt;FLINK-5705&lt;/a&gt;] -         webmonitor&amp;#39;s request/response use UTF-8 explicitly
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5713&quot;&gt;FLINK-5713&lt;/a&gt;] -         Protect against NPE in WindowOperator window cleanup
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5721&quot;&gt;FLINK-5721&lt;/a&gt;] -         Add FoldingState to State Documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5800&quot;&gt;FLINK-5800&lt;/a&gt;] -         Make sure that the CheckpointStreamFactory is instantiated once per operator only
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5805&quot;&gt;FLINK-5805&lt;/a&gt;] -         improve docs for ProcessFunction
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5807&quot;&gt;FLINK-5807&lt;/a&gt;] -         improved wording for doc home page
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5837&quot;&gt;FLINK-5837&lt;/a&gt;] -         improve readability of the queryable state docs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5876&quot;&gt;FLINK-5876&lt;/a&gt;] -         Mention Scala type fallacies for queryable state client serializers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5877&quot;&gt;FLINK-5877&lt;/a&gt;] -         Fix Scala snippet in Async I/O API doc
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5894&quot;&gt;FLINK-5894&lt;/a&gt;] -         HA docs are misleading re: state backends
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5895&quot;&gt;FLINK-5895&lt;/a&gt;] -         Reduce logging aggressiveness of FileSystemSafetyNet
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-5938&quot;&gt;FLINK-5938&lt;/a&gt;] -         Replace ExecutionContext by Executor in Scheduler
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6212&quot;&gt;FLINK-6212&lt;/a&gt;] -         Missing reference to flink-avro dependency
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;        New Feature
-&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6139&quot;&gt;FLINK-6139&lt;/a&gt;] -         Documentation for building / preparing Flink for MapR
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;        Task
-&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-2883&quot;&gt;FLINK-2883&lt;/a&gt;] -         Add documentation to forbid key-modifying ReduceFunction
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-3903&quot;&gt;FLINK-3903&lt;/a&gt;] -         Homebrew Installation
-&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-<pubDate>Wed, 26 Apr 2017 20:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2017/04/26/release-1.2.1.html</link>
-<guid isPermaLink="true">/news/2017/04/26/release-1.2.1.html</guid>
 </item>
 
 </channel>
