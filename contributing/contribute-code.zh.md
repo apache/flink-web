@@ -12,6 +12,13 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 
 {% toc %}
 
+## 寻找可贡献的内容
+
+如果你已经有好的想法可以贡献，可以直接参考下面的 "代码贡献步骤"。
+如果你在寻找可贡献的内容，可以通过 [Flink 的问题跟踪列表](https://issues.apache.org/jira/projects/FLINK/issues) 浏览处于 open 状态且未被分配的 Jira 工单，然后根据 "代码贡献步骤" 中的描述来参与贡献。
+如果你是一个刚刚加入到 Flink 项目中的新人，并希望了解 Flink 及其贡献步骤，可以浏览 [适合新手的工单列表](https://issues.apache.org/jira/issues/?filter=12349196) 。
+这个列表中的工单都带有 _starter_ 标记，适合新手参与。
+
 ## 代码贡献步骤
 
 <style>
