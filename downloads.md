@@ -87,7 +87,7 @@ file system connector), please check out the [Hadoop Integration]({{ site.DOCS_B
 <p>
 <a href="{{ flink_release.sql_components_url }}" class="ga-track">SQL components download page</a>
 </p>
-{% endif %} 
+{% endif %}
 
 {% if flink_release.alternative_binaries %}
 #### Alternative Binaries
@@ -216,20 +216,20 @@ Note that the community is always open to discussing bugfix releases for even ol
 All Flink releases are available via [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) including checksums and cryptographic signatures. At the time of writing, this includes the following versions:
 
 ### Flink
-{% assign flink_releases = site.release_archive.flink %} 
+{% assign flink_releases = site.release_archive.flink %}
 <ul>
 {% for flink_release in flink_releases %}
 <li>
 {% if flink_release.version_short %}
-Flink {{ flink_release.version_long }} - {{ flink_release.release_date }} 
-(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
-<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}">Docs</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/java">Javadocs</a>, 
+Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>,
+<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}">Docs</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/java">Javadocs</a>,
 <a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/scala/index.html">Scaladocs</a>)
 {% else %}
-Flink {{ flink_release.version_long }} - {{ flink_release.release_date }} 
-(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
+Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>,
 <a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>)
 {% endif %}
 </li>
@@ -241,19 +241,18 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 <ul>
 {% for flink_statefun_release in flink_statefun_releases %}
 <li>
-Flink Stateful Functions {{ flink_statefun_release.version_long }} - {{ flink_statefun_release.release_date }} 
-(<a href="https://archive.apache.org/dist/flink/flink-statefun-{{ flink_statefun_release.version_long }}/flink-statefun-{{ flink_statefun_release.version_long }}-src.tgz">Source</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}">Docs</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}/api/java">Javadocs</a>) 
+Flink Stateful Functions {{ flink_statefun_release.version_long }} - {{ flink_statefun_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-statefun-{{ flink_statefun_release.version_long }}/flink-statefun-{{ flink_statefun_release.version_long }}-src.tgz">Source</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}">Docs</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-statefun-docs-release-{{ flink_statefun_release.version_short }}/api/java">Javadocs</a>)
 </li>
 {% endfor %}
 </ul>
 
 ### Flink-shaded
-{% assign shaded_releases = site.release_archive.flink_shaded | sort: 'release_date' | reverse %} 
+{% assign shaded_releases = site.release_archive.flink_shaded | sort: 'release_date' | reverse %}
 <ul>
 {% for shaded_release in shaded_releases %}
 <li>Flink-shaded {{ shaded_release.version }} - {{ shaded_release.release_date }} (<a href="https://archive.apache.org/dist/flink/flink-shaded-{{ shaded_release.version }}/flink-shaded-{{ shaded_release.version }}-src.tgz">Source</a>)</li>
 {% endfor %}
 </ul>
-
