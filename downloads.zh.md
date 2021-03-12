@@ -99,7 +99,7 @@ Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BA
 <p>
 <a href="{{ flink_release.sql_components_url }}" class="ga-track">SQL 组件下载页面</a>
 </p>
-{% endif %} 
+{% endif %}
 
 {% if flink_release.alternative_binaries %}
 #### 其他替代执行包
@@ -188,20 +188,20 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
 所有的 Flink 版本均可通过 [https://archive.apache.org/dist/flink/](https://archive.apache.org/dist/flink/) 获得，包括校验和加密签名。在撰写本文时，这包括以下版本：
 
 ### Flink
-{% assign flink_releases = site.release_archive.flink %} 
+{% assign flink_releases = site.release_archive.flink %}
 <ul>
 {% for flink_release in flink_releases %}
 <li>
 {% if flink_release.version_short %}
-Flink {{ flink_release.version_long }} - {{ flink_release.release_date }} 
-(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
-<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}">Docs</a>, 
-<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/java">Javadocs</a>, 
+Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>,
+<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}">Docs</a>,
+<a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/java">Javadocs</a>,
 <a href="{{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/api/scala/index.html">Scaladocs</a>)
 {% else %}
-Flink {{ flink_release.version_long }} - {{ flink_release.release_date }} 
-(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>, 
+Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>,
 <a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>)
 {% endif %}
 </li>
@@ -209,7 +209,7 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 </ul>
 
 ### Flink-shaded
-{% assign shaded_releases = site.release_archive.flink_shaded | sort: 'release_date' | reverse %} 
+{% assign shaded_releases = site.release_archive.flink_shaded | sort: 'release_date' | reverse %}
 <ul>
 {% for shaded_release in shaded_releases %}
 <li>Flink-shaded {{ shaded_release.version }} - {{ shaded_release.release_date }} (<a href="https://archive.apache.org/dist/flink/flink-shaded-{{ shaded_release.version }}/flink-shaded-{{ shaded_release.version }}-src.tgz">Source</a>)</li>
