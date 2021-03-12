@@ -20,8 +20,6 @@ $( document ).ready(function() {
 
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 
-如果你计划将 Apache Flink 与 Apache Hadoop 一起使用（在 YARN 上运行 Flink ，连接到 HDFS ，连接到 HBase ，或使用一些基于
-Hadoop 文件系统的 connector ），请查看 [Hadoop 集成]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/zh/ops/deployment/hadoop.html)文档。
 
 {% for flink_release in site.flink_releases %}
 
