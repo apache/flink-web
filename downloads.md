@@ -20,10 +20,6 @@ $( document ).ready(function() {
 
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
-If you plan to use Apache Flink together with Apache Hadoop (run Flink
-on YARN, connect to HDFS, connect to HBase, or use some Hadoop-based
-file system connector), please check out the [Hadoop Integration]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ site.FLINK_VERSION_STABLE_SHORT }}/ops/deployment/hadoop.html) documentation.
-
 {% for flink_release in site.flink_releases %}
 
 ## {{ flink_release.binary_release.name }}
