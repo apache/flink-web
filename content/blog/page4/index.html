@@ -222,6 +222,106 @@
       <p><p>In a previous post, we introduced the basics of Flink on Zeppelin and how to do Streaming ETL. In this second part of the “Flink on Zeppelin” series of posts, I will share how to 
 perform streaming data visualization via Flink on Zeppelin and how to use Apache Flink UDFs in Zeppelin.</p>
 
+<h1 id="streaming-data-visualization">Streaming Data Visualization</h1>
+
+<p>With <a href="https://zeppelin.apache.org/">Zeppelin</a>, you can build a real time streaming dashboard without writing any line of javascript/html/css code.</p>
+
+<p>Overall, Zeppelin supports 3 kinds of streaming data analytics:</p>
+
+<ul>
+  <li>Single Mode</li>
+  <li>Update Mode</li>
+  <li>Append Mode</li>
+</ul>
+
+<h3 id="single-mode">Single Mode</h3>
+<p>Single mode is used for cases when the result of a SQL statement is always one row, such as the following example. 
+The output format is translated in HTML, and you can specify a paragraph local property template for the final output content template. 
+And you can use <code>{i}</code> as placeholder for the {i}th column of the result.</p>
+
+<center>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_single_mode.gif" width="80%" alt="Single Mode" />
+</center>
+
+<h3 id="update-mode">Update Mode</h3>
+<p>Update mode is suitable for the cases when the output format is more than one row, 
+and will always be continuously updated. Here’s one example where we use <code>GROUP BY</code>.</p>
+
+<center>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_update_mode.gif" width="80%" alt="Update Mode" />
+</center>
+
+<h3 id="append-mode">Append Mode</h3>
+<p>Append mode is suitable for the cases when the output data is always appended. 
+For instance, the example below uses a tumble window.</p>
+
+<center>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_append_mode.gif" width="80%" alt="Append Mode" />
+</center>
+
+<h1 id="udf">UDF</h1>
+
+<p>SQL is a very powerful language, especially in expressing data flow. But most of the time, you need to handle complicated business logic that cannot be expressed by SQL.
+In these cases UDFs (user-defined functions) come particularly handy. In Zeppelin, you can write Scala or Python UDFs, while you can also import Scala, Python and Java UDFs.
+Here are 2 examples of Scala and Python UDFs:</p>
+
+<ul>
+  <li>Scala UDF</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-scala"><span class="o">%</span><span class="n">flink</span>
+
+<span class="k">class</span> <span class="nc">ScalaUpper</span> <span class="k">extends</span> <span class="nc">ScalarFunction</span> <span class="o">{</span>
+<span class="k">def</span> <span class="n">eval</span><span class="o">(</span><span class="n">str</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="n">str</span><span class="o">.</span><span class="n">toUpperCase</span>
+<span class="o">}</span>
+<span class="n">btenv</span><span class="o">.</span><span class="n">registerFunction</span><span class="o">(</span><span class="s">&quot;scala_upper&quot;</span><span class="o">,</span> <span class="k">new</span> <span class="nc">ScalaUpper</span><span class="o">())</span></code></pre></div>
+
+<ul>
+  <li>Python UDF</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-python"><span class="o">%</span><span class="n">flink</span><span class="o">.</span><span class="n">pyflink</span>
+
+<span class="k">class</span> <span class="nc">PythonUpper</span><span class="p">(</span><span class="n">ScalarFunction</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+ <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+<span class="n">bt_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s">&quot;python_upper&quot;</span><span class="p">,</span> <span class="n">udf</span><span class="p">(</span><span class="n">PythonUpper</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">()))</span></code></pre></div>
+
+<p>After you define the UDFs, you can use them directly in SQL:</p>
+
+<ul>
+  <li>Use Scala UDF in SQL</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_scala_udf.png" width="100%" alt="Scala UDF" />
+</center>
+
+<ul>
+  <li>Use Python UDF in SQL</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_python_udf.png" width="100%" alt="Python UDF" />
+</center>
+
+<h1 id="summary">Summary</h1>
+
+<p>In this post, we explained how to perform streaming data visualization via Flink on Zeppelin and how to use UDFs. 
+Besides that, you can do more in Zeppelin with Flink, such as batch processing, Hive integration and more.
+You can check the following articles for more details and here’s a list of <a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a> for your reference.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li><a href="http://zeppelin.apache.org">Apache Zeppelin official website</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-1-get-started-2591aaa6aa47">Part 1</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">Part 2</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754">Part 3</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-4-advanced-usage-998b74908cd9">Part 4</a></li>
+  <li><a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a></li>
+</ul>
 </p>
 
       <p><a href="/ecosystem/2020/06/23/flink-on-zeppelin-part2.html">Continue reading &raquo;</a></p>
@@ -239,6 +339,90 @@ perform streaming data visualization via Flink on Zeppelin and how to use Apache
 that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, 
 and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
 
+<h1 id="the-flink-interpreter-in-zeppelin-09">The Flink Interpreter in Zeppelin 0.9</h1>
+
+<p>The Flink interpreter can be accessed and configured from Zeppelin’s interpreter settings page. 
+The interpreter has been refactored so that Flink users can now take advantage of Zeppelin to write Flink applications in three languages, 
+namely Scala, Python (PyFlink) and SQL (for both batch &amp; streaming executions). 
+Zeppelin 0.9 now comes with the Flink interpreter group, consisting of the below five interpreters:</p>
+
+<ul>
+  <li>%flink     - Provides a Scala environment</li>
+  <li>%flink.pyflink   - Provides a python environment</li>
+  <li>%flink.ipyflink   - Provides an ipython environment</li>
+  <li>%flink.ssql     - Provides a stream sql environment</li>
+  <li>%flink.bsql     - Provides a batch sql environment</li>
+</ul>
+
+<p>Not only has the interpreter been extended to support writing Flink applications in three languages, but it has also extended the available execution modes for Flink that now include:</p>
+
+<ul>
+  <li>Running Flink in Local Mode</li>
+  <li>Running Flink in Remote Mode</li>
+  <li>Running Flink in Yarn Mode</li>
+</ul>
+
+<p>You can find more information about how to get started with Zeppelin and all the execution modes for Flink applications in <a href="https://github.com/apache/zeppelin/tree/master/notebook/Flink%20Tutorial">Zeppelin notebooks</a> in this post.</p>
+
+<h1 id="flink-on-zeppelin-for-stream-processing">Flink on Zeppelin for Stream processing</h1>
+
+<p>Performing stream processing jobs with Apache Flink on Zeppelin allows you to run most major streaming cases, 
+such as streaming ETL and real time data analytics, with the use of Flink SQL and specific UDFs. 
+Below we showcase how you can execute streaming ETL using Flink on Zeppelin:</p>
+
+<p>You can use Flink SQL to perform streaming ETL by following the steps below 
+(for the full tutorial, please refer to the <a href="https://github.com/apache/zeppelin/blob/master/notebook/Flink%20Tutorial/4.%20Streaming%20ETL_2EYD56B9B.zpln">Flink Tutorial/Streaming ETL tutorial</a> of the Zeppelin distribution):</p>
+
+<ul>
+  <li>Step 1. Create source table to represent the source data.</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table" />
+</center>
+
+<ul>
+  <li>Step 2. Create a sink table to represent the processed data.</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table" />
+</center>
+
+<ul>
+  <li>Step 3. After creating the source and sink table, we can insert them to our statement to trigger the stream processing job as the following:</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL" />
+</center>
+
+<ul>
+  <li>Step 4. After initiating the streaming job, you can use another SQL statement to query the sink table to verify the results of your job. Here you can see the top 10 records which will be refreshed every 3 seconds.</li>
+</ul>
+
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview" />
+</center>
+
+<h1 id="summary">Summary</h1>
+
+<p>In this post, we explained how the redesigned Flink interpreter works in Zeppelin 0.9.0 and provided some examples for performing streaming ETL jobs with 
+Flink and Zeppelin. In the next post, I will talk about how to do streaming data visualization via Flink on Zeppelin.
+Besides that, you can find an additional <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">tutorial for batch processing with Flink on Zeppelin</a> as well as using Flink on Zeppelin for 
+more advance operations like resource isolation, job concurrency &amp; parallelism, multiple Hadoop &amp; Hive environments and more on our series of posts on Medium.
+And here’s a list of <a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a> for your reference.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li><a href="http://zeppelin.apache.org">Apache Zeppelin official website</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-1-get-started-2591aaa6aa47">Part 1</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">Part 2</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754">Part 3</a></li>
+  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-4-advanced-usage-998b74908cd9">Part 4</a></li>
+  <li><a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a></li>
+</ul>
 </p>
 
       <p><a href="/news/2020/06/15/flink-on-zeppelin-part1.html">Continue reading &raquo;</a></p>
@@ -267,6 +451,90 @@ and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
 
       <p><p>The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.1.0! This release introduces new features around state expiration and performance improvements for co-located deployments, as well as other important changes that improve the stability and testability of the project. As the community around StateFun grows, the release cycle will follow this pattern of smaller and more frequent releases to incorporate user feedback and allow for faster iteration.</p>
 
+<p>The binary distribution and source artifacts are now available on the updated <a href="https://flink.apache.org/downloads.html">Downloads</a> page of the Flink website, and the most recent Python SDK distribution is available on <a href="https://pypi.org/project/apache-flink-statefun/">PyPI</a>. For more details, check the complete <a href="https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;version=12347861">release changelog</a> and the <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/">updated documentation</a>. We encourage you to download the release and share your feedback with the community through the <a href="https://flink.apache.org/community.html#mailing-lists">Flink mailing lists</a> or <a href="https://issues.apache.org/jira/browse/FLINK-18016?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Stateful%20Functions%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC">JIRA</a>!</p>
+
+<div class="page-toc">
+<ul id="markdown-toc">
+  <li><a href="#new-features-and-improvements" id="markdown-toc-new-features-and-improvements">New Features and Improvements</a>    <ul>
+      <li><a href="#support-for-state-time-to-live-ttl" id="markdown-toc-support-for-state-time-to-live-ttl">Support for State Time-To-Live (TTL)</a></li>
+      <li><a href="#improved-performance-with-unix-domain-sockets-uds" id="markdown-toc-improved-performance-with-unix-domain-sockets-uds">Improved Performance with UNIX Domain Sockets (UDS)</a></li>
+    </ul>
+  </li>
+  <li><a href="#important-changes" id="markdown-toc-important-changes">Important Changes</a></li>
+  <li><a href="#release-notes" id="markdown-toc-release-notes">Release Notes</a></li>
+  <li><a href="#list-of-contributors" id="markdown-toc-list-of-contributors">List of Contributors</a></li>
+</ul>
+
+</div>
+
+<h2 id="new-features-and-improvements">New Features and Improvements</h2>
+
+<h3 id="support-for-state-time-to-live-ttl">Support for State Time-To-Live (TTL)</h3>
+
+<p>Being able to define state expiration and a state cleanup strategy is a useful feature for stateful applications — for example, to keep state size from growing indefinitely or to work with sensitive data. In previous StateFun versions, users could implement this behavior manually using <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.0/sdk/java.html#sending-delayed-messages">delayed messages</a> as state expiration callbacks. For StateFun 2.1, the community has worked on enabling users to configure any persisted state to expire and be purged after a given duration (i.e. the state time-to-live) (<a href="https://issues.apache.org/jira/browse/FLINK-17644">FLINK-17644</a>, <a href="https://issues.apache.org/jira/browse/FLINK-17875">FLINK-17875</a>).</p>
+
+<p>Persisted state can be configured to expire after the last <em>write</em> operation (<code>AFTER_WRITE</code>) or after the last <em>read or write</em> operation (<code>AFTER_READ_AND_WRITE</code>). For the <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/sdk/java.html#state-expiration">Java SDK</a>, users can configure State TTL in the definition of their persisted fields:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="nd">@Persisted</span>
+<span class="n">PersistedValue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">table</span> <span class="o">=</span> <span class="n">PersistedValue</span><span class="o">.</span><span class="na">of</span><span class="o">(</span>
+    <span class="s">&quot;my-value&quot;</span><span class="o">,</span>
+    <span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+    <span class="n">Expiration</span><span class="o">.</span><span class="na">expireAfterWriting</span><span class="o">(</span><span class="n">Duration</span><span class="o">.</span><span class="na">ofHours</span><span class="o">(</span><span class="mi">1</span><span class="o">)));</span></code></pre></div>
+
+<p>For <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#remote-functions">remote functions</a> using e.g. the Python SDK, users can configure State TTL in their <code>module.yaml</code>:</p>
+
+<div class="highlight"><pre><code>functions:
+  - function:
+     states:
+       - name: xxxx
+         expireAfter: 5min # optional key
+</code></pre></div>
+
+<div class="alert alert-info">
+	<b>Note:</b>
+	The state expiration mode for remote functions is currently restricted to AFTER_READ_AND_WRITE, and the actual TTL being set is the longest duration across all registered state, not for each individual state entry. This is planned to be improved in upcoming releases (<a href="https://issues.apache.org/jira/browse/FLINK-17954">FLINK-17954</a>).
+</div>
+
+<h3 id="improved-performance-with-unix-domain-sockets-uds">Improved Performance with UNIX Domain Sockets (UDS)</h3>
+
+<p>Stateful functions can be <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#deployment-styles-for-functions">deployed in multiple ways</a>, even within the same application. For deployments where functions are <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-2.1/concepts/distributed_architecture.html#co-located-functions">co-located</a> with the Flink StateFun workers, it’s common to use Kubernetes to deploy pods consisting of a Flink StateFun container and the function sidecar container, communicating via the pod-local network. To improve the performance of such deployments, StateFun 2.1 allows using <a href="https://troydhanson.github.io/network/Unix_domain_sockets.html">Unix Domain Sockets</a> (UDS) to communicate between containers in the same pod (i.e. the same machine) (<a href="https://issues.apache.org/jira/browse/FLINK-17611">FLINK-17611</a>), which drastically reduces the overhead of going through the network stack.</p>
+
+<p>Users can <a href="https://ci.apache.org/projects/flink/flink-statefun-docs-master/sdk/modules.html#defining-functions">enable transport via UDS</a> in a remote module by specifying the following in their <code>module.yaml</code>:</p>
+
+<div class="highlight"><pre><code>functions:
+  - function:
+     spec:
+       - endpoint: http(s)+unix://&lt;socket-file-path&gt;/&lt;serve-url-path&gt;
+</code></pre></div>
+
+<h2 id="important-changes">Important Changes</h2>
+
+<ul>
+  <li>
+    <p>[<a href="https://issues.apache.org/jira/browse/FLINK-17712">FLINK-17712</a>] The Flink version in StateFun 2.1 has been upgraded to 1.10.1, the most recent patch version.</p>
+  </li>
+  <li>
+    <p>[<a href="https://issues.apache.org/jira/browse/FLINK-17533">FLINK-17533</a>] StateFun 2.1 now supports concurrent checkpoints, which means applications will no longer fail on savepoints that are triggered concurrently to a checkpoint.</p>
+  </li>
+  <li>
+    <p>[<a href="https://issues.apache.org/jira/browse/FLINK-16928">FLINK-16928</a>] StateFun 2.0 was using the Flink legacy scheduler due to a <a href="https://issues.apache.org/jira/browse/FLINK-16927">bug in Flink 1.10</a>. In 2.1, this change is reverted to using the new Flink scheduler again.</p>
+  </li>
+  <li>
+    <p>[<a href="https://issues.apache.org/jira/browse/FLINK-17516">FLINK-17516</a>] The coverage for end-to-end StateFun tests has been extended to also include exactly-once semantics verification (with failure recovery).</p>
+  </li>
+</ul>
+
+<h2 id="release-notes">Release Notes</h2>
+
+<p>Please review the <a href="https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;version=12347861">release notes</a> for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 2.1.</p>
+
+<h2 id="list-of-contributors">List of Contributors</h2>
+
+<p>The Apache Flink community would like to thank all contributors that have made this release possible:</p>
+
+<p>abc863377, Authuir, Chesnay Schepler, Congxian Qiu, David Anderson, Dian Fu, Francesco Guardiani, Igal Shilman, Marta Paes Moreira, Patrick Wiener, Rafi Aroch, Seth Wiesman, Stephan Ewen, Tzu-Li (Gordon) Tai</p>
+
+<p>If you’d like to get involved, we’re always <a href="https://github.com/apache/flink-statefun#contributing">looking for new contributors</a> — especially around SDKs for other languages like Go, Rust or Javascript.</p>
 </p>
 
       <p><a href="/news/2020/06/09/release-statefun-2.1.0.html">Continue reading &raquo;</a></p>
@@ -281,6 +549,383 @@ and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
        Yu Li (<a href="https://twitter.com/LiyuApache">@LiyuApache</a>)</p>
 
       <p><p>The Apache Flink community released the first bugfix version of the Apache Flink 1.10 series.</p>
+
+<p>This release includes 158 fixes and minor improvements for Flink 1.10.0. The list below includes a detailed list of all fixes and improvements.</p>
+
+<p>We highly recommend all users to upgrade to Flink 1.10.1.</p>
+
+<div class="alert alert-info">
+  <p><span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
+FLINK-16684 changed the builders of the StreamingFileSink to make them compilable in Scala. This change is source compatible but binary incompatible. If using the StreamingFileSink, please recompile your user code against 1.10.1 before upgrading.</p>
+</div>
+
+<div class="alert alert-info">
+  <p><span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
+FLINK-16683 Flink no longer supports starting clusters with .bat scripts. Users should instead use environments like WSL or Cygwin and work with the .sh scripts.</p>
+</div>
+
+<p>Updated Maven dependencies:</p>
+
+<div class="highlight"><pre><code class="language-xml"><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-java<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.10.1<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-streaming-java_2.11<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.10.1<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-clients_2.11<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.10.1<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></div>
+
+<p>You can find the binaries on the updated <a href="/downloads.html">Downloads page</a>.</p>
+
+<p>List of resolved issues:</p>
+
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14126">FLINK-14126</a>] -         Elasticsearch Xpack Machine Learning doesn&#39;t support ARM
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15143">FLINK-15143</a>] -         Create document for FLIP-49 TM memory model and configuration guide
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15561">FLINK-15561</a>] -         Unify Kerberos credentials checking
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15790">FLINK-15790</a>] -         Make FlinkKubeClient and its implementations asynchronous
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15817">FLINK-15817</a>] -         Kubernetes Resource leak while deployment exception happens
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16049">FLINK-16049</a>] -         Remove outdated &quot;Best Practices&quot; section from Application Development Section
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16131">FLINK-16131</a>] -         Translate &quot;Amazon S3&quot; page of &quot;File Systems&quot; into Chinese
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16389">FLINK-16389</a>] -         Bump Kafka 0.10 to 0.10.2.2
+</li>
+</ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-2336">FLINK-2336</a>] -         ArrayIndexOufOBoundsException in TypeExtractor when mapping
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-10918">FLINK-10918</a>] -         incremental Keyed state with RocksDB throws cannot create directory error in windows
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-11193">FLINK-11193</a>] -         Rocksdb timer service factory configuration option is not settable per job
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-13483">FLINK-13483</a>] -         PrestoS3FileSystemITCase.testDirectoryListing fails on Travis
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14038">FLINK-14038</a>] -         ExecutionGraph deploy failed due to akka timeout
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14311">FLINK-14311</a>] -         Streaming File Sink end-to-end test failed on Travis
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14316">FLINK-14316</a>] -         Stuck in &quot;Job leader ... lost leadership&quot; error
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15417">FLINK-15417</a>] -         Remove the docker volume or mount when starting Mesos e2e cluster
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15669">FLINK-15669</a>] -         SQL client can&#39;t cancel flink job
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15772">FLINK-15772</a>] -         Shaded Hadoop S3A with credentials provider end-to-end test fails on travis
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15811">FLINK-15811</a>] -         StreamSourceOperatorWatermarksTest.testNoMaxWatermarkOnAsyncCancel fails on Travis
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15812">FLINK-15812</a>] -         HistoryServer archiving is done in Dispatcher main thread
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15838">FLINK-15838</a>] -         Dangling CountDownLatch.await(timeout)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15852">FLINK-15852</a>] -         Job is submitted to the wrong session cluster
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15904">FLINK-15904</a>] -         Make Kafka Consumer work with activated &quot;disableGenericTypes()&quot;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15936">FLINK-15936</a>] -         TaskExecutorTest#testSlotAcceptance deadlocks
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15953">FLINK-15953</a>] -         Job Status is hard to read for some Statuses
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16013">FLINK-16013</a>] -         List and map config options could not be parsed correctly
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16014">FLINK-16014</a>] -         S3 plugin ClassNotFoundException SAXParser
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16025">FLINK-16025</a>] -         Service could expose blob server port mismatched with JM Container
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16026">FLINK-16026</a>] -         Travis failed due to python setup
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16047">FLINK-16047</a>] -         Blink planner produces wrong aggregate results with state clean up
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16067">FLINK-16067</a>] -         Flink&#39;s CalciteParser swallows error position information
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16068">FLINK-16068</a>] -         table with keyword-escaped columns and computed_column_expression columns
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16070">FLINK-16070</a>] -         Blink planner can not extract correct unique key for UpsertStreamTableSink
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16108">FLINK-16108</a>] -         StreamSQLExample is failed if running in blink planner
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16111">FLINK-16111</a>] -         Kubernetes deployment does not respect &quot;taskmanager.cpu.cores&quot;.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16113">FLINK-16113</a>] -         ExpressionReducer shouldn&#39;t escape the reduced string value
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16115">FLINK-16115</a>] -         Aliyun oss filesystem could not work with plugin mechanism
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16139">FLINK-16139</a>] -         Co-location constraints are not reset on task recovery in DefaultScheduler
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16161">FLINK-16161</a>] -         Statistics zero should be unknown in HiveCatalog
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16170">FLINK-16170</a>] -         SearchTemplateRequest ClassNotFoundException when use flink-sql-connector-elasticsearch7
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16220">FLINK-16220</a>] -         JsonRowSerializationSchema throws cast exception : NullNode cannot be cast to ArrayNode
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16231">FLINK-16231</a>] -         Hive connector is missing jdk.tools exclusion against Hive 2.x.x
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16234">FLINK-16234</a>] -         Fix unstable cases in StreamingJobGraphGeneratorTest
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16241">FLINK-16241</a>] -         Remove the license and notice file in flink-ml-lib module on release-1.10 branch
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16242">FLINK-16242</a>] -         BinaryGeneric serialization error cause checkpoint failure
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16262">FLINK-16262</a>] -         Class loader problem with FlinkKafkaProducer.Semantic.EXACTLY_ONCE and usrlib directory
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16269">FLINK-16269</a>] -         Generic type can not be matched when convert table to stream.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16281">FLINK-16281</a>] -         parameter &#39;maxRetryTimes&#39; can not work in JDBCUpsertTableSink
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16301">FLINK-16301</a>] -         Annoying &quot;Cannot find FunctionDefinition&quot; messages with SQL for f_proctime or =
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16308">FLINK-16308</a>] -         SQL connector download links are broken
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16313">FLINK-16313</a>] -         flink-state-processor-api: surefire execution unstable on Azure
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16331">FLINK-16331</a>] -         Remove source licenses for old WebUI
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16345">FLINK-16345</a>] -         Computed column can not refer time attribute column
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16360">FLINK-16360</a>] -          connector on hive 2.0.1 don&#39;t  support type conversion from STRING to VARCHAR
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16371">FLINK-16371</a>] -         HadoopCompressionBulkWriter fails with &#39;java.io.NotSerializableException&#39;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16373">FLINK-16373</a>] -         EmbeddedLeaderService: IllegalStateException: The RPC connection is already closed
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16413">FLINK-16413</a>] -         Reduce hive source parallelism when limit push down
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16414">FLINK-16414</a>] -         create udaf/udtf function using sql casuing ValidationException: SQL validation failed. null
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16433">FLINK-16433</a>] -         TableEnvironmentImpl doesn&#39;t clear buffered operations when it fails to translate the operation
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16435">FLINK-16435</a>] -         Replace since decorator with versionadd to mark the version an API was introduced
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16467">FLINK-16467</a>] -         MemorySizeTest#testToHumanReadableString() is not portable
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16526">FLINK-16526</a>] -         Fix exception when computed column expression references a keyword column name
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16541">FLINK-16541</a>] -         Document of table.exec.shuffle-mode is incorrect
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16550">FLINK-16550</a>] -         HadoopS3* tests fail with NullPointerException exceptions
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16560">FLINK-16560</a>] -         Forward Configuration in PackagedProgramUtils#getPipelineFromProgram
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16567">FLINK-16567</a>] -         Get the API error of the StreamQueryConfig on Page &quot;Query Configuration&quot;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16573">FLINK-16573</a>] -         Kinesis consumer does not properly shutdown RecordFetcher threads
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16576">FLINK-16576</a>] -         State inconsistency on restore with memory state backends
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16626">FLINK-16626</a>] -         Prevent REST handler from being closed more than once
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16632">FLINK-16632</a>] -         SqlDateTimeUtils#toSqlTimestamp(String, String) may yield incorrect result
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16635">FLINK-16635</a>] -         Incompatible okio dependency in flink-metrics-influxdb module
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16646">FLINK-16646</a>] -         flink read orc file throw a NullPointerException
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16647">FLINK-16647</a>] -         Miss file extension when inserting to hive table with compression
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16652">FLINK-16652</a>] -         BytesColumnVector should init buffer in Hive 3.x
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16662">FLINK-16662</a>] -         Blink Planner failed to generate JobGraph for POJO DataStream converting to Table (Cannot determine simple type name)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16664">FLINK-16664</a>] -         Unable to set DataStreamSource parallelism to default (-1)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16675">FLINK-16675</a>] -         TableEnvironmentITCase. testClearOperation fails on travis nightly build
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16684">FLINK-16684</a>] -         StreamingFileSink builder does not work with Scala
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16696">FLINK-16696</a>] -         Savepoint trigger documentation is insufficient
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16703">FLINK-16703</a>] -         AkkaRpcActor state machine does not record transition to terminating state.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16705">FLINK-16705</a>] -         LocalExecutor tears down MiniCluster before client can retrieve JobResult
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16718">FLINK-16718</a>] -         KvStateServerHandlerTest leaks Netty ByteBufs
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16727">FLINK-16727</a>] -         Fix cast exception when having time point literal as parameters
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16732">FLINK-16732</a>] -         Failed to call Hive UDF with constant return value
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16740">FLINK-16740</a>] -         OrcSplitReaderUtil::logicalTypeToOrcType fails to create decimal type with precision &lt; 10
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16759">FLINK-16759</a>] -         HiveModuleTest failed to compile on release-1.10
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16767">FLINK-16767</a>] -         Failed to read Hive table with RegexSerDe
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16771">FLINK-16771</a>] -         NPE when filtering by decimal column
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16821">FLINK-16821</a>] -         Run Kubernetes test failed with invalid named &quot;minikube&quot;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16822">FLINK-16822</a>] -         The config set by SET command does not work
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16825">FLINK-16825</a>] -         PrometheusReporterEndToEndITCase should rely on path returned by DownloadCache
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16836">FLINK-16836</a>] -         Losing leadership does not clear rpc connection in JobManagerLeaderListener
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16860">FLINK-16860</a>] -         Failed to push filter into OrcTableSource when upgrading to 1.9.2
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16888">FLINK-16888</a>] -         Re-add jquery license file under &quot;/licenses&quot;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16901">FLINK-16901</a>] -         Flink Kinesis connector NOTICE should have contents of AWS KPL&#39;s THIRD_PARTY_NOTICES file manually merged in
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16913">FLINK-16913</a>] -         ReadableConfigToConfigurationAdapter#getEnum throws UnsupportedOperationException
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16916">FLINK-16916</a>] -         The logic of NullableSerializer#copy is wrong
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16944">FLINK-16944</a>] -         Compile error in. DumpCompiledPlanTest and PreviewPlanDumpTest
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16980">FLINK-16980</a>] -         Python UDF doesn&#39;t work with protobuf 3.6.1
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16981">FLINK-16981</a>] -         flink-runtime tests are crashing the JVM on Java11 because of PowerMock
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17062">FLINK-17062</a>] -         Fix the conversion from Java row type to Python row type
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17066">FLINK-17066</a>] -         Update pyarrow version bounds less than 0.14.0
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17093">FLINK-17093</a>] -         Python UDF doesn&#39;t work when the input column is from composite field
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17107">FLINK-17107</a>] -         CheckpointCoordinatorConfiguration#isExactlyOnce() is inconsistent with StreamConfig#getCheckpointMode()
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17114">FLINK-17114</a>] -         When the pyflink job runs in local mode and the command &quot;python&quot; points to Python 2.7, the startup of the Python UDF worker will fail.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17124">FLINK-17124</a>] -         The PyFlink Job runs into infinite loop if the Python UDF imports job code
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17152">FLINK-17152</a>] -         FunctionDefinitionUtil generate wrong resultType and  acc type of AggregateFunctionDefinition
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17308">FLINK-17308</a>] -         ExecutionGraphCache cachedExecutionGraphs not cleanup cause OOM Bug
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17313">FLINK-17313</a>] -         Validation error when insert decimal/varchar with precision into sink using TypeInformation of row
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17334">FLINK-17334</a>] -          Flink does not support HIVE UDFs with primitive return types
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17338">FLINK-17338</a>] -         LocalExecutorITCase.testBatchQueryCancel test timeout
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17359">FLINK-17359</a>] -         Entropy key is not resolved if flink-s3-fs-hadoop is added as a plugin
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17403">FLINK-17403</a>] -         Fix invalid classpath in BashJavaUtilsITCase
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17471">FLINK-17471</a>] -         Move LICENSE and NOTICE files to root directory of python distribution
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17483">FLINK-17483</a>] -         Update flink-sql-connector-elasticsearch7 NOTICE file to correctly reflect bundled dependencies
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17496">FLINK-17496</a>] -         Performance regression with amazon-kinesis-producer 0.13.1 in Flink 1.10.x
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17499">FLINK-17499</a>] -         LazyTimerService used to register timers via State Processing API incorrectly mixes event time timers with processing time timers
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17514">FLINK-17514</a>] -         TaskCancelerWatchdog does not kill TaskManager
+</li>
+</ul>
+
+<h2>        New Feature
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17275">FLINK-17275</a>] -         Add core training exercises
+</li>
+</ul>
+
+<h2>        Improvement
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-9656">FLINK-9656</a>] -         Environment java opts for flink run
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15094">FLINK-15094</a>] -         Warning about using private constructor of java.nio.DirectByteBuffer in Java 11
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15584">FLINK-15584</a>] -         Give nested data type of ROWs in ValidationException
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15616">FLINK-15616</a>] -         Move boot error messages from python-udf-boot.log to taskmanager&#39;s log file
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15989">FLINK-15989</a>] -         Rewrap OutOfMemoryError in allocateUnpooledOffHeap with better message
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16018">FLINK-16018</a>] -         Improve error reporting when submitting batch job (instead of AskTimeoutException)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16125">FLINK-16125</a>] -         Make zookeeper.connect optional for Kafka connectors
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16167">FLINK-16167</a>] -         Update documentation about python shell execution
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16191">FLINK-16191</a>] -         Improve error message on Windows when RocksDB Paths are too long
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16280">FLINK-16280</a>] -         Fix sample code errors in the documentation about elasticsearch connector
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16288">FLINK-16288</a>] -         Setting the TTL for discarding task pods on Kubernetes.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16293">FLINK-16293</a>] -         Document using plugins in Kubernetes
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16343">FLINK-16343</a>] -         Improve exception message when reading an unbounded source in batch mode
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16406">FLINK-16406</a>] -         Increase default value for JVM Metaspace to minimise its OutOfMemoryError
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16538">FLINK-16538</a>] -         Restructure Python Table API documentation
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16604">FLINK-16604</a>] -         Column key in JM configuration is too narrow
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16683">FLINK-16683</a>] -         Remove scripts for starting Flink on Windows
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16697">FLINK-16697</a>] -         Disable JMX rebinding
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16763">FLINK-16763</a>] -         Should not use BatchTableEnvironment for Python UDF in the document of flink-1.10
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16772">FLINK-16772</a>] -         Bump derby to 10.12.1.1+ or exclude it
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16790">FLINK-16790</a>] -         enables the interpretation of backslash escapes
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16862">FLINK-16862</a>] -         Remove example url in quickstarts
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16874">FLINK-16874</a>] -         Respect the dynamic options when calculating memory options in taskmanager.sh
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16942">FLINK-16942</a>] -         ES 5 sink should allow users to select netty transport client
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17065">FLINK-17065</a>] -         Add documentation about the Python versions supported for PyFlink
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17125">FLINK-17125</a>] -         Add a Usage Notes Page to Answer Common Questions Encountered by PyFlink Users
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17254">FLINK-17254</a>] -         Improve the PyFlink documentation and examples to use SQL DDL for source/sink definition
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17276">FLINK-17276</a>] -         Add checkstyle to training exercises
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17277">FLINK-17277</a>] -         Apply IntelliJ recommendations to training exercises
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17278">FLINK-17278</a>] -         Add Travis to the training exercises
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17279">FLINK-17279</a>] -         Use gradle build scans for training exercises
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17316">FLINK-17316</a>] -         Have HourlyTips solutions use TumblingEventTimeWindows.of
+</li>
+</ul>
+
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15741">FLINK-15741</a>] -         Fix TTL docs after enabling RocksDB compaction filter by default (needs Chinese translation)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15933">FLINK-15933</a>] -         update content of how generic table schema is stored in hive via HiveCatalog
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15991">FLINK-15991</a>] -         Create Chinese documentation for FLIP-49 TM memory model
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16004">FLINK-16004</a>] -         Exclude flink-rocksdb-state-memory-control-test jars from the dist
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16454">FLINK-16454</a>] -         Update the copyright year in NOTICE files
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16530">FLINK-16530</a>] -         Add documentation about &quot;GROUPING SETS&quot; and &quot;CUBE&quot; support in streaming mode
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16592">FLINK-16592</a>] -         The doc of Streaming File Sink has a mistake of grammar
+</li>
+</ul>
 
 </p>
 
@@ -323,6 +968,127 @@ and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
 
       <p><p>The Apache Flink community released the third bugfix version of the Apache Flink 1.9 series.</p>
 
+<p>This release includes 38 fixes and minor improvements for Flink 1.9.2. The list below includes a detailed list of all fixes and improvements.</p>
+
+<p>We highly recommend all users to upgrade to Flink 1.9.3.</p>
+
+<p>Updated Maven dependencies:</p>
+
+<div class="highlight"><pre><code class="language-xml"><span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-java<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.9.3<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-streaming-java_2.11<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.9.3<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+  <span class="nt">&lt;groupId&gt;</span>org.apache.flink<span class="nt">&lt;/groupId&gt;</span>
+  <span class="nt">&lt;artifactId&gt;</span>flink-clients_2.11<span class="nt">&lt;/artifactId&gt;</span>
+  <span class="nt">&lt;version&gt;</span>1.9.3<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span></code></pre></div>
+
+<p>You can find the binaries on the updated <a href="/downloads.html">Downloads page</a>.</p>
+
+<p>List of resolved issues:</p>
+
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15143">FLINK-15143</a>] -         Create document for FLIP-49 TM memory model and configuration guide
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16389">FLINK-16389</a>] -         Bump Kafka 0.10 to 0.10.2.2
+</li>
+</ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-11193">FLINK-11193</a>] -         Rocksdb timer service factory configuration option is not settable per job
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14316">FLINK-14316</a>] -         Stuck in &quot;Job leader ... lost leadership&quot; error
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14560">FLINK-14560</a>] -         The value of taskmanager.memory.size in flink-conf.yaml is set to zero will cause taskmanager not to work 
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15010">FLINK-15010</a>] -         Temp directories flink-netty-shuffle-* are not cleaned up
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15085">FLINK-15085</a>] -         HistoryServer dashboard config json out of sync
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15386">FLINK-15386</a>] -         SingleJobSubmittedJobGraphStore.putJobGraph has a logic error
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15575">FLINK-15575</a>] -         Azure Filesystem Shades Wrong Package &quot;httpcomponents&quot;
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15638">FLINK-15638</a>] -         releasing/create_release_branch.sh does not set version in flink-python/pyflink/version.py
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15812">FLINK-15812</a>] -         HistoryServer archiving is done in Dispatcher main thread
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15844">FLINK-15844</a>] -         Removal of JobWithJars.buildUserCodeClassLoader method without Configuration breaks backwards compatibility
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15863">FLINK-15863</a>] -         Fix docs stating that savepoints are relocatable
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16047">FLINK-16047</a>] -         Blink planner produces wrong aggregate results with state clean up
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16242">FLINK-16242</a>] -         BinaryGeneric serialization error cause checkpoint failure
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16308">FLINK-16308</a>] -         SQL connector download links are broken
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16373">FLINK-16373</a>] -         EmbeddedLeaderService: IllegalStateException: The RPC connection is already closed
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16573">FLINK-16573</a>] -         Kinesis consumer does not properly shutdown RecordFetcher threads
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16576">FLINK-16576</a>] -         State inconsistency on restore with memory state backends
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16696">FLINK-16696</a>] -         Savepoint trigger documentation is insufficient
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16703">FLINK-16703</a>] -         AkkaRpcActor state machine does not record transition to terminating state.
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16836">FLINK-16836</a>] -         Losing leadership does not clear rpc connection in JobManagerLeaderListener
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16860">FLINK-16860</a>] -         Failed to push filter into OrcTableSource when upgrading to 1.9.2
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16916">FLINK-16916</a>] -         The logic of NullableSerializer#copy is wrong
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-17062">FLINK-17062</a>] -         Fix the conversion from Java row type to Python row type
+</li>
+</ul>
+
+<h2>        Improvement
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-14278">FLINK-14278</a>] -         Pass in ioExecutor into AbstractDispatcherResourceManagerComponentFactory
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15908">FLINK-15908</a>] -         Add description of support &#39;pip install&#39; to 1.9.x documents
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15909">FLINK-15909</a>] -         Add PyPI release process into the subsequent release of 1.9.x 
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-15938">FLINK-15938</a>] -         Idle state not cleaned in StreamingJoinOperator and StreamingSemiAntiJoinOperator
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16018">FLINK-16018</a>] -         Improve error reporting when submitting batch job (instead of AskTimeoutException)
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16031">FLINK-16031</a>] -         Improve the description in the README file of PyFlink 1.9.x
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16167">FLINK-16167</a>] -         Update documentation about python shell execution
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16280">FLINK-16280</a>] -         Fix sample code errors in the documentation about elasticsearch connector
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16697">FLINK-16697</a>] -         Disable JMX rebinding
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16862">FLINK-16862</a>] -         Remove example url in quickstarts
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16942">FLINK-16942</a>] -         ES 5 sink should allow users to select netty transport client
+</li>
+</ul>
+
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-11767">FLINK-11767</a>] -         Introduce new TypeSerializerUpgradeTestBase, new PojoSerializerUpgradeTest
+</li>
+<li>[<a href="https://issues.apache.org/jira/browse/FLINK-16454">FLINK-16454</a>] -         Update the copyright year in NOTICE files
+</li>
+</ul>
 </p>
 
       <p><a href="/news/2020/04/24/release-1.9.3.html">Continue reading &raquo;</a></p>
