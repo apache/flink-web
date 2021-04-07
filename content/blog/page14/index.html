@@ -211,6 +211,450 @@ for iterations makes it a suitable platform for large-scale graph analytics.
 By leveraging delta iterations, Gelly is able to map various graph processing models such as
 vertex-centric or gather-sum-apply to Flink dataflows.</p>
 
+<p>Gelly allows Flink users to perform end-to-end data analysis in a single system.
+Gelly can be seamlessly used with Flink’s DataSet API,
+which means that pre-processing, graph creation, analysis, and post-processing can be done
+in the same application. At the end of this post, we will go through a step-by-step example
+in order to demonstrate that loading, transformation, filtering, graph creation, and analysis
+can be performed in a single Flink program.</p>
+
+<p><strong>Overview</strong></p>
+
+<ol>
+  <li><a href="#what-is-gelly">What is Gelly?</a></li>
+  <li><a href="#graph-representation-and-creation">Graph Representation and Creation</a></li>
+  <li><a href="#transformations-and-utilities">Transformations and Utilities</a></li>
+  <li><a href="#iterative-graph-processing">Iterative Graph Processing</a></li>
+  <li><a href="#library-of-graph-algorithms">Library of Graph Algorithms</a></li>
+  <li><a href="#use-case-music-profiles">Use-Case: Music Profiles</a></li>
+  <li><a href="#ongoing-and-future-work">Ongoing and Future Work</a></li>
+</ol>
+
+<p><a href="#top"></a></p>
+
+<h2 id="what-is-gelly">What is Gelly?</h2>
+
+<p>Gelly is a Graph API for Flink. It is currently supported in both Java and Scala.
+The Scala methods are implemented as wrappers on top of the basic Java operations.
+The API contains a set of utility functions for graph analysis, supports iterative graph
+processing and introduces a library of graph algorithms.</p>
+
+<center>
+<img src="/img/blog/flink-stack.png" style="width:90%;margin:15px" />
+</center>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="graph-representation-and-creation">Graph Representation and Creation</h2>
+
+<p>In Gelly, a graph is represented by a DataSet of vertices and a DataSet of edges.
+A vertex is defined by its unique ID and a value, whereas an edge is defined by its source ID,
+target ID, and value. A vertex or edge for which a value is not specified will simply have the
+value type set to <code>NullValue</code>.</p>
+
+<p>A graph can be created from:</p>
+
+<ol>
+  <li><strong>DataSet of edges</strong> and an optional <strong>DataSet of vertices</strong> using <code>Graph.fromDataSet()</code></li>
+  <li><strong>DataSet of Tuple3</strong> and an optional <strong>DataSet of Tuple2</strong> using <code>Graph.fromTupleDataSet()</code></li>
+  <li><strong>Collection of edges</strong> and an optional <strong>Collection of vertices</strong> using <code>Graph.fromCollection()</code></li>
+</ol>
+
+<p>In all three cases, if the vertices are not provided,
+Gelly will automatically produce the vertex IDs from the edge source and target IDs.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="transformations-and-utilities">Transformations and Utilities</h2>
+
+<p>These are methods of the Graph class and include common graph metrics, transformations
+and mutations as well as neighborhood aggregations.</p>
+
+<h4 id="common-graph-metrics">Common Graph Metrics</h4>
+<p>These methods can be used to retrieve several graph metrics and properties, such as the number
+of vertices, edges and the node degrees.</p>
+
+<h4 id="transformations">Transformations</h4>
+<p>The transformation methods enable several Graph operations, using high-level functions similar to
+the ones provided by the batch processing API. These transformations can be applied one after the
+other, yielding a new Graph after each step, in a fashion similar to operators on DataSets:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">inputGraph</span><span class="o">.</span><span class="na">getUndirected</span><span class="o">().</span><span class="na">mapEdges</span><span class="o">(</span><span class="k">new</span> <span class="nf">CustomEdgeMapper</span><span class="o">());</span></code></pre></div>
+
+<p>Transformations can be applied on:</p>
+
+<ol>
+  <li><strong>Vertices</strong>: <code>mapVertices</code>, <code>joinWithVertices</code>, <code>filterOnVertices</code>, <code>addVertex</code>, …</li>
+  <li><strong>Edges</strong>: <code>mapEdges</code>, <code>filterOnEdges</code>, <code>removeEdge</code>, …</li>
+  <li><strong>Triplets</strong> (source vertex, target vertex, edge): <code>getTriplets</code></li>
+</ol>
+
+<h4 id="neighborhood-aggregations">Neighborhood Aggregations</h4>
+
+<p>Neighborhood methods allow vertices to perform an aggregation on their first-hop neighborhood.
+This provides a vertex-centric view, where each vertex can access its neighboring edges and neighbor values.</p>
+
+<p><code>reduceOnEdges()</code> provides access to the neighboring edges of a vertex,
+i.e. the edge value and the vertex ID of the edge endpoint. In order to also access the
+neighboring vertices’ values, one should call the <code>reduceOnNeighbors()</code> function.
+The scope of the neighborhood is defined by the EdgeDirection parameter, which can be IN, OUT or ALL,
+to gather in-coming, out-going or all edges (neighbors) of a vertex.</p>
+
+<p>The two neighborhood
+functions mentioned above can only be used when the aggregation function is associative and commutative.
+In case the function does not comply with these restrictions or if it is desirable to return zero,
+one or more values per vertex, the more general  <code>groupReduceOnEdges()</code> and 
+<code>groupReduceOnNeighbors()</code> functions must be called.</p>
+
+<p>Consider the following graph, for instance:</p>
+
+<center>
+<img src="/img/blog/neighborhood.png" style="width:60%;margin:15px" />
+</center>
+
+<p>Assume you would want to compute the sum of the values of all incoming neighbors for each vertex.
+We will call the <code>reduceOnNeighbors()</code> aggregation method since the sum is an associative and commutative operation and the neighbors’ values are needed:</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="n">graph</span><span class="o">.</span><span class="na">reduceOnNeighbors</span><span class="o">(</span><span class="k">new</span> <span class="nf">SumValues</span><span class="o">(),</span> <span class="n">EdgeDirection</span><span class="o">.</span><span class="na">IN</span><span class="o">);</span></code></pre></div>
+
+<p>The vertex with id 1 is the only node that has no incoming edges. The result is therefore:</p>
+
+<center>
+<img src="/img/blog/reduce-on-neighbors.png" style="width:90%;margin:15px" />
+</center>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="iterative-graph-processing">Iterative Graph Processing</h2>
+
+<p>During the past few years, many different programming models for distributed graph processing
+have been introduced: <a href="http://delivery.acm.org/10.1145/2490000/2484843/a22-salihoglu.pdf?ip=141.23.53.206&amp;id=2484843&amp;acc=ACTIVE%20SERVICE&amp;key=2BA2C432AB83DA15.0F42380CB8DD3307.4D4702B0C3E38B35.4D4702B0C3E38B35&amp;CFID=706313474&amp;CFTOKEN=60107876&amp;__acm__=1440408958_b131e035942130653e5782409b5c0cde">vertex-centric</a>,
+<a href="http://researcher.ibm.com/researcher/files/us-ytian/giraph++.pdf">partition-centric</a>, <a href="http://www.eecs.harvard.edu/cs261/notes/gonzalez-2012.htm">gather-apply-scatter</a>,
+<a href="http://infoscience.epfl.ch/record/188535/files/paper.pdf">edge-centric</a>, <a href="http://www.vldb.org/pvldb/vol7/p1673-quamar.pdf">neighborhood-centric</a>.
+Each one of these models targets a specific class of graph applications and each corresponding
+system implementation optimizes the runtime respectively. In Gelly, we would like to exploit the
+flexible dataflow model and the efficient iterations of Flink, to support multiple distributed
+graph processing models on top of the same system.</p>
+
+<p>Currently, Gelly has methods for writing vertex-centric programs and provides support for programs
+implemented using the gather-sum(accumulate)-apply model. We are also considering to offer support
+for the partition-centric computation model, using Fink’s <code>mapPartition()</code> operator.
+This model exposes the partition structure to the user and allows local graph structure exploitation
+inside a partition to avoid unnecessary communication.</p>
+
+<h4 id="vertex-centric">Vertex-centric</h4>
+
+<p>Gelly wraps Flink’s <a href="https://ci.apache.org/projects/flink/flink-docs-release-0.8/spargel_guide.html">Spargel APi</a> to 
+support the vertex-centric, Pregel-like programming model. Gelly’s <code>runVertexCentricIteration</code> method accepts two user-defined functions:</p>
+
+<ol>
+  <li><strong>MessagingFunction:</strong> defines what messages a vertex sends out for the next superstep.</li>
+  <li><strong>VertexUpdateFunction:</strong>* defines how a vertex will update its value based on the received messages.</li>
+</ol>
+
+<p>The method will execute the vertex-centric iteration on the input Graph and return a new Graph, with updated vertex values.</p>
+
+<p>Gelly’s vertex-centric programming model exploits Flink’s efficient delta iteration operators.
+Many iterative graph algorithms expose non-uniform behavior, where some vertices converge to
+their final value faster than others. In such cases, the number of vertices that need to be
+recomputed during an iteration decreases as the algorithm moves towards convergence.</p>
+
+<p>For example, consider a Single Source Shortest Paths problem on the following graph, where S
+is the source node, i is the iteration counter and the edge values represent distances between nodes:</p>
+
+<center>
+<img src="/img/blog/sssp.png" style="width:90%;margin:15px" />
+</center>
+
+<p>In each iteration, a vertex receives distances from its neighbors and adopts the minimum of
+these distances and its current distance as the new value. Then, it  propagates its new value
+to its neighbors. If a vertex does not change value during an iteration, there is no need for
+it to propagate its old distance to its neighbors; as they have already taken it into account.</p>
+
+<p>Flink’s <code>IterateDelta</code> operator permits exploitation of this property as well as the
+execution of computations solely on the active parts of the graph. The operator receives two inputs:</p>
+
+<ol>
+  <li>the <strong>Solution Set</strong>, which represents the current state of the input and</li>
+  <li>the <strong>Workset</strong>, which determines which parts of the graph will be recomputed in the next iteration.</li>
+</ol>
+
+<p>In the SSSP example above, the Workset contains the vertices which update their distances.
+The user-defined iterative function is applied on these inputs to produce state updates.
+These updates are efficiently applied on the state, which is kept in memory.</p>
+
+<center>
+<img src="/img/blog/iteration.png" style="width:60%;margin:15px" />
+</center>
+
+<p>Internally, a vertex-centric iteration is a Flink delta iteration, where the initial Solution Set
+is the vertex set of the input graph and the Workset is created by selecting the active vertices,
+i.e. the ones that updated their value in the previous iteration. The messaging and vertex-update
+functions are user-defined functions wrapped inside coGroup operators. In each superstep,
+the active vertices (Workset) are coGrouped with the edges to generate the neighborhoods for
+each vertex. The messaging function is then applied on each neighborhood. Next, the result of the
+messaging function is coGrouped with the current vertex values (Solution Set) and the user-defined
+vertex-update function is applied on the result. The output of this coGroup operator is finally
+used to update the Solution Set and create the Workset input for the next iteration.</p>
+
+<center>
+<img src="/img/blog/vertex-centric-plan.png" style="width:40%;margin:15px" />
+</center>
+
+<h4 id="gather-sum-apply">Gather-Sum-Apply</h4>
+
+<p>Gelly supports a variation of the popular Gather-Sum-Apply-Scatter  computation model,
+introduced by PowerGraph. In GSA, a vertex pulls information from its neighbors as opposed to the
+vertex-centric approach where the updates are pushed from the incoming neighbors.
+The <code>runGatherSumApplyIteration()</code> accepts three user-defined functions:</p>
+
+<ol>
+  <li><strong>GatherFunction:</strong> gathers neighboring partial values along in-edges.</li>
+  <li><strong>SumFunction:</strong> accumulates/reduces the values into a single one.</li>
+  <li><strong>ApplyFunction:</strong> uses the result computed in the sum phase to update the current vertex’s value.</li>
+</ol>
+
+<p>Similarly to vertex-centric, GSA leverages Flink’s delta iteration operators as, in many cases,
+vertex values do not need to be recomputed during an iteration.</p>
+
+<p>Let us reconsider the Single Source Shortest Paths algorithm. In each iteration, a vertex:</p>
+
+<ol>
+  <li><strong>Gather</strong> retrieves distances from its neighbors summed up with the corresponding edge values;</li>
+  <li><strong>Sum</strong> compares the newly obtained distances in order to extract the minimum;</li>
+  <li><strong>Apply</strong> and finally adopts the minimum distance computed in the sum step,
+provided that it is lower than its current value. If a vertex’s value does not change during
+an iteration, it no longer propagates its distance.</li>
+</ol>
+
+<p>Internally, a Gather-Sum-Apply Iteration is a Flink delta iteration where the initial solution
+set is the vertex input set and the workset is created by selecting the active vertices.</p>
+
+<p>The three functions: gather, sum and apply are user-defined functions wrapped in map, reduce
+and join operators respectively. In each superstep, the active vertices are joined with the
+edges in order to create neighborhoods for each vertex. The gather function is then applied on
+the neighborhood values via a map function. Afterwards, the result is grouped by the vertex ID
+and reduced using the sum function. Finally, the outcome of the sum phase is joined with the
+current vertex values (solution set), the values are updated, thus creating a new workset that
+serves as input for the next iteration.</p>
+
+<center>
+<img src="/img/blog/GSA-plan.png" style="width:40%;margin:15px" />
+</center>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="library-of-graph-algorithms">Library of Graph Algorithms</h2>
+
+<p>We are building a library of graph algorithms in Gelly, to easily analyze large-scale graphs.
+These algorithms extend the <code>GraphAlgorithm</code> interface and can be simply executed on
+the input graph by calling a <code>run()</code> method.</p>
+
+<p>We currently have implementations of the following algorithms:</p>
+
+<ol>
+  <li>PageRank</li>
+  <li>Single-Source-Shortest-Paths</li>
+  <li>Label Propagation</li>
+  <li>Community Detection (based on <a href="http://arxiv.org/pdf/0808.2633.pdf">this paper</a>)</li>
+  <li>Connected Components</li>
+  <li>GSA Connected Components</li>
+  <li>GSA PageRank</li>
+  <li>GSA Single-Source-Shortest-Paths</li>
+</ol>
+
+<p>Gelly also offers implementations of common graph algorithms through <a href="https://github.com/apache/flink/tree/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example">examples</a>.
+Among them, one can find graph weighting schemes, like Jaccard Similarity and Euclidean Distance Weighting, 
+as well as computation of common graph metrics.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="use-case-music-profiles">Use-Case: Music Profiles</h2>
+
+<p>In the following section, we go through a use-case scenario that combines the Flink DataSet API
+with Gelly in order to process users’ music preferences to suggest additions to their playlist.</p>
+
+<p>First, we read a user’s music profile which is in the form of user-id, song-id and the number of
+plays that each song has. We then filter out the list of songs the users do not wish to see in their
+playlist. Then we compute the top songs per user (i.e. the songs a user listened to the most).
+Finally, as a separate use-case on the same data set, we create a user-user similarity graph based
+on the common songs and use this resulting graph to detect communities by calling Gelly’s Label Propagation
+library method.</p>
+
+<p>For running the example implementation, please use the 0.10-SNAPSHOT version of Flink as a
+dependency. The full example code base can be found <a href="https://github.com/apache/flink/blob/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example/MusicProfiles.java">here</a>. The public data set used for testing
+can be found <a href="http://labrosa.ee.columbia.edu/millionsong/tasteprofile">here</a>. This data set contains <strong>48,373,586</strong> real user-id, song-id and
+play-count triplets.</p>
+
+<p><strong>Note:</strong> The code snippets in this post try to reduce verbosity by skipping type parameters of generic functions. Please have a look at <a href="https://github.com/apache/flink/blob/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example/MusicProfiles.java">the full example</a> for the correct and complete code.</p>
+
+<h4 id="filtering-out-bad-records">Filtering out Bad Records</h4>
+
+<p>After reading the <code>(user-id, song-id, play-count)</code> triplets from a CSV file and after parsing a
+text file in order to retrieve the list of songs that a user would not want to include in a
+playlist, we use a coGroup function to filter out the mismatches.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="c1">// read the user-song-play triplets.</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">triplets</span> <span class="o">=</span>
+    <span class="n">getUserSongTripletsData</span><span class="o">(</span><span class="n">env</span><span class="o">);</span>
+
+<span class="c1">// read the mismatches dataset and extract the songIDs</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">validTriplets</span> <span class="o">=</span> <span class="n">triplets</span>
+        <span class="o">.</span><span class="na">coGroup</span><span class="o">(</span><span class="n">mismatches</span><span class="o">).</span><span class="na">where</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">equalTo</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="nf">CoGroupFunction</span><span class="o">()</span> <span class="o">{</span>
+                <span class="kt">void</span> <span class="nf">coGroup</span><span class="o">(</span><span class="n">Iterable</span> <span class="n">triplets</span><span class="o">,</span> <span class="n">Iterable</span> <span class="n">invalidSongs</span><span class="o">,</span> <span class="n">Collector</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="k">if</span> <span class="o">(!</span><span class="n">invalidSongs</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+                            <span class="k">for</span> <span class="o">(</span><span class="n">Tuple3</span> <span class="n">triplet</span> <span class="o">:</span> <span class="n">triplets</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// valid triplet</span>
+                                <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">triplet</span><span class="o">);</span>
+                            <span class="o">}</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span></code></pre></div>
+
+<p>The coGroup simply takes the triplets whose song-id (second field) matches the song-id from the
+mismatches list (first field) and if the iterator was empty for a certain triplet, meaning that
+there were no mismatches found, the triplet associated with that song is collected.</p>
+
+<h4 id="compute-the-top-songs-per-user">Compute the Top Songs per User</h4>
+
+<p>As a next step, we would like to see which songs a user played more often. To this end, we
+build a user-song weighted, bipartite graph in which edge source vertices are users, edge target
+vertices are songs and where the weight represents the number of times the user listened to that
+certain song.</p>
+
+<center>
+<img src="/img/blog/user-song-graph.png" style="width:90%;margin:15px" />
+</center>
+
+<div class="highlight"><pre><code class="language-java"><span class="c1">// create a user -&gt; song weighted bipartite graph where the edge weights</span>
+<span class="c1">// correspond to play counts</span>
+<span class="n">Graph</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">NullValue</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">userSongGraph</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="na">fromTupleDataSet</span><span class="o">(</span><span class="n">validTriplets</span><span class="o">,</span> <span class="n">env</span><span class="o">);</span></code></pre></div>
+
+<p>Consult the <a href="https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/">Gelly guide</a> for guidelines 
+on how to create a graph from a given DataSet of edges or from a collection.</p>
+
+<p>To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
+aggregation over the first hop neighborhood taking just the edges into consideration. We will
+basically iterate through the edge value and collect the target (song) of the maximum weight edge.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="c1">//get the top track (most listened to) for each user</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&gt;</span> <span class="n">usersWithTopTrack</span> <span class="o">=</span> <span class="n">userSongGraph</span>
+        <span class="o">.</span><span class="na">groupReduceOnEdges</span><span class="o">(</span><span class="k">new</span> <span class="nf">GetTopSongPerUser</span><span class="o">(),</span> <span class="n">EdgeDirection</span><span class="o">.</span><span class="na">OUT</span><span class="o">);</span>
+
+<span class="kd">class</span> <span class="nc">GetTopSongPerUser</span> <span class="kd">implements</span> <span class="n">EdgesFunctionWithVertexValue</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">iterateEdges</span><span class="o">(</span><span class="n">Vertex</span> <span class="n">vertex</span><span class="o">,</span> <span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span> <span class="n">edges</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">int</span> <span class="n">maxPlaycount</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">topSong</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>
+
+        <span class="k">for</span> <span class="o">(</span><span class="n">Edge</span> <span class="n">edge</span> <span class="o">:</span> <span class="n">edges</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">edge</span><span class="o">.</span><span class="na">getValue</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">maxPlaycount</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">maxPlaycount</span> <span class="o">=</span> <span class="n">edge</span><span class="o">.</span><span class="na">getValue</span><span class="o">();</span>
+                <span class="n">topSong</span> <span class="o">=</span> <span class="n">edge</span><span class="o">.</span><span class="na">getTarget</span><span class="o">();</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">Tuple2</span><span class="o">(</span><span class="n">vertex</span><span class="o">.</span><span class="na">getId</span><span class="o">(),</span> <span class="n">topSong</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<h4 id="creating-a-user-user-similarity-graph">Creating a User-User Similarity Graph</h4>
+
+<p>Clustering users based on common interests, in this case, common top songs, could prove to be
+very useful for advertisements or for recommending new musical compilations. In a user-user graph,
+two users who listen to the same song will simply be linked together through an edge as depicted
+in the figure below.</p>
+
+<center>
+<img src="/img/blog/user-song-to-user-user.png" style="width:90%;margin:15px" />
+</center>
+
+<p>To form the user-user graph in Flink, we will simply take the edges from the user-song graph
+(left-hand side of the image), group them by song-id, and then add all the users (source vertex ids)
+to an ArrayList.</p>
+
+<p>We then match users who listened to the same song two by two, creating a new edge to mark their
+common interest (right-hand side of the image).</p>
+
+<p>Afterwards, we perform a <code>distinct()</code> operation to avoid creation of duplicate data.
+Considering that we now have the DataSet of edges which present interest, creating a graph is as
+straightforward as a call to the <code>Graph.fromDataSet()</code> method.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="c1">// create a user-user similarity graph:</span>
+<span class="c1">// two users that listen to the same song are connected</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span> <span class="n">similarUsers</span> <span class="o">=</span> <span class="n">userSongGraph</span><span class="o">.</span><span class="na">getEdges</span><span class="o">()</span>
+        <span class="c1">// filter out user-song edges that are below the playcount threshold</span>
+        <span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="k">new</span> <span class="n">FilterFunction</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+            	<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">filter</span><span class="o">(</span><span class="n">Edge</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">edge</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="o">(</span><span class="n">edge</span><span class="o">.</span><span class="na">getValue</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">playcountThreshold</span><span class="o">);</span>
+                <span class="o">}</span>
+        <span class="o">})</span>
+        <span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">reduceGroup</span><span class="o">(</span><span class="k">new</span> <span class="nf">GroupReduceFunction</span><span class="o">()</span> <span class="o">{</span>
+                <span class="kt">void</span> <span class="nf">reduce</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span> <span class="n">edges</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">List</span> <span class="n">users</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ArrayList</span><span class="o">();</span>
+                    <span class="k">for</span> <span class="o">(</span><span class="n">Edge</span> <span class="n">edge</span> <span class="o">:</span> <span class="n">edges</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">users</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">edge</span><span class="o">.</span><span class="na">getSource</span><span class="o">());</span>
+                        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">users</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">users</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+                                <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="nf">Edge</span><span class="o">(</span><span class="n">users</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">),</span> <span class="n">users</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">j</span><span class="o">)));</span>
+                            <span class="o">}</span>
+                        <span class="o">}</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+        <span class="o">})</span>
+        <span class="o">.</span><span class="na">distinct</span><span class="o">();</span>
+
+<span class="n">Graph</span> <span class="n">similarUsersGraph</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="na">fromDataSet</span><span class="o">(</span><span class="n">similarUsers</span><span class="o">).</span><span class="na">getUndirected</span><span class="o">();</span></code></pre></div>
+
+<p>After having created a user-user graph, it would make sense to detect the various communities
+formed. To do so, we first initialize each vertex with a numeric label using the
+<code>joinWithVertices()</code> function that takes a data set of Tuple2 as a parameter and joins
+the id of a vertex with the first element of the tuple, afterwards applying a map function.
+Finally, we call the <code>run()</code> method with the LabelPropagation library method passed
+as a parameter. In the end, the vertices will be updated to contain the most frequent label
+among their neighbors.</p>
+
+<div class="highlight"><pre><code class="language-java"><span class="c1">// detect user communities using label propagation</span>
+<span class="c1">// initialize each vertex with a unique numeric label</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span> <span class="n">idsWithInitialLabels</span> <span class="o">=</span> <span class="n">DataSetUtils</span>
+        <span class="o">.</span><span class="na">zipWithUniqueId</span><span class="o">(</span><span class="n">similarUsersGraph</span><span class="o">.</span><span class="na">getVertexIds</span><span class="o">())</span>
+        <span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+                <span class="nd">@Override</span>
+                <span class="kd">public</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;</span> <span class="nf">map</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="n">tuple2</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;(</span><span class="n">tuple2</span><span class="o">.</span><span class="na">f1</span><span class="o">,</span> <span class="n">tuple2</span><span class="o">.</span><span class="na">f0</span><span class="o">);</span>
+                <span class="o">}</span>
+        <span class="o">});</span>
+
+<span class="c1">// update the vertex values and run the label propagation algorithm</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Vertex</span><span class="o">&gt;</span> <span class="n">verticesWithCommunity</span> <span class="o">=</span> <span class="n">similarUsersGraph</span>
+        <span class="o">.</span><span class="na">joinWithVertices</span><span class="o">(</span><span class="n">idsWithlLabels</span><span class="o">,</span> <span class="k">new</span> <span class="nf">MapFunction</span><span class="o">()</span> <span class="o">{</span>
+                <span class="kd">public</span> <span class="n">Long</span> <span class="nf">map</span><span class="o">(</span><span class="n">Tuple2</span> <span class="n">idWithLabel</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="n">idWithLabel</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span>
+                <span class="o">}</span>
+        <span class="o">})</span>
+        <span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="k">new</span> <span class="nf">LabelPropagation</span><span class="o">(</span><span class="n">numIterations</span><span class="o">))</span>
+        <span class="o">.</span><span class="na">getVertices</span><span class="o">();</span></code></pre></div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="ongoing-and-future-work">Ongoing and Future Work</h2>
+
+<p>Currently, Gelly matches the basic functionalities provided by most state-of-the-art graph
+processing systems. Our vision is to turn Gelly into more than “yet another library for running
+PageRank-like algorithms” by supporting generic iterations, implementing graph partitioning,
+providing bipartite graph support and by offering numerous other features.</p>
+
+<p>We are also enriching Flink Gelly with a set of operators suitable for highly skewed graphs
+as well as a Graph API built on Flink Streaming.</p>
+
+<p>In the near future, we would like to see how Gelly can be integrated with graph visualization
+tools, graph database systems and sampling techniques.</p>
+
+<p>Curious? Read more about our plans for Gelly in the <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Gelly">roadmap</a>.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="links">Links</h2>
+<p><a href="https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/">Gelly Documentation</a></p>
 </p>
 
       <p><a href="/news/2015/08/24/introducing-flink-gelly.html">Continue reading &raquo;</a></p>
@@ -226,6 +670,235 @@ vertex-centric or gather-sum-apply to Flink dataflows.</p>
 
       <p><p>The Apache Flink community is pleased to announce the availability of the 0.9.0 release. The release is the result of many months of hard work within the Flink community. It contains many new features and improvements which were previewed in the 0.9.0-milestone1 release and have been polished since then. This is the largest Flink release so far.</p>
 
+<p><a href="http://flink.apache.org/downloads.html">Download the release</a> and check out <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/">the documentation</a>. Feedback through the Flink<a href="http://flink.apache.org/community.html#mailing-lists"> mailing lists</a> is, as always, very welcome!</p>
+
+<h2 id="new-features">New Features</h2>
+
+<h3 id="exactly-once-fault-tolerance-for-streaming-programs">Exactly-once Fault Tolerance for streaming programs</h3>
+
+<p>This release introduces a new fault tolerance mechanism for streaming dataflows. The new checkpointing algorithm takes data sources and also user-defined state into account and recovers failures such that all records are reflected exactly once in the operator states.</p>
+
+<p>The checkpointing algorithm is lightweight and driven by barriers that are periodically injected into the data streams at the sources. As such, it has an extremely low coordination overhead and is able to sustain very high throughput rates. User-defined state can be automatically backed up to configurable storage by the fault tolerance mechanism.</p>
+
+<p>Please refer to <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/streaming_guide.html#stateful-computation">the documentation on stateful computation</a> for details in how to use fault tolerant data streams with Flink.</p>
+
+<p>The fault tolerance mechanism requires data sources that can replay recent parts of the stream, such as <a href="http://kafka.apache.org">Apache Kafka</a>. Read more <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/streaming_guide.html#apache-kafka">about how to use the persistent Kafka source</a>.</p>
+
+<h3 id="table-api">Table API</h3>
+
+<p>Flink’s new Table API offers a higher-level abstraction for interacting with structured data sources. The Table API allows users to execute logical, SQL-like queries on distributed data sets while allowing them to freely mix declarative queries with regular Flink operators. Here is an example that groups and joins two tables:</p>
+
+<div class="highlight"><pre><code class="language-scala"><span class="k">val</span> <span class="n">clickCounts</span> <span class="k">=</span> <span class="n">clicks</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;user</span><span class="o">).</span><span class="n">select</span><span class="o">(</span><span class="-Symbol">&#39;userId</span><span class="o">,</span> <span class="-Symbol">&#39;url</span><span class="o">.</span><span class="n">count</span> <span class="n">as</span> <span class="-Symbol">&#39;count</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">activeUsers</span> <span class="k">=</span> <span class="n">users</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">clickCounts</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">where</span><span class="o">(</span><span class="-Symbol">&#39;id</span> <span class="o">===</span> <span class="-Symbol">&#39;userId</span> <span class="o">&amp;&amp;</span> <span class="-Symbol">&#39;count</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="o">).</span><span class="n">select</span><span class="o">(</span><span class="-Symbol">&#39;username</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">,</span> <span class="o">...)</span></code></pre></div>
+
+<p>Tables consist of logical attributes that can be selected by name rather than physical Java and Scala data types. This alleviates a lot of boilerplate code for common ETL tasks and raises the abstraction for Flink programs. Tables are available for both static and streaming data sources (DataSet and DataStream APIs).</p>
+
+<p><a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/table.html">Check out the Table guide for Java and Scala</a>.</p>
+
+<h3 id="gelly-graph-processing-api">Gelly Graph Processing API</h3>
+
+<p>Gelly is a Java Graph API for Flink. It contains a set of utilities for graph analysis, support for iterative graph processing and a library of graph algorithms. Gelly exposes a Graph data structure that wraps DataSets for vertices and edges, as well as methods for creating graphs from DataSets, graph transformations and utilities (e.g., in- and out- degrees of vertices), neighborhood aggregations, iterative vertex-centric graph processing, as well as a library of common graph algorithms, including PageRank, SSSP, label propagation, and community detection.</p>
+
+<p>Gelly internally builds on top of Flink’s<a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/iterations.html"> delta iterations</a>. Iterative graph algorithms are executed leveraging mutable state, achieving similar performance with specialized graph processing systems.</p>
+
+<p>Gelly will eventually subsume Spargel, Flink’s Pregel-like API.</p>
+
+<p>Note: The Gelly library is still in beta status and subject to improvements and heavy performance tuning.</p>
+
+<p><a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/gelly_guide.html">Check out the Gelly guide</a>.</p>
+
+<h3 id="flink-machine-learning-library">Flink Machine Learning Library</h3>
+
+<p>This release includes the first version of Flink’s Machine Learning library. The library’s pipeline approach, which has been strongly inspired by scikit-learn’s abstraction of transformers and predictors, makes it easy to quickly set up a data processing pipeline and to get your job done.</p>
+
+<p>Flink distinguishes between transformers and predictors. Transformers are components which transform your input data into a new format allowing you to extract features, cleanse your data or to sample from it. Predictors on the other hand constitute the components which take your input data and train a model on it. The model you obtain from the learner can then be evaluated and used to make predictions on unseen data.</p>
+
+<p>Currently, the machine learning library contains transformers and predictors to do multiple tasks. The library supports multiple linear regression using stochastic gradient descent to scale to large data sizes. Furthermore, it includes an alternating least squares (ALS) implementation to factorizes large matrices. The matrix factorization can be used to do collaborative filtering. An implementation of the communication efficient distributed dual coordinate ascent (CoCoA) algorithm is the latest addition to the library. The CoCoA algorithm can be used to train distributed soft-margin SVMs.</p>
+
+<p>Note: The ML library is still in beta status and subject to improvements and heavy performance tuning.</p>
+
+<p><a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/libs/ml/">Check out FlinkML</a></p>
+
+<h3 id="flink-on-yarn-leveraging-apache-tez">Flink on YARN leveraging Apache Tez</h3>
+
+<p>We are introducing a new execution mode for Flink to be able to run restricted Flink programs on top of<a href="http://tez.apache.org"> Apache Tez</a>. This mode retains Flink’s APIs, optimizer, as well as Flink’s runtime operators, but instead of wrapping those in Flink tasks that are executed by Flink TaskManagers, it wraps them in Tez runtime tasks and builds a Tez DAG that represents the program.</p>
+
+<p>By using Flink on Tez, users have an additional choice for an execution platform for Flink programs. While Flink’s distributed runtime favors low latency, streaming shuffles, and iterative algorithms, Tez focuses on scalability and elastic resource usage in shared YARN clusters.</p>
+
+<p><a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/setup/flink_on_tez.html">Get started with Flink on Tez</a>.</p>
+
+<h3 id="reworked-distributed-runtime-on-akka">Reworked Distributed Runtime on Akka</h3>
+
+<p>Flink’s RPC system has been replaced by the widely adopted<a href="http://akka.io"> Akka</a> framework. Akka’s concurrency model offers the right abstraction to develop a fast as well as robust distributed system. By using Akka’s own failure detection mechanism the stability of Flink’s runtime is significantly improved, because the system can now react in proper form to node outages. Furthermore, Akka improves Flink’s scalability by introducing asynchronous messages to the system. These asynchronous messages allow Flink to be run on many more nodes than before.</p>
+
+<h3 id="improved-yarn-support">Improved YARN support</h3>
+
+<p>Flink’s YARN client contains several improvements, such as a detached mode for starting a YARN session in the background, the ability to submit a single Flink job to a YARN cluster without starting a session, including a “fire and forget” mode. Flink is now also able to reallocate failed YARN containers to maintain the size of the requested cluster. This feature allows to implement fault-tolerant setups on top of YARN. There is also an internal Java API to deploy and control a running YARN cluster. This is being used by system integrators to easily control Flink on YARN within their Hadoop 2 cluster.</p>
+
+<p><a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/setup/yarn_setup.html">See the YARN docs</a>.</p>
+
+<h3 id="static-code-analysis-for-the-flink-optimizer-opening-the-udf-blackboxes">Static Code Analysis for the Flink Optimizer: Opening the UDF blackboxes</h3>
+
+<p>This release introduces a first version of a static code analyzer that pre-interprets functions written by the user to get information about the function’s internal dataflow. The code analyzer can provide useful information about <a href="http://ci.apache.org/projects/flink/flink-docs-release-0.9/apis/programming_guide.html#semantic-annotations">forwarded fields</a> to Flink’s optimizer and thus speedup job executions. It also informs if the code contains obvious mistakes. For stability reasons, the code analyzer is initially disabled by default. It can be activated through</p>
+
+<p>ExecutionEnvironment.getExecutionConfig().setCodeAnalysisMode(…)</p>
+
+<p>either as an assistant that gives hints during the implementation or by directly applying the optimizations that have been found.</p>
+
+<h2 id="more-improvements-and-fixes">More Improvements and Fixes</h2>
+
+<ul>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1605">FLINK-1605</a>: Flink is not exposing its Guava and ASM dependencies to Maven projects depending on Flink. We use the maven-shade-plugin to relocate these dependencies into our own namespace. This allows users to use any Guava or ASM version.</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1605">FLINK-1417</a>: Automatic recognition and registration of Java Types at Kryo and the internal serializers: Flink has its own type handling and serialization framework falling back to Kryo for types that it cannot handle. To get the best performance Flink is automatically registering all types a user is using in their program with Kryo.Flink also registers serializers for Protocol Buffers, Thrift, Avro and YodaTime automatically. Users can also manually register serializers to Kryo (https://issues.apache.org/jira/browse/FLINK-1399)</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1296">FLINK-1296</a>: Add support for sorting very large records</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1679">FLINK-1679</a>: “degreeOfParallelism” methods renamed to “parallelism”</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1501">FLINK-1501</a>: Add metrics library for monitoring TaskManagers</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1760">FLINK-1760</a>: Add support for building Flink with Scala 2.11</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1648">FLINK-1648</a>: Add a mode where the system automatically sets the parallelism to the available task slots</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1622">FLINK-1622</a>: Add groupCombine operator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1589">FLINK-1589</a>: Add option to pass Configuration to LocalExecutor</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1504">FLINK-1504</a>: Add support for accessing secured HDFS clusters in standalone mode</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1478">FLINK-1478</a>: Add strictly local input split assignment</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1512">FLINK-1512</a>: Add CsvReader for reading into POJOs.</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1461">FLINK-1461</a>: Add sortPartition operator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1450">FLINK-1450</a>: Add Fold operator to the Streaming api</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1389">FLINK-1389</a>: Allow setting custom file extensions for files created by the FileOutputFormat</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1236">FLINK-1236</a>: Add support for localization of Hadoop Input Splits</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1179">FLINK-1179</a>: Add button to JobManager web interface to request stack trace of a TaskManager</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1105">FLINK-1105</a>: Add support for locally sorted output</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1688">FLINK-1688</a>: Add socket sink</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1436">FLINK-1436</a>: Improve usability of command line interface</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2174">FLINK-2174</a>: Allow comments in ‘slaves’ file</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1698">FLINK-1698</a>: Add polynomial base feature mapper to ML library</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1697">FLINK-1697</a>: Add alternating least squares algorithm for matrix factorization to ML library</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1792">FLINK-1792</a>: FLINK-456 Improve TM Monitoring: CPU utilization, hide graphs by default and show summary only</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1672">FLINK-1672</a>: Refactor task registration/unregistration</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2001">FLINK-2001</a>: DistanceMetric cannot be serialized</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1676">FLINK-1676</a>: enableForceKryo() is not working as expected</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1959">FLINK-1959</a>: Accumulators BROKEN after Partitioning</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1696">FLINK-1696</a>: Add multiple linear regression to ML library</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1820">FLINK-1820</a>: Bug in DoubleParser and FloatParser - empty String is not casted to 0</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1985">FLINK-1985</a>: Streaming does not correctly forward ExecutionConfig to runtime</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1828">FLINK-1828</a>: Impossible to output data to an HBase table</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1952">FLINK-1952</a>: Cannot run ConnectedComponents example: Could not allocate a slot on instance</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1848">FLINK-1848</a>: Paths containing a Windows drive letter cannot be used in FileOutputFormats</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1954">FLINK-1954</a>: Task Failures and Error Handling</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2004">FLINK-2004</a>: Memory leak in presence of failed checkpoints in KafkaSource</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2132">FLINK-2132</a>: Java version parsing is not working for OpenJDK</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2098">FLINK-2098</a>: Checkpoint barrier initiation at source is not aligned with snapshotting</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2069">FLINK-2069</a>: writeAsCSV function in DataStream Scala API creates no file</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2092">FLINK-2092</a>: Document (new) behavior of print() and execute()</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2177">FLINK-2177</a>: NullPointer in task resource release</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2054">FLINK-2054</a>: StreamOperator rework removed copy calls when passing output to a chained operator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2196">FLINK-2196</a>: Missplaced Class in flink-java SortPartitionOperator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2191">FLINK-2191</a>: Inconsistent use of Closure Cleaner in Streaming API</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2206">FLINK-2206</a>: JobManager webinterface shows 5 finished jobs at most</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-2188">FLINK-2188</a>: Reading from big HBase Tables</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1781">FLINK-1781</a>: Quickstarts broken due to Scala Version Variables</p>
+  </li>
+</ul>
+
+<h2 id="notice">Notice</h2>
+
+<p>The 0.9 series of Flink is the last version to support Java 6. If you are still using Java 6, please consider upgrading to Java 8 (Java 7 ended its free support in April 2015).</p>
+
+<p>Flink will require at least Java 7 in major releases after 0.9.0.</p>
 </p>
 
       <p><a href="/news/2015/06/24/announcing-apache-flink-0.9.0-release.html">Continue reading &raquo;</a></p>
@@ -273,6 +946,243 @@ available in the upcoming 0.9 release. Interested users are encouraged
 to try it out and give feedback. As the version number indicates, this
 release is a preview release that contains known issues.</p>
 
+<p>You can download the release
+<a href="http://flink.apache.org/downloads.html#preview">here</a> and check out the
+latest documentation
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/">here</a>. Feedback
+through the Flink <a href="http://flink.apache.org/community.html#mailing-lists">mailing
+lists</a> is, as
+always, very welcome!</p>
+
+<h2 id="new-features">New Features</h2>
+
+<h3 id="table-api">Table API</h3>
+
+<p>Flink’s new Table API offers a higher-level abstraction for
+interacting with structured data sources. The Table API allows users
+to execute logical, SQL-like queries on distributed data sets while
+allowing them to freely mix declarative queries with regular Flink
+operators. Here is an example that groups and joins two tables:</p>
+
+<div class="highlight"><pre><code class="language-scala"><span class="k">val</span> <span class="n">clickCounts</span> <span class="k">=</span> <span class="n">clicks</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="-Symbol">&#39;user</span><span class="o">).</span><span class="n">select</span><span class="o">(</span><span class="-Symbol">&#39;userId</span><span class="o">,</span> <span class="-Symbol">&#39;url</span><span class="o">.</span><span class="n">count</span> <span class="n">as</span> <span class="-Symbol">&#39;count</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">activeUsers</span> <span class="k">=</span> <span class="n">users</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">clickCounts</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">where</span><span class="o">(</span><span class="-Symbol">&#39;id</span> <span class="o">===</span> <span class="-Symbol">&#39;userId</span> <span class="o">&amp;&amp;</span> <span class="-Symbol">&#39;count</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="o">).</span><span class="n">select</span><span class="o">(</span><span class="-Symbol">&#39;username</span><span class="o">,</span> <span class="-Symbol">&#39;count</span><span class="o">,</span> <span class="o">...)</span></code></pre></div>
+
+<p>Tables consist of logical attributes that can be selected by name
+rather than physical Java and Scala data types. This alleviates a lot
+of boilerplate code for common ETL tasks and raises the abstraction
+for Flink programs. Tables are available for both static and streaming
+data sources (DataSet and DataStream APIs).</p>
+
+<p>Check out the Table guide for Java and Scala
+<a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/libs/table.html">here</a>.</p>
+
+<h3 id="gelly-graph-processing-api">Gelly Graph Processing API</h3>
+
+<p>Gelly is a Java Graph API for Flink. It contains a set of utilities
+for graph analysis, support for iterative graph processing and a
+library of graph algorithms. Gelly exposes a Graph data structure that
+wraps DataSets for vertices and edges, as well as methods for creating
+graphs from DataSets, graph transformations and utilities (e.g., in-
+and out- degrees of vertices), neighborhood aggregations, iterative
+vertex-centric graph processing, as well as a library of common graph
+algorithms, including PageRank, SSSP, label propagation, and community
+detection.</p>
+
+<p>Gelly internally builds on top of Flink’s <a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/iterations.html">delta
+iterations</a>. Iterative
+graph algorithms are executed leveraging mutable state, achieving
+similar performance with specialized graph processing systems.</p>
+
+<p>Gelly will eventually subsume Spargel, Flink’s Pregel-like API. Check
+out the Gelly guide
+<a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/batch/libs/gelly.html">here</a>.</p>
+
+<h3 id="flink-machine-learning-library">Flink Machine Learning Library</h3>
+
+<p>This release includes the first version of Flink’s Machine Learning
+library. The library’s pipeline approach, which has been strongly
+inspired by scikit-learn’s abstraction of transformers and estimators,
+makes it easy to quickly set up a data processing pipeline and to get
+your job done.</p>
+
+<p>Flink distinguishes between transformers and learners. Transformers
+are components which transform your input data into a new format
+allowing you to extract features, cleanse your data or to sample from
+it. Learners on the other hand constitute the components which take
+your input data and train a model on it. The model you obtain from the
+learner can then be evaluated and used to make predictions on unseen
+data.</p>
+
+<p>Currently, the machine learning library contains transformers and
+learners to do multiple tasks. The library supports multiple linear
+regression using a stochastic gradient implementation to scale to
+large data sizes. Furthermore, it includes an alternating least
+squares (ALS) implementation to factorizes large matrices. The matrix
+factorization can be used to do collaborative filtering. An
+implementation of the communication efficient distributed dual
+coordinate ascent (CoCoA) algorithm is the latest addition to the
+library. The CoCoA algorithm can be used to train distributed
+soft-margin SVMs.</p>
+
+<h3 id="flink-on-yarn-leveraging-apache-tez">Flink on YARN leveraging Apache Tez</h3>
+
+<p>We are introducing a new execution mode for Flink to be able to run
+restricted Flink programs on top of <a href="http://tez.apache.org">Apache
+Tez</a>. This mode retains Flink’s APIs,
+optimizer, as well as Flink’s runtime operators, but instead of
+wrapping those in Flink tasks that are executed by Flink TaskManagers,
+it wraps them in Tez runtime tasks and builds a Tez DAG that
+represents the program.</p>
+
+<p>By using Flink on Tez, users have an additional choice for an
+execution platform for Flink programs. While Flink’s distributed
+runtime favors low latency, streaming shuffles, and iterative
+algorithms, Tez focuses on scalability and elastic resource usage in
+shared YARN clusters.</p>
+
+<p>Get started with Flink on Tez
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/setup/flink_on_tez.html">here</a>.</p>
+
+<h3 id="reworked-distributed-runtime-on-akka">Reworked Distributed Runtime on Akka</h3>
+
+<p>Flink’s RPC system has been replaced by the widely adopted
+<a href="http://akka.io">Akka</a> framework. Akka’s concurrency model offers the
+right abstraction to develop a fast as well as robust distributed
+system. By using Akka’s own failure detection mechanism the stability
+of Flink’s runtime is significantly improved, because the system can
+now react in proper form to node outages. Furthermore, Akka improves
+Flink’s scalability by introducing asynchronous messages to the
+system. These asynchronous messages allow Flink to be run on many more
+nodes than before.</p>
+
+<h3 id="exactly-once-processing-on-kafka-streaming-sources">Exactly-once processing on Kafka Streaming Sources</h3>
+
+<p>This release introduces stream processing with exacly-once delivery
+guarantees for Flink streaming programs that analyze streaming sources
+that are persisted by <a href="http://kafka.apache.org">Apache Kafka</a>. The
+system is internally tracking the Kafka offsets to ensure that Flink
+can pick up data from Kafka where it left off in case of an failure.</p>
+
+<p>Read
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming_guide.html#apache-kafka">here</a>
+on how to use the persistent Kafka source.</p>
+
+<h3 id="improved-yarn-support">Improved YARN support</h3>
+
+<p>Flink’s YARN client contains several improvements, such as a detached
+mode for starting a YARN session in the background, the ability to
+submit a single Flink job to a YARN cluster without starting a
+session, including a “fire and forget” mode. Flink is now also able to
+reallocate failed YARN containers to maintain the size of the
+requested cluster. This feature allows to implement fault-tolerant
+setups on top of YARN. There is also an internal Java API to deploy
+and control a running YARN cluster. This is being used by system
+integrators to easily control Flink on YARN within their Hadoop 2
+cluster.</p>
+
+<p>See the YARN docs
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/setup/yarn_setup.html">here</a>.</p>
+
+<h2 id="more-improvements-and-fixes">More Improvements and Fixes</h2>
+
+<ul>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1605">FLINK-1605</a>:
+Flink is not exposing its Guava and ASM dependencies to Maven
+projects depending on Flink. We use the maven-shade-plugin to
+relocate these dependencies into our own namespace. This allows
+users to use any Guava or ASM version.</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1605">FLINK-1417</a>:
+Automatic recognition and registration of Java Types at Kryo and the
+internal serializers: Flink has its own type handling and
+serialization framework falling back to Kryo for types that it cannot
+handle. To get the best performance Flink is automatically registering
+all types a user is using in their program with Kryo.Flink also
+registers serializers for Protocol Buffers, Thrift, Avro and YodaTime
+automatically.  Users can also manually register serializers to Kryo
+(https://issues.apache.org/jira/browse/FLINK-1399)</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1296">FLINK-1296</a>: Add
+support for sorting very large records</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1679">FLINK-1679</a>:
+“degreeOfParallelism” methods renamed to “parallelism”</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1501">FLINK-1501</a>: Add
+metrics library for monitoring TaskManagers</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1760">FLINK-1760</a>: Add
+support for building Flink with Scala 2.11</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1648">FLINK-1648</a>: Add
+a mode where the system automatically sets the parallelism to the
+available task slots</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1622">FLINK-1622</a>: Add
+groupCombine operator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1589">FLINK-1589</a>: Add
+option to pass Configuration to LocalExecutor</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1504">FLINK-1504</a>: Add
+support for accessing secured HDFS clusters in standalone mode</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1478">FLINK-1478</a>: Add
+strictly local input split assignment</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1512">FLINK-1512</a>: Add
+CsvReader for reading into POJOs.</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1461">FLINK-1461</a>: Add
+sortPartition operator</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1450">FLINK-1450</a>: Add
+Fold operator to the Streaming api</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1389">FLINK-1389</a>:
+Allow setting custom file extensions for files created by the
+FileOutputFormat</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1236">FLINK-1236</a>: Add
+support for localization of Hadoop Input Splits</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1179">FLINK-1179</a>: Add
+button to JobManager web interface to request stack trace of a
+TaskManager</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1105">FLINK-1105</a>: Add
+support for locally sorted output</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1688">FLINK-1688</a>: Add
+socket sink</p>
+  </li>
+  <li>
+    <p><a href="https://issues.apache.org/jira/browse/FLINK-1436">FLINK-1436</a>:
+Improve usability of command line interface</p>
+  </li>
+</ul>
 </p>
 
       <p><a href="/news/2015/04/13/release-0.9.0-milestone1.html">Continue reading &raquo;</a></p>
@@ -287,6 +1197,63 @@ release is a preview release that contains known issues.</p>
       </p>
 
       <p><p>March has been a busy month in the Flink community.</p>
+
+<h3 id="scaling-als">Scaling ALS</h3>
+
+<p>Flink committers employed at <a href="http://data-artisans.com">data Artisans</a> published a <a href="http://data-artisans.com/how-to-factorize-a-700-gb-matrix-with-apache-flink/">blog post</a> on how they scaled matrix factorization with Flink and Google Compute Engine to matrices with 28 billion elements.</p>
+
+<h3 id="learn-about-the-internals-of-flink">Learn about the internals of Flink</h3>
+
+<p>The community has started an effort to better document the internals
+of Flink. Check out the first articles on the Flink wiki on <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=53741525">how Flink
+manages
+memory</a>,
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Data+exchange+between+tasks">how tasks in Flink exchange
+data</a>,
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Type+System%2C+Type+Extraction%2C+Serialization">type extraction and serialization in
+Flink</a>,
+as well as <a href="https://cwiki.apache.org/confluence/display/FLINK/Akka+and+Actors">how Flink builds on Akka for distributed
+coordination</a>.</p>
+
+<p>Check out also the <a href="http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html">new blog
+post</a>
+on how Flink executes joins with several insights into Flink’s runtime.</p>
+
+<h3 id="meetups-and-talks">Meetups and talks</h3>
+
+<p>Flink’s machine learning efforts were presented at the <a href="http://www.meetup.com/Machine-Learning-Stockholm/events/221144997/">Machine
+Learning Stockholm meetup
+group</a>. The
+regular Berlin Flink meetup featured a talk on the past, present, and
+future of Flink. The talk is available on
+<a href="https://www.youtube.com/watch?v=fw2DBE6ZiEQ&amp;feature=youtu.be">youtube</a>.</p>
+
+<h2 id="in-the-flink-master">In the Flink master</h2>
+
+<h3 id="table-api-in-scala-and-java">Table API in Scala and Java</h3>
+
+<p>The new <a href="https://github.com/apache/flink/tree/master/flink-libraries/flink-table">Table
+API</a>
+in Flink is now available in both Java and Scala. Check out the
+examples <a href="https://github.com/apache/flink/blob/master/flink-libraries/flink-table/src/main/java/org/apache/flink/examples/java/JavaTableExample.java">here (Java)</a> and <a href="https://github.com/apache/flink/tree/master/flink-libraries/flink-table/src/main/scala/org/apache/flink/examples/scala">here (Scala)</a>.</p>
+
+<h3 id="additions-to-the-machine-learning-library">Additions to the Machine Learning library</h3>
+
+<p>Flink’s <a href="https://github.com/apache/flink/tree/master/flink-libraries/flink-ml">Machine Learning
+library</a>
+is seeing quite a bit of traction. Recent additions include the <a href="http://arxiv.org/abs/1409.1458">CoCoA
+algorithm</a> for distributed
+optimization.</p>
+
+<h3 id="exactly-once-delivery-guarantees-for-streaming-jobs">Exactly-once delivery guarantees for streaming jobs</h3>
+
+<p>Flink streaming jobs now provide exactly once processing guarantees
+when coupled with persistent sources (notably <a href="http://kafka.apache.org">Apache
+Kafka</a>). Flink periodically checkpoints and
+persists the offsets of the sources and restarts from those
+checkpoints at failure recovery. This functionality is currently
+limited in that it does not yet handle large state and iterative
+programs.</p>
 
 </p>
 
@@ -319,6 +1286,109 @@ mean that the Flink community has not been busy adding features to the
 system and fixing bugs. Here’s a rundown of the activity in the Flink
 community last month.</p>
 
+<h3 id="release">0.8.1 release</h3>
+
+<p>Flink 0.8.1 was released. This bugfixing release resolves a total of 22 issues.</p>
+
+<h3 id="new-committer">New committer</h3>
+
+<p><a href="https://github.com/mxm">Max Michels</a> has been voted a committer by the Flink PMC.</p>
+
+<h3 id="flink-adapter-for-apache-samoa">Flink adapter for Apache SAMOA</h3>
+
+<p><a href="http://samoa.incubator.apache.org">Apache SAMOA (incubating)</a> is a
+distributed streaming machine learning (ML) framework with a
+programming abstraction for distributed streaming ML algorithms. SAMOA
+runs on a variety of backend engines, currently Apache Storm and
+Apache S4.  A <a href="https://github.com/apache/incubator-samoa/pull/11">pull
+request</a> is
+available at the SAMOA repository that adds a Flink adapter for SAMOA.</p>
+
+<h3 id="easy-flink-deployment-on-google-compute-cloud">Easy Flink deployment on Google Compute Cloud</h3>
+
+<p>Flink is now integrated in bdutil, Google’s open source tool for
+creating and configuring (Hadoop) clusters in Google Compute
+Engine. Deployment of Flink clusters in now supported starting with
+<a href="https://groups.google.com/forum/#!topic/gcp-hadoop-announce/uVJ_6y9cGKM">bdutil
+1.2.0</a>.</p>
+
+<h3 id="flink-on-the-web">Flink on the Web</h3>
+
+<p>A new blog post on <a href="http://flink.apache.org/news/2015/02/09/streaming-example.html">Flink
+Streaming</a>
+was published at the blog. Flink was mentioned in several articles on
+the web. Here are some examples:</p>
+
+<ul>
+  <li>
+    <p><a href="http://dataconomy.com/how-flink-became-an-apache-top-level-project/">How Flink became an Apache Top-Level Project</a></p>
+  </li>
+  <li>
+    <p><a href="https://www.linkedin.com/pulse/stale-synchronous-parallelism-new-frontier-apache-flink-nam-luc-tran?utm_content=buffer461af&amp;utm_medium=social&amp;utm_source=linkedin.com&amp;utm_campaign=buffer">Stale Synchronous Parallelism: The new frontier for Apache Flink?</a></p>
+  </li>
+  <li>
+    <p><a href="http://www.hadoopsphere.com/2015/02/distributed-data-processing-with-apache.html">Distributed data processing with Apache Flink</a></p>
+  </li>
+  <li>
+    <p><a href="http://www.hadoopsphere.com/2015/02/ciao-latency-hallo-speed.html">Ciao latency, hello speed</a></p>
+  </li>
+</ul>
+
+<h2 id="in-the-flink-master">In the Flink master</h2>
+
+<p>The following features have been now merged in Flink’s master repository.</p>
+
+<h3 id="gelly">Gelly</h3>
+
+<p>Gelly, Flink’s Graph API allows users to manipulate graph-shaped data
+directly. Here’s for example a calculation of shortest paths in a
+graph:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">Graph</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Double</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="na">fromDataSet</span><span class="o">(</span><span class="n">vertices</span><span class="o">,</span> <span class="n">edges</span><span class="o">,</span> <span class="n">env</span><span class="o">);</span>
+
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Vertex</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Double</span><span class="o">&gt;&gt;</span> <span class="n">singleSourceShortestPaths</span> <span class="o">=</span> <span class="n">graph</span>
+     <span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="k">new</span> <span class="n">SingleSourceShortestPaths</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;(</span><span class="n">srcVertexId</span><span class="o">,</span>
+           <span class="n">maxIterations</span><span class="o">)).</span><span class="na">getVertices</span><span class="o">();</span></code></pre></figure>
+
+<p>See more Gelly examples
+<a href="https://github.com/apache/flink/tree/master/flink-libraries/flink-gelly-examples">here</a>.</p>
+
+<h3 id="flink-expressions">Flink Expressions</h3>
+
+<p>The newly merged
+<a href="https://github.com/apache/flink/tree/master/flink-libraries/flink-table">flink-table</a>
+module is the first step in Flink’s roadmap towards logical queries
+and SQL support. Here’s a preview on how you can read two CSV file,
+assign a logical schema to, and apply transformations like filters and
+joins using logical attributes rather than physical data types.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">customers</span> <span class="k">=</span> <span class="n">getCustomerDataSet</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">as</span><span class="o">(</span><span class="-Symbol">&#39;id</span><span class="o">,</span> <span class="-Symbol">&#39;mktSegment</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">filter</span><span class="o">(</span> <span class="-Symbol">&#39;mktSegment</span> <span class="o">===</span> <span class="s">&quot;AUTOMOBILE&quot;</span> <span class="o">)</span>
+
+<span class="k">val</span> <span class="n">orders</span> <span class="k">=</span> <span class="n">getOrdersDataSet</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">filter</span><span class="o">(</span> <span class="n">o</span> <span class="k">=&gt;</span> <span class="n">dateFormat</span><span class="o">.</span><span class="n">parse</span><span class="o">(</span><span class="n">o</span><span class="o">.</span><span class="n">orderDate</span><span class="o">).</span><span class="n">before</span><span class="o">(</span><span class="n">date</span><span class="o">)</span> <span class="o">)</span>
+ <span class="o">.</span><span class="n">as</span><span class="o">(</span><span class="-Symbol">&#39;orderId</span><span class="o">,</span> <span class="-Symbol">&#39;custId</span><span class="o">,</span> <span class="-Symbol">&#39;orderDate</span><span class="o">,</span> <span class="-Symbol">&#39;shipPrio</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">items</span> <span class="k">=</span>
+ <span class="n">orders</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">customers</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">where</span><span class="o">(</span><span class="-Symbol">&#39;custId</span> <span class="o">===</span> <span class="-Symbol">&#39;id</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="-Symbol">&#39;orderId</span><span class="o">,</span> <span class="-Symbol">&#39;orderDate</span><span class="o">,</span> <span class="-Symbol">&#39;shipPrio</span><span class="o">)</span></code></pre></figure>
+
+<h3 id="access-to-hcatalog-tables">Access to HCatalog tables</h3>
+
+<p>With the <a href="https://github.com/apache/flink/tree/master/flink-batch-connectors/flink-hcatalog">flink-hcatalog
+module</a>,
+you can now conveniently access HCatalog/Hive tables. The module
+supports projection (selection and order of fields) and partition
+filters.</p>
+
+<h3 id="access-to-secured-yarn-clustershdfs">Access to secured YARN clusters/HDFS.</h3>
+
+<p>With this change users can access Kerberos secured YARN (and HDFS)
+Hadoop clusters.  Also, basic support for accessing secured HDFS with
+a standalone Flink setup is now available.</p>
+
 </p>
 
       <p><a href="/news/2015/03/02/february-2015-in-flink.html">Continue reading &raquo;</a></p>
@@ -338,6 +1408,638 @@ continuous data sources in addition to static files. Flink Streaming
 uses the pipelined Flink engine to process data streams in real time
 and offers a new API including definition of flexible windows.</p>
 
+<p>In this post, we go through an example that uses the Flink Streaming
+API to compute statistics on stock market data that arrive
+continuously and combine the stock market data with Twitter streams.
+See the <a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/index.html">Streaming Programming
+Guide</a> for a
+detailed presentation of the Streaming API.</p>
+
+<p>First, we read a bunch of stock price streams and combine them into
+one stream of market data. We apply several transformations on this
+market data stream, like rolling aggregations per stock. Then we emit
+price warning alerts when the prices are rapidly changing. Moving 
+towards more advanced features, we compute rolling correlations
+between the market data streams and a Twitter stream with stock mentions.</p>
+
+<p>For running the example implementation please use the <em>0.9-SNAPSHOT</em> 
+version of Flink as a dependency. The full example code base can be 
+found <a href="https://github.com/mbalassi/flink/blob/stockprices/flink-staging/flink-streaming/flink-streaming-examples/src/main/scala/org/apache/flink/streaming/scala/examples/windowing/StockPrices.scala">here</a> in Scala and <a href="https://github.com/mbalassi/flink/blob/stockprices/flink-staging/flink-streaming/flink-streaming-examples/src/main/java/org/apache/flink/streaming/examples/windowing/StockPrices.java">here</a> in Java7.</p>
+
+<p><a href="#top"></a></p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="reading-from-multiple-inputs">Reading from multiple inputs</h2>
+
+<p>First, let us create the stream of stock prices:</p>
+
+<ol>
+  <li>Read a socket stream of stock prices</li>
+  <li>Parse the text in the stream to create a stream of <code>StockPrice</code> objects</li>
+  <li>Add four other sources tagged with the stock symbol.</li>
+  <li>Finally, merge the streams to create a unified stream.</li>
+</ol>
+
+<p><img alt="Reading from multiple inputs" src="/img/blog/blog_multi_input.png" width="70%" class="img-responsive center-block" /></p>
+
+<div class="codetabs">
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+
+  <span class="c1">//Read from a socket stream at map it to StockPrice objects</span>
+  <span class="k">val</span> <span class="n">socketStockStream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">9999</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">split</span> <span class="k">=</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+    <span class="nc">StockPrice</span><span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">toDouble</span><span class="o">)</span>
+  <span class="o">})</span>
+
+  <span class="c1">//Generate other stock streams</span>
+  <span class="k">val</span> <span class="nc">SPX_Stream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="n">generateStock</span><span class="o">(</span><span class="s">&quot;SPX&quot;</span><span class="o">)(</span><span class="mi">10</span><span class="o">)</span> <span class="k">_</span><span class="o">)</span>
+  <span class="k">val</span> <span class="nc">FTSE_Stream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="n">generateStock</span><span class="o">(</span><span class="s">&quot;FTSE&quot;</span><span class="o">)(</span><span class="mi">20</span><span class="o">)</span> <span class="k">_</span><span class="o">)</span>
+  <span class="k">val</span> <span class="nc">DJI_Stream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="n">generateStock</span><span class="o">(</span><span class="s">&quot;DJI&quot;</span><span class="o">)(</span><span class="mi">30</span><span class="o">)</span> <span class="k">_</span><span class="o">)</span>
+  <span class="k">val</span> <span class="nc">BUX_Stream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="n">generateStock</span><span class="o">(</span><span class="s">&quot;BUX&quot;</span><span class="o">)(</span><span class="mi">40</span><span class="o">)</span> <span class="k">_</span><span class="o">)</span>
+
+  <span class="c1">//Merge all stock streams together</span>
+  <span class="k">val</span> <span class="n">stockStream</span> <span class="k">=</span> <span class="n">socketStockStream</span><span class="o">.</span><span class="n">merge</span><span class="o">(</span><span class="nc">SPX_Stream</span><span class="o">,</span> <span class="nc">FTSE_Stream</span><span class="o">,</span> 
+    <span class="nc">DJI_Stream</span><span class="o">,</span> <span class="nc">BUX_Stream</span><span class="o">)</span>
+
+  <span class="n">stockStream</span><span class="o">.</span><span class="n">print</span><span class="o">()</span>
+
+  <span class="n">env</span><span class="o">.</span><span class="n">execute</span><span class="o">(</span><span class="s">&quot;Stock stream&quot;</span><span class="o">)</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+    <span class="kd">final</span> <span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span>
+        <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+
+    <span class="c1">//Read from a socket stream at map it to StockPrice objects</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">socketStockStream</span> <span class="o">=</span> <span class="n">env</span>
+            <span class="o">.</span><span class="na">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">9999</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">StockPrice</span><span class="o">&gt;()</span> <span class="o">{</span>
+                <span class="kd">private</span> <span class="n">String</span><span class="o">[]</span> <span class="n">tokens</span><span class="o">;</span>
+
+                <span class="nd">@Override</span>
+                <span class="kd">public</span> <span class="n">StockPrice</span> <span class="nf">map</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                    <span class="n">tokens</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">);</span>
+                    <span class="k">return</span> <span class="k">new</span> <span class="nf">StockPrice</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span>
+                        <span class="n">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">1</span><span class="o">]));</span>
+                <span class="o">}</span>
+            <span class="o">});</span>
+
+    <span class="c1">//Generate other stock streams</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">SPX_stream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockSource</span><span class="o">(</span><span class="s">&quot;SPX&quot;</span><span class="o">,</span> <span class="mi">10</span><span class="o">));</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">FTSE_stream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockSource</span><span class="o">(</span><span class="s">&quot;FTSE&quot;</span><span class="o">,</span> <span class="mi">20</span><span class="o">));</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">DJI_stream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockSource</span><span class="o">(</span><span class="s">&quot;DJI&quot;</span><span class="o">,</span> <span class="mi">30</span><span class="o">));</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">BUX_stream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockSource</span><span class="o">(</span><span class="s">&quot;BUX&quot;</span><span class="o">,</span> <span class="mi">40</span><span class="o">));</span>
+
+    <span class="c1">//Merge all stock streams together</span>
+    <span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">stockStream</span> <span class="o">=</span> <span class="n">socketStockStream</span>
+        <span class="o">.</span><span class="na">merge</span><span class="o">(</span><span class="n">SPX_stream</span><span class="o">,</span> <span class="n">FTSE_stream</span><span class="o">,</span> <span class="n">DJI_stream</span><span class="o">,</span> <span class="n">BUX_stream</span><span class="o">);</span>
+
+    <span class="n">stockStream</span><span class="o">.</span><span class="na">print</span><span class="o">();</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">&quot;Stock stream&quot;</span><span class="o">);</span>
+    </code></pre></figure>
+
+  </div>
+</div>
+
+<p>See
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/index.html#data-sources">here</a>
+on how you can create streaming sources for Flink Streaming
+programs. Flink, of course, has support for reading in streams from
+<a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/connectors/index.html">external
+sources</a>
+such as Apache Kafka, Apache Flume, RabbitMQ, and others. For the sake
+of this example, the data streams are simply generated using the
+<code>generateStock</code> method:</p>
+
+<div class="codetabs">
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">symbols</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;SPX&quot;</span><span class="o">,</span> <span class="s">&quot;FTSE&quot;</span><span class="o">,</span> <span class="s">&quot;DJI&quot;</span><span class="o">,</span> <span class="s">&quot;DJT&quot;</span><span class="o">,</span> <span class="s">&quot;BUX&quot;</span><span class="o">,</span> <span class="s">&quot;DAX&quot;</span><span class="o">,</span> <span class="s">&quot;GOOG&quot;</span><span class="o">)</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">StockPrice</span><span class="o">(</span><span class="n">symbol</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">price</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)</span>
+
+<span class="k">def</span> <span class="n">generateStock</span><span class="o">(</span><span class="n">symbol</span><span class="k">:</span> <span class="kt">String</span><span class="o">)(</span><span class="n">sigma</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">price</span> <span class="k">=</span> <span class="mf">1000.</span>
+  <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">price</span> <span class="k">=</span> <span class="n">price</span> <span class="o">+</span> <span class="nc">Random</span><span class="o">.</span><span class="n">nextGaussian</span> <span class="o">*</span> <span class="n">sigma</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">StockPrice</span><span class="o">(</span><span class="n">symbol</span><span class="o">,</span> <span class="n">price</span><span class="o">))</span>
+    <span class="nc">Thread</span><span class="o">.</span><span class="n">sleep</span><span class="o">(</span><span class="nc">Random</span><span class="o">.</span><span class="n">nextInt</span><span class="o">(</span><span class="mi">200</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">SYMBOLS</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;(</span>
+    <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="s">&quot;SPX&quot;</span><span class="o">,</span> <span class="s">&quot;FTSE&quot;</span><span class="o">,</span> <span class="s">&quot;DJI&quot;</span><span class="o">,</span> <span class="s">&quot;DJT&quot;</span><span class="o">,</span> <span class="s">&quot;BUX&quot;</span><span class="o">,</span> <span class="s">&quot;DAX&quot;</span><span class="o">,</span> <span class="s">&quot;GOOG&quot;</span><span class="o">));</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">StockPrice</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="n">String</span> <span class="n">symbol</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="n">Double</span> <span class="n">price</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">StockPrice</span><span class="o">()</span> <span class="o">{</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="nf">StockPrice</span><span class="o">(</span><span class="n">String</span> <span class="n">symbol</span><span class="o">,</span> <span class="n">Double</span> <span class="n">price</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">symbol</span> <span class="o">=</span> <span class="n">symbol</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">price</span> <span class="o">=</span> <span class="n">price</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">&quot;StockPrice{&quot;</span> <span class="o">+</span>
+                <span class="s">&quot;symbol=&#39;&quot;</span> <span class="o">+</span> <span class="n">symbol</span> <span class="o">+</span> <span class="sc">&#39;\&#39;&#39;</span> <span class="o">+</span>
+                <span class="s">&quot;, count=&quot;</span> <span class="o">+</span> <span class="n">price</span> <span class="o">+</span>
+                <span class="sc">&#39;}&#39;</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">StockSource</span> <span class="kd">implements</span> <span class="n">SourceFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">price</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">symbol</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Integer</span> <span class="n">sigma</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">StockSource</span><span class="o">(</span><span class="n">String</span> <span class="n">symbol</span><span class="o">,</span> <span class="n">Integer</span> <span class="n">sigma</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">symbol</span> <span class="o">=</span> <span class="n">symbol</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">sigma</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">invoke</span><span class="o">(</span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">collector</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">price</span> <span class="o">=</span> <span class="n">DEFAULT_PRICE</span><span class="o">;</span>
+        <span class="n">Random</span> <span class="n">random</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Random</span><span class="o">();</span>
+
+        <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">price</span> <span class="o">=</span> <span class="n">price</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="na">nextGaussian</span><span class="o">()</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">;</span>
+            <span class="n">collector</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockPrice</span><span class="o">(</span><span class="n">symbol</span><span class="o">,</span> <span class="n">price</span><span class="o">));</span>
+            <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="n">random</span><span class="o">.</span><span class="na">nextInt</span><span class="o">(</span><span class="mi">200</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+</div>
+
+<p>To read from the text socket stream please make sure that you have a
+socket running. For the sake of the example executing the following
+command in a terminal does the job. You can get
+<a href="http://netcat.sourceforge.net/">netcat</a> here if it is not available
+on your machine.</p>
+
+<div class="highlight"><pre><code>nc -lk 9999
+</code></pre></div>
+
+<p>If we execute the program from our IDE we see the system the
+stock prices being generated:</p>
+
+<div class="highlight"><pre><code>INFO    Job execution switched to status RUNNING.
+INFO    Socket Stream(1/1) switched to SCHEDULED 
+INFO    Socket Stream(1/1) switched to DEPLOYING
+INFO    Custom Source(1/1) switched to SCHEDULED 
+INFO    Custom Source(1/1) switched to DEPLOYING
+…
+1&gt; StockPrice{symbol='SPX', count=1011.3405732645239}
+2&gt; StockPrice{symbol='SPX', count=1018.3381290039248}
+1&gt; StockPrice{symbol='DJI', count=1036.7454894073978}
+3&gt; StockPrice{symbol='DJI', count=1135.1170217478427}
+3&gt; StockPrice{symbol='BUX', count=1053.667523187687}
+4&gt; StockPrice{symbol='BUX', count=1036.552601487263}
+</code></pre></div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="window-aggregations">Window aggregations</h2>
+
+<p>We first compute aggregations on time-based windows of the
+data. Flink provides <a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/windows.html">flexible windowing semantics</a> where windows can
+also be defined based on count of records or any custom user defined
+logic.</p>
+
+<p>We partition our stream into windows of 10 seconds and slide the
+window every 5 seconds. We compute three statistics every 5 seconds.
+The first is the minimum price of all stocks, the second produces
+maximum price per stock, and the third is the mean stock price 
+(using a map window function). Aggregations and groupings can be
+performed on named fields of POJOs, making the code more readable.</p>
+
+<p><img alt="Basic windowing aggregations" src="/img/blog/blog_basic_window.png" width="70%" class="img-responsive center-block" /></p>
+
+<div class="codetabs">
+
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//Define the desired time window</span>
+<span class="k">val</span> <span class="n">windowedStream</span> <span class="k">=</span> <span class="n">stockStream</span>
+  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">)).</span><span class="n">every</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
+
+<span class="c1">//Compute some simple statistics on a rolling window</span>
+<span class="k">val</span> <span class="n">lowest</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">maxByStock</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="n">maxBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">rollingMean</span> <span class="k">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">mean</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="c1">//Compute the mean of a window</span>
+<span class="k">def</span> <span class="n">mean</span><span class="o">(</span><span class="n">ts</span><span class="k">:</span> <span class="kt">Iterable</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">],</span> <span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">ts</span><span class="o">.</span><span class="n">nonEmpty</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="nc">StockPrice</span><span class="o">(</span><span class="n">ts</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">symbol</span><span class="o">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">foldLeft</span><span class="o">(</span><span class="mi">0</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">.</span><span class="n">price</span><span class="o">)</span> <span class="o">/</span> <span class="n">ts</span><span class="o">.</span><span class="n">size</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">//Define the desired time window</span>
+<span class="n">WindowedDataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">windowedStream</span> <span class="o">=</span> <span class="n">stockStream</span>
+    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">))</span>
+    <span class="o">.</span><span class="na">every</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">));</span>
+
+<span class="c1">//Compute some simple statistics on a rolling window</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">lowest</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">minBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">maxByStock</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">maxBy</span><span class="o">(</span><span class="s">&quot;price&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">rollingMean</span> <span class="o">=</span> <span class="n">windowedStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">WindowMean</span><span class="o">()).</span><span class="na">flatten</span><span class="o">();</span>
+
+<span class="c1">//Compute the mean of a window</span>
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">WindowMean</span> <span class="kd">implements</span> 
+    <span class="n">WindowMapFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">StockPrice</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">sum</span> <span class="o">=</span> <span class="mf">0.0</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Integer</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">symbol</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+        <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span><span class="n">s</span>
+            <span class="nf">for</span> <span class="o">(</span><span class="n">StockPrice</span> <span class="n">sp</span> <span class="o">:</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">sum</span> <span class="o">+=</span> <span class="n">sp</span><span class="o">.</span><span class="na">price</span><span class="o">;</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="na">symbol</span><span class="o">;</span>
+                <span class="n">count</span><span class="o">++;</span>
+            <span class="o">}</span>
+            <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="nf">StockPrice</span><span class="o">(</span><span class="n">symbol</span><span class="o">,</span> <span class="n">sum</span> <span class="o">/</span> <span class="n">count</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+</div>
+
+<p>Let us note that to print a windowed stream one has to flatten it first,
+thus getting rid of the windowing logic. For example execute 
+<code>maxByStock.flatten().print()</code> to print the stream of maximum prices of
+ the time windows by stock. For Scala <code>flatten()</code> is called implicitly
+when needed.</p>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="data-driven-windows">Data-driven windows</h2>
+
+<p>The most interesting event in the stream is when the price of a stock
+is changing rapidly. We can send a warning when a stock price changes
+more than 5% since the last warning. To do that, we use a delta-based window providing a
+threshold on when the computation will be triggered, a function to
+compute the difference and a default value with which the first record
+is compared. We also create a <code>Count</code> data type to count the warnings
+every 30 seconds.</p>
+
+<p><img alt="Data-driven windowing semantics" src="/img/blog/blog_data_driven.png" width="100%" class="img-responsive center-block" /></p>
+
+<div class="codetabs">
+
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Count</span><span class="o">(</span><span class="n">symbol</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">count</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">defaultPrice</span> <span class="k">=</span> <span class="nc">StockPrice</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="mi">1000</span><span class="o">)</span>
+
+<span class="c1">//Use delta policy to create price change warnings</span>
+<span class="k">val</span> <span class="n">priceWarnings</span> <span class="k">=</span> <span class="n">stockStream</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Delta</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mf">0.05</span><span class="o">,</span> <span class="n">priceChange</span><span class="o">,</span> <span class="n">defaultPrice</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">sendWarning</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="c1">//Count the number of warnings every half a minute</span>
+<span class="k">val</span> <span class="n">warningsPerStock</span> <span class="k">=</span> <span class="n">priceWarnings</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">Count</span><span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="mi">1</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">)</span>
+
+<span class="k">def</span> <span class="n">priceChange</span><span class="o">(</span><span class="n">p1</span><span class="k">:</span> <span class="kt">StockPrice</span><span class="o">,</span> <span class="n">p2</span><span class="k">:</span> <span class="kt">StockPrice</span><span class="o">)</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="nc">Math</span><span class="o">.</span><span class="n">abs</span><span class="o">(</span><span class="n">p1</span><span class="o">.</span><span class="n">price</span> <span class="o">/</span> <span class="n">p2</span><span class="o">.</span><span class="n">price</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">sendWarning</span><span class="o">(</span><span class="n">ts</span><span class="k">:</span> <span class="kt">Iterable</span><span class="o">[</span><span class="kt">StockPrice</span><span class="o">],</span> <span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">ts</span><span class="o">.</span><span class="n">nonEmpty</span><span class="o">)</span> <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="n">ts</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">symbol</span><span class="o">)</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Double</span> <span class="n">DEFAULT_PRICE</span> <span class="o">=</span> <span class="mi">1000</span><span class="o">.;</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">StockPrice</span> <span class="n">DEFAULT_STOCK_PRICE</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">StockPrice</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="n">DEFAULT_PRICE</span><span class="o">);</span>
+
+<span class="c1">//Use delta policy to create price change warnings</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">priceWarnings</span> <span class="o">=</span> <span class="n">stockStream</span><span class="o">.</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">Delta</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mf">0.05</span><span class="o">,</span> <span class="k">new</span> <span class="n">DeltaFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="kt">double</span> <span class="nf">getDelta</span><span class="o">(</span><span class="n">StockPrice</span> <span class="n">oldDataPoint</span><span class="o">,</span> <span class="n">StockPrice</span> <span class="n">newDataPoint</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Math</span><span class="o">.</span><span class="na">abs</span><span class="o">(</span><span class="n">oldDataPoint</span><span class="o">.</span><span class="na">price</span> <span class="o">-</span> <span class="n">newDataPoint</span><span class="o">.</span><span class="na">price</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">},</span> <span class="n">DEFAULT_STOCK_PRICE</span><span class="o">))</span>
+<span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">SendWarning</span><span class="o">()).</span><span class="na">flatten</span><span class="o">();</span>
+
+<span class="c1">//Count the number of warnings every half a minute</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Count</span><span class="o">&gt;</span> <span class="n">warningsPerStock</span> <span class="o">=</span> <span class="n">priceWarnings</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Count</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Count</span> <span class="nf">map</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">Count</span><span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Count</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="n">symbol</span><span class="o">;</span>
+    <span class="kd">public</span> <span class="n">Integer</span> <span class="n">count</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">Count</span><span class="o">()</span> <span class="o">{</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="nf">Count</span><span class="o">(</span><span class="n">String</span> <span class="n">symbol</span><span class="o">,</span> <span class="n">Integer</span> <span class="n">count</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">symbol</span> <span class="o">=</span> <span class="n">symbol</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">count</span> <span class="o">=</span> <span class="n">count</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">&quot;Count{&quot;</span> <span class="o">+</span>
+                <span class="s">&quot;symbol=&#39;&quot;</span> <span class="o">+</span> <span class="n">symbol</span> <span class="o">+</span> <span class="sc">&#39;\&#39;&#39;</span> <span class="o">+</span>
+                <span class="s">&quot;, count=&quot;</span> <span class="o">+</span> <span class="n">count</span> <span class="o">+</span>
+                <span class="sc">&#39;}&#39;</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">SendWarning</span> <span class="kd">implements</span> <span class="n">MapWindowFunction</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">StockPrice</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+        <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">next</span><span class="o">().</span><span class="na">symbol</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+</div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="combining-with-a-twitter-stream">Combining with a Twitter stream</h2>
+
+<p>Next, we will read a Twitter stream and correlate it with our stock
+price stream. Flink has support for connecting to <a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/connectors/twitter.html">Twitter’s
+API</a>
+but for the sake of this example we generate dummy tweet data.</p>
+
+<p><img alt="Social media analytics" src="/img/blog/blog_social_media.png" width="100%" class="img-responsive center-block" /></p>
+
+<div class="codetabs">
+
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//Read a stream of tweets</span>
+<span class="k">val</span> <span class="n">tweetStream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="n">generateTweets</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="c1">//Extract the stock symbols</span>
+<span class="k">val</span> <span class="n">mentionedSymbols</span> <span class="k">=</span> <span class="n">tweetStream</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">tweet</span> <span class="k">=&gt;</span> <span class="n">tweet</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toUpperCase</span><span class="o">())</span>
+  <span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">symbols</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="k">_</span><span class="o">))</span>
+
+<span class="c1">//Count the extracted symbols</span>
+<span class="k">val</span> <span class="n">tweetsPerStock</span> <span class="k">=</span> <span class="n">mentionedSymbols</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">Count</span><span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="mi">1</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">)</span>
+
+<span class="k">def</span> <span class="n">generateTweets</span><span class="o">(</span><span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">s</span> <span class="k">=</span> <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">3</span><span class="o">)</span> <span class="k">yield</span> <span class="o">(</span><span class="n">symbols</span><span class="o">(</span><span class="nc">Random</span><span class="o">.</span><span class="n">nextInt</span><span class="o">(</span><span class="n">symbols</span><span class="o">.</span><span class="n">size</span><span class="o">)))</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span>
+    <span class="nc">Thread</span><span class="o">.</span><span class="n">sleep</span><span class="o">(</span><span class="nc">Random</span><span class="o">.</span><span class="n">nextInt</span><span class="o">(</span><span class="mi">500</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">//Read a stream of tweets</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">tweetStream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nf">TweetSource</span><span class="o">());</span>
+
+<span class="c1">//Extract the stock symbols</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">mentionedSymbols</span> <span class="o">=</span> <span class="n">tweetStream</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span>
+    <span class="k">new</span> <span class="n">FlatMapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">flatMap</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">String</span><span class="o">[]</span> <span class="n">words</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">);</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">word</span> <span class="o">:</span> <span class="n">words</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">word</span><span class="o">.</span><span class="na">toUpperCase</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}).</span><span class="na">filter</span><span class="o">(</span><span class="k">new</span> <span class="n">FilterFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">filter</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">SYMBOLS</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">});</span>
+
+<span class="c1">//Count the extracted symbols</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Count</span><span class="o">&gt;</span> <span class="n">tweetsPerStock</span> <span class="o">=</span> <span class="n">mentionedSymbols</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Count</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Count</span> <span class="nf">map</span><span class="o">(</span><span class="n">String</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">Count</span><span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}).</span><span class="na">groupBy</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">).</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)).</span><span class="na">sum</span><span class="o">(</span><span class="s">&quot;count&quot;</span><span class="o">).</span><span class="na">flatten</span><span class="o">();</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">TweetSource</span> <span class="kd">implements</span> <span class="n">SourceFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="n">Random</span> <span class="n">random</span><span class="o">;</span>
+    <span class="n">StringBuilder</span> <span class="n">stringBuilder</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">invoke</span><span class="o">(</span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">collector</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Random</span><span class="o">();</span>
+        <span class="n">stringBuilder</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">StringBuilder</span><span class="o">();</span>
+
+        <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">stringBuilder</span><span class="o">.</span><span class="na">setLength</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="n">stringBuilder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">);</span>
+                <span class="n">stringBuilder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">SYMBOLS</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">random</span><span class="o">.</span><span class="na">nextInt</span><span class="o">(</span><span class="n">SYMBOLS</span><span class="o">.</span><span class="na">size</span><span class="o">())));</span>
+            <span class="o">}</span>
+            <span class="n">collector</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">stringBuilder</span><span class="o">.</span><span class="na">toString</span><span class="o">());</span>
+            <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">500</span><span class="o">);</span>
+        <span class="o">}</span>
+
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+</div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="streaming-joins">Streaming joins</h2>
+
+<p>Finally, we join real-time tweets and stock prices and compute a
+rolling correlation between the number of price warnings and the
+number of mentions of a given stock in the Twitter stream. As both of
+these data streams are potentially infinite, we apply the join on a
+30-second window.</p>
+
+<p><img alt="Streaming joins" src="/img/blog/blog_stream_join.png" width="60%" class="img-responsive center-block" /></p>
+
+<div class="codetabs">
+
+  <div data-lang="scala">
+
+    <figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//Join warnings and parsed tweets</span>
+<span class="k">val</span> <span class="n">tweetsAndWarning</span> <span class="k">=</span> <span class="n">warningsPerStock</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">tweetsPerStock</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">onWindow</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">where</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span> <span class="o">{</span> <span class="o">(</span><span class="n">c1</span><span class="o">,</span> <span class="n">c2</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">c1</span><span class="o">.</span><span class="n">count</span><span class="o">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">count</span><span class="o">)</span> <span class="o">}</span>
+
+<span class="k">val</span> <span class="n">rollingCorrelation</span> <span class="k">=</span> <span class="n">tweetsAndWarning</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">mapWindow</span><span class="o">(</span><span class="n">computeCorrelation</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="n">rollingCorrelation</span> <span class="n">print</span>
+
+<span class="c1">//Compute rolling correlation</span>
+<span class="k">def</span> <span class="n">computeCorrelation</span><span class="o">(</span><span class="n">input</span><span class="k">:</span> <span class="kt">Iterable</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)],</span> <span class="n">out</span><span class="k">:</span> <span class="kt">Collector</span><span class="o">[</span><span class="kt">Double</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">input</span><span class="o">.</span><span class="n">nonEmpty</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">var1</span> <span class="k">=</span> <span class="n">input</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_1</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">mean1</span> <span class="k">=</span> <span class="n">average</span><span class="o">(</span><span class="n">var1</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">var2</span> <span class="k">=</span> <span class="n">input</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">mean2</span> <span class="k">=</span> <span class="n">average</span><span class="o">(</span><span class="n">var2</span><span class="o">)</span>
+
+    <span class="k">val</span> <span class="n">cov</span> <span class="k">=</span> <span class="n">average</span><span class="o">(</span><span class="n">var1</span><span class="o">.</span><span class="n">zip</span><span class="o">(</span><span class="n">var2</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">xy</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">xy</span><span class="o">.</span><span class="n">_1</span> <span class="o">-</span> <span class="n">mean1</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">xy</span><span class="o">.</span><span class="n">_2</span> <span class="o">-</span> <span class="n">mean2</span><span class="o">)))</span>
+    <span class="k">val</span> <span class="n">d1</span> <span class="k">=</span> <span class="nc">Math</span><span class="o">.</span><span class="n">sqrt</span><span class="o">(</span><span class="n">average</span><span class="o">(</span><span class="n">var1</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="nc">Math</span><span class="o">.</span><span class="n">pow</span><span class="o">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean1</span><span class="o">),</span> <span class="mi">2</span><span class="o">))))</span>
+    <span class="k">val</span> <span class="n">d2</span> <span class="k">=</span> <span class="nc">Math</span><span class="o">.</span><span class="n">sqrt</span><span class="o">(</span><span class="n">average</span><span class="o">(</span><span class="n">var2</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="nc">Math</span><span class="o">.</span><span class="n">pow</span><span class="o">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean2</span><span class="o">),</span> <span class="mi">2</span><span class="o">))))</span>
+
+    <span class="n">out</span><span class="o">.</span><span class="n">collect</span><span class="o">(</span><span class="n">cov</span> <span class="o">/</span> <span class="o">(</span><span class="n">d1</span> <span class="o">*</span> <span class="n">d2</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+  <div data-lang="java7">
+
+    <figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">//Join warnings and parsed tweets</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">tweetsAndWarning</span> <span class="o">=</span> <span class="n">warningsPerStock</span>
+    <span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">tweetsPerStock</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">onWindow</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">equalTo</span><span class="o">(</span><span class="s">&quot;symbol&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="k">new</span> <span class="n">JoinFunction</span><span class="o">&lt;</span><span class="n">Count</span><span class="o">,</span> <span class="n">Count</span><span class="o">,</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="nf">join</span><span class="o">(</span><span class="n">Count</span> <span class="n">first</span><span class="o">,</span> <span class="n">Count</span> <span class="n">second</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;(</span><span class="n">first</span><span class="o">.</span><span class="na">count</span><span class="o">,</span> <span class="n">second</span><span class="o">.</span><span class="na">count</span><span class="o">);</span>
+            <span class="o">}</span>
+    <span class="o">});</span>
+
+<span class="c1">//Compute rolling correlation</span>
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">rollingCorrelation</span> <span class="o">=</span> <span class="n">tweetsAndWarning</span>
+    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">))</span>
+    <span class="o">.</span><span class="na">mapWindow</span><span class="o">(</span><span class="k">new</span> <span class="nf">WindowCorrelation</span><span class="o">());</span>
+
+<span class="n">rollingCorrelation</span><span class="o">.</span><span class="na">print</span><span class="o">();</span>
+
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">WindowCorrelation</span>
+    <span class="kd">implements</span> <span class="n">WindowMapFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Double</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="n">Integer</span> <span class="n">leftSum</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Integer</span> <span class="n">rightSum</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Integer</span> <span class="n">count</span><span class="o">;</span>
+
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">leftMean</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">rightMean</span><span class="o">;</span>
+
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">cov</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">leftSd</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">Double</span> <span class="n">rightSd</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">mapWindow</span><span class="o">(</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">values</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Double</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> 
+        <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+        <span class="n">leftSum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+        <span class="n">rightSum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+
+        <span class="n">cov</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.;</span>
+        <span class="n">leftSd</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.;</span>
+        <span class="n">rightSd</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.;</span>
+
+        <span class="c1">//compute mean for both sides, save count</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">pair</span> <span class="o">:</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">leftSum</span> <span class="o">+=</span> <span class="n">pair</span><span class="o">.</span><span class="na">f0</span><span class="o">;</span>
+            <span class="n">rightSum</span> <span class="o">+=</span> <span class="n">pair</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span>
+            <span class="n">count</span><span class="o">++;</span>
+        <span class="o">}</span>
+
+        <span class="n">leftMean</span> <span class="o">=</span> <span class="n">leftSum</span><span class="o">.</span><span class="na">doubleValue</span><span class="o">()</span> <span class="o">/</span> <span class="n">count</span><span class="o">;</span>
+        <span class="n">rightMean</span> <span class="o">=</span> <span class="n">rightSum</span><span class="o">.</span><span class="na">doubleValue</span><span class="o">()</span> <span class="o">/</span> <span class="n">count</span><span class="o">;</span>
+
+        <span class="c1">//compute covariance &amp; std. deviations</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">pair</span> <span class="o">:</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">cov</span> <span class="o">+=</span> <span class="o">(</span><span class="n">pair</span><span class="o">.</span><span class="na">f0</span> <span class="o">-</span> <span class="n">leftMean</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">pair</span><span class="o">.</span><span class="na">f1</span> <span class="o">-</span> <span class="n">rightMean</span><span class="o">)</span> <span class="o">/</span> <span class="n">count</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="k">for</span> <span class="o">(</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">pair</span> <span class="o">:</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">leftSd</span> <span class="o">+=</span> <span class="n">Math</span><span class="o">.</span><span class="na">pow</span><span class="o">(</span><span class="n">pair</span><span class="o">.</span><span class="na">f0</span> <span class="o">-</span> <span class="n">leftMean</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="n">count</span><span class="o">;</span>
+            <span class="n">rightSd</span> <span class="o">+=</span> <span class="n">Math</span><span class="o">.</span><span class="na">pow</span><span class="o">(</span><span class="n">pair</span><span class="o">.</span><span class="na">f1</span> <span class="o">-</span> <span class="n">rightMean</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="n">count</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">leftSd</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">sqrt</span><span class="o">(</span><span class="n">leftSd</span><span class="o">);</span>
+        <span class="n">rightSd</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">sqrt</span><span class="o">(</span><span class="n">rightSd</span><span class="o">);</span>
+
+        <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="n">cov</span> <span class="o">/</span> <span class="o">(</span><span class="n">leftSd</span> <span class="o">*</span> <span class="n">rightSd</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+  </div>
+
+</div>
+
+<p><a href="#top">Back to top</a></p>
+
+<h2 id="other-things-to-try">Other things to try</h2>
+
+<p>For a full feature overview please check the <a href="http://ci.apache.org/projects/flink/flink-docs-master/apis/streaming/index.html">Streaming Guide</a>, which describes all the available API features.
+You are very welcome to try out our features for different use-cases we are looking forward to your experiences. Feel free to <a href="http://flink.apache.org/community.html#mailing-lists">contact us</a>.</p>
+
+<h2 id="upcoming-for-streaming">Upcoming for streaming</h2>
+
+<p>There are some aspects of Flink Streaming that are subjects to
+change by the next release making this application look even nicer.</p>
+
+<p>Stay tuned for later blog posts on how Flink Streaming works
+internally, fault tolerance, and performance measurements!</p>
+
+<p><a href="#top">Back to top</a></p>
 </p>
 
       <p><a href="/news/2015/02/09/streaming-example.html">Continue reading &raquo;</a></p>
@@ -353,6 +2055,45 @@ and offers a new API including definition of flexible windows.</p>
 
       <p><p>Happy 2015! Here is a (hopefully digestible) summary of what happened last month in the Flink community.</p>
 
+<h3 id="release">0.8.0 release</h3>
+
+<p>Flink 0.8.0 was released. See <a href="http://flink.apache.org/news/2015/01/21/release-0.8.html">here</a> for the release notes.</p>
+
+<h3 id="flink-roadmap">Flink roadmap</h3>
+
+<p>The community has published a <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Roadmap">roadmap for 2015</a> on the Flink wiki. Check it out to see what is coming up in Flink, and pick up an issue to contribute!</p>
+
+<h3 id="articles-in-the-press">Articles in the press</h3>
+
+<p>The Apache Software Foundation <a href="https://blogs.apache.org/foundation/entry/the_apache_software_foundation_announces69">announced</a> Flink as a Top-Level Project. The announcement was picked up by the media, e.g., <a href="http://sdtimes.com/inside-apache-software-foundations-newest-top-level-project-apache-flink/?utm_content=11232092&amp;utm_medium=social&amp;utm_source=twitter">here</a>, <a href="http://www.datanami.com/2015/01/12/apache-flink-takes-route-distributed-data-processing/">here</a>, and <a href="http://i-programmer.info/news/197-data-mining/8176-flink-reaches-top-level-status.html">here</a>.</p>
+
+<h3 id="hadoop-summit">Hadoop Summit</h3>
+
+<p>A submitted abstract on Flink Streaming won the community vote at “The Future of Hadoop” track.</p>
+
+<h3 id="meetups-and-talks">Meetups and talks</h3>
+
+<p>Flink was presented at the <a href="http://www.meetup.com/Hadoop-User-Group-France/events/219778022/">Paris Hadoop User Group</a>, the <a href="http://www.meetup.com/hadoop/events/167785202/">Bay Area Hadoop User Group</a>, the <a href="http://www.meetup.com/Apache-Tez-User-Group/events/219302692/">Apache Tez User Group</a>, and <a href="https://fosdem.org/2015/schedule/track/graph_processing/">FOSDEM 2015</a>. The January <a href="http://www.meetup.com/Apache-Flink-Meetup/events/219639984/">Flink meetup in Berlin</a> had talks on recent community updates and new features.</p>
+
+<h2 id="notable-code-contributions">Notable code contributions</h2>
+
+<p><strong>Note:</strong> Code contributions listed here may not be part of a release or even the Flink master repository yet.</p>
+
+<h3 id="using-off-heap-memoryhttpsgithubcomapacheflinkpull290"><a href="https://github.com/apache/flink/pull/290">Using off-heap memory</a></h3>
+
+<p>This pull request enables Flink to use off-heap memory for its internal memory uses (sort, hash, caching of intermediate data sets).</p>
+
+<h3 id="gelly-flinks-graph-apihttpsgithubcomapacheflinkpull335"><a href="https://github.com/apache/flink/pull/335">Gelly, Flink’s Graph API</a></h3>
+
+<p>This pull request introduces Gelly, Flink’s brand new Graph API. Gelly offers a native graph programming abstraction with functionality for vertex-centric programming, as well as available graph algorithms. See <a href="http://www.slideshare.net/vkalavri/largescale-graph-processing-with-apache-flink-graphdevroom-fosdem15">this slide set</a> for an overview of Gelly.</p>
+
+<h3 id="semantic-annotationshttpsgithubcomapacheflinkpull311"><a href="https://github.com/apache/flink/pull/311">Semantic annotations</a></h3>
+
+<p>Semantic annotations are a powerful mechanism to expose information about the behavior of Flink functions to Flink’s optimizer. The optimizer can leverage this information to generate more efficient execution plans. For example the output of a Reduce operator that groups on the second field of a tuple is still partitioned on that field if the Reduce function does not modify the value of the second field. By exposing this information to the optimizer, the optimizer can generate plans that avoid expensive data shuffling and reuse the partitioned output of Reduce. Semantic annotations can be defined for most data types, including (nested) tuples and POJOs. See the snapshot documentation for details (not online yet).</p>
+
+<h3 id="new-yarn-clienthttpsgithubcomapacheflinkpull292"><a href="https://github.com/apache/flink/pull/292">New YARN client</a></h3>
+
+<p>The improved YARN client of Flink now allows users to deploy Flink on YARN for executing a single job. Older versions only supported a long-running YARN session. The code of the YARN client has been refactored to provide an (internal) Java API for controlling YARN clusters more easily.</p>
 </p>
 
       <p><a href="/news/2015/02/04/january-in-flink.html">Continue reading &raquo;</a></p>
