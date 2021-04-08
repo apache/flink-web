@@ -130,7 +130,7 @@ batch/streaming execution in the future to make it a seamless experience.
     The interface for this New Source API is done and available, and we are working on migrating more source connectors
     to this new model, see [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface).
 
-  - Similar to the sources, the sinks original sink APIs are also specific to streaming
+  - Similar to the sources, the original sink APIs are also specific to streaming
     ([SinkFunction](https://github.com/apache/flink/blob/master/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/functions/sink/SinkFunction.java))
     and batch ([OutputFormat](https://github.com/apache/flink/blob/master/flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java))
     APIs and execution.
@@ -214,7 +214,7 @@ trying to make it faster, more predictable, and to remove some confusions and in
   - Unaligned Checkpoints, to make checkpoints progress faster when applications cause backpressure:
     [FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints), available
     since Flink 1.12.2.
-  - Log-based checkpoints, for very frequent incremental checkpointing:
+  - Log-based Checkpoints, for very frequent incremental checkpointing:
     [FLIP-158](https://cwiki.apache.org/confluence/display/FLINK/FLIP-158%3A+Generalized+incremental+checkpoints)
 
 ## Large Scale Batch Applications
