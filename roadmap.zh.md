@@ -1,5 +1,5 @@
 ---
-title: "Apache Flink 开发计划"
+title: "Apache Flink 开发计划（Roadmap）"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -24,101 +24,232 @@ under the License.
 
 {% toc %}
 
-**前言：** 从具有时间表的严格计划来说，这并不是一个权威的路线图。相反，我们，社区，会分享我们对未来的愿景，并总结了正在进行和正在受到关注的提议。此路线图将为用户和贡献者更好地了解项目的发展方向以及他们可以期待的内容。
+**导读：**
+此计划路线图旨在对Flink社区当前正在进行的项目进行总结摘要，并对这些项目根据工作内容进行分组。
+鉴于Flink每个分组中现在都有非常多的工作正在进行，我们希望此计划书有助于用户和贡献者理解每个项目乃至于整个Flink的未来方向。
+这个计划书既涵盖刚起步的项目，也包括接近完成的项目，这样可以使大家更好地了解各项目的发展方向以及当前的进展。
 
-路线图会不断更新。一旦达成共识，新的特性和工作都会添加到路线图中。共识是指这些特性和工作将来确定会发生，以及对于用户来说大致是什么样的。
+关于各个项目更多的细节讨论和其他较小的改动记录在 [FLIPs](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals)
+。
 
-**Last Update:** 2019-05-08
+路线图会不断更新。一旦达成共识，新的特性和工作都会添加到路线图中。
+这里的共识是指这些特性和工作将来确定会发生，以及这些工作对于用户来说大致是什么样的。
 
-# 分析与应用程序，DataStream、DataSet 和 Table API 的角色
+**Last Update:** 2021-04-06
 
-Flink将流处理视为[统一数据处理范式]({{site.baseurl}}/zh/flink-architecture.html)（批与实时）和事件驱动的应用程序。而 API 的不断演进正反映了这一点：
+<hr />
 
--  **Table API / SQL** 正在以流批统一的方式成为分析型用例的主要 API。为了以更精简的方式支持分析型用例，API 将会扩展很多新的功能（[FLIP-29](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739)）。
+# 功能图谱
 
-与 SQL 一样，Table API 是*声明式的*，在*逻辑 schema*上操作，并且应用了许多*自动优化*。由于这些特性，该 API 不提供直接访问时间和状态的接口。
+功能图谱旨在为用户提供有关功能成熟度方面的引导，包括哪些功能正在积极推进，哪些功能即将寿终正寝。
+如有任何疑问，请联系开发人员邮件列表：[dev@flink.apache.org](mailto:dev@flink.apache.org)
+。
 
- - **DataStream API** 是数据驱动应用程序和数据管道的主要API。使用*物理数据类型*（Java/Scala类），没有自动改写和优化。
-  应用程序可以显式控制 *时间* 和 *状态*（state，triggers，proc. fun.）。  
+<div class="row front-graphic">
+  <img src="{{ site.baseurl }}/img/flink_feature_radar_2.svg" width="700px" />
+</div>
 
-从长远来看，DataStream API应该通过*有界数据流*完全包含DataSet API。
+## 功能阶段
+
+- **MVP:** 可以了解一下这个功能，也许在将来对您有所帮助。
+- **Beta:** 您可以从中受益，但是您在使用之前应该仔细评估该功能。
+- **Ready and Evolving:** 生产可用，但是请注意，将来在升级Flink时，可能需要对您的应用和设置进行一些调整。
+- **Stable:** 可以在生产中稳定不受限制地使用。
+- **Reaching End-of-Life:** 仍然可以稳定使用，但请考虑替代方法。对于新的长期项目而言，不建议使用。
+- **Deprecated:** 不推荐使用，您需要开始寻找替代产品。
+
+<hr />
+
+
+# 一体化分析：流批一体，SQL及其他
+Flink的内核是流数据处理系统，Flink将批处理作为流的特例，用流的方式来执行批处理。
+Flink作为一个流式引擎，不仅能够高效执行批处理，更重要的是通过高效处理有限流的方式，
+打开了无缝流批一体处理之门。
+
+流批一体升级了流数据范例：它可以保证实时和离线应用语义的一致性。
+此外，有时流式处理的作业也需要离线（有限流）处理作为补充，例如，
+在出现错误或出现数据质量问题时需要重新处理数据，
+或者有的情况下启动新的作业但需要历史数据作为引导。统一的API和系统使得此类操作变得很容易。
+
+## 统一的SQL平台
+
+Flink社区一直致力于建设基于Flink的统一的流批一体SQL分析平台，并将持续在这个方向上努力。
+SQL具有非常强的跨流批的语义，并允许用户使用相同的SQL语句对即时查询（ad-hoc query）和
+连续查询（continuous query）进行分析。Flink拥有高效的统一查询引擎，以及基于此的一系列整合统一。
+根据用户反馈，我们会持续改善这些整合统一的使用体验。
+
+
+**CDC & Connectors**
+
+  - CDC（Change-Data-Capture）: 通过直接连接到数据库的日志来捕获数据变更。Flink社区会加强和CDC的整合
+      - CDC connectors: 
+        [https://flink-packages.org/packages/cdc-connectors](https://flink-packages.org/packages/cdc-connectors)
+      - 背景: [FLIP-105](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=147427289)
+        (CDC对SQL的支持) & [Debezium](https://debezium.io/)
+
+  - 数据湖Connectors: 流批一体对数据湖有很大价值，包括支持流（处理当前数据）和批（处理历史数据）的相同API，相同语义，以及相同引擎。
+	目前，Flink社区正在和各种数据湖系统进行深度融合，包括：
+      - [Apache Iceberg](https://iceberg.apache.org/): 
+        [https://iceberg.apache.org/flink/](https://iceberg.apache.org/flink/)
+      - [Apache Hudi](https://hudi.apache.org/): 
+        [https://hudi.apache.org/blog/apache-hudi-meets-apache-flink/](https://hudi.apache.org/blog/apache-hudi-meets-apache-flink/)
+      - [Apache Pinot](https://pinot.apache.org/): 
+        [FLIP-166](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=177045634)
+
+**SQL 平台基建**
+
+  - 为了简化Flink SQL的生产实践，我们正在改进SQL客户端以及SQL Gateway中客户端和群集之间与交互相关的组件：
+    [FLIP-163](https://cwiki.apache.org/confluence/display/FLINK/FLIP-163%3A+SQL+Client+Improvements)
+
+**通用语言，格式（Formats），目录（Catalogs）**
+
+  - Hive Query兼容性支持: [FLIP-152](https://cwiki.apache.org/confluence/display/FLINK/FLIP-152%3A+Hive+Query+Syntax+Compatibility)
+
+Flink SQL具备广泛的批处理覆盖（全面的TPC-DS支持）和最先进的流处理支持。我们也一直会努力增添更多的SQL功能和算子。
+
+
+## DataStream API 流批一体深度融合
+
+*DataStream API* 是 Flink 的*物理层* API, 针对需要明确地控制数据类型，数据流，状态以及时间的应用。
+DataStream API 也在不断丰富演化以支持在有限数据上的高效地批处理。
+DataStream API 使用和流式一样的 dataflow 来执行批处理，并使用一样的算子。
+这样一来，用户使用 DataStream API 表达流和批可以保持相同级别的控制。
+我们对DataStream API融合的最终目标是可以混合并自由切换流批执行，提供流批间无缝切换体验。
+
+**统一 Sources & Sinks**
+
+  - 第一代 source 的 API 和实现要么只能用于 DataStream API 里面的流处理
+    ([SourceFunction](https://github.com/apache/flink/blob/master/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/functions/source/SourceFunction.java))
+    ；要么只能用于 DataSet API 里面的批处理 
+    ([InputFormat](https://github.com/apache/flink/blob/master/flink-core/src/main/java/org/apache/flink/api/common/io/InputFormat.java)) 。
     
-# 批流统一
+    因此，我们致力于构造对流和批都适用的 sources，能让用户在这两种模式下有一致的使用体验，
+    并可以很容易地在流处理和批处理之间切换，执行无限流和有限流作业。
+    新的 Source API 的接口已经可以使用。我们会将更多的 source connectors 迁移到这个新的模型，详见
+	[FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface).
 
-Flink 在一个流式运行时之上，通过同样的 API 同时支持了批处理和流处理。[此博文]({{ site.baseurl }}/news/2019/02/13/unified-batch-streaming-blink.html) 介绍了这种批流统一的方式。
+  - 和 source 类似，原先的 sink 及其 API 也是分别针对流
+    ([SinkFunction](https://github.com/apache/flink/blob/master/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/functions/sink/SinkFunction.java))
+    和批 ([OutputFormat](https://github.com/apache/flink/blob/master/flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java))
+    设计的。
 
+    为此，我们引入了新的 sink API，可以流批一致的解决结果输出和提交 (*Transactions*) 的问题。
+	新的 sink API 的第一版已经出炉，并在不断改进中，详见 
+	[FLIP-143](https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API) 。
+    
+**DataStream 的批处理执行模式**
 
-目前正在进行的面向用户的最大改动是:
+  - Flink 在 DataStream 上为有限流新增加了*批执行模式*，这可以使得用户更简单快速的执行和恢复有限流作业。 
+    在有限流的批执行模式下，用户无需担心 watermarks 和状态大小的问题：
+    [FLIP-140](https://cwiki.apache.org/confluence/display/FLINK/FLIP-140%3A+Introduce+batch-style+execution+for+bounded+keyed+streams) 。
+	
+    批执行模式的核心实现已有 [很好的结果](https://flink.apache.org/news/2020/12/10/release-1.12.0.html#batch-execution-mode-in-the-datastream-api);
+    其他部分也在持续改进中，包括 broadcast state 和 processing-time-timers。
+    值得注意的是，此模式的实现基于上面提到的新的的 source 和 sink，因此它只能支持已经使用新 API 的 connectors。
 
-- Table API 重构 [FLIP-32](https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions) 将 Table API 从特定的流/批环境和依赖中解耦出来。
+**混合 有限流/无限流 & 批执行/流执行**
 
-- 新的数据源接口 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) 进一步推广了跨批处理和流处理传输，使每个连接器都可以作为批处理和流处理的数据源。
+  - 支持在部分 task 结束后还可以做 checkpoint & 支持有限流作业在结束的时候做最后一次 checkpoint ：
+    [FLIP-147](https://cwiki.apache.org/confluence/display/FLINK/FLIP-147%3A+Support+Checkpoints+After+Tasks+Finished)
 
-- 引入 *upsert-* 或者说 *changelog-* 源 [FLINK-8545](https://issues.apache.org/jira/browse/FLINK-8545) 将支持更强大的流输入到 Table API 中。
+  - 对于混合/切换流和批的执行，我们有一些初步的设计和讨论，敬请关注。
 
+## 使用 DataStream & Table API 取代 DataSet
 
-在运行时级别，扩展了 streaming operator 以支持某些批处理操作所需的数据消费模式（[讨论主题](https://lists.apache.org/thread.html/cb1633d10d17b0c639c3d59b2283e9e01ecda3e54ba860073c124878@%3Cdev.flink.apache.org%3E)）。
+我们希望最终能弃用只支持批式处理的 DataSet API，从而使用统一的流批处理贯穿整个系统。
+整体的讨论在这里: [FLIP-131](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866741) 。
 
-# 快速批处理（有界流）
+_DataStream API_ 可以高效的用批的方式来执行需要处理历史数据的流作业（如上所述）。
 
-社区的目标是使 Flink 在有界流（批处理用例）上的性能表现与其他批处理引擎相比具有竞争力。 虽然 Flink 已被证明是在某些批处理应用场景要比广泛使用的批处理引擎更快，不过仍然有许多正在进行的工作使得这些场景能更广泛：
+_Table API_ 应该是所有单批作业所使用的默认的 API 。
 
-- 更快更完整的 SQL 和 Table API：社区正在合并 Blink 的查询处理器，对当前的查询处理器加了许多的改进，比如提供更丰富的运行时算子、优化规则、代码生成等。新的查询处理器将具有完整的 TPC-DS 支持，并且比当前查询处理器相比具有 10 倍性能提升 ([FLINK-11439](https://issues.apache.org/jira/browse/FLINK-11439)).
+- Table API 增加更多操作，以方便支持常见的数据操作任务
+	[FLIP-155](https://cwiki.apache.org/confluence/display/FLINK/FLIP-155%3A+Introduce+a+few+convenient+operations+in+Table+API)
 
-- 利用有界流来减少容错范围：当输入数据有界时，它完全可以在 shuffle 期间将数据完整地缓存下来（内存或磁盘），以便在失败后重放这些数据。这也使得作业恢复更加细粒度，也因此更加高效 ([FLINK-10288](https://issues.apache.org/jira/browse/FLINK-10288))。
+- 在 Table API 中，使 Source 和 Sink 更容易定义使用                                                  
 
-- 基于有界数据的应用程序可以调度一个接一个的操作，这取决于算子如何消费数据（例如，首先构建哈希表，然后探测哈希表）。关于有界数据，我们将调度策略从执行图中分离出来，以支持不同的策略([FLINK-10429](https://issues.apache.org/jira/browse/FLINK-10429))。
+- DataStream API & Table API 互通性: 
+	[FLIP-136](https://cwiki.apache.org/confluence/display/FLINK/FLIP-136%3A++Improve+interoperability+between+DataStream+and+Table+API)
+	
+	提升 Table API 和 DataStream API 之间互通的能力。当需要更多对数据类型和操作控制的时候，允许从 Table API 切换到 DataStream API 。
+   
+<hr />
 
-- 在有界数据集上缓存中间结果，以支持交互式数据探索等用例。缓存通常有助于客户端提交一系列构建的作业的应用程序相互重叠并重复使用彼此的结果。[FLINK-11199](https://issues.apache.org/jira/browse/FLINK-11199)
+# Applications vs. Clusters; "Flink as a Library"
 
-- 外部 Shuffle 服务（主要是有界流）以支持从计算和中间结果中解耦出来，从而获得在 Yarn 等系统上更高的资源利用率。
+这个部分的工作主要是为了使部署（长时间运行的流式）Flink 作业变得更为自然简单。
+我们希望部署一个流式作业就像启动一个独立的应用（Applications）一样简单：
+不需要首先启动集群（Clusters），再向该集群提交作业。
 
-上文的许多增强和改进都可以从 [Blink fork](https://github.com/apache/flink/tree/blink) 贡献的源码中获得。
+例如，我们期望 Flink 作业可以作为简单的Kubernetes部署，能像普通应用程序一样可以进行常规部署和扩展，而无需额外的工作流程。
+从 Flink 1.11.0 开始，Flink 支持将 Flink 作业部署为独立的应用程序
+([FLIP-85](https://cwiki.apache.org/confluence/display/FLINK/FLIP-85+Flink+Application+Mode)) 。
 
-要利用上述针对DataStream API中有界流的优化，我们需要断开API的一部分并显式地对有界流建模。
+  - 响应式缩放功能（Reactive Scaling）可以使 Flink 作业根据资源池的增长和收缩情况更改并行度。 
+    这样可以自然地使 Flink 与标准自动缩放（atuo Scaler）兼容。
+	[FLIP-159](https://cwiki.apache.org/confluence/display/FLINK/FLIP-159%3A+Reactive+Mode)
 
-# 流处理案例
+  - 基于 Kubernetes 的高可用性（HA）服务使 Flink 作业在 Kubernetes 上运行时无需依赖ZooKeeper：
+    [FLIP-144](https://cwiki.apache.org/confluence/display/FLINK/FLIP-144%3A+Native+Kubernetes+HA+for+Flink)
+
+<hr />
+
+# 性能
+
+我们会持续不断的提高性能和容错恢复速度。
+
+## Faster Checkpoints and Recovery
+
+Flink 社区正在致力于提升做检查点（checkpointing）和容错恢复（recovery）的速度。
+Flink的容错机制多年来运行非常稳定，但是我们还是想让整个容错过程更快并且更可预测，提升易用性。
+
+- Unaligned Checkpoints，解决反压情况下 Checkpoint 做不出来的问题，从 Flink 1.12.2 版本开始可用：
+    [FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints)
   
-Flink将获得新的模式来停止正在运行的应用程序，同时确保输出和副作用是一致的，并在关闭前提交。*SUSPEND* 会提交输出和副作用，但是保留状态。而 *TERMINATE* 则清除完状态并提交输出和副作用。[FLIP-34](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=103090212)有详细信息。
+- Log-based Checkpoints, 可以做高频增量 Checkpoints，加快 checkpoint：
+	[FLIP-158](https://cwiki.apache.org/confluence/display/FLINK/FLIP-158%3A+Generalized+incremental+checkpoints)
 
-*新的源接口* ([FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface))旨在为事件时间和源的水印生成提供更简单的开箱即用支持。源可以选择以事件时间对齐消费速度，以减少在重新处理大数据量时空中（in-flight）状态的大小。（[FLINK-10887](https://issues.apache.org/jira/browse/FLINK-10886)）。
+## 大规模批作业
 
-为了简化流状态的升级， 我们计划高优支持 [Protocol Buffers](https://developers.google.com/protocol-buffers/)，支持方式类似于 Flink 深度支持 Avro 状态升级 ([FLINK-11333](https://issues.apache.org/jira/browse/FLINK-11333))。
+Flink 社区也在致力于简化大规模批作业（并行度量级在10,000左右）的部署运行，所需的配置调整更少并使之有更好的性能。
 
-# 部署，扩展，安全
+- 为批处理引入更具扩展性的 batch shuffle。Batch shuffle 的第一部分已经合并入社区代码，
+	剩下的部分可以使内存占用量（JVM直接内存）更可预测，请参阅
+	[FLIP-148](https://cwiki.apache.org/confluence/display/FLINK/FLIP-148%3A+Introduce+Sort-Merge+Based+Blocking+Shuffle+to+Flink)
+	
+    - [FLINK-20740](https://issues.apache.org/jira/browse/FLINK-20740)
+    - [FLINK-19938](https://issues.apache.org/jira/browse/FLINK-19938)
 
-有一个巨大的工作是设计了一种新的方式使 Flink 与动态资源池交互并能自动调整资源的可用性和负载。其中一部分会变成*响应式（reactive）*方式来适应不断变化的资源（像容器或 pods 被启动和删除）[FLINK-10407](https://issues.apache.org/jira/browse/FLINK-10407)。另一部分会变成*活跃式（active）*扩缩容策略，Flink 会基于内部指标来决定是否添加或删除 TaskManagers。
+- 更快调度高并发作业：[FLINK-21110](https://issues.apache.org/jira/browse/FLINK-21110)
 
-为了支持Kubernetes中的动态资源管理，我们还添加了Kubernetes资源管理器[FLINK-9953](https://issues.apache.org/jira/browse/FLINK-9953)。
+<hr />
 
-Flink Web UI 正在移植到更新的框架中并获得其他功能并更好地去跑作业 [FLINK-10705](https://issues.apache.org/jira/browse/FLINK-10705).
+# Python APIs
 
-社区正致力于扩展与身份验证和授权服务的互操作性。正在讨论的是对[安全模块抽象](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-security-improvements-td21068.html)的扩展以及[增强对 Kerberos 的支持](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Flink-Kerberos-Improvement-td25983.html)。
+Python DataStream API 对状态访问的支持：
+[FLIP-153](https://cwiki.apache.org/confluence/display/FLINK/FLIP-153%3A+Support+state+access+in+Python+DataStream+API)
 
+<hr />
 
-# 生态系统
+# 文档
 
-社区正在努力支持 catalog、schema registries、以及 metadata stores，包括 API 和 SQL 客户端的支持（[FLINK-11275](https://issues.apache.org/jira/browse/FLINK-11275)）。并且我们正在添加 DDL（数据定义语言，Data Definition Language）支持，以便能方便的添加表和流到 catalog 中（[FLINK-10232](https://issues.apache.org/jira/browse/FLINK-10232)）。
+我们也正在简化文档结构，以方便更直观的导航和阅读
 
-还有一个巨大的工作是将 Flink 与 Hive 生态系统集成。包括 Metastore 和 Hive UDF 支持 [FLINK-10556](https://issues.apache.org/jira/browse/FLINK-10556)。
+- Flink 文档迁移（Jekyll to Hugo）:
+	[FLIP-157](https://cwiki.apache.org/confluence/display/FLINK/FLIP-157+Migrate+Flink+Documentation+from+Jekyll+to+Hugo)
+- 文档重构: [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation)
+- SQL 文档: [FLIP-60](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=127405685)
 
-社区在Table API支持Python方面也做出了很多的努力 [FLIP-38](https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API)。
-我们将工作分为以下几个阶段:
+<hr />
 
-- 首先以将Python Table API 直译为Java Table API的方式支持用户编写没有UDFs(标量函数/表值函数/聚合函数)的Python Table API程序。
-- 增加对UDFs(标量函数/表值函数/聚合函数)在Python Table API的支持。
-- 最后将Pandas与Python Table API进行集成，Pandas中的函数可以在Python Table API中直接使用。
+# 操作工具
 
-# Connectors & Formats
+- 允许使用 savepoint 来切换后端状态存储（state backends）: [FLINK-20976](https://issues.apache.org/jira/browse/FLINK-20976)
+- 支持 savepoint 的其他的一些属性，例如增量 savepoint 等:
+	[FLIP-47](https://cwiki.apache.org/confluence/display/FLINK/FLIP-47%3A+Checkpoints+vs.+Savepoints)
 
-支持额外的 connectors 和 formats 是一个持续的过程。
+<hr />
 
-# 其他
+# Stateful Functions
 
-  - Flink代码库正在进行更新以支持Java 9、10 和 11
-    [FLINK-8033](https://issues.apache.org/jira/browse/FLINK-8033),
-    [FLINK-10725](https://issues.apache.org/jira/browse/FLINK-10725).
-
-  - 为了减少与不同 Scala 版本的兼容性问题，我们努力只在 Scala API 中使用 Scala，而不是运行时。对于所有的 Java 用户可以删除所有 Scala 依赖项，使 Flink 可以更容易支持不同的 Scala 版本
-    [FLINK-11063](https://issues.apache.org/jira/browse/FLINK-11063).
-
+Stateful Functions 子项目有其单独的规划路线图，请参考 [statefun.io](https://statefun.io/) 。
