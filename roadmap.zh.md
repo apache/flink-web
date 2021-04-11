@@ -46,7 +46,7 @@ under the License.
 。
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/flink_feature_radar_2.svg" width="700px" />
+  <img src="{{ site.baseurl }}/img/flink_feature_radar_zh_2.svg" width="700px" />
 </div>
 
 ## 功能阶段
