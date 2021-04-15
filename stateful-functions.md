@@ -92,7 +92,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <h3>Dynamic Messaging</h3>
     </div>
     <p align="justify">The API allows you to build and compose functions that communicate dynamic- and arbitrarily with each other. This gives you much more flexibility compared to the acyclic nature of classical stream processing topologies.</p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#stateful-functions">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-3.0/docs/concepts/application-building-blocks#stateful-functions">Learn More</a></p>
   </div>
   <!-- Consistent State -->
   <div class="col-lg-4">
@@ -100,7 +100,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <img class="img-circle" src="{{ site.baseurl }}/img/stateful-functions/statefun-prop1.png" alt="Consistent State" width="90" height="90">
       <h3>Consistent State</h3>
       <p align="justify">Functions can keep local state that is persistent and integrated with the messaging between functions. This gives you the effect of exactly-once state access/updates and guaranteed efficient messaging out-of-the-box.</p>
-      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/application-building-blocks.html#persisted-states">Learn More</a></p>
+      <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-release-3.0/docs/concepts/application-building-blocks#persisted-states">Learn More</a></p>
     </div>
   </div>
   <!-- Multi-language Support -->
@@ -111,7 +111,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
     </div>
     <p align="justify">Functions can be implemented in any programming language that can handle HTTP requests or bring up a gRPC server, with initial support for Python. More SDKs will be added for languages like Go, Javascript and Rust.
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/sdk/modules.html#modules">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/docs/concepts/distributed_architecture/#remote-functions">Learn More</a></p>
   </div>
 </div>
 
@@ -125,7 +125,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
       <h3>No Database Required</h3>
     </div>
     <p align="justify">State durability and fault tolerance build on Apache Flink’s robust distributed snapshots model. This requires nothing but a simple blob storage tier (e.g. S3, GCS, HDFS) to store the state snapshots.</p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-docs-stable/internals/stream_checkpointing.html">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-docs-stable/learn-flink/fault_tolerance.html">Learn More</a></p>
   </div>
   <!-- Cloud Native -->
   <div class="col-lg-4">
@@ -144,7 +144,7 @@ This makes it possible to execute functions on a **Kubernetes deployment**, a **
     </div>
     <p align="justify">State access is part of the function invocation and so Stateful Functions applications behave like stateless processes that can be managed with the same simplicity and benefits, like rapid scalability, scale-to-zero and rolling/zero-downtime upgrades.
     </p>
-    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/concepts/logical.html#function-lifecycle">Learn More</a></p>
+    <p align="justify"><a href="https://ci.apache.org/projects/flink/flink-statefun-docs-stable/docs/deployment/module/">Learn More</a></p>
   </div>
 </div>
 
