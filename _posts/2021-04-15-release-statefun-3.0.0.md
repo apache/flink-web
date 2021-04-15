@@ -182,7 +182,7 @@ page of the Flink website, and the most recent Python SDK distribution is availa
 You can also find official StateFun Docker images of the new version on [Dockerhub](https://hub.docker.com/r/apache/flink-statefun).
 
 For more details, check the [updated documentation](https://ci.apache.org/projects/flink/flink-statefun-docs-release-3.0/) and the
-[release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12348350)
+[release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12348822)
 for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 3.0.0.
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/browse/)
