@@ -41,7 +41,7 @@ function mkPackage() {
 defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
-defaultFlinkVersion="${1:-1.12.2}"
+defaultFlinkVersion="${1:-1.12.3}"
 defaultScalaBinaryVersion="${2:-2.11}"
 
 echo "This script creates a Flink project using Java and Gradle."
