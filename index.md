@@ -355,11 +355,15 @@ layout: base
 <div class="col-sm-9">
   <!-- Flink Forward -->
   <a href="https://flink-forward.org" target="_blank">
-    <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
+    <img style="width: 190px; padding-right: 10px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
   </a>
   <!-- ApacheCon -->
   <a href="https://www.apache.org/events/current-event" target="_blank">
     <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
+  </a>
+  <!-- Flink Summer Camp -->
+  <a href="https://www.ververica.com/apache-flink-summer-camp-training" target="_blank">
+    <img style="width: 190px; padding-left: 10px" src="{{ site.baseurl }}/img/flink-summer-camp.png" alt="Flink Summer Camp"/>
   </a>
 </div>
 
