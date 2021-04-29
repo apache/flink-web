@@ -42,7 +42,7 @@ defaultProjectName="Flink Project"
 defaultOrganization="org.example"
 defaultVersion="0.1-SNAPSHOT"
 defaultScalaVersion="2.12.7"
-defaultFlinkVersion="1.12.3"
+defaultFlinkVersion="1.13.0"
 
 echo "This script creates a Flink project using Scala and SBT."
 
@@ -105,7 +105,7 @@ organization := \"org.example\"
 
 ThisBuild / scalaVersion := \"2.11.12\"
 
-val flinkVersion = \"1.5.0\"
+val flinkVersion = \"1.13.0\"
 
 val flinkDependencies = Seq(
   \"org.apache.flink\" %% \"flink-scala\" % flinkVersion % \"provided\",
