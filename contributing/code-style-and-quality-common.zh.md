@@ -233,6 +233,17 @@ then the S3 access should be factored out into an interface and test should repl
 * Instead, create reusable test implementations and utilities
     * That way, when some class changes, we only have to update a few test utils or mocks
 
+**Avoid timeouts in JUnit tests**
+
+Generally speaking, we should avoid setting local timeouts in JUnit tests but rather depend on the
+global timeout in Azure. The global timeout benefits from taking thread dumps just before timing out
+the build, easing debugging.
+
+At the same time, any timeout value that you manually set is arbitrary. If it's set too low, you get
+test instabilities. What too low means depends on numerous factors, such as hardware and current
+utilization (especially I/O). Moreover, a local timeout is more maintenance-intensive. It's one more
+knob where you can tweak a build. If you change the test a bit, you also need to double-check the
+timeout. Hence, there have been quite a few commits that just increase timeouts.
 
 ### Performance Awareness
 
