@@ -113,7 +113,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 #### Release Notes
 
-Please have a look at the [Release Notes for Flink {{ flink_release.version_short }}]({{ site.DOCS_BASE_URL }}flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flink_release.version_short }}.html) if you plan to upgrade your Flink setup from a previous version.
+Please have a look at the [Release Notes for Flink {{ flink_release.version_short }}]({{ flink_release.release_notes_url }}) if you plan to upgrade your Flink setup from a previous version.
 
 ---
 
