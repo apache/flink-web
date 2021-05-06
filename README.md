@@ -18,6 +18,8 @@ bash docker-build.sh -f
 
 Both commands will start a webserver providing the website via `http://0.0.0.0:4000`.
 
+If a newly added blog post is not showing up on the index / blog overview page, delete the "content" directory before building the page locally. The "content" directory will be regenerated completely, including the newly added blog post.
+
 ## Building website
 
 The site needs to be rebuild before merging into the branch asf-site.
