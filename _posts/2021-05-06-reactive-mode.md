@@ -39,7 +39,7 @@ If you want to try out Reactive Mode yourself locally, follow these steps using 
 
 ```bash
 # These instructions assume you are in the root directory of a Flink distribution.
-# Put Job into lib/ directory
+# Put Job into usrlib/ directory
 mkdir usrlib
 cp ./examples/streaming/TopSpeedWindowing.jar usrlib/
 # Submit Job in Reactive Mode
