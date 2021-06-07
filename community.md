@@ -175,10 +175,20 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 - **ASF repository**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
 - **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
+### Flink docker repository
+
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
+- **GitHub mirror**: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
+
 ### Flink Stateful Functions repository
 
 - **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
 - **GitHub mirror**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
+
+### Flink Stateful Functions Docker repository
+
+- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
+- **GitHub mirror**: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
 ### Flink-shaded repositories (shaded dependency libraries)
 
