@@ -10,7 +10,9 @@ title:  "Apache Flink Code Style and Quality Guide — Formatting"
 
 ## Java Code Formatting Style
 
-We recommend to set up the IDE to automatically check the code style. Please follow the [IDE setup guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) for that.
+We recommend to set up the IDE to automatically check the code style. Please follow the [IDE guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html) to set up
+[spotless](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#code-formatting) and
+[checkstyle](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java).
 
 
 ### License
@@ -42,8 +44,7 @@ We recommend to set up the IDE to automatically check the code style. Please fol
 
 ### Whitespaces
 
-* **Tabs vs. spaces.** We are using tabs for indentation, not spaces.
-We are aware that spaces are a bit nicer; it just happened to be that we started with tabs a long time ago (because Eclipse’s default style used tabs then), and we tried to keep the code base homogeneous (not mix tabs and spaces).
+* **Tabs vs. spaces.** We are using spaces for indentation, not tabs.
 * **No trailing whitespace.**
 * **Spaces around operators/keywords.** Operators (`+`, `=`, `>`, …) and keywords (`if`, `for`, `catch`, …) must have a space before and after them, provided they are not at the start or end of the line.
 
