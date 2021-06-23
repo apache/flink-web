@@ -115,7 +115,7 @@ intermix.
 ### Front Matter
 
 In addition to Markdown, each file contains a YAML [front matter
-block](https://jekyllrb.com/docs/front-matter/) that will be used to set
+block](https://gohugo.io/content-management/front-matter/) that will be used to set
 variables and metadata on the page. The front matter must be the first thing in
 the file and must be specified as a valid YAML set between triple-dashed lines.
 

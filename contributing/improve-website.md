@@ -33,7 +33,7 @@ git checkout asf-site
 
 ## Directory structure and files
 
-Flink's website is written in [Markdown](http://daringfireball.net/projects/markdown/). Markdown is a lightweight markup language which can be translated to HTML. We use [Jekyll](http://jekyllrb.com/) to generate static HTML files from Markdown.
+Flink's website is written in [Markdown](http://daringfireball.net/projects/markdown/). Markdown is a lightweight markup language which can be translated to HTML. We use [Hugo](https://gohugo.io/documentation/) to generate static HTML files from Markdown.
 
 The files and directories in the website git repository have the following roles:
 
@@ -42,7 +42,7 @@ The files and directories in the website git repository have the following roles
 - The `_posts` directory contains blog posts. Each blog post is written as one Markdown file. To contribute a post, add a new file there.
 - The `_includes/` directory contains includeable files such as the navigation bar or the footer.
 - The `docs/` directory contains copies of the documentation of Flink for different releases. There is a directory inside `docs/` for each stable release and the latest SNAPSHOT version. The build script is taking care of the maintenance of this directory.
-- The `content/` directory contains the generated HTML files from Jekyll. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
+- The `content/` directory contains the generated HTML files from Hugo. It is important to place the files in this directory since the Apache Infrastructure that hosts the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
 
 ## Update or extend the documentation
 
