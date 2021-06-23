@@ -16,8 +16,7 @@ Many Flink users, contributors, and committers are subscribed to Flink's user ma
 
 Before posting to the mailing list, you can search the mailing list archives for email threads that discuss issues related to yours on the following websites.
 
-- [Apache Pony Mail Archive](https://lists.apache.org/list.html?user@flink.apache.org)
-- [Nabble Archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
+- [Apache Mailing List Archive](https://lists.apache.org/list.html?user@flink.apache.org)
 
 If you'd like to post to the mailing list, you need to
 
