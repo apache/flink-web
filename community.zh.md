@@ -31,7 +31,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>只读邮件列表</i></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-news/">归档</a> <br>
+      <a href="https://lists.apache.org/list.html?news@flink.apache.org">归档</a> <br>
     </td>
   </tr>
   <tr>
@@ -44,7 +44,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community@flink.apache.org">发送</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-community/">归档</a> <br>
+      <a href="https://lists.apache.org/list.html?community@flink.apache.org">归档</a>
     </td>
   </tr>
   <tr>
@@ -57,8 +57,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user@flink.apache.org">发送</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user/">归档</a> <br>
-      <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">Nabble 归档</a>
+      <a href="https://lists.apache.org/list.html?user@flink.apache.org">归档</a>
     </td>
   </tr>
     <tr>
@@ -71,8 +70,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">发送</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">归档</a> <br>
-      <a href="http://apache-flink.147419.n8.nabble.com/">Nabble 归档</a>
+      <a href="https://lists.apache.org/list.html?user-zh@flink.apache.org">归档</a>
     </td>
   </tr>
   <tr>
@@ -85,8 +83,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev@flink.apache.org">发送</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-dev/">归档</a> <br>
-      <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble 归档</a>
+      <a href="https://lists.apache.org/list.html?dev@flink.apache.org">归档</a>
     </td>
   </tr>
   <tr>
@@ -99,7 +96,7 @@ title: "社区 & 项目信息"
       <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-unsubscribe@flink.apache.org">退订</a></td>
       <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>只读邮件列表</i></td>
       <td class="text-center">
-        <a href="http://mail-archives.apache.org/mod_mbox/flink-builds/">归档</a> <br>
+        <a href="https://lists.apache.org/list.html?builds@flink.apache.org">归档</a>
       </td>
     </tr>
   <tr>
@@ -112,7 +109,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-digest-subscribe@flink.apache.org">订阅</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>只读邮件列表</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-issues/">归档</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?issues@flink.apache.org">归档</a></td>
   </tr>
   <tr>
     <td>
@@ -124,7 +121,7 @@ title: "社区 & 项目信息"
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-digest-subscribe@flink.apache.org">订阅</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-unsubscribe@flink.apache.org">退订</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>只读邮件列表</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-commits/">归档</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?commits@flink.apache.org">归档</a></td>
   </tr>
 </table>
 

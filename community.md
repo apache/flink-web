@@ -32,7 +32,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>Read only list</i></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-news/">Archives</a> <br>
+      <a href="https://lists.apache.org/list.html?news@flink.apache.org">Archives</a> <br>
     </td>
   </tr>
   <tr>
@@ -45,7 +45,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-community/">Archives</a> <br>
+      <a href="https://lists.apache.org/list.html?community@flink.apache.org">Archives</a> <br>
     </td>
   </tr>
   <tr>
@@ -58,8 +58,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user/">Archives</a> <br>
-      <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?user@flink.apache.org">Archives</a>
     </td>
   </tr>
     <tr>
@@ -72,8 +71,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">Archives</a> <br>
-      <a href="http://apache-flink.147419.n8.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?user-zh@flink.apache.org">Archives</a>
     </td>
   </tr>
   <tr>
@@ -86,8 +84,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-dev/">Archives</a> <br>
-      <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?dev@flink.apache.org">Archives</a>
     </td>
   </tr>
   <tr>
@@ -100,7 +97,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
       <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-unsubscribe@flink.apache.org">Unsubscribe</a></td>
       <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>Read only list</i></td>
       <td class="text-center">
-        <a href="http://mail-archives.apache.org/mod_mbox/flink-builds/">Archives</a> <br>
+        <a href="https://lists.apache.org/list.html?builds@flink.apache.org">Archives</a>
       </td>
     </tr>
   <tr>
@@ -113,7 +110,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-digest-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>Read only list</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-issues/">Archives</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?issues@flink.apache.org">Archives</a></td>
   </tr>
   <tr>
     <td>
@@ -125,7 +122,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-digest-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>Read only list</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-commits/">Archives</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?commits@flink.apache.org">Archives</a></td>
   </tr>
 </table>
 
