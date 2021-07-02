@@ -7,6 +7,207 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>How to identify the source of backpressure?</title>
+<description>&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#what-is-backpressure&quot; id=&quot;markdown-toc-what-is-backpressure&quot;&gt;What is backpressure?&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#why-should-i-care-about-backpressure&quot; id=&quot;markdown-toc-why-should-i-care-about-backpressure&quot;&gt;Why should I care about backpressure?&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#why-shouldnt-i-care-about-backpressure&quot; id=&quot;markdown-toc-why-shouldnt-i-care-about-backpressure&quot;&gt;Why shouldn’t I care about backpressure?&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#how-to-detect-and-track-down-the-source-of-backpressure&quot; id=&quot;markdown-toc-how-to-detect-and-track-down-the-source-of-backpressure&quot;&gt;How to detect and track down the source of backpressure?&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#what-are-those-numbers&quot; id=&quot;markdown-toc-what-are-those-numbers&quot;&gt;What are those numbers?&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#varying-load&quot; id=&quot;markdown-toc-varying-load&quot;&gt;Varying load&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#what-can-i-do-with-backpressure&quot; id=&quot;markdown-toc-what-can-i-do-with-backpressure&quot;&gt;What can I do with backpressure?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/animated.png&quot; alt=&quot;Backpressure monitoring in the web UI&quot; /&gt;
+	&lt;p class=&quot;align-center&quot;&gt;Backpressure monitoring in the web UI&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The backpressure topic was tackled from different angles over the last couple of years. However, when it comes 
+to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases 
+(especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of 
+these changes and go into more detail about how to track down the source of backpressure, but first…&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-backpressure&quot;&gt;What is backpressure?&lt;/h2&gt;
+
+&lt;p&gt;This has been explained very well in an old, but still accurate, &lt;a href=&quot;https://www.ververica.com/blog/how-flink-handles-backpressure&quot;&gt;post by Ufuk Celebi&lt;/a&gt;.
+I highly recommend reading it if you are not familiar with this concept. For a much deeper and low-level understanding of
+the topic and how Flink’s network stack works, there is a more &lt;a href=&quot;https://alibabacloud.com/blog/analysis-of-network-flow-control-and-back-pressure-flink-advanced-tutorials_596632&quot;&gt;advanced explanation available here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;At a high level, backpressure happens if some operator(s) in the Job Graph cannot process records at the
+same rate as they are received. This fills up the input buffers of the subtask that is running this slow operator.
+Once the input buffers are full, backpressure propagates to the output buffers of the upstream subtasks.
+Once those are filled up, the upstream subtasks are also forced to slow down their records’ processing
+rate to match the processing rate of the operator causing this bottleneck down the stream. Backpressure
+further propagates up the stream until it reaches the source operators.&lt;/p&gt;
+
+&lt;p&gt;As long as the load and available resources are static and none of the operators produce short bursts of
+data (like windowing operators), those input/output buffers should only be in one of two states: almost empty
+or almost full. If the downstream operator or subtask is able to keep up with the influx of data, the
+buffers will be empty. If not, then the buffers will be full [&lt;sup&gt;1&lt;/sup&gt;]. In fact, checking the buffers’ usage metrics
+was the basis of the previously recommended way on how to detect and analyze backpressure described &lt;a href=&quot;https://flink.apache.org/2019/07/23/flink-network-stack-2.html#backpressure&quot;&gt;a couple
+of years back by Nico Kruber&lt;/a&gt;.
+As I mentioned in the beginning, Flink now offers much better tools to do the same job, but before we get to that,
+there are two questions worth asking.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-should-i-care-about-backpressure&quot;&gt;Why should I care about backpressure?&lt;/h3&gt;
+
+&lt;p&gt;Backpressure is an indicator that your machines or operators are overloaded. The buildup of backpressure
+directly affects the end-to-end latency of the system, as records are waiting longer in the queues before
+being processed. Secondly, aligned checkpointing takes longer with backpressure, while unaligned checkpoints
+will be larger (you can read more about aligned and unaligned checkpoints &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/concepts/stateful-stream-processing/#checkpointing&quot;&gt;in the documentation&lt;/a&gt;.
+If you are struggling with checkpoint barriers propagation times, taking care of backpressure would most
+likely help to solve the problem. Lastly, you might just want to optimize your job in order to reduce
+the costs of running the job.&lt;/p&gt;
+
+&lt;p&gt;In order to address the problem for all cases, one needs to be aware of it, then locate and analyze it.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-shouldnt-i-care-about-backpressure&quot;&gt;Why shouldn’t I care about backpressure?&lt;/h3&gt;
+
+&lt;p&gt;Frankly, you do not  always have to care about the presence of backpressure. Almost by definition, lack
+of backpressure means that your cluster is at least ever so slightly underutilized and over-provisioned.
+If you want to minimize idling resources, you probably can not avoid incurring some backpressure. This
+is especially true for batch processing.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-to-detect-and-track-down-the-source-of-backpressure&quot;&gt;How to detect and track down the source of backpressure?&lt;/h2&gt;
+
+&lt;p&gt;One way to detect backpressure is to use &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#system-metrics&quot;&gt;metrics&lt;/a&gt;,
+however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases, it should be enough to just
+look at the job graph in the Web UI.&lt;/p&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/simple-example.png&quot; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The first thing to note in the example above is that different tasks have different colors. Those colors
+represent a combination of two factors: under how much backpressure this task is and how busy it is. Idling
+tasks will be blue, fully busy tasks will be red hot, and fully backpressured tasks will be black. Anything
+in between will be a combination/shade of those three colors. With this knowledge, one can easily spot the
+backpressured tasks (black). The busiest (red) task downstream of the backpressured tasks will most likely
+be the source of the backpressure (the bottleneck).&lt;/p&gt;
+
+&lt;p&gt;If you click on one particular task and go into the “BackPressure” tab you will be able to further dissect
+the problem and check what is the busy/backpressured/idle status of every subtask in that task. For example,
+this is especially handy if there is a data skew and not all subtasks are equally utilized.&lt;/p&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/subtasks.png&quot; alt=&quot;Backpressure among subtasks&quot; /&gt;
+	&lt;p class=&quot;align-center&quot;&gt;Backpressure among subtasks&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In the above example, we can clearly see which subtasks are idling, which are backpressured, and that
+none of them are busy. And frankly, in a nutshell, that should be enough to quickly understand what is
+happening with your Job :) However, there are a couple of more details worth explaining.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-are-those-numbers&quot;&gt;What are those numbers?&lt;/h3&gt;
+
+&lt;p&gt;If you are curious how it works underneath, we can go a little deeper. At the base of this new mechanism
+we have three &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#io&quot;&gt;new metrics&lt;/a&gt;
+that are exposed and calculated by each subtask:
+- &lt;code&gt;idleTimeMsPerSecond&lt;/code&gt;
+- &lt;code&gt;busyTimeMsPerSecond&lt;/code&gt;
+- &lt;code&gt;backPressuredTimeMsPerSecond&lt;/code&gt;
+Each of them measures the average time in milliseconds per second that the subtask spent being idle,
+busy, or backpressured respectively. Apart from some rounding errors they should complement each other and
+add up to 1000ms/s. In essence, they are quite similar to, for example, CPU usage metrics.&lt;/p&gt;
+
+&lt;p&gt;Another important detail is that they are being averaged over a short period of time (a couple of seconds)
+and they take into account everything that is happening inside the subtask’s thread: operators, functions,
+timers, checkpointing, records serialization/deserialization, network stack, and other Flink internal
+overheads. A &lt;code&gt;WindowOperator&lt;/code&gt; that is busy firing timers and producing results will be reported as busy or backpressured.
+A function doing some expensive computation in &lt;code&gt;CheckpointedFunction#snapshotState&lt;/code&gt; call, for instance flushing
+internal buffers, will also be reported as busy.&lt;/p&gt;
+
+&lt;p&gt;One limitation, however, is that &lt;code&gt;busyTimeMsPerSecond&lt;/code&gt; and &lt;code&gt;idleTimeMsPerSecond&lt;/code&gt; metrics are oblivious
+to anything that is happening in separate threads, outside of the main subtask’s execution loop.
+Fortunately, this is only relevant for two cases:
+- Custom threads that you manually spawn in your operators (a discouraged practice).
+- Old-style sources that implement the deprecated &lt;code&gt;SourceFunction&lt;/code&gt; interface. Such sources will report &lt;code&gt;NaN&lt;/code&gt;/&lt;code&gt;N/A&lt;/code&gt;
+as the value for busyTimeMsPerSecond. For more information on the topic of Data Sources please
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/dev/datastream/sources/&quot;&gt;take a look here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/source-task-busy.png&quot; alt=&quot;Old-style sources do not report busy time&quot; /&gt;
+	&lt;p class=&quot;align-center&quot;&gt;Old-style sources do not report busy time&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In order to present those raw numbers in the web UI, those metrics need to be aggregated from all subtasks
+(on the job graph we are showing only tasks). This is why the web UI presents the maximal value from all
+subtasks of a given task and why the aggregated maximal values of busy and backpressured may not add up to 100%.
+One subtask can be backpressured at 60%, while another can be busy at 60%.  This can result in a task that
+is both backpressured and busy at 60%.&lt;/p&gt;
+
+&lt;h3 id=&quot;varying-load&quot;&gt;Varying load&lt;/h3&gt;
+
+&lt;p&gt;There is one more thing. Do you remember that those metrics are measured and averaged over a couple of seconds?
+Keep this in mind when analyzing jobs or tasks with varying load, such as (sub)tasks containing a &lt;code&gt;WindowOperator&lt;/code&gt;
+that is firing periodically. Both the subtask with a constant load of 50% and the subtask that alternates every
+second between being fully busy and fully idle will be reporting the same value of &lt;code&gt;busyTimeMsPerSecond&lt;/code&gt;
+of 500ms/s.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, varying load and especially firing windows can move the bottleneck to a different place in
+the job graph:&lt;/p&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/bottleneck-zoom.png&quot; alt=&quot;Bottleneck alternating between two tasks&quot; /&gt;
+	&lt;p class=&quot;align-center&quot;&gt;Bottleneck alternating between two tasks&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;row front-graphic&quot;&gt;
+  &lt;img src=&quot;/img/blog/2021-07-07-backpressure/sliding-window.png&quot; alt=&quot;SlidingWindowOperator&quot; /&gt;
+	&lt;p class=&quot;align-center&quot;&gt;SlidingWindowOperator&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In this particular example, &lt;code&gt;SlidingWindowOperator&lt;/code&gt; was the bottleneck as long as it was accumulating records.
+However, as soon as it starts to fire its windows (once every 10 seconds), the downstream task
+&lt;code&gt;SlidingWindowCheckMapper -&amp;gt; Sink: SlidingWindowCheckPrintSink&lt;/code&gt; becomes the bottleneck and &lt;code&gt;SlidingWindowOperator&lt;/code&gt;
+gets backpressured. As those busy/backpressured/idle metrics are averaging time over a couple of seconds,
+this subtlety is not immediately visible and has to be read between the lines. On top of that, the web UI
+is updating its state only once every 10 seconds, which makes spotting more frequent changes a bit more difficult.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-can-i-do-with-backpressure&quot;&gt;What can I do with backpressure?&lt;/h2&gt;
+
+&lt;p&gt;In general this is a complex topic that is worthy of a dedicated blog post. It was, to a certain extent,
+addressed in &lt;a href=&quot;https://flink.apache.org/2019/07/23/flink-network-stack-2.html#:~:text=this%20is%20unnecessary.-,What%20to%20do%20with%20Backpressure%3F,-Assuming%20that%20you&quot;&gt;previous blog posts&lt;/a&gt;.
+In short, there are two high-level ways of dealing with backpressure. Either add more resources (more machines,
+faster CPU, more RAM, better network, using SSDs…) or optimize usage of the resources you already have
+(optimize the code, tune the configuration, avoid data skew). In either case, you first need to analyze
+what is causing backpressure by:
+1. Identifying the presence of backpressure.
+2. Locating which subtask(s) or machines are causing it.
+3. Digging deeper into what part of the code is causing it and which resource is scarce.&lt;/p&gt;
+
+&lt;p&gt;Backpressure monitoring improvements and metrics can help you with the first two points. To tackle the
+last one, profiling the code can be the way to go. To help with profiling, also starting from Flink 1.13,
+&lt;a href=&quot;http://www.brendangregg.com/flamegraphs.html&quot;&gt;Flame Graphs&lt;/a&gt; are &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/debugging/flame_graphs/&quot;&gt;integrated into Flink’s web UI&lt;/a&gt;.
+Flame Graphs is a well known profiling tool and visualization technique and I encourage you to give it a try.&lt;/p&gt;
+
+&lt;p&gt;But keep in mind that after locating where the bottleneck is, you can analyze it the same way you would
+any other non-distributed application (by checking resource utilization, attaching a profiler, etc).
+Usually there is no silver bullet for problems like this. You can try to scale up but sometimes it might
+not be easy or practical to do.&lt;/p&gt;
+
+&lt;p&gt;Anyway… The aforementioned improvements to backpressure monitoring allow us to easily detect the source of backpressure,
+and Flame Graphs can help us to analyze why a particular subtask is causing problems. Together those two
+features should make the previously quite tedious process of debugging and performance analysis of Flink
+jobs that much easier! Please upgrade to Flink 1.13.x and try them out!&lt;/p&gt;
+
+&lt;p&gt;[&lt;sup&gt;1&lt;/sup&gt;] There is a third possibility. In a rare case when network exchange is actually the bottleneck in your job,
+the downstream task will have empty input buffers, while upstream output buffers will be full. &lt;a class=&quot;anchor&quot; id=&quot;1&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+<pubDate>Wed, 07 Jul 2021 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2021/07/07/backpressure.html</link>
+<guid isPermaLink="true">/2021/07/07/backpressure.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.13.1 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.13 series.&lt;/p&gt;
 
@@ -19038,96 +19239,6 @@ Feedback through the Flink &lt;a href=&quot;http://flink.apache.org/community.ht
 <pubDate>Thu, 15 Feb 2018 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2018/02/15/release-1.4.1.html</link>
 <guid isPermaLink="true">/news/2018/02/15/release-1.4.1.html</guid>
-</item>
-
-<item>
-<title>Managing Large State in Apache Flink: An Intro to Incremental Checkpointing</title>
-<description>&lt;p&gt;Apache Flink was purpose-built for &lt;em&gt;stateful&lt;/em&gt; stream processing. However, what is state in a stream processing application? I defined state and stateful stream processing in a &lt;a href=&quot;http://flink.apache.org/features/2017/07/04/flink-rescalable-state.html&quot;&gt;previous blog post&lt;/a&gt;, and in case you need a refresher, &lt;em&gt;state is defined as memory in an application’s operators that stores information about previously-seen events that you can use to influence the processing of future events&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;State is a fundamental, enabling concept in stream processing required for a majority of complex use cases. Some examples highlighted in the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/state.html&quot;&gt;Flink documentation&lt;/a&gt;:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;When an application searches for certain event patterns, the state stores the sequence of events encountered so far.&lt;/li&gt;
-  &lt;li&gt;When aggregating events per minute, the state holds the pending aggregates.&lt;/li&gt;
-  &lt;li&gt;When training a machine learning model over a stream of data points, the state holds the current version of the model parameters.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;However, stateful stream processing is only useful in production environments if the state is fault tolerant. “Fault tolerance” means that even if there’s a software or machine failure, the computed end-result is accurate, with no data loss or double-counting of events.&lt;/p&gt;
-
-&lt;p&gt;Flink’s fault tolerance has always been a powerful and popular feature, minimizing the impact of software or machine failure on your business and making it possible to guarantee exactly-once results from a Flink application.&lt;/p&gt;
-
-&lt;p&gt;Core to this is &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.3/dev/stream/checkpointing.html&quot;&gt;checkpointing&lt;/a&gt;, which is the mechanism Flink uses to make application state fault tolerant. A checkpoint in Flink is a global, asynchronous snapshot of application state that’s taken on a regular interval and sent to durable storage (usually, a distributed file system). In the event of a failure, Flink restarts an application using the most recently completed checkpoint as a starting point. Some Apache Flink users run applications with gigabytes or even terabytes of application state. These users reported that with such large state, creating a checkpoint was often a slow and resource intensive operation, which is why in Flink 1.3 we introduced ‘incremental checkpointing.’&lt;/p&gt;
-
-&lt;p&gt;Before incremental checkpointing, every single Flink checkpoint consisted of the full state of an application. We created the incremental checkpointing feature after we noticed that writing the full state for every checkpoint was often unnecessary, as the state changes from one checkpoint to the next were rarely that large. Incremental checkpointing instead maintains the differences (or ‘delta’) between each checkpoint and stores only the differences between the last checkpoint and the current state.&lt;/p&gt;
-
-&lt;p&gt;Incremental checkpoints can provide a significant performance improvement for jobs with a very large state. Early testing of the feature by a production user with terabytes of state shows a drop in checkpoint time from more than 3 minutes down to 30 seconds after implementing incremental checkpoints. This is because the checkpoint doesn’t need to transfer the full state to durable storage on each checkpoint.&lt;/p&gt;
-
-&lt;h3 id=&quot;how-to-start&quot;&gt;How to Start&lt;/h3&gt;
-
-&lt;p&gt;Currently, you can only use incremental checkpointing with a RocksDB state back-end, and Flink uses RocksDB’s internal backup mechanism to consolidate checkpoint data over time. As a result, the incremental checkpoint history in Flink does not grow indefinitely, and Flink eventually consumes and prunes old checkpoints automatically.&lt;/p&gt;
-
-&lt;p&gt;To enable incremental checkpointing in your application, I recommend you read the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.4/ops/state/large_state_tuning.html#tuning-rocksdb&quot;&gt;the Apache Flink documentation on checkpointing&lt;/a&gt; for full details, but in summary, you enable checkpointing as normal, but enable incremental checkpointing in the constructor by setting the second parameter to &lt;code&gt;true&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h4 id=&quot;java-example&quot;&gt;Java Example&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filebackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;scala-example&quot;&gt;Scala Example&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filebackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;By default, Flink retains 1 completed checkpoint, so if you need a higher number, &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/dev/stream/state/checkpointing.html#related-config-options&quot;&gt;you can configure it with the following flag&lt;/a&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;checkpoints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;retained&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;how-it-works&quot;&gt;How it Works&lt;/h3&gt;
-
-&lt;p&gt;Flink’s incremental checkpointing uses &lt;a href=&quot;https://github.com/facebook/rocksdb/wiki/Checkpoints&quot;&gt;RocksDB checkpoints&lt;/a&gt; as a foundation. RocksDB is a key-value store based on ‘&lt;a href=&quot;https://en.wikipedia.org/wiki/Log-structured_merge-tree&quot;&gt;log-structured-merge&lt;/a&gt;’ (LSM) trees that collects all changes in a mutable (changeable) in-memory buffer called a ‘memtable’. Any updates to the same key in the memtable replace previous values, and once the memtable is full, RocksDB writes it to disk with all entries sorted by their key and with light compression applied. Once RocksDB writes the memtable to disk it is immutable (unchangeable) and is now called a ‘sorted-string-table’ (sstable).&lt;/p&gt;
-
-&lt;p&gt;A ‘compaction’ background task merges sstables to consolidate potential duplicates for each key, and over time RocksDB deletes the original sstables, with the merged sstable containing all information from across all the other sstables.&lt;/p&gt;
-
-&lt;p&gt;On top of this, Flink tracks which sstable files RocksDB has created and deleted since the previous checkpoint, and as the sstables are immutable, Flink uses this to figure out the state changes. To do this, Flink triggers a flush in RocksDB, forcing all memtables into sstables on disk, and hard-linked in a local temporary directory. This process is synchronous to the processing pipeline, and Flink performs all further steps asynchronously and does not block processing.&lt;/p&gt;
-
-&lt;p&gt;Then Flink copies all new sstables to stable storage (e.g., HDFS, S3) to reference in the new checkpoint. Flink doesn’t copy all sstables that already existed in the previous checkpoint to stable storage but re-reference them. Any new checkpoints will no longer reference deleted files as deleted sstables in RocksDB are always the result of compaction, and it eventually replaces old tables with an sstable that is the result of a merge. This how in Flink’s incremental checkpoints can prune the checkpoint history.&lt;/p&gt;
-
-&lt;p&gt;For tracking changes between checkpoints, the uploading of consolidated tables is redundant work. Flink performs the process incrementally, and typically adds only a small overhead, so we consider this worthwhile because it allows Flink to keep a shorter history of checkpoints to consider in a recovery.&lt;/p&gt;
-
-&lt;h4 id=&quot;an-example&quot;&gt;An Example&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&quot;/img/blog/incremental_cp_impl_example.svg&quot; alt=&quot;Example setup&quot; /&gt;
-&lt;em&gt;Example setup&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Take an example with a subtask of one operator that has a keyed state, and the number of retained checkpoints set at &lt;strong&gt;2&lt;/strong&gt;. The columns in the figure above show the state of the local RocksDB instance for each checkpoint, the files it references, and the counts in the shared state registry after the checkpoint completes.&lt;/p&gt;
-
-&lt;p&gt;For checkpoint ‘CP 1’, the local RocksDB directory contains two sstable files, it considers these new and uploads them to stable storage using directory names that match the checkpoint name. When the checkpoint completes, Flink creates the two entries in the shared state registry and sets their counts to ‘1’. The key in the shared state registry is a composite of an operator, subtask, and the original sstable file name. The registry also keeps a mapping from the key to the file path in stable storage.&lt;/p&gt;
-
-&lt;p&gt;For checkpoint ‘CP 2’, RocksDB has created two new sstable files, and the two older ones still exist. For checkpoint ‘CP 2’, Flink adds the two new files to stable storage and can reference the previous two files. When the checkpoint completes, Flink increases the counts for all referenced files by 1.&lt;/p&gt;
-
-&lt;p&gt;For checkpoint ‘CP 3’, RocksDB’s compaction has merged &lt;code&gt;sstable-(1)&lt;/code&gt;, &lt;code&gt;sstable-(2)&lt;/code&gt;, and &lt;code&gt;sstable-(3)&lt;/code&gt; into &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and deleted the original files. This merged file contains the same information as the source files, with all duplicate entries eliminated. In addition to this merged file, &lt;code&gt;sstable-(4)&lt;/code&gt; still exists and there is now a new &lt;code&gt;sstable-(5)&lt;/code&gt; file. Flink adds the new &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and &lt;code&gt;sstable-(5)&lt;/code&gt; files to stable storage, &lt;code&gt;sstable-(4)&lt;/code&gt; is re-referenced from checkpoint ‘CP 2’ and increases the counts for referenced files by 1. The older ‘CP 1’ checkpoint is now deleted as the number of retained checkpoints (2) has been reached. As part of this deletion, Flink decreases the counts for all files referenced ‘CP 1’, (&lt;code&gt;sstable-(1)&lt;/code&gt; and &lt;code&gt;sstable-(2)&lt;/code&gt;), by 1.&lt;/p&gt;
-
-&lt;p&gt;For checkpoint ‘CP-4’, RocksDB has merged &lt;code&gt;sstable-(4)&lt;/code&gt;, &lt;code&gt;sstable-(5)&lt;/code&gt;, and a new &lt;code&gt;sstable-(6)&lt;/code&gt; into &lt;code&gt;sstable-(4,5,6)&lt;/code&gt;. Flink adds this new table to stable storage and references it together with &lt;code&gt;sstable-(1,2,3)&lt;/code&gt;, it increases the counts for &lt;code&gt;sstable-(1,2,3)&lt;/code&gt; and &lt;code&gt;sstable-(4,5,6)&lt;/code&gt; by 1 and then deletes ‘CP-2’ as the number of retained checkpoints has been reached. As the counts for &lt;code&gt;sstable-(1)&lt;/code&gt;, &lt;code&gt;sstable-(2)&lt;/code&gt;, and &lt;code&gt;sstable-(3)&lt;/code&gt; have now dropped to 0, and Flink deletes them from stable storage.&lt;/p&gt;
-
-&lt;h3 id=&quot;race-conditions-and-concurrent-checkpoints&quot;&gt;Race Conditions and Concurrent Checkpoints&lt;/h3&gt;
-
-&lt;p&gt;As Flink can execute multiple checkpoints in parallel, sometimes new checkpoints start before confirming previous checkpoints as completed. Because of this, you should consider which the previous checkpoint to use as a basis for a new incremental checkpoint. Flink only references state from a checkpoint confirmed by the checkpoint coordinator so that it doesn’t unintentionally reference a deleted shared file.&lt;/p&gt;
-
-&lt;h3 id=&quot;restoring-checkpoints-and-performance-considerations&quot;&gt;Restoring Checkpoints and Performance Considerations&lt;/h3&gt;
-
-&lt;p&gt;If you enable incremental checkpointing, there are no further configuration steps needed to recover your state in case of failure. If a failure occurs, Flink’s &lt;code&gt;JobManager&lt;/code&gt; tells all tasks to restore from the last completed checkpoint, be it a full or incremental checkpoint. Each &lt;code&gt;TaskManager&lt;/code&gt; then downloads their share of the state from the checkpoint on the distributed file system.&lt;/p&gt;
-
-&lt;p&gt;Though the feature can lead to a substantial improvement in checkpoint time for users with a large state, there are trade-offs to consider with incremental checkpointing. Overall, the process reduces the checkpointing time during normal operations but can lead to a longer recovery time depending on the size of your state. If the cluster failure is particularly severe and the Flink &lt;code&gt;TaskManager&lt;/code&gt;s have to read from multiple checkpoints, recovery can be a slower operation than when using non-incremental checkpointing. You can also no longer delete old checkpoints as newer checkpoints need them, and the history of differences between checkpoints can grow indefinitely over time. You need to plan for larger distributed storage to maintain the checkpoints and the network overhead to read from it.&lt;/p&gt;
-
-&lt;p&gt;There are some strategies for improving the convenience/performance trade-off, and I recommend you read &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.4/ops/state/checkpoints.html#basics-of-incremental-checkpoints&quot;&gt;the Flink documentation&lt;/a&gt; for more details.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;This post &lt;a href=&quot;https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview&quot; target=&quot;_blank&quot;&gt; originally appeared on the data Artisans blog &lt;/a&gt;and was contributed to the Flink blog by Stefan Richter and Chris Ward.&lt;/em&gt;&lt;/p&gt;
-&lt;link rel=&quot;canonical&quot; href=&quot;https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview&quot; /&gt;
-
-</description>
-<pubDate>Tue, 30 Jan 2018 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/features/2018/01/30/incremental-checkpointing.html</link>
-<guid isPermaLink="true">/features/2018/01/30/incremental-checkpointing.html</guid>
 </item>
 
 </channel>
