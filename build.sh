@@ -62,6 +62,7 @@ while getopts ":pfi" opt; do
         ;;
         i)
         echo "Incremental build enabled. This _can_ result in newly added blog posts not being displayed."
+        echo "If that happens, run this script once without incremental builds."
         INCREMENTAL="--incremental"
         ;;
     esac
