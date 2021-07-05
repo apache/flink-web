@@ -49,18 +49,23 @@ DOCS_DST=${DOCS_SRC}/content
 
 # default jekyll command is to just build site
 JEKYLL_CMD="build"
+INCREMENTAL=""
 
 # if -p flag is provided, serve site on localhost
-while getopts ":pf" opt; do
+while getopts ":pfi" opt; do
     case $opt in
         p)
-        JEKYLL_CMD="serve --baseurl= --watch --trace --incremental"
-        break;;
+        JEKYLL_CMD="serve --baseurl= --watch --trace"
+        ;;
         f)
-        JEKYLL_CMD="serve --baseurl= --watch --trace --incremental --future"
-        break;;
+        JEKYLL_CMD="serve --baseurl= --watch --trace --future"
+        ;;
+        i)
+        echo "Incremental build enabled. This _can_ result in newly added blog posts not being displayed."
+        INCREMENTAL="--incremental"
+        ;;
     esac
 done
 
 # use 'bundle exec' to insert the local Ruby dependencies
-bundle exec jekyll ${JEKYLL_CMD} --source "${DOCS_SRC}" --destination "${DOCS_DST}"
+bundle exec jekyll ${JEKYLL_CMD} ${INCREMENTAL} --source "${DOCS_SRC}" --destination "${DOCS_DST}"
