@@ -61,7 +61,9 @@ while getopts ":pfi" opt; do
         JEKYLL_CMD="serve --baseurl= --watch --trace --future"
         ;;
         i)
-        echo "Incremental build enabled. This _can_ result in newly added blog posts not being displayed."
+        echo "Incremental build enabled."
+        echo "Do NOT use incremental builds when building the site for publication."
+        echo "Incremental builds _can_ result in newly added blog posts not being displayed."
         echo "If that happens, run this script once without incremental builds."
         INCREMENTAL="--incremental"
         ;;
