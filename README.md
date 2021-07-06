@@ -23,6 +23,7 @@ If a newly added blog post is not showing up on the index / blog overview page, 
 ## Building website
 
 The site needs to be rebuild before merging into the branch asf-site.
+When doing so, DO NOT use incremental builds.
 ```bash
 bash docker-build.sh
 ```
