@@ -116,6 +116,7 @@ internal buffers, will also be reported as busy.
 One limitation, however, is that `busyTimeMsPerSecond` and `idleTimeMsPerSecond` metrics are oblivious
 to anything that is happening in separate threads, outside of the main subtask’s execution loop.
 Fortunately, this is only relevant for two cases:
+
 - Custom threads that you manually spawn in your operators (a discouraged practice).
 - Old-style sources that implement the deprecated `SourceFunction` interface. Such sources will report `NaN`/`N/A`
 as the value for busyTimeMsPerSecond. For more information on the topic of Data Sources please
