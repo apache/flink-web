@@ -97,9 +97,11 @@ happening with your Job :) However, there are a couple of more details worth exp
 If you are curious how it works underneath, we can go a little deeper. At the base of this new mechanism
 we have three [new metrics](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#io)
 that are exposed and calculated by each subtask:
+
 - `idleTimeMsPerSecond`
 - `busyTimeMsPerSecond`
 - `backPressuredTimeMsPerSecond`
+
 Each of them measures the average time in milliseconds per second that the subtask spent being idle,
 busy, or backpressured respectively. Apart from some rounding errors they should complement each other and
 add up to 1000ms/s. In essence, they are quite similar to, for example, CPU usage metrics.
@@ -166,6 +168,7 @@ In short, there are two high-level ways of dealing with backpressure. Either add
 faster CPU, more RAM, better network, using SSDs…) or optimize usage of the resources you already have
 (optimize the code, tune the configuration, avoid data skew). In either case, you first need to analyze
 what is causing backpressure by:
+
 1. Identifying the presence of backpressure.
 2. Locating which subtask(s) or machines are causing it.
 3. Digging deeper into what part of the code is causing it and which resource is scarce.
