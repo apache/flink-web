@@ -147,43 +147,43 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/aws-logo.png" width="175"  alt="AWS" />
           </a></div>
-            
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/capital-one-logo.png" width="175"  alt="Capital One" />
           </a></div>
-         
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/uber-logo.png" width="175" alt="Uber" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/bettercloud-logo.png" width="175" alt="BetterCloud" />
           </a></div>
-         
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/bouygues-logo.jpg" width="175"  alt="Bouygues" />
           </a></div>
-         
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/comcast-logo.png" width="175" alt="Comcast" />
           </a></div>
-        
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/criteo-logo.png" width="175" alt="Criteo" />
           </a></div>
-        
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -195,31 +195,31 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/dtrb-logo.png" width="175" alt="Drivetribe" />
           </a></div>
-        
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/ebay-logo.png" width="175" alt="Ebay" />
           </a></div>
-        
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/ericsson-logo.png" width="175"  alt="Ericsson" />
           </a></div>
-         
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/gojek-logo.png" width="175"  alt="Gojek" />
           </a></div>
-         
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/huawei-logo.png" width="175" alt="Huawei" />
           </a></div>
-        
+
         </li>       
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -245,7 +245,7 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/mediamath-logo.png" width="175" alt="MediaMath" />
           </a></div>
-        
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -262,49 +262,49 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/otto-group-logo.png" width="175" alt="Otto Group" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/ovh-logo.png" width="175" alt="OVH" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/pinterest-logo.png" width="175" alt="Pinterest" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/razorpay-logo.png" width="175" alt="Razorpay" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/researchgate-logo.png" width="175" alt="ResearchGate" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/sktelecom-logo.png" width="175" alt="SK telecom" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/telefonica-next-logo.png" width="175" alt="Telefonica Next" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/tencent-logo.png" width="175" alt="Tencent" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
@@ -322,13 +322,13 @@ layout: base
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/yelp-logo.png" width="175" alt="Yelp" />
           </a></div>
-          
+
         </li>
         <li>
           <div><a href="{{ site.baseurl }}/poweredby.html">
             <img src="{{ site.baseurl }}/img/poweredby/zalando-logo.jpg" width="175" alt="Zalando" />
           </a></div>
-          
+
         </li>
     </ul>
   </div>
@@ -355,15 +355,11 @@ layout: base
 <div class="col-sm-9">
   <!-- Flink Forward -->
   <a href="https://flink-forward.org" target="_blank">
-    <img style="width: 190px; padding-right: 10px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
+    <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
   </a>
   <!-- ApacheCon -->
   <a href="https://www.apache.org/events/current-event" target="_blank">
     <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
-  </a>
-  <!-- Flink Summer Camp -->
-  <a href="https://www.ververica.com/apache-flink-summer-camp-training" target="_blank">
-    <img style="width: 190px; padding-left: 10px" src="{{ site.baseurl }}/img/flink-summer-camp.png" alt="Flink Summer Camp"/>
   </a>
 </div>
 
