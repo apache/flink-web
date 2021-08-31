@@ -17,7 +17,7 @@ authors:
 ---
 
 Stateful Functions is a cross-platform stack for building Stateful Serverless applications, making it radically simpler to develop scalable, consistent, and elastic distributed applications.
-This new release brings various improvements to StateFun runtime, a leaner way to specify StateFun components, and a brand new GoLang SDK! 
+This new release brings various improvements to the StateFun runtime, a leaner way to specify StateFun components, and a brand new GoLang SDK! 
 
 The binary distribution and source artifacts are now available on the updated [Downloads](https://flink.apache.org/downloads.html)
 page of the Flink website, and the most recent Python SDK distribution is available on [PyPI](https://pypi.org/project/apache-flink-statefun/).
@@ -36,7 +36,7 @@ or [JIRA](https://issues.apache.org/jira/browse/)!
 
 Stateful Functions communicate by sending messages, but sometimes it is helpful that a function will send a message for itself.
 For example, set a limit for a customer onboarding flow to complete, for that StateFun support sending a message after a certain delay had passed.
-But up until now, there was no way to indicate to the StateFun runtime that a particular delayed message is not necessary anymore (a customer had completed their onboarding flow) 
+But up until now, there was no way to indicate to the StateFun runtime that a particular delayed message is not necessary anymore (a customer had completed their onboarding flow).
 With StateFun 3.1, it is now possible to cancel a delayed message.
 
 ```python
@@ -55,7 +55,7 @@ To cancel the message at a later time, simply call
 context.cancel_delayed_message("flow-1234")
 ```
 
-Please note that a message cancellation occurs on a best-effort basis, as the message might already be delivered or enqueued for immediate delivery on a remote worker’s mailbox.
+Please note that a message cancellation occurs on a best-effort basis, as the message might have already been delivered or enqueued for immediate delivery on a remote worker’s mailbox.
 
 ### New way to specify components 
 
@@ -90,10 +90,10 @@ spec:
 ---
 ```
 
-While this might seem like a minor cosmetic improvement, this change opens the door to more flexible configuration management options in future releases - such as managing each component as a custom K8s resource definition or even behind a REST API. StateFun still supports the legacy module.yaml file for backward compatibility, but users are encouraged to upgrade. 
+While this might seem like a minor cosmetic improvement, this change opens the door to more flexible configuration management options in future releases - such as managing each component as a custom K8s resource definition or even behind a REST API. StateFun still supports the legacy module format in version 3.0 for backward compatibility, but users are encouraged to upgrade. 
 The community is providing an [automated migration tool](https://github.com/sjwiesman/statefun-module-upgrade) to ease the transition. 
 
-Pluggable transport for remote function invocations
+### Pluggable transport for remote function invocations
 It is possible to plugin a custom mechanism that invokes a remote stateful function starting with this release.
 Users who wish to use a customized transport need to register it as an extension and later reference it straight from the endpoint component definition.
 
@@ -106,7 +106,7 @@ spec:
  urlPathTemplate: https://{function.name}/
  maxNumBatchRequests: 10000
  transport:
-   type: com.foo.bar/pubsub	
+   type: com.foo.bar/pubsub
    some_property1: some_value1
 ```
 
@@ -118,7 +118,7 @@ Along with a reference usage over [here](https://github.com/apache/flink-statefu
 For this release we’ve included a new transport implementation (opt in for this release) that is implemented on top of the asynchronous Netty framework.
 This transport enables much higher resource utilization, higher throughput, and lower remote function invocation latency.
 
-To enable this new transport set the transport type to be `io.statefun.transports.v1/async`
+To enable this new transport, set the transport type to be `io.statefun.transports.v1/async`
 Like in the following example:
 
 ```yaml
@@ -202,7 +202,7 @@ As with the Python and Java SDKs, the Go SDK includes:
 
   - An address scoped storage acting as a key-value store for a particular address.
   - A unified cross-language way to send, receive and store values across languages.
-  - Dynamic ValueSpec to describe the state name, type, and possibly expiration configuration at runtime
+  - Dynamic `ValueSpec` to describe the state name, type, and possibly expiration configuration at runtime.
 
 You can get started by adding the SDK to your `go.mod` file. 
 
