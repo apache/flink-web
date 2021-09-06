@@ -32,7 +32,7 @@ Each file must include the Apache license information as a header.
 
 ## 2. Tools
 
-We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
+We recommend to follow the [IDE Setup Guide]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
 
 
 <!---

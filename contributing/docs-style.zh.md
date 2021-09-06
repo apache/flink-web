@@ -82,7 +82,7 @@ Principles](#general-guiding-principles).
 Use clear definitions of terms or provide additional instructions on what
 something means by adding a link to a helpful resource, such as other
 documentation pages or the [Flink
-Glossary](https://ci.apache.org/projects/flink/flink-docs-stable/docs/concepts/glossary).
+Glossary]({{site.DOCS_BASE_URL}}flink-docs-stable/docs/concepts/glossary).
 The Glossary is a work in progress, so you can also propose new terms by
 opening a pull-request.
 

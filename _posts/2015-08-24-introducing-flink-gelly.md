@@ -142,7 +142,7 @@ inside a partition to avoid unnecessary communication.
 
 #### Vertex-centric
 
-Gelly wraps Flink’s [Spargel APi](https://ci.apache.org/projects/flink/flink-docs-release-0.8/spargel_guide.html) to 
+Gelly wraps Flink’s [Spargel APi]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/spargel_guide.html) to 
 support the vertex-centric, Pregel-like programming model. Gelly’s `runVertexCentricIteration` method accepts two user-defined functions:
 
 1. **MessagingFunction:** defines what messages a vertex sends out for the next superstep.
@@ -322,7 +322,7 @@ certain song.
 Graph<String, NullValue, Integer> userSongGraph = Graph.fromTupleDataSet(validTriplets, env);
 ```
 
-Consult the [Gelly guide](https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/) for guidelines 
+Consult the [Gelly guide]({{site.DOCS_BASE_URL}}flink-docs-master/dev/libs/gelly/) for guidelines 
 on how to create a graph from a given DataSet of edges or from a collection.
 
 To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
@@ -452,4 +452,4 @@ Curious? Read more about our plans for Gelly in the [roadmap](https://cwiki.apac
 [Back to top](#top)
 
 ## Links
-[Gelly Documentation](https://ci.apache.org/projects/flink/flink-docs-master/dev/libs/gelly/)
+[Gelly Documentation]({{site.DOCS_BASE_URL}}flink-docs-master/dev/libs/gelly/)

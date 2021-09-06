@@ -21,8 +21,8 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<meta http-equiv="refresh" content="1; url=https://ci.apache.org/projects/flink/flink-docs-master/" />
+<meta http-equiv="refresh" content="1; url={{site.DOCS_BASE_URL}}flink-docs-master/" />
 
 <h1>Documentation</h1>
 
-Redirecting to <a href="https://ci.apache.org/projects/flink/flink-docs-master/">most recent documentation</a> in 1 second.
+Redirecting to <a href="{{site.DOCS_BASE_URL}}flink-docs-master/">most recent documentation</a> in 1 second.

@@ -10,9 +10,9 @@ title:  "Apache Flink Code Style and Quality Guide — Formatting"
 
 ## Java Code Formatting Style
 
-We recommend to set up the IDE to automatically check the code style. Please follow the [IDE guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html) to set up
-[spotless](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#code-formatting) and
-[checkstyle](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java).
+We recommend to set up the IDE to automatically check the code style. Please follow the [IDE guide]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html) to set up
+[spotless]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#code-formatting) and
+[checkstyle]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java).
 
 
 ### License
