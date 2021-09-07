@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Implementing a custom source connector for Table API and SQL - Part Two "
+title:  "Implementing a Custom Source Connector for Table API and SQL - Part Two "
 date: 2021-09-07T00:00:00.000Z
 authors:
 - Ingo Buerk:
