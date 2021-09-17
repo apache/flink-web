@@ -36,7 +36,7 @@ More details and various smaller changes can be found in the
 The roadmap is continuously updated. New features and efforts should be added to the roadmap once
 there is consensus that they will happen and what they will roughly look like for the user.
 
-**Last Update:** 2021-03-01
+**Last Update:** 2021-09-16
 
 <hr />
 
@@ -234,6 +234,12 @@ simpler (less configuration tuning required) and more performant.
 <hr />
 
 # Python APIs
+
+Most functionalities in the Java Table APIs and DataStream APIs are already supported by the Python APIs. 
+The community is continuously working on improvements such as improving the checkpoint strategy for Python UDF execution
+([FLINK-18235](https://issues.apache.org/jira/browse/FLINK-18235)), introducing more connectors support in both the Python DataStream API 
+and Python Table API so that the Python API can be used in for production implementations.
+
 
 Stateful transformation functions for the Python DataStream API:
 [FLIP-153](https://cwiki.apache.org/confluence/display/FLINK/FLIP-153%3A+Support+state+access+in+Python+DataStream+API)
