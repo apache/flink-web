@@ -6,7 +6,7 @@ title: "Getting Help"
 
 {% toc %}
 
-## Having a Question?
+## Have a Question?
 
 The Apache Flink community answers many user questions every day. You can search for answers and advice in the archives or reach out to the community for help and guidance.
 
