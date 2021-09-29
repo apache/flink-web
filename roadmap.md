@@ -85,7 +85,7 @@ integrations. With user feedback, those are continuously improved.
 **More Connector and Change Data Capture Support**
 
   - Change-Data-Capture: Capturing a stream of data changes, directly from databases, by attaching to the
-    transaction log. The community is adding more CDC intrgrations.
+    transaction log. The community is adding more CDC integrations.
       - External CDC connectors: [https://flink-packages.org/packages/cdc-connectors](https://flink-packages.org/packages/cdc-connectors)
       - Background: [FLIP-105](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=147427289)
         (CDC support for SQL) and [Debezium](https://debezium.io/).
