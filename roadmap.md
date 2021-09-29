@@ -193,7 +193,7 @@ Deploy Flink jobs as self-contained Applications works for all deployment target
 ([FLIP-85](https://cwiki.apache.org/confluence/display/FLINK/FLIP-85+Flink+Application+Mode)).
 
   - Reactive Scaling lets Flink applications change their parallelism in response to growing and shrinking
-    worker pools, and makes Flink compatibel with standard auto-scalers:
+    worker pools, and makes Flink compatible with standard auto-scalers:
     [FLIP-159](https://cwiki.apache.org/confluence/display/FLINK/FLIP-159%3A+Reactive+Mode)
 
   - Kubernetes-based HA-services let Flink applications run on Kubernetes without requiring a ZooKeeper dependency:
