@@ -128,7 +128,7 @@ Avoid full integration tests
 Don’t introduce physical plan changes in minor releases!
 
 * Backwards compatibility for state in streaming SQL relies on the fact that the physical execution plan remains stable. Otherwise the generated Operator Names/IDs change and state cannot be matched and restored.
-* Every bug fix that leads to changes in the optimized physical plan of a streaming pipeline hences breaks compatibility.
+* Every bug fix that leads to changes in the optimized physical plan of a streaming pipeline hence breaks compatibility.
 * As a consequence, changes of the kind that lead to different optimizer plans can only be merged in major releases for now.
 
 
