@@ -22,4 +22,4 @@ A big part of high-quality open source contributions is about helping the review
 <hr>
 
 [^1]:
-     In earlier days, we (the Flink community) did not always pay sufficient attention to this, making some components of Flink harder to evolve and to contribute to.
+     In earlier days, we (the Flink community) did not always pay sufficient attention to this, making some components of Flink harder to evolve and contribute to.
