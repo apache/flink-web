@@ -6,7 +6,7 @@ title: "Getting Help"
 
 {% toc %}
 
-## Having a Question?
+## Have a Question?
 
 The Apache Flink community answers many user questions every day. You can search for answers and advice in the archives or reach out to the community for help and guidance.
 
@@ -34,7 +34,7 @@ Many members of the Flink community are active on [Stack Overflow](https://stack
 
 If you observe an unexpected behavior that might be caused by a bug, you can search for reported bugs or file a bug report in [Flink's JIRA](https://issues.apache.org/jira/issues/?jql=project %3D FLINK).
 
-If you are unsure whether the unexpected behavior happend due to a bug or not, please post a question to the [user mailing list](#user-mailing-list).
+If you are unsure whether the unexpected behavior happened due to a bug or not, please post a question to the [user mailing list](#user-mailing-list).
 
 ## Got an Error Message?
 

@@ -149,7 +149,7 @@ If you send us an email with a code snippet, make sure that:
 
 Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) for the [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) tag.
 
-Make sure to tag your questions there accordingly to get answers from the Flink community.
+Make sure to tag your questions accordingly to get answers from the Flink community.
 
 ## Issue Tracker
 
