@@ -143,12 +143,16 @@ layout: base
 <div class="col-sm-9">
   <!-- Flink Forward -->
   <a href="https://flink-forward.org" target="_blank">
-    <img style="width: 200px; padding-right: 30px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
+    <img style="width: 180px; padding-right: 10px" src="{{ site.baseurl }}/img/flink-forward.png" alt="Flink Forward"/>
   </a>
   <!-- ApacheCon -->
   <a href="https://www.apache.org/events/current-event" target="_blank">
-    <img src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
+    <img style="width: 200px; padding-right: 10px" src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon"/>
   </a>
+    <!-- Flink Forward Asia -->
+    <a href="https://flink-forward.org.cn/" target="_blank">
+      <img style="width: 230px" src="{{ site.baseurl }}/img/flink-forward-asia.png" alt="Flink Forward Asia"/>
+    </a>
 </div>
 
 </div>
