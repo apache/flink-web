@@ -7,6 +7,415 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Sort-Based Blocking Shuffle Implementation in Flink - Part Two</title>
+<description>&lt;p&gt;&lt;a href=&quot;/2021/10/26/sort-shuffle-part1&quot;&gt;Part one&lt;/a&gt; of this blog post explained the motivation behind introducing sort-based blocking shuffle, presented benchmark results, and provided guidelines on how to use this new feature.&lt;/p&gt;
+
+&lt;p&gt;Like sort-merge shuffle implemented by other distributed data processing frameworks, the whole sort-based shuffle process in Flink consists of several important stages, including collecting data in memory, sorting the collected data in memory, spilling the sorted data to files, and reading the shuffle data from these spilled files. However, Flink’s implementation has some core differences, including the multiple data region file structure, the removal of file merge, and IO scheduling.&lt;/p&gt;
+
+&lt;p&gt;In part two of this blog post, we will give you insight into some core design considerations and implementation details of the sort-based blocking shuffle in Flink and list several ideas for future improvement.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#design-considerations&quot; id=&quot;markdown-toc-design-considerations&quot;&gt;Design considerations&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#produce-fewer-small-files&quot; id=&quot;markdown-toc-produce-fewer-small-files&quot;&gt;Produce fewer (small) files&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#open-fewer-files-concurrently&quot; id=&quot;markdown-toc-open-fewer-files-concurrently&quot;&gt;Open fewer files concurrently&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#create-more-sequential-disk-io&quot; id=&quot;markdown-toc-create-more-sequential-disk-io&quot;&gt;Create more sequential disk IO&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#have-less-disk-io-amplification&quot; id=&quot;markdown-toc-have-less-disk-io-amplification&quot;&gt;Have less disk IO amplification&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#decouple-memory-consumption-from-parallelism&quot; id=&quot;markdown-toc-decouple-memory-consumption-from-parallelism&quot;&gt;Decouple memory consumption from parallelism&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#implementation-details&quot; id=&quot;markdown-toc-implementation-details&quot;&gt;Implementation details&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#in-memory-sort&quot; id=&quot;markdown-toc-in-memory-sort&quot;&gt;In-memory sort&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#storage-structure&quot; id=&quot;markdown-toc-storage-structure&quot;&gt;Storage structure&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#io-scheduling&quot; id=&quot;markdown-toc-io-scheduling&quot;&gt;IO scheduling&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#broadcast-optimization&quot; id=&quot;markdown-toc-broadcast-optimization&quot;&gt;Broadcast optimization&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#data-compression&quot; id=&quot;markdown-toc-data-compression&quot;&gt;Data compression&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#future-improvements&quot; id=&quot;markdown-toc-future-improvements&quot;&gt;Future improvements&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;design-considerations&quot;&gt;Design considerations&lt;/h1&gt;
+
+&lt;p&gt;There are several core objectives we want to achieve for the new sort-based blocking shuffle to be implemented Flink:&lt;/p&gt;
+
+&lt;h2 id=&quot;produce-fewer-small-files&quot;&gt;Produce fewer (small) files&lt;/h2&gt;
+
+&lt;p&gt;As discussed above, the hash-based blocking shuffle would produce too many small files for large-scale batch jobs. Producing fewer files can help to improve both stability and performance. The sort-merge approach has been widely adopted to solve this problem. By first writing to the in-memory buffer and then sorting and spilling the data into a file after the in-memory buffer is full, the number of output files can be reduced, which becomes (total data size) / (in-memory buffer size). Then by merging the produced files together, the number of files can be further reduced and larger data blocks can provide better sequential reads.&lt;/p&gt;
+
+&lt;p&gt;Flink’s sort-based blocking shuffle adopts a similar logic. A core difference is that data spilling will always append data to the same file so only one file will be spilled for each output, which means fewer files are produced.&lt;/p&gt;
+
+&lt;h2 id=&quot;open-fewer-files-concurrently&quot;&gt;Open fewer files concurrently&lt;/h2&gt;
+
+&lt;p&gt;The hash-based implementation will open all partition files when writing and reading data which will consume resources like file descriptors and native memory. Exhaustion of file descriptors will lead to stability issues like “too many open files”.&lt;/p&gt;
+
+&lt;p&gt;By always writing/reading only one file per data result partition and sharing the same opened file channel among all the concurrent data reads from the downstream consumer tasks, Flink’s sort-based blocking shuffle implementation can greatly reduce the number of concurrently opened files.&lt;/p&gt;
+
+&lt;h2 id=&quot;create-more-sequential-disk-io&quot;&gt;Create more sequential disk IO&lt;/h2&gt;
+
+&lt;p&gt;Although the hash-based implementation writes and reads each output file sequentially, the large amount of writing and reading can cause random IO because of the large number of files being processed concurrently, which means that reducing the number of files can also achieve more sequential IO.&lt;/p&gt;
+
+&lt;p&gt;In addition to producing larger files, there are some other optimizations implemented by Flink. In the data writing phase, by merging small output data together into larger batches and writing through the writev system call, more writing sequential IO can be achieved. In the data reading phase, more sequential data reading IO is achieved by IO scheduling. In short, Flink tries to always read data in file offset order which maximizes sequential reads. Please refer to the IO scheduling section for more information.&lt;/p&gt;
+
+&lt;h2 id=&quot;have-less-disk-io-amplification&quot;&gt;Have less disk IO amplification&lt;/h2&gt;
+
+&lt;p&gt;The sort-merge approach can reduce the number of files and produce larger data blocks by merging the spilled data files together. One down side of this approach is that it writes and reads the same data multiple times because of the data merging and, theoretically, it may also take up more storage space than the total size of shuffle data.&lt;/p&gt;
+
+&lt;p&gt;Flink’s implementation eliminates the data merging phase by spilling all data of one data result partition together into one file. As a result, the total amount of disk IO can be reduced, as well as the storage space. Though without the data merging, the data blocks are not merged into larger ones. With the IO scheduling technique, Flink can still achieve good sequential reading and high disk IO throughput. The benchmark results from the &lt;a href=&quot;/2021/10/26/sort-shuffle-part1#benchmark-results-on-stability-and-performance&quot;&gt;first part&lt;/a&gt; shows that.&lt;/p&gt;
+
+&lt;h2 id=&quot;decouple-memory-consumption-from-parallelism&quot;&gt;Decouple memory consumption from parallelism&lt;/h2&gt;
+
+&lt;p&gt;Similar to the sort-merge implementation in other distributed data processing systems, Flink’s implementation uses a piece of fixed size (configurable) in-memory buffer for data sorting and the buffer does not necessarily need to be extended after the task parallelism is changed, though increasing the size may lead to better performance for large-scale batch jobs.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; This only decouples the memory consumption from the parallelism at the data producer side. On the data consumer side, there is an improvement which works for both streaming and batch jobs (see &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-16428&quot;&gt;FLINK-16428&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h1 id=&quot;implementation-details&quot;&gt;Implementation details&lt;/h1&gt;
+
+&lt;p&gt;Here are several core components and algorithms implemented in Flink’s sort-based blocking shuffle:&lt;/p&gt;
+
+&lt;h2 id=&quot;in-memory-sort&quot;&gt;In-memory sort&lt;/h2&gt;
+
+&lt;p&gt;In the sort-spill phase, data records are serialized to the in-memory sort buffer first. When the sort buffer is full or all output has been finished, the data in the sort buffer will be copied and spilled into the target data file in the specific order. The following is the sort buffer interface in Flink:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SortBuffer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;cm&quot;&gt;/** Appends data of the specified channel to this SortBuffer. */&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ByteBuffer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;targetChannel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;DataType&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;cm&quot;&gt;/** Copies data in this SortBuffer to the target MemorySegment. */&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;BufferWithChannel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;copyIntoSegment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MemorySegment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;numRecords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;numBytes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;hasRemaining&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;finish&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;isFinished&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;isReleased&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Currently, Flink does not need to sort records by key on the data producer side, so the default implementation of sort buffer only sorts data by subpartition index, which is achieved by binary bucket sort. More specifically, each data record will be serialized and attached a 16 bytes binary header. Among the 16 bytes, 4 bytes is for the record length, 4 bytes is for the data type (event or data buffer) and 8 bytes is for pointers to the next records belonging to the same subpartition to be consumed by the same downstream data consumer. When reading data from the sort buffer, all records of the same subpartition will be copied one by one following the pointer in the record header, which guarantees that for each subpartition, the order of record reading/spilling is the same order as when the record is emitted by the producer task. The following picture shows the internal structure of the in-memory binary sort buffer:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2021-10-26-sort-shuffle/1.jpg&quot; width=&quot;70%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h2 id=&quot;storage-structure&quot;&gt;Storage structure&lt;/h2&gt;
+
+&lt;p&gt;The data of each blocking result partition is stored as a physical data file on the disk. The data file consists of multiple data regions, one data spilling produces one data region. In each data region, the data is clustered by the subpartition ID (index) and each subpartition is corresponding to one data consumer.&lt;/p&gt;
+
+&lt;p&gt;The following picture shows the structure of a simple data file. This data file has three data regions (R1, R2, R3) and three consumers (C1, C2, C3). Data blocks B1.1, B2.1 and B3.1 will be consumed by C1, data blocks B1.2, B2.2 and B3.2 will be consumed by C2, and data blocks B1.3, B2.3 and B3.3 will be consumed by C3.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2021-10-26-sort-shuffle/2.jpg&quot; width=&quot;60%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;In addition to the data file, for each result partition, there is also an index file which contains pointers to the data file. The index file has the same number of regions as the data file. In each region, there are n (equals to the number of subpartitions) index entries. Each index entry consists of two parts: one is the file offset of the target data in the data file, the other is the data size. To reduce the disk IO caused by index data file access, Flink caches the index data using unmanaged heap memory if the index data file size is less than 4M. The following picture illustrates the relationship between index file and data file:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2021-10-26-sort-shuffle/4.jpg&quot; width=&quot;60%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h2 id=&quot;io-scheduling&quot;&gt;IO scheduling&lt;/h2&gt;
+
+&lt;p&gt;Based on the storage structure described above, we introduced the IO scheduling technique to achieve more sequential reads for the sort-based blocking shuffle in Flink. The core idea behind IO scheduling is pretty simple. Just like the &lt;a href=&quot;https://en.wikipedia.org/wiki/Elevator_algorithm&quot;&gt;elevator algorithm&lt;/a&gt; for disk scheduling, the IO scheduling for sort-based blocking shuffle always tries to serve data read requests in the file offset order. More formally, we have n data regions indexed from 0 to n-1 in a result partition file. In each data region, there are m data subpartitions to be consumed by m downstream data consumers. These data consumers read data concurrently.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// let data_regions as the data region list indexed from 0 to n - 1&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// let data_readers as the concurrent downstream data readers queue indexed from 0 to m - 1&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_region&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_regions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;data_reader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;poll_reader_of_the_smallest_file_offset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_readers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_reader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;reading_buffers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request_reading_buffers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reading_buffers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;read_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_region&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_reader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;reading_buffers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;broadcast-optimization&quot;&gt;Broadcast optimization&lt;/h2&gt;
+
+&lt;p&gt;Shuffle data broadcast in Flink refers to sending the same collection of data to all the downstream data consumers. Instead of copying and writing the same data multiple times, Flink optimizes this process by copying and spilling the broadcast data only once, which improves the data broadcast performance.&lt;/p&gt;
+
+&lt;p&gt;More specifically, when broadcasting a data record to the sort buffer, the record will be copied and stored once. A similar thing happens when spilling the broadcast data into files. For index data, the only difference is that all the index entries for different downstream consumers point to the same data in the data file.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2021-10-26-sort-shuffle/5.jpg&quot; width=&quot;85%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h2 id=&quot;data-compression&quot;&gt;Data compression&lt;/h2&gt;
+
+&lt;p&gt;Data compression is a simple but really useful technique to improve blocking shuffle performance. Similar to the data compression implementation of the hash-based blocking shuffle, data is compressed per buffer after it is copied from the in-memory sort buffer and before it is spilled to disk. If the data size becomes even larger after compression, the original uncompressed data buffer will be kept. Then the corresponding downstream data consumers are responsible for decompressing the received shuffle data when processing it. In fact, the sort-based blocking shuffle reuses those building blocks implemented for the hash-based blocking shuffle directly. The following picture illustrates the shuffle data compression process:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2021-10-26-sort-shuffle/3.jpg&quot; width=&quot;85%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h1 id=&quot;future-improvements&quot;&gt;Future improvements&lt;/h1&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;TCP Connection Reuse:&lt;/strong&gt; This improvement is also useful for streaming applications which can improve the network stability. There are already tickets opened for it: &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-22643&quot;&gt;FLINK-22643&lt;/a&gt; and &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15455&quot;&gt;FLINK-15455&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Multi-Disks Load Balance:&lt;/strong&gt; Multi-Disks Load Balance: In production environments, there are usually multiple disks per node, better load balance can lead to better performance, the relevant issues are &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-21790&quot;&gt;FLINK-21790&lt;/a&gt; and &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-21789&quot;&gt;FLINK-21789&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;External/Remote Shuffle Service:&lt;/strong&gt; Implementing an external/remote shuffle service can further improve the shuffle io performance because as a centralized service, it can collect more information leading to more optimized decisions. For example, further merging of data to the same downstream task, better node-level load balance, handling of stragglers, shared resources and so on. There are several relevant issues: &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13247&quot;&gt;FLINK-13247&lt;/a&gt;, &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-22672&quot;&gt;FLINK-22672&lt;/a&gt;, &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19551&quot;&gt;FLINK-19551&lt;/a&gt; and &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10653&quot;&gt;FLINK-10653&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Enable the Choice of SSD/HDD:&lt;/strong&gt; In production environments, there are usually both SSD and HDD storage. Some jobs may prefer SSD for the faster speed, some jobs may prefer HDD for larger space and cheaper price. Enabling the choice of SSD/HDD can improve the usability of Flink’s blocking shuffle.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+</description>
+<pubDate>Tue, 26 Oct 2021 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2021/10/26/sort-shuffle-part2.html</link>
+<guid isPermaLink="true">/2021/10/26/sort-shuffle-part2.html</guid>
+</item>
+
+<item>
+<title>Sort-Based Blocking Shuffle Implementation in Flink - Part One</title>
+<description>&lt;p&gt;Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#how-data-gets-passed-around-between-operators&quot; id=&quot;markdown-toc-how-data-gets-passed-around-between-operators&quot;&gt;How data gets passed around between operators&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#motivation-behind-the-sort-based-implementation&quot; id=&quot;markdown-toc-motivation-behind-the-sort-based-implementation&quot;&gt;Motivation behind the sort-based implementation&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#benchmark-results-on-stability-and-performance&quot; id=&quot;markdown-toc-benchmark-results-on-stability-and-performance&quot;&gt;Benchmark results on stability and performance&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#how-to-use-this-new-feature&quot; id=&quot;markdown-toc-how-to-use-this-new-feature&quot;&gt;How to use this new feature&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#whats-next&quot; id=&quot;markdown-toc-whats-next&quot;&gt;What’s next?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;how-data-gets-passed-around-between-operators&quot;&gt;How data gets passed around between operators&lt;/h1&gt;
+
+&lt;p&gt;Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it. Blocking shuffle means that intermediate results from operator A are not sent immediately to operator B until operator A has completely finished.&lt;/p&gt;
+
+&lt;p&gt;The hash-based and sort-based blocking shuffle are two main blocking shuffle implementations widely adopted by existing distributed data processing frameworks:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Hash-Based Approach:&lt;/strong&gt; The core idea behind the hash-based approach is to write data consumed by different consumer tasks to different files and each file can then serve as a natural boundary for the partitioned data.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Sort-Based Approach:&lt;/strong&gt; The core idea behind the sort-based approach is to write all the produced data together first and then leverage sorting to cluster data belonging to different data partitions or even keys.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The sort-based blocking shuffle was introduced in Flink 1.12 and further optimized and made production-ready in 1.13 for both stability and performance. We hope you enjoy the improvements and any feedback is highly appreciated.&lt;/p&gt;
+
+&lt;h1 id=&quot;motivation-behind-the-sort-based-implementation&quot;&gt;Motivation behind the sort-based implementation&lt;/h1&gt;
+
+&lt;p&gt;The hash-based blocking shuffle has been supported in Flink for a long time. However, compared to the sort-based approach, it can have several weaknesses:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Stability:&lt;/strong&gt; For batch jobs with high parallelism (tens of thousands of subtasks), the hash-based approach opens many files concurrently while writing or reading data, which can give high pressure to the file system (i.e. maintenance of too many file metas, exhaustion of inodes or file descriptors). We have encountered many stability issues when running large-scale batch jobs via the hash-based blocking shuffle.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Performance:&lt;/strong&gt; For large-scale batch jobs, the hash-based approach can produce too many small files: for each data shuffle (or connection), the number of output files is (producer parallelism) * (consumer parallelism) and the average size of each file is (shuffle data size) / (number of files). The random IO caused by writing/reading these fragmented files can influence the shuffle performance a lot, especially on spinning disks. See the &lt;a href=&quot;#benchmark-results-on-stability-and-performance&quot;&gt;benchmark results&lt;/a&gt; section for more information.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;By introducing the sort-based blocking shuffle implementation, fewer data files will be created and opened, and more sequential reads are done. As a result, better stability and performance can be achieved.&lt;/p&gt;
+
+&lt;p&gt;Moreover, the sort-based implementation can save network buffers for large-scale batch jobs. For the hash-based implementation, the network buffers needed for each output result partition are proportional to the consumers’ parallelism. For the sort-based implementation, the network memory consumption can be decoupled from the parallelism, which means that a fixed size of network memory can satisfy requests for all result partitions, though more network memory may lead to better performance.&lt;/p&gt;
+
+&lt;h1 id=&quot;benchmark-results-on-stability-and-performance&quot;&gt;Benchmark results on stability and performance&lt;/h1&gt;
+
+&lt;p&gt;Aside from the problem of consuming too many file descriptors and inodes mentioned in the above section, the hash-based blocking shuffle also has a known issue of creating too many files which blocks the TaskExecutor’s main thread (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-21201&quot;&gt;FLINK-21201&lt;/a&gt;). In addition, some large-scale jobs like q78 and q80 of the tpc-ds benchmark failed to run on the hash-based blocking shuffle in our tests because of the “connection reset by peer” exception which is similar to the issue reported in &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-19925&quot;&gt;FLINK-19925&lt;/a&gt; (reading shuffle data by Netty threads can influence network stability).&lt;/p&gt;
+
+&lt;p&gt;We ran the tpc-ds test suit (10T scale with 1050 max parallelism) for both the hash-based and the sort-based blocking shuffle. The results show that the sort-based shuffle can achieve 2-6 times more performance gain compared to the hash-based one on spinning disks. If we exclude the computation time, up to 10 times performance gain can be achieved for some jobs. Here are some performance results of our tests:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Jobs&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Time used for Sort-Shuffle (s)&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Time used for Hash-Shuffle (s)&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Speedup Factor&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q4.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;986&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5371&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5.45&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q11.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;348&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;798&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.29&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q14b.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;883&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2129&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.51&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q17.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;269&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;781&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.90&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q23a.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;418&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1199&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.87&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q23b.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;376&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;843&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.24&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q25.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;413&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;873&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q29.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;354&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1038&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.93&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q31.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;223&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;498&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.23&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q50.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;215&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;550&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.56&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q64.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;217&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;442&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.04&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q74.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;270&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;962&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3.56&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q75.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;166&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;713&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4.30&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;q93.sql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;204&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;540&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2.65&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;
+The throughput per disk of the new sort-based implementation can reach up to 160MB/s for both writing and reading on our testing nodes:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Disk Name&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Disk SDI&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Disk SDJ&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Disk SDK&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Writing Speed (MB/s)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;189&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;173&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;186&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Reading Speed (MB/s)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;112&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;154&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;158&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;Note:&lt;/strong&gt; The following table shows the settings for our test cluster. Because we have a large available memory size per node, those jobs of small shuffle size will exchange their shuffle data purely via memory (page cache). As a result, evident performance differences are seen only between those jobs which shuffle a large amount of data.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Number of Nodes&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Memory Size Per Node&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Cores Per Node&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Disks Per Node&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;12&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;About 400G&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;96&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/center&gt;
+
+&lt;h1 id=&quot;how-to-use-this-new-feature&quot;&gt;How to use this new feature&lt;/h1&gt;
+
+&lt;p&gt;The sort-based blocking shuffle is introduced mainly for large-scale batch jobs but it also works well for batch jobs with low parallelism.&lt;/p&gt;
+
+&lt;p&gt;The sort-based blocking shuffle is not enabled by default. You can enable it by setting the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-parallelism&quot;&gt;taskmanager.network.sort-shuffle.min-parallelism&lt;/a&gt; config option to a smaller value. This means that for parallelism smaller than this threshold, the hash-based blocking shuffle will be used, otherwise, the sort-based blocking shuffle will be used (it has no influence on streaming applications). Setting this option to 1 will disable the hash-based blocking shuffle.&lt;/p&gt;
+
+&lt;p&gt;For spinning disks and large-scale batch jobs, you should use the sort-based blocking shuffle. For low parallelism (several hundred processes or fewer) on solid state drives, both implementations should be fine.&lt;/p&gt;
+
+&lt;p&gt;There are several other config options that can have an impact on the performance of the sort-based blocking shuffle:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-blocking-shuffle-compression-enabled&quot;&gt;taskmanager.network.blocking-shuffle.compression.enabled&lt;/a&gt;: This enables shuffle data compression, which can reduce both the network and the disk IO with some CPU overhead. It is recommended to enable shuffle data compression unless the data compression ratio is low. It works for both sort-based and hash-based blocking shuffle.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-buffers&quot;&gt;taskmanager.network.sort-shuffle.min-buffers&lt;/a&gt;: This declares the minimum number of required network buffers that can be used as the in-memory sort-buffer per result partition for data caching and sorting. Increasing the value of this option may improve the blocking shuffle performance. Several hundreds of megabytes of memory is usually enough for large-scale batch jobs.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-batch-shuffle-size&quot;&gt;taskmanager.memory.framework.off-heap.batch-shuffle.size&lt;/a&gt;: This configuration defines the maximum memory size that can be used by data reading of the sort-based blocking shuffle per task manager. Increasing the value of this option may improve the shuffle read performance, and usually, several hundreds of megabytes of memory is enough for large-scale batch jobs. Because this memory is cut from the framework off-heap memory, you may also need to increase &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-size&quot;&gt;taskmanager.memory.framework.off-heap.size&lt;/a&gt; before you increase this value.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For more information about blocking shuffle in Flink, please refer to the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/ops/batch/blocking_shuffle/&quot;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; From the optimization mechanism in &lt;a href=&quot;/2021/10/26/sort-shuffle-part2&quot;&gt;part two&lt;/a&gt;, we can see that the IO scheduling relies on the concurrent data read requests of the downstream consumer tasks for more sequential reads. As a result, if the downstream consumer task is running one by one (for example, because of limited resources), the advantage brought by IO scheduling disappears, which can influence performance. We may further optimize this scenario in future versions.&lt;/p&gt;
+
+&lt;h1 id=&quot;whats-next&quot;&gt;What’s next?&lt;/h1&gt;
+
+&lt;p&gt;For details on the design and implementation of this feature, please refer to the &lt;a href=&quot;/2021/10/26/sort-shuffle-part2&quot;&gt;second part&lt;/a&gt; of this blog!&lt;/p&gt;
+</description>
+<pubDate>Tue, 26 Oct 2021 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2021/10/26/sort-shuffle-part1.html</link>
+<guid isPermaLink="true">/2021/10/26/sort-shuffle-part1.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.13.3 Released</title>
 <description>&lt;p&gt;The Apache Flink community released the third bugfix version of the Apache Flink 1.13 series.&lt;/p&gt;
 
@@ -19849,279 +20258,6 @@ Special credits go to the following members for contributing to the 1.7.0 releas
 <pubDate>Mon, 29 Oct 2018 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2018/10/29/release-1.5.5.html</link>
 <guid isPermaLink="true">/news/2018/10/29/release-1.5.5.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.6.1 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.6 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes 60 fixes and minor improvements for Flink 1.6.1. The list below includes a detailed list of all fixes.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.6.1.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Sub-task
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9637&quot;&gt;FLINK-9637&lt;/a&gt;] -         Add public user documentation for TTL feature
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10068&quot;&gt;FLINK-10068&lt;/a&gt;] -         Add documentation for async/RocksDB-based timers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10085&quot;&gt;FLINK-10085&lt;/a&gt;] -         Update AbstractOperatorRestoreTestBase
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10087&quot;&gt;FLINK-10087&lt;/a&gt;] -         Update BucketingSinkMigrationTest
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10089&quot;&gt;FLINK-10089&lt;/a&gt;] -         Update FlinkKafkaConsumerBaseMigrationTest
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10090&quot;&gt;FLINK-10090&lt;/a&gt;] -         Update ContinuousFileProcessingMigrationTest
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10091&quot;&gt;FLINK-10091&lt;/a&gt;] -         Update WindowOperatorMigrationTest
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10092&quot;&gt;FLINK-10092&lt;/a&gt;] -         Update StatefulJobSavepointMigrationITCase
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10109&quot;&gt;FLINK-10109&lt;/a&gt;] -         Add documentation for StreamingFileSink
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9289&quot;&gt;FLINK-9289&lt;/a&gt;] -         Parallelism of generated operators should have max parallism of input
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9546&quot;&gt;FLINK-9546&lt;/a&gt;] -         The heartbeatTimeoutIntervalMs of HeartbeatMonitor should be larger than 0
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9693&quot;&gt;FLINK-9693&lt;/a&gt;] -         Possible memory leak in jobmanager retaining archived checkpoints
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9972&quot;&gt;FLINK-9972&lt;/a&gt;] -         Debug memory logging not working 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10011&quot;&gt;FLINK-10011&lt;/a&gt;] -         Old job resurrected during HA failover
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10063&quot;&gt;FLINK-10063&lt;/a&gt;] -         Jepsen: Automatically restart Mesos Processes
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10101&quot;&gt;FLINK-10101&lt;/a&gt;] -         Mesos web ui url is missing.
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10105&quot;&gt;FLINK-10105&lt;/a&gt;] -         Test failure because of jobmanager.execution.failover-strategy is outdated
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10115&quot;&gt;FLINK-10115&lt;/a&gt;] -         Content-length limit is also applied to FileUploads
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10116&quot;&gt;FLINK-10116&lt;/a&gt;] -         createComparator fails on case class with Unit type fields prior to the join-key
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10141&quot;&gt;FLINK-10141&lt;/a&gt;] -         Reduce lock contention introduced with 1.5
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10142&quot;&gt;FLINK-10142&lt;/a&gt;] -         Reduce synchronization overhead for credit notifications
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10150&quot;&gt;FLINK-10150&lt;/a&gt;] -         Chained batch operators interfere with each other other
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10151&quot;&gt;FLINK-10151&lt;/a&gt;] -         [State TTL] Fix false recursion call in TransformingStateTableKeyGroupPartitioner.tryAddToSource
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10154&quot;&gt;FLINK-10154&lt;/a&gt;] -         Make sure we always read at least one record in KinesisConnector
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10169&quot;&gt;FLINK-10169&lt;/a&gt;] -         RowtimeValidator fails with custom TimestampExtractor
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10172&quot;&gt;FLINK-10172&lt;/a&gt;] -         Inconsistentcy in ExpressionParser and ExpressionDsl for order by asc/desc
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10192&quot;&gt;FLINK-10192&lt;/a&gt;] -         SQL Client table visualization mode does not update correctly
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10193&quot;&gt;FLINK-10193&lt;/a&gt;] -         Default RPC timeout is used when triggering savepoint via JobMasterGateway
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10204&quot;&gt;FLINK-10204&lt;/a&gt;] -         StreamElementSerializer#copy broken for LatencyMarkers 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10255&quot;&gt;FLINK-10255&lt;/a&gt;] -         Standby Dispatcher locks submitted JobGraphs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10261&quot;&gt;FLINK-10261&lt;/a&gt;] -         INSERT INTO does not work with ORDER BY clause
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10267&quot;&gt;FLINK-10267&lt;/a&gt;] -         [State] Fix arbitrary iterator access on RocksDBMapIterator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10269&quot;&gt;FLINK-10269&lt;/a&gt;] -         Elasticsearch 6 UpdateRequest fail because of binary incompatibility
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10283&quot;&gt;FLINK-10283&lt;/a&gt;] -         FileCache logs unnecessary warnings
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10293&quot;&gt;FLINK-10293&lt;/a&gt;] -         RemoteStreamEnvironment does not forward port to RestClusterClient
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10314&quot;&gt;FLINK-10314&lt;/a&gt;] -         Blocking calls in Execution Graph creation bring down cluster
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10328&quot;&gt;FLINK-10328&lt;/a&gt;] -         Stopping the ZooKeeperSubmittedJobGraphStore should release all currently held locks
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10329&quot;&gt;FLINK-10329&lt;/a&gt;] -         Fail with exception if job cannot be removed by ZooKeeperSubmittedJobGraphStore#removeJobGraph
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        New Feature
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10022&quot;&gt;FLINK-10022&lt;/a&gt;] -         Add metrics for input/output buffers
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9013&quot;&gt;FLINK-9013&lt;/a&gt;] -         Document yarn.containers.vcores only being effective when adapting YARN config
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9446&quot;&gt;FLINK-9446&lt;/a&gt;] -         Compatibility table not up-to-date
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9795&quot;&gt;FLINK-9795&lt;/a&gt;] -         Update Mesos documentation for flip6
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9859&quot;&gt;FLINK-9859&lt;/a&gt;] -         More Akka config options
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9899&quot;&gt;FLINK-9899&lt;/a&gt;] -         Add more metrics to the Kinesis source connector
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9962&quot;&gt;FLINK-9962&lt;/a&gt;] -         allow users to specify TimeZone in DateTimeBucketer
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10001&quot;&gt;FLINK-10001&lt;/a&gt;] -         Improve Kubernetes documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10006&quot;&gt;FLINK-10006&lt;/a&gt;] -         Improve logging in BarrierBuffer
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10020&quot;&gt;FLINK-10020&lt;/a&gt;] -         Kinesis Consumer listShards should support more recoverable exceptions
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10082&quot;&gt;FLINK-10082&lt;/a&gt;] -         Initialize StringBuilder in Slf4jReporter with estimated size
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10094&quot;&gt;FLINK-10094&lt;/a&gt;] -         Always backup default config for end-to-end tests
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10110&quot;&gt;FLINK-10110&lt;/a&gt;] -         Harden e2e Kafka shutdown
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10131&quot;&gt;FLINK-10131&lt;/a&gt;] -         Improve logging around ResultSubpartition
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10137&quot;&gt;FLINK-10137&lt;/a&gt;] -         YARN: Log completed Containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10164&quot;&gt;FLINK-10164&lt;/a&gt;] -         Add support for resuming from savepoints to StandaloneJobClusterEntrypoint
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10170&quot;&gt;FLINK-10170&lt;/a&gt;] -         Support string representation for map and array types in descriptor-based Table API
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10185&quot;&gt;FLINK-10185&lt;/a&gt;] -         Make ZooKeeperStateHandleStore#releaseAndTryRemove synchronous
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10223&quot;&gt;FLINK-10223&lt;/a&gt;] -         TaskManagers should log their ResourceID during startup
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10301&quot;&gt;FLINK-10301&lt;/a&gt;] -         Allow a custom Configuration in StreamNetworkBenchmarkEnvironment
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10325&quot;&gt;FLINK-10325&lt;/a&gt;] -         [State TTL] Refactor TtlListState to use only loops, no java stream API for performance
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Test
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10084&quot;&gt;FLINK-10084&lt;/a&gt;] -         Migration tests weren&amp;#39;t updated for 1.5
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Thu, 20 Sep 2018 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2018/09/20/release-1.6.1.html</link>
-<guid isPermaLink="true">/news/2018/09/20/release-1.6.1.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.5.4 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the fourth bugfix version of the Apache Flink 1.5 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes more than 20 fixes and minor improvements for Flink 1.5.4. The list below includes a detailed list of all fixes.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.5.4.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.5.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.5.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.5.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9878&quot;&gt;FLINK-9878&lt;/a&gt;] -         IO worker threads BLOCKED on SSL Session Cache while CMS full gc
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10011&quot;&gt;FLINK-10011&lt;/a&gt;] -         Old job resurrected during HA failover
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10101&quot;&gt;FLINK-10101&lt;/a&gt;] -         Mesos web ui url is missing.
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10115&quot;&gt;FLINK-10115&lt;/a&gt;] -         Content-length limit is also applied to FileUploads
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10116&quot;&gt;FLINK-10116&lt;/a&gt;] -         createComparator fails on case class with Unit type fields prior to the join-key
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10141&quot;&gt;FLINK-10141&lt;/a&gt;] -         Reduce lock contention introduced with 1.5
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10142&quot;&gt;FLINK-10142&lt;/a&gt;] -         Reduce synchronization overhead for credit notifications
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10150&quot;&gt;FLINK-10150&lt;/a&gt;] -         Chained batch operators interfere with each other other
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10172&quot;&gt;FLINK-10172&lt;/a&gt;] -         Inconsistentcy in ExpressionParser and ExpressionDsl for order by asc/desc
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10193&quot;&gt;FLINK-10193&lt;/a&gt;] -         Default RPC timeout is used when triggering savepoint via JobMasterGateway
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10204&quot;&gt;FLINK-10204&lt;/a&gt;] -         StreamElementSerializer#copy broken for LatencyMarkers 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10255&quot;&gt;FLINK-10255&lt;/a&gt;] -         Standby Dispatcher locks submitted JobGraphs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10261&quot;&gt;FLINK-10261&lt;/a&gt;] -         INSERT INTO does not work with ORDER BY clause
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10267&quot;&gt;FLINK-10267&lt;/a&gt;] -         [State] Fix arbitrary iterator access on RocksDBMapIterator
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10293&quot;&gt;FLINK-10293&lt;/a&gt;] -         RemoteStreamEnvironment does not forward port to RestClusterClient
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10314&quot;&gt;FLINK-10314&lt;/a&gt;] -         Blocking calls in Execution Graph creation bring down cluster
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10328&quot;&gt;FLINK-10328&lt;/a&gt;] -         Stopping the ZooKeeperSubmittedJobGraphStore should release all currently held locks
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10329&quot;&gt;FLINK-10329&lt;/a&gt;] -         Fail with exception if job cannot be removed by ZooKeeperSubmittedJobGraphStore#removeJobGraph
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10082&quot;&gt;FLINK-10082&lt;/a&gt;] -         Initialize StringBuilder in Slf4jReporter with estimated size
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10131&quot;&gt;FLINK-10131&lt;/a&gt;] -         Improve logging around ResultSubpartition
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10137&quot;&gt;FLINK-10137&lt;/a&gt;] -         YARN: Log completed Containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10185&quot;&gt;FLINK-10185&lt;/a&gt;] -         Make ZooKeeperStateHandleStore#releaseAndTryRemove synchronous
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10223&quot;&gt;FLINK-10223&lt;/a&gt;] -         TaskManagers should log their ResourceID during startup
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10301&quot;&gt;FLINK-10301&lt;/a&gt;] -         Allow a custom Configuration in StreamNetworkBenchmarkEnvironment
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Thu, 20 Sep 2018 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2018/09/20/release-1.5.4.html</link>
-<guid isPermaLink="true">/news/2018/09/20/release-1.5.4.html</guid>
 </item>
 
 </channel>
