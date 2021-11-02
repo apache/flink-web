@@ -39,7 +39,7 @@ We also said goodbye to some components, the old table planner and integrated Me
 
 ## Transparency - let the community participate
 
-When approaching a release (usually a couple of weeks after the previous release has been done) we set up bi-weekly meetings for the community to discuss any issues regarding the release. The usefulness of those meetings varied a lot and so we started to [track the efforts](https://cwiki.apache.org/confluence/display/FLINK/1.14+Release) in the Apache Flink Confluence wiki. 
+When approaching a release, usually a couple of weeks after the previous release has been done, we set up bi-weekly meetings for the community to discuss any issues regarding the release. The usefulness of those meetings varied a lot, and so we started to [track the efforts](https://cwiki.apache.org/confluence/display/FLINK/1.14+Release) in the Apache Flink Confluence wiki.
 
 We came up with a system to label the current states of each feature: "independent", "won’t make it", "very unlikely", "will make it", "done", and "done done". We introduced the "done done" state since we were lacking a shared understanding of the definition of done. To qualify for "done done", the feature is manually tested by someone who has not been involved in the implementation of the specific effort and there exists comprehensive documentation that enables users to use the feature.
 
