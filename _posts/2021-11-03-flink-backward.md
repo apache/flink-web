@@ -32,7 +32,7 @@ From a content perspective, the community is still ironing out processes around 
 
 The implementation of some features, such as [buffer debloating](https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/memory/network_mem_tuning/#the-buffer-debloating-mechanism) and [fine-grained resource management](https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/finegrained_resource/), went smoothly. Though a few issues are now popping up as people begin using them in production, it is satisfying to see an engineering effort go according to plan. 
 
-We also said goodbye to some components. It always feels refreshing to remove code and reduce complexity. :slightly_smiling_face:
+We also said goodbye to some components, the old table planner and integrated Mesos support. As any developer will tell you, there's nothing better than deleting old code and reducing complexity. 
 
 
 # What we want to achieve through process changes
