@@ -45,7 +45,7 @@ We came up with a system to label the current states of each feature: "independe
 
 After each meeting, we provided updates on the mailing list and created a corresponding burn down chart. Those efforts have been perceived positively although they might still require some improvements.
 
-The meeting used to only be for those who have been driving the main efforts, but we opened it up to the whole community for this release. Nobody ended up joining :smiling_face_with_tear: but we will continue to make the meetings open to everyone.   
+The meeting used to only be for those driving the primary efforts, but we opened it up to the whole community for this release. While nobody ended up joining, we will continue to make the meetings open to everyone. 
 
 
 ## Stability - reduce building and testing pain
