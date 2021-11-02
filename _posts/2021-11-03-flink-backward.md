@@ -52,7 +52,7 @@ The meeting used to only be for those driving the primary efforts, but we opened
 
 At one point, as we were coming close to the feature freeze, the stability of the master branch became quite unstable. Although we have encountered this issue in the past, building and testing Flink under such conditions was not ideal.
 
-As a result, we tried to focus on reducing stability issues and the release managers have tried to organize and manage this effort. In future development cycles, the whole community needs to focus on the stability of the master branch. There are already improvements in the making and they will hopefully enhance the experience of contributing significantly.
+As a result, we focused on reducing stability issues, and the release managers have tried to organize and manage this effort. In future development cycles, the whole community needs to focus on the stability of the master branch. There are already improvements in the making, and they will hopefully enhance the experience of contributing significantly.
 
 ## Documentation - make it user-friendly
 
