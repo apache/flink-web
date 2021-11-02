@@ -43,7 +43,7 @@ When approaching a release, usually a couple of weeks after the previous release
 
 We came up with a system to label the current states of each feature: “independent”, “won’t make it”, “very unlikely”, “will make it”, “done”, and “done done”. We introduced the “done done” state since we lacked a shared understanding of the definition of done. To qualify for “done done”, the feature is manually tested by someone not involved in the implementation. Additionally, there must exist comprehensive documentation that enables users to use the feature.
 
-After each meeting, we provided updates on the mailing list and created a corresponding burn down chart. Those efforts have been perceived positively although they might still require some improvements.
+After each meeting, we provided updates on the mailing list and created a corresponding burn-down chart. Those efforts have well been received by our contributors, although they might still require some improvements.
 
 The meeting used to only be for those driving the primary efforts, but we opened it up to the whole community for this release. While nobody ended up joining, we will continue to make the meetings open to everyone. 
 
