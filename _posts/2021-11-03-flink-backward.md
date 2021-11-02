@@ -66,7 +66,7 @@ Moving forward, we will document more clearly what the guarantees are and introd
 
 # Some noteworthy items
 
-The first iteration for the buffer debloat feature was done in a Hackathon. :nerd_face:
+The first iteration for the buffer debloat feature was done in a Hackathon.
 
 Our [Apache Flink 1.14 Release wiki page](https://cwiki.apache.org/confluence/display/FLINK/1.14+Release) has 167 historic versions. For comparison, [FlIP 147](https://cwiki.apache.org/confluence/display/FLINK/FLIP-147%3A+Support+Checkpoints+After+Tasks+Finished) (one of the most active FLIPs) has just 76.
 
