@@ -22,7 +22,7 @@ From the team, we collected emotions that have been attributed to points in time
 
 The overall sentiment seems to be quite good. A ship crushed a robot two times, someone felt sick towards the end, an octopus causing negative emotions appeared in June...
 
-We looked at the origin of these emotions and came up with an analysis of what went well and what could be improved. We also incorporated some feedback gathered from the community.
+We looked at the origin of these emotions and analyzed what went well and what could be improved. We also incorporated some feedback gathered from the community.
 
 ## Problems faced
 
