@@ -68,7 +68,7 @@ Moving forward, we will document more clearly what the guarantees are and introd
 
 The first iteration for the buffer debloat feature was done in a Hackathon.
 
-Our [Apache Flink 1.14 Release wiki page](https://cwiki.apache.org/confluence/display/FLINK/1.14+Release) has 167 historic versions. For comparison, [FlIP 147](https://cwiki.apache.org/confluence/display/FLINK/FLIP-147%3A+Support+Checkpoints+After+Tasks+Finished) (one of the most active FLIPs) has just 76.
+Our [Apache Flink 1.14 Release wiki page](https://cwiki.apache.org/confluence/display/FLINK/1.14+Release) has 167 historic versions. For comparison, [FLIP 147](https://cwiki.apache.org/confluence/display/FLINK/FLIP-147%3A+Support+Checkpoints+After+Tasks+Finished) (one of the most active FLIPs) has just 76.
 
 With [FLINK-2491](https://issues.apache.org/jira/browse/FLINK-2491), we closed the third most watched issue in the Apache Flink Jira. This makes sense since FLINK-2491 was created 6 years ago (August 6, 2015). The second oldest issue was created in 2017.
 
