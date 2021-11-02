@@ -8,7 +8,7 @@ authors:
 excerpt: A look back at the development cycle for Flink 1.14 
 ---
 
-It has now been a month since [Apache Flink 1.14](https://flink.apache.org/downloads.html#apache-flink-1140) has been released into the wild. :partying_face: We had a comprehensive look at the enhancements, additions, and fixups in the [release announcement blog post](https://flink.apache.org/news/2021/09/29/release-1.14.0.html) and now we will have a look at the development cycle from a different angle. Based on feedback collected from contributors involved in this release, we will explore the experiences and processes behind it all.  
+It has now been a month since the community released [Apache Flink 1.14](https://flink.apache.org/downloads.html#apache-flink-1140) into the wild. We had a comprehensive look at the enhancements, additions, and fixups in the release announcement blog post, and now we will look at the development cycle from a different angle. Based on feedback collected from contributors involved in this release, we will explore the experiences and processes behind it all.
 
 {% toc %}
 
