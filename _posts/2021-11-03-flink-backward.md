@@ -26,8 +26,13 @@ We looked at the origin of these emotions and analyzed what went well and what c
 
 ## Problems faced
 
-From a content perspective, the community is still ironing out processes around documentation and blog posts. There have been a lot of test instabilities and issues with some of the efforts to fix them. We also had to push the feature freeze by two weeks, which might actually be considered early and not actually be living up to the Apache Flink release tradition. :p
+No release is perfect, and the community is constantly looking to improve.  
 
+Apache Flink has active contributors from around the globe, many of whom do not speak English as a first language. The community is still ironing out processes for delivering high-quality documentation and blog posts from a content perspective. We have added contribution guidelines for writing and have contributors focusing on this component. 
+
+Each Flink release is built with the help of hundreds of contributors, each working on different parts of the project. Changes to one module may affect others in ways that are not always obvious. To maintain quality, the community supports an expansive test suite. Invariably some tests are found to be flakey. Whenever we discover a test issue, the community opens a blocker issue that we must resolve before the next release. In practice, this leads to contributors triaging most test instabilities towards the end of each release cycle. From now on, we want to be more mindful of these failures and prioritize them when discovered. 
+
+Finally, the community pushed the planned feature freeze for 1.14 by two weeks. Two weeks is an improvement from previous release cycles, but we hope to continue improving this metric 1.15. 
 ## Things enjoyed
 
 The implementation of some features, such as [buffer debloating](https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/memory/network_mem_tuning/#the-buffer-debloating-mechanism) and [fine-grained resource management](https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/finegrained_resource/), went smoothly. Though a few issues are now popping up as people begin using them in production, it is satisfying to see an engineering effort go according to plan. 
