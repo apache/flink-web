@@ -26,7 +26,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> Contribute Code</td>
-      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a></td>
+      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a> and follow the <a href="contributing/contribute-code.html#definition-of-done">Definition of Done</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Help With Code Reviews</td>

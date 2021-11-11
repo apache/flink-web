@@ -20,6 +20,19 @@ which are not assigned, and then follow [the code contribution process](#code-co
 to the Flink project and want to learn about it and its contribution process, you can check
 [the starter issues](https://issues.apache.org/jira/issues/?filter=12349196), which are annotated with a _starter_ label.
 
+## Definition of Done
+
+To maintain the quality and the sustainability of the Apache Flink project
+the community came up with a Definition of Done for the project.
+
+A PR is done and can be merged, when:
+
+1. **It is following the [code contribution process](#code-contribution-process).**
+2. **It is implemented according to the [code style and quality guide]({{ site.base }}/contributing/code-style-and-quality-preamble.html).**
+3. **If it has user facing changes the documentation has been updated acording to the [documentation style guide]({{ site.base }}/contributing/docs-style.html).**
+4. **It is covered by tests.**
+5. **All tests passed.**
+
 ## Code Contribution Process
 
 <style>
@@ -114,7 +127,26 @@ to the Flink project and want to learn about it and its contribution process, yo
   <div class="column">
     <div class="panel panel-default">
       <div class="panel-body">
-        <h2><span class="number">3</span><a href="#review">Review</a></h2>
+        <h2><span class="number">3</span><a href="#implement">Document</a></h2>
+        <p>Document the increment according to the <a href="{{ site.base }}/contributing/docs-style.html">Documentation Style Guide</a> to allow users to understand and use new features. This might be done before implementing the change.</p>
+      </div>
+    </div>
+  </div>
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">4</span><a href="#implement">Test</a></h2>
+        <p>Ensure the change is covered by tests. In case there are questions regarding how to test the change discuss it within the JIRA issue.</p>
+        <p>After implementing the change existing and newly implemented tests should pass.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="contribute-grid">
+  <div class="column">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2><span class="number">5</span><a href="#review">Review</a></h2>
         <p>Open a pull request and work with the reviewer.</p>
         <p><b>Pull requests belonging to unassigned Jira tickets or not authored by assignee will not be reviewed or merged by the community.</b></p>
       </div>
@@ -123,7 +155,7 @@ to the Flink project and want to learn about it and its contribution process, yo
   <div class="column">
     <div class="panel panel-default">
       <div class="panel-body">
-        <h2><span class="number">4</span><a href="#merge">Merge</a></h2>
+        <h2><span class="number">6</span><a href="#merge">Merge</a></h2>
         <p>A committer of Flink checks if the contribution fulfills the requirements and merges the code to the codebase.</p>
       </div>
     </div>
@@ -183,6 +215,7 @@ The following types of changes require a `[DISCUSS]` thread on the dev@flink.a.o
     - Testing strategies
     - Impact on Flink's build time
     - Dependencies and their licenses
+  - For bigger changes there is a subtask in the JIRA issue to have it verified by another contributor after it is implemented.
 
 If a change is identified as a large or controversial change in the discussion on Jira, it might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [dev mailing list]( {{ site.base }}/community.html#mailing-lists) to reach agreement and consensus.
 
