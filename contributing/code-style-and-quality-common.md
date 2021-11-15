@@ -331,6 +331,31 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
 
 
 
+## 7. Testing
+
+We are moving our codebase to [JUnit 5](https://junit.org/junit5/docs/current/user-guide/) and [AssertJ](https://assertj.github.io/doc/) as our testing framework and assertions library of choice.
+
+Unless there is a specific reason, make sure you use JUnit 5 and AssertJ when contributing to Flink with new tests and even when modifying existing tests. Don't use Hamcrest, JUnit assertions and `assert` directive.
+Make your tests readable and don't duplicate assertions logic provided by AssertJ or by [custom assertions](https://assertj.github.io/doc/#assertj-core-custom-assertions) provided by some flink modules.
+For example, avoid:
+
+```java
+assert list.size() == 10;
+for (String item : list) {
+    assertTrue(item.length() < 10);
+}
+```
+
+And instead use:
+
+```java
+assertThat(list)
+    .hasSize(10)
+    .allMatch(item -> item.length() < 10);
+```
+
+
+
 
 
 <hr>
