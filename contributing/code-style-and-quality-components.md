@@ -123,6 +123,44 @@ Avoid full integration tests
 * Instead, use unit tests that validate the optimized plan which comes out of a planner. Or test the behavior of a runtime operator directly.
 
 
+#### Debug the planner
+
+When working on planner rules, It's useful to investigate which rules are applied, in which order and what transformation every rule generates.
+In order to find out these details when running a planner test, you can enable the Calcite planner logging in debug mode adding the following lines to the log configuration in `flink-table/flink-table-planner/src/test/resources/log4j2-test.properties`:
+
+```
+loggers = testlogger
+logger.testlogger.name = org.apache.calcite.plan
+logger.testlogger.level = DEBUG
+logger.testlogger.appenderRefs = TestLogger
+```
+
+This is a sample output:
+
+```
+[...]
+3855 [main] DEBUG org.apache.calcite.plan.RelOptPlanner [] - call#1: Apply rule [FlinkJoinPushExpressionsRule] to [rel#40:LogicalJoin.NONE.any.None: 0.[NONE].[NONE](left=HepRelVertex#34,right=HepRelVertex#39,condition=AND(=($0, $5), >=($3, -($8, 3600000:INTERVAL HOUR)), <=($3, +($8, 3600000:INTERVAL HOUR))),joinType=inner)]
+3855 [main] DEBUG org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary [] - Rule Attempts Info for HepPlanner
+3856 [main] DEBUG org.apache.calcite.plan.AbstractRelOptPlanner.rule_execution_summary [] - 
+Rules                                                                   Attempts           Time (us)
+FlinkJoinPushExpressionsRule                                                   1                 143
+* Total                                                                        1                 143
+[...]
+```
+
+
+#### Debug the code generator
+
+In a similar fashion to the planner debugging, you can debug the result of every code generation step enabling the logger, adding the following lines to the log configuration in `flink-table/flink-table-planner/src/test/resources/log4j2-test.properties`:
+
+```
+loggers = testlogger
+logger.testlogger.name = org.apache.flink.table.planner.codegen
+logger.testlogger.level = TRACE
+logger.testlogger.appenderRefs = TestLogger
+```
+
+
 #### Compatibility
 
 Don’t introduce physical plan changes in minor releases!
