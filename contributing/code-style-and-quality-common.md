@@ -322,6 +322,10 @@ assertThat(list)
     .allMatch(item -> item.length() < 10);
 ```
 
+Flink-specific custom Asserts are located in `flink-test-utils-junit` under `org.apache.flink.core.testutils.assertj`.
+Classes in this package should replace the deprecated `org.apache.flink.core.testutils.FlinkMatchers` in the long run.
+See`FlinkThrowableAssert` on details about how to implement a custom `Assert` and how to use it in tests.
+
 ### Write targeted tests
 
 * <span style="text-decoration:underline;">Test contracts not implementations</span>: Test that after a sequence of actions, the components are in a certain state, rather than testing that the components followed a sequence of internal state modifications.
