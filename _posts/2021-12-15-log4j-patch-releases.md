@@ -9,7 +9,7 @@ authors:
 
 ---
 
-The Apache Flink community released emergency bugfix versions of the Apache Flink 1.11, 1.12, 1.13 and 1.14 series.
+The Apache Flink community has released emergency bugfix versions of Apache Flink for the 1.11, 1.12, 1.13 and 1.14 series.
 
 These releases include a version upgrade for Log4j to address CVE-2021-44228.
 
