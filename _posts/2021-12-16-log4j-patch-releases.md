@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Apache Flink Log4j emergency releases"
-date:   2021-12-15 00:00:00
+date:   2021-12-16 00:00:00
 categories: news
 authors:
 - chesnay:
@@ -23,17 +23,17 @@ Updated Maven dependencies:
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-java</artifactId>
-  <version>1.14.1</version>
+  <version>1.14.2</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.14.1</version>
+  <version>1.14.2</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients_2.11</artifactId>
-  <version>1.14.1</version>
+  <version>1.14.2</version>
 </dependency>
 ```
 
@@ -43,17 +43,17 @@ Updated Maven dependencies:
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-java</artifactId>
-  <version>1.13.4</version>
+  <version>1.13.5</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.13.4</version>
+  <version>1.13.5</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients_2.11</artifactId>
-  <version>1.13.4</version>
+  <version>1.13.5</version>
 </dependency>
 ```
 
@@ -63,17 +63,17 @@ Updated Maven dependencies:
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-java</artifactId>
-  <version>1.12.6</version>
+  <version>1.12.7</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.12.6</version>
+  <version>1.12.7</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients_2.11</artifactId>
-  <version>1.12.6</version>
+  <version>1.12.7</version>
 </dependency>
 ```
 
@@ -83,17 +83,17 @@ Updated Maven dependencies:
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-java</artifactId>
-  <version>1.11.5</version>
+  <version>1.11.6</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.11.5</version>
+  <version>1.11.6</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
   <artifactId>flink-clients_2.11</artifactId>
-  <version>1.11.5</version>
+  <version>1.11.6</version>
 </dependency>
 ```
 
