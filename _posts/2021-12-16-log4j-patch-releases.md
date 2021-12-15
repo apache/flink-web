@@ -11,7 +11,7 @@ authors:
 
 The Apache Flink community has released emergency bugfix versions of Apache Flink for the 1.11, 1.12, 1.13 and 1.14 series.
 
-These releases include a version upgrade for Log4j to address [CVE-2021-44228](https://nvd.nist.gov/vuln/detail/CVE-2021-44228).
+These releases include a version upgrade for Log4j to address [CVE-2021-44228](https://nvd.nist.gov/vuln/detail/CVE-2021-44228) and [CVE-2021-45046](https://nvd.nist.gov/vuln/detail/CVE-2021-45046).
 
 We highly recommend all users to upgrade to the respective patch release.
 
