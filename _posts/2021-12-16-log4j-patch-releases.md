@@ -23,7 +23,7 @@ We are publishing this announcement earlier than usual to give users access to t
 As a result of that certain artifacts are not yet available:
 
 * Maven artifacts are currently being synced to Maven central and will become available over the next 24 hours.
-* Docker images at [https://hub.docker.com/_/flink](https://hub.docker.com/_/flink) will be published at a later date.
+* Docker images at https://hub.docker.com/_/flink will be published at a later date.
 * The 1.11.6/1.12.7 Python binaries will be published at a later date.
 
 This post will be continously updated to reflect the latest state.
