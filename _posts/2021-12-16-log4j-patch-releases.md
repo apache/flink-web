@@ -15,86 +15,28 @@ These releases include a version upgrade for Log4j to address [CVE-2021-44228](h
 
 We highly recommend all users to upgrade to the respective patch release.
 
-Updated Maven dependencies:
+You can find the source and binaries on the updated [Downloads page]({{ site.baseurl }}/downloads.html), and Docker images in the [apache/flink](https://hub.docker.com/r/apache/flink) dockerhub repository.
 
-1.14:
+<div class="alert alert-info" markdown="1">
+We are publishing this announcement earlier than usual to give users access to the updated source/binary releases as soon as possible.
 
-```xml
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>1.14.2</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.14.2</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
-  <version>1.14.2</version>
-</dependency>
-```
+As a result of that certain artifacts are not yet available:
 
-1.13:
+* Maven artifacts are currently being synced to Maven central and will become available over the next 24 hours.
+* Docker images at https://hub.docker.com/_/flink will be published at a later date.
+* The 1.11.6/1.12.7 Python binaries will be published at a later date.
 
-```xml
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>1.13.5</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.13.5</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
-  <version>1.13.5</version>
-</dependency>
-```
+This post will be continously updated to reflect the latest state.
+</div>
 
-1.12:
+<div class="alert alert-info" markdown="1">
+The newly released versions are:
 
-```xml
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>1.12.7</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.12.7</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
-  <version>1.12.7</version>
-</dependency>
-```
+* 1.14.2
+* 1.13.5
+* 1.12.7
+* 1.11.6
 
-1.11:
+To clarify and avoid confusion: The  1.14.1 / 1.13.4 / 1.12.6 / 1.11.5 releases were _skipped_ because [CVE-2021-45046](https://nvd.nist.gov/vuln/detail/CVE-2021-45046) was discovered during the release publication.
+</div>
 
-```xml
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-java</artifactId>
-  <version>1.11.6</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.11.6</version>
-</dependency>
-<dependency>
-  <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
-  <version>1.11.6</version>
-</dependency>
-```
-
-You can find the binaries on the updated [Downloads page]({{ site.baseurl }}/downloads.html).
