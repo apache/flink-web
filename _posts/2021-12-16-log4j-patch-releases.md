@@ -37,6 +37,6 @@ The newly released versions are:
 * 1.12.7
 * 1.11.6
 
-To clarify and avoid confusion: The 1.14.1 / 1.13.4 / 1.12.6 / 1.11.5 releases were _skipped_ because [CVE-2021-45046](https://nvd.nist.gov/vuln/detail/CVE-2021-45046) was discovered during the release publication. Some artifacts were published to Maven Central, but no source/binary releases not Docker images are available for those versions.
+To clarify and avoid confusion: The 1.14.1 / 1.13.4 / 1.12.6 / 1.11.5 releases were _skipped_ because [CVE-2021-45046](https://nvd.nist.gov/vuln/detail/CVE-2021-45046) was discovered during the release publication. Some artifacts were published to Maven Central, but no source/binary releases nor Docker images are available for those versions.
 </div>
 
