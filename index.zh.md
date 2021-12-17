@@ -137,7 +137,7 @@ layout: base
 
 <div class="col-sm-3">
 
-  <h2><a>Upcoming Events</a></h2>
+  <h2><a>最新活动</a></h2>
 
 </div>
 <div class="col-sm-9">
