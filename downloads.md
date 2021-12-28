@@ -136,6 +136,23 @@ This version is compatible with Apache Flink version {{ flink_statefun_release.s
 
 {% endfor %}
 
+Apache Flink® ML {{ site.FLINK_ML_VERSION_STABLE }} is the latest stable release for machine learning.
+
+{% for flink_ml_release in site.flink_ml_releases %}
+
+## {{ flink_ml_release.source_release.name }}
+
+<p>
+<a href="{{ flink_ml_release.source_release.url }}" class="ga-track" id="{{ flink_ml_release.source_release.id }}">{{ flink_ml_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_ml_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_ml_release.source_release.sha512_url }}">sha512</a>)
+</p>
+
+This version is compatible with Apache Flink version {{ flink_ml_release.source_release.flink_version }}.
+
+---
+
+{% endfor %}
+
 ## Additional Components
 
 These are components that the Flink project develops which are not part of the
@@ -200,6 +217,34 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 The `statefun-sdk` dependency is the only one you will need to start developing applications.
 The `statefun-flink-harness` dependency includes a local execution environment that allows you to locally test your application in an IDE.
 
+### Apache Flink ML
+
+You can add the following dependencies to your `pom.xml` to include Apache Flink ML in your project.
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-core_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-iteration_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-lib_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+```
+
+Advanced users could only import a minimal set of Flink ML dependencies for their target use-cases:
+
+- Use artifact `flink-ml-core_2.12` in order to develop custom ML algorithms.
+- Use artifacts `flink-ml-core_2.12` and `flink-ml-iteration_2.12` in order to develop custom ML algorithms which require iteration.
+- Use artifact `flink-ml-lib_2.12` in order to use the off-the-shelf ML algorithms from Flink ML.
+
 ## Update Policy for old releases
 
 As of March 2017, the Flink community [decided](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
@@ -250,5 +295,16 @@ Flink Stateful Functions {{ flink_statefun_release.version_long }} - {{ flink_st
 <ul>
 {% for shaded_release in shaded_releases %}
 <li>Flink-shaded {{ shaded_release.version }} - {{ shaded_release.release_date }} (<a href="https://archive.apache.org/dist/flink/flink-shaded-{{ shaded_release.version }}/flink-shaded-{{ shaded_release.version }}-src.tgz">Source</a>)</li>
+{% endfor %}
+</ul>
+
+### Flink-ML
+{% assign flink_ml_releases = site.release_archive.flink_ml %}
+<ul>
+{% for flink_ml_release in flink_ml_releases %}
+<li>
+Flink ML {{ flink_ml_release.version_long }} - {{ flink_ml_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-ml-{{ flink_ml_release.version_long }}/flink-ml-{{ flink_ml_release.version_long }}-src.tgz">Source</a>)
+</li>
 {% endfor %}
 </ul>
