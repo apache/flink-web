@@ -134,6 +134,42 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} 是我们最新的稳定版本。
 如果你计划从以前的版本升级 Flink，请查看 [Flink {{ flink_release.version_short }} 的发布说明]({{ site.DOCS_BASE_URL }}
 flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flink_release.version_short }}.html)。
 
+---
+
+{% endfor %}
+
+Apache Flink® Stateful Functions {{ site.FLINK_STATEFUN_VERSION_STABLE }} 是 [Stateful Functions](https://flink.apache.org/stateful-functions.html) 组件的最新稳定版本.
+
+{% for flink_statefun_release in site.flink_statefun_releases %}
+
+## {{ flink_statefun_release.source_release.name }}
+
+<p>
+<a href="{{ flink_statefun_release.source_release.url }}" class="ga-track" id="{{ flink_statefun_release.source_release.id }}">{{ flink_statefun_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_statefun_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_statefun_release.source_release.sha512_url }}">sha512</a>)
+</p>
+
+这个版本和 Apache Flink 版本 {{ flink_statefun_release.source_release.flink_version }} 兼容。
+
+---
+
+{% endfor %}
+
+Apache Flink® ML {{ site.FLINK_ML_VERSION_STABLE }} 是机器学习库的最新稳定版本。
+
+{% for flink_ml_release in site.flink_ml_releases %}
+
+## {{ flink_ml_release.source_release.name }}
+
+<p>
+<a href="{{ flink_ml_release.source_release.url }}" class="ga-track" id="{{ flink_ml_release.source_release.id }}">{{ flink_ml_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_ml_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_ml_release.source_release.sha512_url }}">sha512</a>)
+</p>
+
+这个版本和 Apache Flink 版本 {{ flink_ml_release.source_release.flink_version }} 兼容。
+
+---
+
 {% endfor %}
 
 ## 额外组件
@@ -154,6 +190,8 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
 随着每次版本发布，我们还提供了包含 sha512 哈希的 `*.sha512` 文件和包含加密签名的 `*.asc` 文件。Apache 软件基金会有一个通用的[教程来验证哈希和签名](http://www.apache.org/info/verification.html)，你可以使用这些版本签名的 [KEYS](https://downloads.apache.org/flink/KEYS) 来校验它们。
 
 ## Maven 依赖
+
+### Apache Flink
 
 你只要将以下依赖项添加到 `pom.xml` 中，就能在项目中引入 Apache Flink 。这些依赖项包含了本地执行环境，因此支持本地测试。
 
@@ -176,6 +214,57 @@ flink-docs-release-{{ flink_release.version_short }}/release-notes/flink-{{ flin
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
+
+### Apache Flink Stateful Functions
+
+用户可以在 `pom.xml` 中包含以下依赖来在项目中使用 Apache Flink Stateful Function。
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>statefun-sdk</artifactId>
+  <version>{{ site.FLINK_STATEFUN_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>statefun-flink-harness</artifactId>
+  <version>{{ site.FLINK_STATEFUN_VERSION_STABLE }}</version>
+</dependency>
+```
+
+The `statefun-sdk` dependency is the only one you will need to start developing applications.
+The `statefun-flink-harness` dependency includes a local execution environment that allows you to locally test your application in an IDE.
+
+本地开发程序仅需要依赖 `statefun-sdk`。`statefun-flink-harness` 提供了在 IDE 中测试用户开发的程序的本地执行环境。
+
+
+### Apache Flink ML
+
+用户需要在 `pom.xml` 中添加如下依赖来使在项目中使用 Apache Flink ML。
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-core_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-iteration_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-ml-lib_2.12</artifactId>
+  <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
+</dependency>
+```
+
+高级用户可以根据使用场景来只包含最小集合的依赖：
+
+- 依赖组件 `flink-ml-core_2.12` 来开发不使用迭代的自定义机器学习算法。
+- 依赖组件 `flink-ml-core_2.12` 与 `flink-ml-iteration_2.12` 来开发使用迭代的自定义机器学习算法。
+- 依赖组件 `flink-ml-lib_2.12` 来使用 Flink ML 提供的机器学习算法。
 
 ## 旧版本的更新策略
 截至2017年3月，Flink 社区[决定](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html)使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的  bugfix。
@@ -211,5 +300,16 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 <ul>
 {% for shaded_release in shaded_releases %}
 <li>Flink-shaded {{ shaded_release.version }} - {{ shaded_release.release_date }} (<a href="https://archive.apache.org/dist/flink/flink-shaded-{{ shaded_release.version }}/flink-shaded-{{ shaded_release.version }}-src.tgz">Source</a>)</li>
+{% endfor %}
+</ul>
+
+### Flink-ML
+{% assign flink_ml_releases = site.release_archive.flink_ml %}
+<ul>
+{% for flink_ml_release in flink_ml_releases %}
+<li>
+Flink ML {{ flink_ml_release.version_long }} - {{ flink_ml_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-ml-{{ flink_ml_release.version_long }}/flink-ml-{{ flink_ml_release.version_long }}-src.tgz">Source</a>)
+</li>
 {% endfor %}
 </ul>
