@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Apache Flink: Stateful Computations over Data Streams</title>
+    <title>Apache Flink: How We Improved Scheduler Performance for Large-scale Jobs - Part One</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
@@ -145,7 +145,7 @@
             <li>
               
                 
-                  <a href="/zh/">中文版</a>
+                  <a href="/zh/2022/01/04/scheduler-performance-part-one.html">中文版</a>
                 
               
             </li>
@@ -193,261 +193,94 @@
       </div>
       <div class="col-sm-9">
       <div class="row-fluid">
-
   <div class="col-sm-12">
-    <p class="lead">
-      <strong>Apache Flink<sup>®</sup> — Stateful Computations over Data Streams</strong>
-    </p>
-  </div>
+    <div class="row">
+      <h1>How We Improved Scheduler Performance for Large-scale Jobs - Part One</h1>
+      <p><i></i></p>
 
-<div class="col-sm-12">
-  <hr />
-</div>
+      <article>
+        <p>04 Jan 2022 Zhilong Hong , Zhu Zhu , Daisy Tsang , &amp; Till Rohrmann (<a href="https://twitter.com/stsffap">@stsffap</a>)</p>
 
-</div>
+<h1 id="introduction">Introduction</h1>
 
-<!-- High-level architecture figure -->
+<p>When scheduling large-scale jobs in Flink 1.12, a lot of time is required to initialize jobs and deploy tasks. The scheduler also requires a large amount of heap memory in order to store the execution topology and host temporary deployment descriptors. For example, for a job with a topology that contains two vertices connected with an all-to-all edge and a parallelism of 10k (which means there are 10k source tasks and 10k sink tasks and every source task is connected to all sink tasks), Flink’s JobManager would require 30 GiB of heap memory and more than 4 minutes to deploy all of the tasks.</p>
 
-<div class="row front-graphic">
-  <hr />
-  <img src="/img/flink-home-graphic.png" width="800px" />
-</div>
+<p>Furthermore, task deployment may block the JobManager’s main thread for a long time and the JobManager will not be able to respond to any other requests from TaskManagers. This could lead to heartbeat timeouts that trigger a failover. In the worst case, this will render the Flink cluster unusable because it cannot deploy the job.</p>
 
-<!-- Feature grid -->
+<p>To improve the performance of the scheduler for large-scale jobs, we’ve implemented several optimizations in Flink 1.13 and 1.14:</p>
 
-<!--
-<div class="row">
-  <div class="col-sm-12">
-    <hr />
-    <h2><a href="/features.html">Features</a></h2>
-  </div>
-</div>
--->
-<div class="row">
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-th"></span> <b>All streaming use cases</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Event-driven Applications</li>
-          <li>Stream &amp; Batch Analytics</li>
-          <li>Data Pipelines &amp; ETL</li>
-        </ul>
-        <a href="/usecases.html">Learn more</a>
-      </div>
+<ol>
+  <li>Introduce the concept of consuming groups to optimize procedures related to the complexity of topologies, including the initialization, scheduling, failover, and partition release. This also reduces the memory required to store the topology;</li>
+  <li>Introduce a cache to optimize task deployment, which makes the process faster and requires less memory;</li>
+  <li>Leverage characteristics of the logical topology and the scheduling topology to speed up the building of pipelined regions.</li>
+</ol>
+
+<h1 id="benchmarking-results">Benchmarking Results</h1>
+
+<p>To estimate the effect of our optimizations, we conducted several experiments to compare the performance of Flink 1.12 (before the optimization) with Flink 1.14 (after the optimization). The job in our experiments contains two vertices connected with an all-to-all edge. The parallelisms of these vertices are both 10K. To make temporary deployment descriptors distributed via the blob server, we set the configuration <a href="https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#blob-offload-minsize">blob.offload.minsize</a> to 100 KiB (from default value 1 MiB). This configuration means that the blobs larger than the set value will be distributed via the blob server, and the size of deployment descriptors in our test job is about 270 KiB. The results of our experiments are illustrated below:</p>
+
+<center>
+Table 1 - The comparison of time cost between Flink 1.12 and 1.14
+<table width="95%" border="1">
+  <thead>
+    <tr>
+      <th style="text-align: center">Procedure</th>
+      <th style="text-align: center">1.12</th>
+      <th style="text-align: center">1.14</th>
+      <th style="text-align: center">Reduction(%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Job Initialization</td>
+      <td style="text-align: center">11,431ms</td>
+      <td style="text-align: center">627ms</td>
+      <td style="text-align: center">94.51%</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Task Deployment</td>
+      <td style="text-align: center">63,118ms</td>
+      <td style="text-align: center">17,183ms</td>
+      <td style="text-align: center">72.78%</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Computing tasks to restart when failover</td>
+      <td style="text-align: center">37,195ms</td>
+      <td style="text-align: center">170ms</td>
+      <td style="text-align: center">99.55%</td>
+    </tr>
+  </tbody>
+</table>
+</center>
+
+<p><br />
+In addition to quicker speeds, the memory usage is significantly reduced. It requires 30 GiB heap memory for a JobManager to deploy the test job and keep it running stably with Flink 1.12, while the minimum heap memory required by the JobManager with Flink 1.14 is only 2 GiB.</p>
+
+<p>There are also less occurrences of long-term garbage collection. When running the test job with Flink 1.12, a garbage collection that lasts more than 10 seconds occurs during both job initialization and task deployment. With Flink 1.14, since there is no long-term garbage collection, there is also a decreased risk of heartbeat timeouts, which creates better cluster stability.</p>
+
+<p>In our experiment, it took more than 4 minutes for the large-scale job with Flink 1.12 to transition to running (excluding the time spent on allocating resources). With Flink 1.14, it took no more than 30 seconds (excluding the time spent on allocating resources). The time cost is reduced by 87%. Thus, for users who are running large-scale jobs for production and want better scheduling performance, please consider upgrading Flink to 1.14.</p>
+
+<p>In <a href="/2022/01/04/scheduler-performance-part-two">part two</a> of this blog post, we are going to talk about these improvements in detail.</p>
+
+      </article>
     </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-ok"></span> <b>Guaranteed correctness</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Exactly-once state consistency</li>
-          <li>Event-time processing</li>
-          <li>Sophisticated late data handling</li>
-        </ul>
-        <a href="/flink-applications.html#building-blocks-for-streaming-applications">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon glyphicon-sort-by-attributes"></span> <b>Layered APIs</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>SQL on Stream &amp; Batch Data</li>
-          <li>DataStream API &amp; DataSet API</li>
-          <li>ProcessFunction (Time &amp; State)</li>
-        </ul>
-        <a href="/flink-applications.html#layered-apis">Learn more</a>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-dashboard"></span> <b>Operational Focus</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Flexible deployment</li>
-          <li>High-availability setup</li>
-          <li>Savepoints</li>
-        </ul>
-        <a href="/flink-operations.html">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-fullscreen"></span> <b>Scales to any use case</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Scale-out architecture</li>
-          <li>Support for very large state</li>
-          <li>Incremental checkpointing</li>
-        </ul>
-        <a href="/flink-architecture.html#run-applications-at-any-scale">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-flash"></span> <b>Excellent Performance</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Low latency</li>
-          <li>High throughput</li>
-          <li>In-Memory computing</li>
-        </ul>
-        <a href="/flink-architecture.html#leverage-in-memory-performance">Learn more</a>
-      </div>
+
+    <div class="row">
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+             (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
     </div>
   </div>
 </div>
-
-<!-- Events section -->
-<div class="row">
-
-<div class="col-sm-12">
-  <hr />
-</div>
-
-<div class="col-sm-3">
-
-  <h2><a>Upcoming Events</a></h2>
-
-</div>
-<div class="col-sm-9">
-  <!-- Flink Forward -->
-  <a href="https://flink-forward.org" target="_blank">
-    <img style="width: 180px; padding-right: 10px" src="/img/flink-forward.png" alt="Flink Forward" />
-  </a>
-  <!-- ApacheCon -->
-  <a href="https://www.apache.org/events/current-event" target="_blank">
-    <img style="width: 200px; padding-right: 10px" src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon" />
-  </a>
-    <!-- Flink Forward Asia -->
-    <a href="https://flink-forward.org.cn/" target="_blank">
-      <img style="width: 230px" src="/img/flink-forward-asia.png" alt="Flink Forward Asia" />
-    </a>
-</div>
-
-</div>
-
-<!-- Updates section -->
-
-<div class="row">
-
-<div class="col-sm-12">
-  <hr />
-</div>
-
-<div class="col-sm-3">
-
-  <h2><a href="/blog">Latest Blog Posts</a></h2>
-
-</div>
-
-<div class="col-sm-9">
-
-  <dl>
-      
-        <dt> <a href="/2022/01/04/scheduler-performance-part-two.html">How We Improved Scheduler Performance for Large-scale Jobs - Part Two</a></dt>
-        <dd>Part one of this blog post briefly introduced the optimizations we’ve made to improve the performance of the scheduler; compared to Flink 1.12, the time cost and memory usage of scheduling large-scale jobs in Flink 1.14 is significantly reduced. In part two, we will elaborate on the details of these optimizations.</dd>
-      
-        <dt> <a href="/2022/01/04/scheduler-performance-part-one.html">How We Improved Scheduler Performance for Large-scale Jobs - Part One</a></dt>
-        <dd>To improve the performance of the scheduler for large-scale jobs, several optimizations were introduced in Flink 1.13 and 1.14. In this blog post we'll take a look at them.</dd>
-      
-        <dt> <a href="/news/2021/12/22/log4j-statefun-release.html">Apache Flink StateFun Log4j emergency release</a></dt>
-        <dd><p>The Apache Flink community has released an emergency bugfix version of Apache Flink Stateful Function 3.1.1.</p>
-
-</dd>
-      
-        <dt> <a href="/news/2021/12/16/log4j-patch-releases.html">Apache Flink Log4j emergency releases</a></dt>
-        <dd><p>The Apache Flink community has released emergency bugfix versions of Apache Flink for the 1.11, 1.12, 1.13 and 1.14 series.</p>
-
-</dd>
-      
-        <dt> <a href="/2021/12/10/log4j-cve.html">Advise on Apache Log4j Zero Day (CVE-2021-44228)</a></dt>
-        <dd>Apache Flink is affected by an Apache Log4j Zero Day (CVE-2021-44228). This blog post contains advise for users on how to address this.</dd>
-    
-  </dl>
-
-</div>
-
-<!-- Scripts section -->
-
-<script type="text/javascript" src="/js/jquery.jcarousel.min.js"></script>
-
-<script type="text/javascript">
-
-  $(window).load(function(){
-   $(function() {
-        var jcarousel = $('.jcarousel');
-
-        jcarousel
-            .on('jcarousel:reload jcarousel:create', function () {
-                var carousel = $(this),
-                    width = carousel.innerWidth();
-
-                if (width >= 600) {
-                    width = width / 4;
-                } else if (width >= 350) {
-                    width = width / 3;
-                }
-
-                carousel.jcarousel('items').css('width', Math.ceil(width) + 'px');
-            })
-            .jcarousel({
-                wrap: 'circular',
-                autostart: true
-            });
-
-        $('.jcarousel-control-prev')
-            .jcarouselControl({
-                target: '-=1'
-            });
-
-        $('.jcarousel-control-next')
-            .jcarouselControl({
-                target: '+=1'
-            });
-
-        $('.jcarousel-pagination')
-            .on('jcarouselpagination:active', 'a', function() {
-                $(this).addClass('active');
-            })
-            .on('jcarouselpagination:inactive', 'a', function() {
-                $(this).removeClass('active');
-            })
-            .on('click', function(e) {
-                e.preventDefault();
-            })
-            .jcarouselPagination({
-                perPage: 1,
-                item: function(page) {
-                    return '<a href="#' + page + '">' + page + '</a>';
-                }
-            });
-    });
-  });
-
-</script>
-</div>
-
       </div>
     </div>
 
