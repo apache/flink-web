@@ -7,6 +7,263 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Pravega Flink Connector 101</title>
+<description>&lt;p&gt;&lt;a href=&quot;https://cncf.pravega.io/&quot;&gt;Pravega&lt;/a&gt;, which is now a CNCF sandbox project, is a cloud-native storage system based on abstractions for both batch and streaming data consumption. Pravega streams (a new storage abstraction) are durable, consistent, and elastic, while natively supporting long-term data retention. In comparison, &lt;a href=&quot;https://flink.apache.org/&quot;&gt;Apache Flink&lt;/a&gt; is a popular real-time computing engine that provides unified batch and stream processing. Flink provides high-throughput, low-latency computation, as well as support for complex event processing and state management. Both Pravega and Flink share the same design philosophy and treat data streams as primitives. This makes them a great match when constructing storage+computing data pipelines which can unify batch and streaming use cases.&lt;/p&gt;
+
+&lt;p&gt;That’s also the main reason why Pravega has chosen to use Flink as the first integrated execution engine among the various distributed computing engines on the market. With the help of Flink, users can use flexible APIs for windowing, complex event processing (CEP), or table abstractions to process streaming data easily and enrich the data being stored. Since its inception in 2016, Pravega has established communication with Flink PMC members and developed the connector together.&lt;/p&gt;
+
+&lt;p&gt;In 2017, the Pravega Flink connector module started to move out of the Pravega main repository and has been maintained in a new separate &lt;a href=&quot;https://github.com/pravega/flink-connectors&quot;&gt;repository&lt;/a&gt; since then. During years of development, many features have been implemented, including:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;exactly-once processing guarantees for both Reader and Writer, supporting end-to-end exactly-once processing pipelines&lt;/li&gt;
+  &lt;li&gt;seamless integration with Flink’s checkpoints and savepoints&lt;/li&gt;
+  &lt;li&gt;parallel Readers and Writers supporting high throughput and low latency processing&lt;/li&gt;
+  &lt;li&gt;support for Batch, Streaming, and Table API to access Pravega Streams&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These key features make streaming pipeline applications easier to develop without worrying about performance and correctness which are the common pain points for many streaming use cases.&lt;/p&gt;
+
+&lt;p&gt;In this blog post, we will discuss how to use this connector to read and write Pravega streams with the Flink DataStream API.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#basic-usages&quot; id=&quot;markdown-toc-basic-usages&quot;&gt;Basic usages&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#dependency&quot; id=&quot;markdown-toc-dependency&quot;&gt;Dependency&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#api-introduction&quot; id=&quot;markdown-toc-api-introduction&quot;&gt;API introduction&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#configurations&quot; id=&quot;markdown-toc-configurations&quot;&gt;Configurations&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#serializationdeserialization&quot; id=&quot;markdown-toc-serializationdeserialization&quot;&gt;Serialization/Deserialization&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#flinkpravegareader&quot; id=&quot;markdown-toc-flinkpravegareader&quot;&gt;&lt;code&gt;FlinkPravegaReader&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#flinkpravegawriter&quot; id=&quot;markdown-toc-flinkpravegawriter&quot;&gt;&lt;code&gt;FlinkPravegaWriter&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#internals-of-reader-and-writer&quot; id=&quot;markdown-toc-internals-of-reader-and-writer&quot;&gt;Internals of reader and writer&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#checkpoint-integration&quot; id=&quot;markdown-toc-checkpoint-integration&quot;&gt;Checkpoint integration&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#end-to-end-exactly-once-semantics&quot; id=&quot;markdown-toc-end-to-end-exactly-once-semantics&quot;&gt;End-to-end exactly-once semantics&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#summary&quot; id=&quot;markdown-toc-summary&quot;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#future-plans&quot; id=&quot;markdown-toc-future-plans&quot;&gt;Future plans&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;basic-usages&quot;&gt;Basic usages&lt;/h1&gt;
+
+&lt;h2 id=&quot;dependency&quot;&gt;Dependency&lt;/h2&gt;
+&lt;p&gt;To use this connector in your application, add the dependency to your project:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;io.pravega&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;pravega-connectors-flink-1.13_2.12&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.10.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above example,&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;1.13&lt;/code&gt; is the Flink major version which is put in the middle of the artifact name. The Pravega Flink connector maintains compatibility for the &lt;em&gt;three&lt;/em&gt; most recent major versions of Flink.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;0.10.1&lt;/code&gt; is the version that aligns with the Pravega version.&lt;/p&gt;
+
+&lt;p&gt;You can find the latest release with a support matrix on the &lt;a href=&quot;https://github.com/pravega/flink-connectors/releases&quot;&gt;GitHub Releases page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;api-introduction&quot;&gt;API introduction&lt;/h2&gt;
+
+&lt;h3 id=&quot;configurations&quot;&gt;Configurations&lt;/h3&gt;
+
+&lt;p&gt;The connector provides a common top-level object &lt;code&gt;PravegaConfig&lt;/code&gt; for Pravega connection configurations. The config object automatically configures itself from &lt;em&gt;environment variables&lt;/em&gt;, &lt;em&gt;system properties&lt;/em&gt; and &lt;em&gt;program arguments&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;The basic controller URI and the default scope can be set like this:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Setting&lt;/th&gt;
+      &lt;th&gt;Environment Variable /&lt;br /&gt;System Property /&lt;br /&gt;Program Argument&lt;/th&gt;
+      &lt;th&gt;Default Value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Controller URI&lt;/td&gt;
+      &lt;td&gt;&lt;code&gt;PRAVEGA_CONTROLLER_URI&lt;/code&gt;&lt;br /&gt;&lt;code&gt;pravega.controller.uri&lt;/code&gt;&lt;br /&gt;&lt;code&gt;--controller&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code&gt;tcp://localhost:9090&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Default Scope&lt;/td&gt;
+      &lt;td&gt;&lt;code&gt;PRAVEGA_SCOPE&lt;/code&gt;&lt;br /&gt;&lt;code&gt;pravega.scope&lt;/code&gt;&lt;br /&gt;&lt;code&gt;--scope&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The recommended way to create an instance of &lt;code&gt;PravegaConfig&lt;/code&gt; is the following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// From default environment&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// From program arguments&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ParameterTool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ParameterTool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromParams&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// From user specification&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromDefaults&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withControllerURI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;tcp://...&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withDefaultScope&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;SCOPE-NAME&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withCredentials&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;credentials&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withHostnameValidation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;serializationdeserialization&quot;&gt;Serialization/Deserialization&lt;/h3&gt;
+
+&lt;p&gt;Pravega has defined &lt;a href=&quot;http://pravega.io/docs/latest/javadoc/clients/io/pravega/client/stream/Serializer.html&quot;&gt;&lt;code&gt;io.pravega.client.stream.Serializer&lt;/code&gt;&lt;/a&gt; for the serialization/deserialization, while Flink has also defined standard interfaces for the purpose.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/api/java/org/apache/flink/api/common/serialization/SerializationSchema.html&quot;&gt;&lt;code&gt;org.apache.flink.api.common.serialization.SerializationSchema&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/api/java/org/apache/flink/api/common/serialization/DeserializationSchema.html&quot;&gt;&lt;code&gt;org.apache.flink.api.common.serialization.DeserializationSchema&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For interoperability with other pravega client applications, we have built-in adapters &lt;code&gt;PravegaSerializationSchema&lt;/code&gt; and &lt;code&gt;PravegaDeserializationSchema&lt;/code&gt; to support processing Pravega stream data produced by a non-Flink application.&lt;/p&gt;
+
+&lt;p&gt;Here is the adapter for Pravega Java serializer:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;io.pravega.client.stream.impl.JavaSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DeserializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;adapter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaDeserializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;MyEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JavaSerializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;());&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;flinkpravegareader&quot;&gt;&lt;code&gt;FlinkPravegaReader&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;FlinkPravegaReader&lt;/code&gt; is a Flink &lt;code&gt;SourceFunction&lt;/code&gt; implementation which supports parallel reads from one or more Pravega streams. Internally, it initiates a Pravega reader group and creates Pravega &lt;code&gt;EventStreamReader&lt;/code&gt; instances to read the data from the stream(s). It provides a builder-style API to construct, and can allow streamcuts to mark the start and end of the read.&lt;/p&gt;
+
+&lt;p&gt;You can use it like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Enable Flink checkpoint to make state fault tolerant&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;enableCheckpointing&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the Pravega configuration&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ParameterTool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ParameterTool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromParams&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the event deserializer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DeserializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;deserializer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the data stream&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;FlinkPravegaReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pravegaSource&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FlinkPravegaReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withPravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withDeserializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;deserializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pravegaSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setParallelism&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;pravega-source&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;flinkpravegawriter&quot;&gt;&lt;code&gt;FlinkPravegaWriter&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;FlinkPravegaWriter&lt;/code&gt; is a Flink &lt;code&gt;SinkFunction&lt;/code&gt; implementation which supports parallel writes to Pravega streams.&lt;/p&gt;
+
+&lt;p&gt;It supports three writer modes that relate to guarantees about the persistence of events emitted by the sink to a Pravega Stream:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Best-effort&lt;/strong&gt; - Any write failures will be ignored and there could be data loss.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;At-least-once&lt;/strong&gt;(default) - All events are persisted in Pravega. Duplicate events are possible, due to retries or in case of failure and subsequent recovery.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Exactly-once&lt;/strong&gt; - All events are persisted in Pravega using a transactional approach integrated with the Flink checkpointing feature.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Internally, it will initiate several Pravega &lt;code&gt;EventStreamWriter&lt;/code&gt; or &lt;code&gt;TransactionalEventStreamWriter&lt;/code&gt; (depends on the writer mode) instances to write data to the stream. It provides a builder-style API to construct.&lt;/p&gt;
+
+&lt;p&gt;A basic usage looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the Pravega configuration&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromParams&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the event serializer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SerializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serializer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the event router for selecting the Routing Key&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PravegaEventRouter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;router&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Define the sink function&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;FlinkPravegaWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pravegaSink&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FlinkPravegaWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withPravegaConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withSerializationSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withEventRouter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withWriterMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;EXACTLY_ONCE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pravegaSink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setParallelism&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;pravega-sink&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can see some more examples &lt;a href=&quot;https://github.com/pravega/pravega-samples&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;internals-of-reader-and-writer&quot;&gt;Internals of reader and writer&lt;/h1&gt;
+
+&lt;h2 id=&quot;checkpoint-integration&quot;&gt;Checkpoint integration&lt;/h2&gt;
+
+&lt;p&gt;Flink has periodic checkpoints based on the Chandy-Lamport algorithm to make state in Flink fault-tolerant. By allowing state and the corresponding stream positions to be recovered, the application is given the same semantics as a failure-free execution.&lt;/p&gt;
+
+&lt;p&gt;Pravega also has its own Checkpoint concept which is to create a consistent “point in time” persistence of the state of each Reader in the Reader Group, by using a specialized Event (&lt;em&gt;Checkpoint Event&lt;/em&gt;) to signal each Reader to preserve its state. Once a Checkpoint has been completed, the application can use the Checkpoint to reset all the Readers in the Reader Group to the known consistent state represented by the Checkpoint.&lt;/p&gt;
+
+&lt;p&gt;This means that our end-to-end recovery story is not like other messaging systems such as Kafka, which uses a more coupled method and persists its offset in the Flink task state and lets Flink do the coordination. Flink delegates the Pravega source recovery completely to the Pravega server and uses only a lightweight hook to connect. We collaborated with the Flink community and added a new interface &lt;code&gt;ExternallyInducedSource&lt;/code&gt; (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-6390&quot;&gt;FLINK-6390&lt;/a&gt;) to allow such external calls for checkpointing. The connector integrated this interface to guarantee exactly-once semantics during a failure recovery.&lt;/p&gt;
+
+&lt;p&gt;The checkpoint mechanism works as a two-step process:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/api/java/org/apache/flink/runtime/checkpoint/MasterTriggerRestoreHook.html&quot;&gt;master hook&lt;/a&gt; handler from the JobManager initiates the &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-stable/api/java/org/apache/flink/runtime/checkpoint/MasterTriggerRestoreHook.html#triggerCheckpoint-long-long-java.util.concurrent.Executor-&quot;&gt;&lt;code&gt;triggerCheckpoint&lt;/code&gt;&lt;/a&gt; request to the &lt;code&gt;ReaderCheckpointHook&lt;/code&gt; that was registered with the JobManager during &lt;code&gt;FlinkPravegaReader&lt;/code&gt; source initialization. The &lt;code&gt;ReaderCheckpointHook&lt;/code&gt; handler notifies Pravega to checkpoint the current reader state. This is a non-blocking call that returns a &lt;code&gt;future&lt;/code&gt; once Pravega readers are done with the checkpointing. Once the &lt;code&gt;future&lt;/code&gt; completes, the Pravega checkpoint will be persisted in a “master state” of a Flink checkpoint.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A &lt;code&gt;Checkpoint&lt;/code&gt; event will be sent by Pravega as part of the data stream flow and, upon receiving the event, the &lt;code&gt;FlinkPravegaReader&lt;/code&gt; will initiate a &lt;a href=&quot;https://github.com/apache/flink/blob/master/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/checkpoint/ExternallyInducedSource.java#L73&quot;&gt;&lt;code&gt;triggerCheckpoint&lt;/code&gt;&lt;/a&gt; request to effectively let Flink continue and complete the checkpoint process.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;end-to-end-exactly-once-semantics&quot;&gt;End-to-end exactly-once semantics&lt;/h2&gt;
+
+&lt;p&gt;In the early years of big data processing, results from real-time stream processing were always considered inaccurate/approximate/speculative. However, this correctness is extremely important for some use cases and in some industries such as finance.&lt;/p&gt;
+
+&lt;p&gt;This constraint stems mainly from two issues:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;unordered data source in event time&lt;/li&gt;
+  &lt;li&gt;end-to-end exactly-once semantics guarantee&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;During recent years of development, watermarking has been introduced as a tradeoff between correctness and latency, which is now considered a good solution for unordered data sources in event time.&lt;/p&gt;
+
+&lt;p&gt;The guarantee of end-to-end exactly-once semantics is more tricky. When we say “exactly-once semantics”, what we mean is that each incoming event affects the final results exactly once. Even in the event of a machine or software failure, there is no duplicate data and no data that goes unprocessed. This is quite difficult because of the demands of message acknowledgment and recovery during such fast processing and is also why some early distributed streaming engines like Storm(without Trident) chose to support “at-least-once” guarantees.&lt;/p&gt;
+
+&lt;p&gt;Flink is one of the first streaming systems that was able to provide exactly-once semantics due to its delicate &lt;a href=&quot;https://www.ververica.com/blog/high-throughput-low-latency-and-exactly-once-stream-processing-with-apache-flink&quot;&gt;checkpoint mechanism&lt;/a&gt;. But to make it work end-to-end, the final stage needs to apply the semantic to external message system sinks that support commits and rollbacks.&lt;/p&gt;
+
+&lt;p&gt;To work around this problem, Pravega introduced &lt;a href=&quot;https://cncf.pravega.io/docs/latest/transactions/&quot;&gt;transactional writes&lt;/a&gt;. A Pravega transaction allows an application to prepare a set of events that can be written “all at once” to a Stream. This allows an application to “commit” a bunch of events atomically. When writes are idempotent, it is possible to implement end-to-end exactly-once pipelines together with Flink.&lt;/p&gt;
+
+&lt;p&gt;To build such an end-to-end solution requires coordination between Flink and the Pravega sink, which is still challenging. A common approach for coordinating commits and rollbacks in a distributed system is the two-phase commit protocol. We used this protocol and, together with the Flink community, implemented the sink function in a two-phase commit way coordinated with Flink checkpoints.&lt;/p&gt;
+
+&lt;p&gt;The Flink community then extracted the common logic from the two-phase commit protocol and provided a general interface &lt;code&gt;TwoPhaseCommitSinkFunction&lt;/code&gt; (&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-7210&quot;&gt;FLINK-7210&lt;/a&gt;) to make it possible to build end-to-end exactly-once applications with other message systems that have transaction support. This includes Apache Kafka versions 0.11 and above. There is an official Flink &lt;a href=&quot;https://flink.apache.org/features/2018/03/01/end-to-end-exactly-once-apache-flink.html&quot;&gt;blog post&lt;/a&gt; that describes this feature in detail.&lt;/p&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+&lt;p&gt;The Pravega Flink connector enables Pravega to connect to Flink and allows Pravega to act as a key data store in a streaming pipeline. Both projects share a common design philosophy and can integrate well with each other. Pravega has its own concept of checkpointing and has implemented transactional writes to support end-to-end exactly-once guarantees.&lt;/p&gt;
+
+&lt;h1 id=&quot;future-plans&quot;&gt;Future plans&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;FlinkPravegaInputFormat&lt;/code&gt; and &lt;code&gt;FlinkPravegaOutputFormat&lt;/code&gt; are now provided to support batch reads and writes in Flink, but these are under the legacy DataSet API. Since Flink is now making efforts to unify batch and streaming, it is improving its APIs and providing new interfaces for the &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface&quot;&gt;source&lt;/a&gt; and &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API&quot;&gt;sink&lt;/a&gt; APIs in the Flink 1.11 and 1.12 releases. We will continue to work with the Flink community and integrate with the new APIs.&lt;/p&gt;
+
+&lt;p&gt;We will also put more effort into SQL / Table API support in order to provide a better user experience since it is simpler to understand and even more powerful to use in some cases.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; the original blog post can be found &lt;a href=&quot;https://cncf.pravega.io/blog/2021/11/01/pravega-flink-connector-101/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+<pubDate>Thu, 20 Jan 2022 01:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2022/01/20/pravega-connector-101.html</link>
+<guid isPermaLink="true">/2022/01/20/pravega-connector-101.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.14.3 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.14 series.
 The first bugfix release was 1.14.2, being an emergency release due to an Apache Log4j Zero Day (CVE-2021-44228). Flink 1.14.1 was abandoned. 
@@ -20024,103 +20281,6 @@ for a full reference of Flink’s metrics system.&lt;/p&gt;
 <pubDate>Mon, 25 Feb 2019 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2019/02/25/monitoring-best-practices.html</link>
 <guid isPermaLink="true">/news/2019/02/25/monitoring-best-practices.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.6.4 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the fourth bugfix version of the Apache Flink 1.6 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes more than 25 fixes and minor improvements for Flink 1.6.3. The list below includes a detailed list of all fixes.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.6.4.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.6.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10721&quot;&gt;FLINK-10721&lt;/a&gt;] -         Kafka discovery-loop exceptions may be swallowed
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10761&quot;&gt;FLINK-10761&lt;/a&gt;] -         MetricGroup#getAllVariables can deadlock
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10774&quot;&gt;FLINK-10774&lt;/a&gt;] -         connection leak when partition discovery is disabled and open throws exception
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10848&quot;&gt;FLINK-10848&lt;/a&gt;] -         Flink&amp;#39;s Yarn ResourceManager can allocate too many excess containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11022&quot;&gt;FLINK-11022&lt;/a&gt;] -         Update LICENSE and NOTICE files for older releases
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11071&quot;&gt;FLINK-11071&lt;/a&gt;] -         Dynamic proxy classes cannot be resolved when deserializing job graph
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11084&quot;&gt;FLINK-11084&lt;/a&gt;] -         Incorrect ouput after two consecutive split and select
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11119&quot;&gt;FLINK-11119&lt;/a&gt;] -         Incorrect Scala example for Table Function
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11134&quot;&gt;FLINK-11134&lt;/a&gt;] -         Invalid REST API request should not log the full exception in Flink logs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11151&quot;&gt;FLINK-11151&lt;/a&gt;] -         FileUploadHandler stops working if the upload directory is removed
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11173&quot;&gt;FLINK-11173&lt;/a&gt;] -         Proctime attribute validation throws an incorrect exception message
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11224&quot;&gt;FLINK-11224&lt;/a&gt;] -         Log is missing in scala-shell
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11232&quot;&gt;FLINK-11232&lt;/a&gt;] -         Empty Start Time of sub-task on web dashboard
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11234&quot;&gt;FLINK-11234&lt;/a&gt;] -         ExternalTableCatalogBuilder unable to build a batch-only table
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11235&quot;&gt;FLINK-11235&lt;/a&gt;] -         Elasticsearch connector leaks threads if no connection could be established
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11251&quot;&gt;FLINK-11251&lt;/a&gt;] -         Incompatible metric name on prometheus reporter
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11389&quot;&gt;FLINK-11389&lt;/a&gt;] -         Incorrectly use job information when call getSerializedTaskInformation in class TaskDeploymentDescriptor
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11584&quot;&gt;FLINK-11584&lt;/a&gt;] -         ConfigDocsCompletenessITCase fails DescriptionBuilder#linebreak() is used
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11585&quot;&gt;FLINK-11585&lt;/a&gt;] -         Prefix matching in ConfigDocsGenerator can result in wrong assignments
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10910&quot;&gt;FLINK-10910&lt;/a&gt;] -         Harden Kubernetes e2e test
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11079&quot;&gt;FLINK-11079&lt;/a&gt;] -         Skip deployment for flnk-storm-examples
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11207&quot;&gt;FLINK-11207&lt;/a&gt;] -         Update Apache commons-compress from 1.4.1 to 1.18
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11262&quot;&gt;FLINK-11262&lt;/a&gt;] -         Bump jython-standalone to 2.7.1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11289&quot;&gt;FLINK-11289&lt;/a&gt;] -         Rework example module structure to account for licensing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11304&quot;&gt;FLINK-11304&lt;/a&gt;] -         Typo in time attributes doc
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11469&quot;&gt;FLINK-11469&lt;/a&gt;] -         fix Tuning Checkpoints and Large State doc
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Mon, 25 Feb 2019 01:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2019/02/25/release-1.6.4.html</link>
-<guid isPermaLink="true">/news/2019/02/25/release-1.6.4.html</guid>
 </item>
 
 </channel>
