@@ -165,35 +165,35 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 
 ## 源代码
 
-### 主仓库
+### Main Repositories
 
-- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
-- **GitHub 镜像**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+* **Flink Core Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
+    * GitHub 镜像: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
-### Flink Stateful Functions 仓库
+* **Flink Docker Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
+    * GitHub 镜像: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
 
-- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
-- **GitHub 镜像**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
+* **Flink Stateful Functions Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+    * GitHub 镜像: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
-### Flink-shaded 仓库 (shaded 的依赖包)
+* **Flink Stateful Functions Docker Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
+    * GitHub 镜像: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
-- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
-- **GitHub 镜像**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
+* **Flink Website Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
+    * GitHub 镜像:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
-### Flink 网站仓库
+### Complete List of Repositories
 
-- **ASF 仓库**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
-- **GitHub 镜像**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
+The complete list of repositories of Apache Flink can be found under https://gitbox.apache.org/repos/asf#flink. 
 
-### Bahir Flink 仓库 (额外的一些 connector)
+## Training
 
-- **ASF 仓库**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
-- **GitHub 镜像**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
-
-
-## 培训
-
-[Ververica](https://www.ververica.com/) 目前维护了一些免费的 Apache Flink 培训。[培训页面](https://training.ververica.com/) 有相应的演示文档和带解答的练习。当然还可以在 [SlideShare](http://www.slideshare.net/dataArtisans/presentations) 找到所有的演示文档。
+[Ververica](https://www.ververica.com) 目前维护了一些免费的 Apache Flink 培训。[培训页面](https://training.ververica.com/) 有相应的演示文档和带解答的练习。当然还可以在 [SlideShare](http://www.slideshare.net/dataArtisans/presentations) 找到所有的演示文档。
 
 ## 项目 Wiki
 Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">项目 wiki</a> 包含了大量的 Flink 用户相关的资源。不过 wiki 上的资料可能会过时，如果有任何疑问，请查阅 <a href="{{ site.docs-stable }}" target="_blank">Flink 文档</a>
