@@ -337,7 +337,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Konstantin Knauf</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">knaufk</td>
   </tr>
   <tr>
