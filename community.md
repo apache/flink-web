@@ -167,41 +167,31 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 ## Source Code
 
-### Flink core repository
+### Main Repositories
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
-- **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+* **Flink Core Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
+    * GitHub mirror: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
-### Flink docker repository
+* **Flink Docker Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
+    * GitHub mirror: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
-- **GitHub mirror**: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
+* **Flink Stateful Functions Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+   * GitHub mirror: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
-### Flink Stateful Functions repository
+* **Flink Stateful Functions Docker Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
+   * GitHub mirror: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
-- **GitHub mirror**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
+* **Flink Website Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
+   * GitHub mirror:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
-### Flink Stateful Functions Docker repository
+### Complete List of Repositories
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
-- **GitHub mirror**: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
-
-### Flink-shaded repositories (shaded dependency libraries)
-
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
-- **GitHub mirror**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
-
-### Flink Website repositories
-
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
-- **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
-
-### Bahir Flink repositories (additional connectors)
-
-- **ASF repository**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
-- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
-
+The complete list of repositories of Apache Flink can be found under https://gitbox.apache.org/repos/asf#flink. 
 
 ## Training
 
@@ -214,8 +204,6 @@ The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 ## Flink Forward
 
 Flink Forward is a conference happening yearly in different locations around the world. Up to date information about the conference is available on <a href="https://www.flink-forward.org/">Flink-Forward.org</a>.
-
-
 
 # People
 
