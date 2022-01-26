@@ -14,7 +14,7 @@ authors:
 ---
 
 Stateful Functions is a cross-platform stack for building Stateful Serverless applications, making it radically simpler to develop scalable, consistent, and elastic distributed applications.
-This new release brings various improvements to the StateFun runtime, a leaner way to specify StateFun module components, and a brand new GoLang SDK!
+This new release brings various improvements to the StateFun runtime, a leaner way to specify StateFun module components, and a brand new JavaScript SDK!
 
 The binary distribution and source artifacts are now available on the updated [Downloads](https://flink.apache.org/downloads.html)
 page of the Flink website, and the most recent Java SDK, Python SDK,, GoLang SDK and JavaScript SDK distributions are available on [Maven](https://search.maven.org/artifact/org.apache.flink/statefun-sdk-java/3.2.0/jar), [PyPI](https://pypi.org/project/apache-flink-statefun/), [Github](https://github.com/apache/flink-statefun/tree/statefun-sdk-go/v3.2.0), and [npm](https://www.npmjs.com/package/apache-flink-statefun) respectively.
