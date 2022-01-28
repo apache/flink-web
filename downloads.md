@@ -4,18 +4,6 @@ title: "Downloads"
 
 <hr />
 
-<script type="text/javascript">
-$( document ).ready(function() {
-  // Handler for .ready() called.
-  $('.ga-track').click( function () {
-    console.log("tracking " + $(this).attr('id'))
-    // we just use the element id for tracking with google analytics
-    ga('send', 'event', 'button', 'click', $(this).attr('id'));
-  });
-
-});
-</script>
-
 {% toc %}
 
 Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
@@ -27,7 +15,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 {% if flink_release.binary_release.scala_211 %}
 
 <p>
-<a href="{{ flink_release.binary_release.scala_211.url }}" class="ga-track" id="{{ flink_release.binary_release.scala_211.id }}">{{ flink_release.binary_release.name }} for Scala 2.11</a> (<a href="{{ flink_release.binary_release.scala_211.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_211.sha512_url }}">sha512</a>)
+<a href="{{ flink_release.binary_release.scala_211.url }}" id="{{ flink_release.binary_release.scala_211.id }}">{{ flink_release.binary_release.name }} for Scala 2.11</a> (<a href="{{ flink_release.binary_release.scala_211.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_211.sha512_url }}">sha512</a>)
 </p>
 
 {% endif %}
@@ -35,14 +23,14 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 {% if flink_release.binary_release.scala_212 %}
 
 <p>
-<a href="{{ flink_release.binary_release.scala_212.url }}" class="ga-track" id="{{ flink_release.binary_release.scala_212.id }}">{{ flink_release.binary_release.name }} for Scala 2.12</a> (<a href="{{ flink_release.binary_release.scala_212.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_212.sha512_url }}">sha512</a>)
+<a href="{{ flink_release.binary_release.scala_212.url }}" id="{{ flink_release.binary_release.scala_212.id }}">{{ flink_release.binary_release.name }} for Scala 2.12</a> (<a href="{{ flink_release.binary_release.scala_212.asc_url }}">asc</a>, <a href="{{ flink_release.binary_release.scala_212.sha512_url }}">sha512</a>)
 </p>
 
 {% endif %}
 
 {% if flink_release.source_release %}
 <p>
-<a href="{{ flink_release.source_release.url }}" class="ga-track" id="{{ flink_release.source_release.id }}">{{ flink_release.source_release.name }} Source Release</a>
+<a href="{{ flink_release.source_release.url }}" id="{{ flink_release.source_release.id }}">{{ flink_release.source_release.name }} Source Release</a>
 (<a href="{{ flink_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_release.source_release.sha512_url }}">sha512</a>)
 </p>
 {% endif %}
@@ -59,19 +47,19 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 
 {% if component.scala_211 %}
 <p>
-<a href="{{ component.scala_211.url }}" class="ga-track" id="{{ component.scala_211.id }}">{{ component.name }} for Scala 2.11</a> (<a href="{{ component.scala_211.asc_url }}">asc</a>, <a href="{{ component.scala_211.sha_url }}">sha1</a>)
+<a href="{{ component.scala_211.url }}" id="{{ component.scala_211.id }}">{{ component.name }} for Scala 2.11</a> (<a href="{{ component.scala_211.asc_url }}">asc</a>, <a href="{{ component.scala_211.sha_url }}">sha1</a>)
 </p>
 {% endif %}
 
 {% if component.scala_212 %}
 <p>
-<a href="{{ component.scala_212.url }}" class="ga-track" id="{{ component.scala_212.id }}">{{ component.name }} for Scala 2.12</a> (<a href="{{ component.scala_212.asc_url }}">asc</a>, <a href="{{ component.scala_212.sha_url }}">sha1</a>)
+<a href="{{ component.scala_212.url }}" id="{{ component.scala_212.id }}">{{ component.name }} for Scala 2.12</a> (<a href="{{ component.scala_212.asc_url }}">asc</a>, <a href="{{ component.scala_212.sha_url }}">sha1</a>)
 </p>
 {% endif %}
 
 {% else %}
 <p>
-<a href="{{ component.url }}" class="ga-track" id="{{ component.id }}">{{ component.name }}</a> (<a href="{{ component.asc_url }}">asc</a>, <a href="{{ component.sha_url }}">sha1</a>)
+<a href="{{ component.url }}" id="{{ component.id }}">{{ component.name }}</a> (<a href="{{ component.asc_url }}">asc</a>, <a href="{{ component.sha_url }}">sha1</a>)
 </p>
 {% endif %}
 
@@ -94,7 +82,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 {% if alternative.scala_211 %}
 
 <p>
-<a href="{{ alternative.scala_211.url }}" class="ga-track" id="{{ alternative.scala_211.id }}">{{ alternative.name }} for Scala 2.11</a> (<a href="{{ alternative.scala_211.asc_url }}">asc</a>, <a href="{{ alternative.scala_211.sha_url }}">sha512</a>)
+<a href="{{ alternative.scala_211.url }}" id="{{ alternative.scala_211.id }}">{{ alternative.name }} for Scala 2.11</a> (<a href="{{ alternative.scala_211.asc_url }}">asc</a>, <a href="{{ alternative.scala_211.sha_url }}">sha512</a>)
 </p>
 
 {% endif %}
@@ -102,7 +90,7 @@ Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
 {% if alternative.scala_212 %}
 
 <p>
-<a href="{{ alternative.scala_212.url }}" class="ga-track" id="{{ alternative.scala_212.id }}">{{ alternative.name }} for Scala 2.12</a> (<a href="{{ alternative.scala_212.asc_url }}">asc</a>, <a href="{{ alternative.scala_212.sha_url }}">sha512</a>)
+<a href="{{ alternative.scala_212.url }}" id="{{ alternative.scala_212.id }}">{{ alternative.name }} for Scala 2.12</a> (<a href="{{ alternative.scala_212.asc_url }}">asc</a>, <a href="{{ alternative.scala_212.sha_url }}">sha512</a>)
 </p>
 
 {% endif %}
@@ -126,7 +114,7 @@ Apache Flink® Stateful Functions {{ site.FLINK_STATEFUN_VERSION_STABLE }} is th
 ## {{ flink_statefun_release.source_release.name }}
 
 <p>
-<a href="{{ flink_statefun_release.source_release.url }}" class="ga-track" id="{{ flink_statefun_release.source_release.id }}">{{ flink_statefun_release.source_release.name }} Source Release</a>
+<a href="{{ flink_statefun_release.source_release.url }}" id="{{ flink_statefun_release.source_release.id }}">{{ flink_statefun_release.source_release.name }} Source Release</a>
 (<a href="{{ flink_statefun_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_statefun_release.source_release.sha512_url }}">sha512</a>)
 </p>
 
@@ -143,7 +131,7 @@ Apache Flink® ML {{ site.FLINK_ML_VERSION_STABLE }} is the latest stable releas
 ## {{ flink_ml_release.source_release.name }}
 
 <p>
-<a href="{{ flink_ml_release.source_release.url }}" class="ga-track" id="{{ flink_ml_release.source_release.id }}">{{ flink_ml_release.source_release.name }} Source Release</a>
+<a href="{{ flink_ml_release.source_release.url }}" id="{{ flink_ml_release.source_release.id }}">{{ flink_ml_release.source_release.name }} Source Release</a>
 (<a href="{{ flink_ml_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_ml_release.source_release.sha512_url }}">sha512</a>)
 </p>
 
@@ -161,7 +149,7 @@ main Flink release:
 {% for additional_component in site.component_releases %}
 
 <p>
-<a href="{{ additional_component.url }}" class="ga-track" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
+<a href="{{ additional_component.url }}" id="{{ additional_component.id }}">{{ additional_component.name }}</a>
 (<a href="{{ additional_component.asc_url }}">asc</a>, {% if additional_component.sha512_url %}<a href="{{ additional_component.sha512_url }}">sha512</a> {% else %} <a href="{{ additional_component.sha_url }}">sha1</a>{% endif %})
 </p>
 
