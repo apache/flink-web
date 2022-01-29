@@ -2,7 +2,7 @@
 layout: post
 title:  "Stateful Functions 3.2.0 Release Announcement"
 subtitle: "The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 3.2.0."
-date: 2022-01-27T08:00:00.000Z
+date: 2022-01-31T08:00:00.000Z
 categories: news
 authors:
 - trohrmann:
@@ -29,7 +29,7 @@ or [JIRA](https://issues.apache.org/jira/browse/)!
 
 ## New Features
 
-### A brand new JavaScript SDK
+### A brand new JavaScript SDK for NodeJS
 
 Stateful Functions provides a unified model for building stateful applications across various programming languages and deployment environments.
 The community is thrilled to release an official JavaScript SDK as part of the 3.2.0 release.
@@ -74,7 +74,7 @@ You can get started by adding the SDK to your project.
 
 For a detailed SDK tutorial, we would like to encourage you to visit:
 
-  - [JavaSCript SDK Documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-3.2/docs/sdk/js/)
+  - [JavaScript SDK Documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-3.2/docs/sdk/js/)
 
 ### Support different remote functions module names
 
