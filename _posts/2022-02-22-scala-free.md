@@ -62,7 +62,7 @@ Using what we learned from building dedicated classloaders for the RPC stack and
 
 While most of these changes happened behind the scenes, they resulted in one very user-facing change: removing many scala suffixes. You can find a list of all dependencies that lost their Scala suffix at the end of this post[^1][^2]. 
 
-Additionally, changes to the table API required several changes to the packaging and the distribution, which some power users relying on the planner internals might need to adapt to[^3].
+Additionally, changes to the Table API required several changes to the packaging and the distribution, which some power users relying on the planner internals might need to adapt to[^3].
 
 Going forward, Flink will continue to support Scala packages for the DataStream and Table APIs compiled against Scala 2.12 while the Java API is now unlocked for users to leverage components from any Scala version.
 We are already seeing new Scala 3 wrappers pop up in the community are excited to see how users leverage these tools in their streaming pipelines[^4][^5][^6]!
