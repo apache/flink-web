@@ -183,6 +183,10 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
     * GitHub 镜像: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
+* **Flink ML Repository**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
+    * GitHub 镜像: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
+
 * **Flink Website Repository**
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
     * GitHub 镜像:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
