@@ -6,10 +6,10 @@ authors:
 - sjwiesman:
   name: "Seth Wiesman"
   twitter: "sjwiesman"
-excerpt: excerpt: Apache Flink's runtime is now Scala free, allowing users to leverage any Scala version in their user code - including Scala 3!
+excerpt: Apache Flink's runtime is now Scala free, allowing users to leverage any Scala version in their user code - including Scala 3!
 ---
 
-Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath by default.
+Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath.
 Users can now leverage the Java API from any Scala version, including Scala 3!
 
 <figure style="margin-left:auto;margin-right:auto;display:block;padding-top: 20px;padding-bottom:20px;width:75%;">
@@ -35,12 +35,12 @@ But due to many reasons - [breaking changes in the compiler](https://github.com/
 
 ## Hiding Scala 
 
-As mentioned above, Flink uses Scala internally in a few key components; the serialization stack, RPC, and the table planner.
+As mentioned above, Flink uses Scala in a few key components; Mesos integration, the serialization stack, RPC, and the table planner. 
 Instead of removing these dependencies or finding ways to cross-build them, the community hid Scala.
 It still exists in the codebase but no longer leaks into the user code classloader.
 
 In 1.14, we took our first steps in hiding Scala from our users.
-We dropped the support for Apache Mesos, which Kubernetes very much eclipsed in terms of adoption.
+In 1.14, we took our first steps in hiding Scala from our users. We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
 Next, we isolated our RPC system into a dedicated classloader, including Akka.
 With these changes, the runtime itself no longer relied on Scala (hence why flink-runtime lost its Scala suffix), but Scala was still ever-present in the API layer.
 
