@@ -40,7 +40,7 @@ Instead of removing these dependencies or finding ways to cross-build them, the 
 It still exists in the codebase but no longer leaks into the user code classloader.
 
 In 1.14, we took our first steps in hiding Scala from our users.
-In 1.14, we took our first steps in hiding Scala from our users. We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
+We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
 Next, we isolated our RPC system into a dedicated classloader, including Akka.
 With these changes, the runtime itself no longer relied on Scala (hence why flink-runtime lost its Scala suffix), but Scala was still ever-present in the API layer.
 
