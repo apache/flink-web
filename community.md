@@ -185,6 +185,10 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
    * GitHub mirror: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
+* **Flink ML Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
+    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
+
 * **Flink Website Repository**
    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
    * GitHub mirror:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
