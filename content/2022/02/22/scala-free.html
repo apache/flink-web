@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Apache Flink: Stateful Computations over Data Streams</title>
+    <title>Apache Flink: Scala Free in One Fifteen</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
@@ -171,7 +171,7 @@
             <li>
               
                 
-                  <a href="/zh/">中文版</a>
+                  <a href="/zh/2022/02/22/scala-free.html">中文版</a>
                 
               
             </li>
@@ -219,260 +219,133 @@
       </div>
       <div class="col-sm-9">
       <div class="row-fluid">
-
   <div class="col-sm-12">
-    <p class="lead">
-      <strong>Apache Flink<sup>®</sup> — Stateful Computations over Data Streams</strong>
-    </p>
-  </div>
+    <div class="row">
+      <h1>Scala Free in One Fifteen</h1>
+      <p><i></i></p>
 
-<div class="col-sm-12">
-  <hr />
+      <article>
+        <p>22 Feb 2022 Seth Wiesman (<a href="https://twitter.com/sjwiesman">@sjwiesman</a>)</p>
+
+<p>Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath.
+Users can now leverage the Java API from any Scala version, including Scala 3!</p>
+
+<figure style="margin-left:auto;margin-right:auto;display:block;padding-top: 20px;padding-bottom:20px;width:75%;">
+  <img src="/img/blog/2022-02-22-scala-free/flink-scala-3.jpeg" />
+  <figcaption style="padding-top: 10px;text-align:center"><b>Fig.1</b> Flink 1.15 Scala 3 Example</figcaption>
+</figure>
+
+<p>This blog will discuss what has historically made supporting multiple Scala versions so complex, how we achieved this milestone, and the future of Scala in Apache Flink.</p>
+
+<div class="alert alert-info">
+<b>TLDR</b>: All Scala dependencies are now isolated to the <code>flink-scala</code> jar. 
+To remove Scala from the user-code classpath, remove this jar from the lib directory of the Flink distribution.
+
+<br /><br />
+
+<div class="highlight"><pre><code class="language-bash"><span class="nv">$ </span>rm flink-dist/lib/flink-scala*</code></pre></div>
+
 </div>
 
+<div class="page-toc">
+<ul id="markdown-toc">
+  <li><a href="#the-classpath-and-scala" id="markdown-toc-the-classpath-and-scala">The Classpath and Scala</a></li>
+  <li><a href="#hiding-scala" id="markdown-toc-hiding-scala">Hiding Scala</a></li>
+  <li><a href="#the-future-of-scala-in-apache-flink" id="markdown-toc-the-future-of-scala-in-apache-flink">The Future of Scala in Apache Flink</a></li>
+</ul>
+
 </div>
 
-<!-- High-level architecture figure -->
+<h2 id="the-classpath-and-scala">The Classpath and Scala</h2>
 
-<div class="row front-graphic">
-  <hr />
-  <img src="/img/flink-home-graphic.png" width="800px" />
+<p>If you have worked with a JVM-based application, you have probably heard the term classpath.
+The classpath defines where the JVM will search for a given classfile when it needs to be loaded.
+There may only be one instance of a classfile on each classpath, forcing any dependency Flink exposes onto users.
+That is why the Flink community works hard to keep our classpath “clean” - or free of unnecessary dependencies.
+We achieve this through a combination of <a href="https://github.com/apache/flink-shaded">shaded dependencies</a>, <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/debugging/debugging_classloading/#inverted-class-loading-and-classloader-resolution-order">child first class loading</a>, and a <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/filesystems/plugins/">plugins abstraction</a> for optional components.</p>
+
+<p>The Apache Flink runtime is primarily written in Java but contains critical components that forced Scala on the default classpath.
+And because Scala does not maintain binary compatibility across minor releases, this historically required cross-building components for all versions of Scala.
+But due to many reasons - <a href="https://github.com/scala/scala/releases/tag/v2.12.8">breaking changes in the compiler</a>, <a href="https://www.scala-lang.org/news/2.13.0">a new standard library</a>, and <a href="https://docs.scala-lang.org/scala3/guides/macros/macros.html">a reworked macro system</a> - this was easier said than done.</p>
+
+<h2 id="hiding-scala">Hiding Scala</h2>
+
+<p>As mentioned above, Flink uses Scala in a few key components; Mesos integration, the serialization stack, RPC, and the table planner. 
+Instead of removing these dependencies or finding ways to cross-build them, the community hid Scala.
+It still exists in the codebase but no longer leaks into the user code classloader.</p>
+
+<p>In 1.14, we took our first steps in hiding Scala from our users.
+We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
+Next, we isolated our RPC system into a dedicated classloader, including Akka.
+With these changes, the runtime itself no longer relied on Scala (hence why flink-runtime lost its Scala suffix), but Scala was still ever-present in the API layer.</p>
+
+<p>These changes, and the ease with which we implemented them, started to make people wonder what else might be possible.
+After all, we isolated Akka in less than a month, a task stuck in the backlog for years, thought to be too time-consuming.</p>
+
+<p>The next logical step was to decouple the DataStream / DataSet Java APIs from Scala.
+This primarily entailed the few cleanups of some <a href="https://issues.apache.org/jira/browse/FLINK-23967">test</a> <a href="https://issues.apache.org/jira/browse/FLINK-23968">classes</a> but also the identifying of code paths that are only relevant for the Scala API. 
+These paths were then migrated into the Scala API modules and only used if required.</p>
+
+<p>For example, the <a href="https://issues.apache.org/jira/browse/FLINK-24017">Kryo serializer</a>, which we always extended to support certain Scala types, now only includes them if an application uses the Scala APIs.</p>
+
+<p>Finally, it was time to tackle the Table API, specifically the table planner, which contains 378,655 lines of Scala code at the time of writing.
+The table planner provides parsing, planning, and optimization of SQL and Table API queries into highly optimized Java code.
+It is the most extensive Scala codebase in Flink and it cannot be ported easily to Java.
+Using what we learned from building dedicated classloaders for the RPC stack and conditional classloading for the serializers, we hid the planner behind an abstraction that does not expose any of its internals, including Scala.</p>
+
+<h2 id="the-future-of-scala-in-apache-flink">The Future of Scala in Apache Flink</h2>
+
+<p>While most of these changes happened behind the scenes, they resulted in one very user-facing change: removing many scala suffixes. You can find a list of all dependencies that lost their Scala suffix at the end of this post<sup id="fnref:1"><a href="#fn:1" class="footnote">1</a></sup><sup id="fnref:2"><a href="#fn:2" class="footnote">2</a></sup>.</p>
+
+<p>Additionally, changes to the Table API required several changes to the packaging and the distribution, which some power users relying on the planner internals might need to adapt to<sup id="fnref:3"><a href="#fn:3" class="footnote">3</a></sup>.</p>
+
+<p>Going forward, Flink will continue to support Scala packages for the DataStream and Table APIs compiled against Scala 2.12 while the Java API is now unlocked for users to leverage components from any Scala version.
+We are already seeing new Scala 3 wrappers pop up in the community are excited to see how users leverage these tools in their streaming pipelines<sup id="fnref:4"><a href="#fn:4" class="footnote">4</a></sup><sup id="fnref:5"><a href="#fn:5" class="footnote">5</a></sup><sup id="fnref:6"><a href="#fn:6" class="footnote">6</a></sup>!</p>
+
+<hr />
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>flink-cep, flink-clients, flink-connector-elasticsearch-base, flink-connector-elasticsearch6, flink-connector-elasticsearch7, flink-connector-gcp-pubsub, flink-connector-hbase-1.4, flink-connector-hbase-2.2, flink-connector-hbase-base, flink-connector-jdbc, flink-connector-kafka, flink-connector-kinesis, flink-connector-nifi, flink-connector-pulsar, flink-connector-rabbitmq, flink-connector-testing, flink-connector-twitter, flink-connector-wikiedits, flink-container, flink-dstl-dfs, flink-gelly, flink-hadoop-bulk, flink-kubernetes, flink-runtime-web, flink-sql-connector-elasticsearch6, flink-sql-connector-elasticsearch7, flink-sql-connector-hbase-1.4, flink-sql-connector-hbase-2.2, flink-sql-connector-kafka, flink-sql-connector-kinesis, flink-sql-connector-rabbitmq, flink-state-processor-api, flink-statebackend-rocksdb, flink-streaming-java, flink-table-api-java-bridge, flink-test-utils, flink-yarn, flink-table-runtime, flink-table-api-java-bridge <a href="#fnref:1" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need <a href="#fnref:2" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies <a href="#fnref:3" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p>https://github.com/ariskk/flink4s <a href="#fnref:4" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p>https://github.com/findify/flink-adt <a href="#fnref:5" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:6">
+      <p>https://github.com/sjwiesman/flink-scala-3 <a href="#fnref:6" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
 </div>
 
-<!-- Feature grid -->
+      </article>
+    </div>
 
-<!--
-<div class="row">
-  <div class="col-sm-12">
-    <hr />
-    <h2><a href="/features.html">Features</a></h2>
-  </div>
-</div>
--->
-<div class="row">
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-th"></span> <b>All streaming use cases</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Event-driven Applications</li>
-          <li>Stream &amp; Batch Analytics</li>
-          <li>Data Pipelines &amp; ETL</li>
-        </ul>
-        <a href="/usecases.html">Learn more</a>
-      </div>
+    <div class="row">
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+             (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
     </div>
   </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-ok"></span> <b>Guaranteed correctness</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Exactly-once state consistency</li>
-          <li>Event-time processing</li>
-          <li>Sophisticated late data handling</li>
-        </ul>
-        <a href="/flink-applications.html#building-blocks-for-streaming-applications">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon glyphicon-sort-by-attributes"></span> <b>Layered APIs</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>SQL on Stream &amp; Batch Data</li>
-          <li>DataStream API &amp; DataSet API</li>
-          <li>ProcessFunction (Time &amp; State)</li>
-        </ul>
-        <a href="/flink-applications.html#layered-apis">Learn more</a>
-      </div>
-    </div>
-  </div>
 </div>
-<div class="row">
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-dashboard"></span> <b>Operational Focus</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Flexible deployment</li>
-          <li>High-availability setup</li>
-          <li>Savepoints</li>
-        </ul>
-        <a href="/flink-operations.html">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-fullscreen"></span> <b>Scales to any use case</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Scale-out architecture</li>
-          <li>Support for very large state</li>
-          <li>Incremental checkpointing</li>
-        </ul>
-        <a href="/flink-architecture.html#run-applications-at-any-scale">Learn more</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <span class="glyphicon glyphicon-flash"></span> <b>Excellent Performance</b>
-      </div>
-      <div class="panel-body">
-        <ul style="font-size: small;">
-          <li>Low latency</li>
-          <li>High throughput</li>
-          <li>In-Memory computing</li>
-        </ul>
-        <a href="/flink-architecture.html#leverage-in-memory-performance">Learn more</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Events section -->
-<div class="row">
-
-<div class="col-sm-12">
-  <hr />
-</div>
-
-<div class="col-sm-3">
-
-  <h2><a>Upcoming Events</a></h2>
-
-</div>
-<div class="col-sm-9">
-  <!-- Flink Forward -->
-  <a href="https://flink-forward.org" target="_blank">
-    <img style="width: 180px; padding-right: 10px" src="/img/flink-forward.png" alt="Flink Forward" />
-  </a>
-  <!-- ApacheCon -->
-  <a href="https://www.apache.org/events/current-event" target="_blank">
-    <img style="width: 200px; padding-right: 10px" src="https://www.apache.org/events/current-event-234x60.png" alt="ApacheCon" />
-  </a>
-    <!-- Flink Forward Asia -->
-    <a href="https://flink-forward.org.cn/" target="_blank">
-      <img style="width: 230px" src="/img/flink-forward-asia.png" alt="Flink Forward Asia" />
-    </a>
-</div>
-
-</div>
-
-<!-- Updates section -->
-
-<div class="row">
-
-<div class="col-sm-12">
-  <hr />
-</div>
-
-<div class="col-sm-3">
-
-  <h2><a href="/blog">Latest Blog Posts</a></h2>
-
-</div>
-
-<div class="col-sm-9">
-
-  <dl>
-      
-        <dt> <a href="/2022/02/22/scala-free.html">Scala Free in One Fifteen</a></dt>
-        <dd>Apache Flink's runtime is now Scala free, allowing users to leverage any Scala version in their user code - including Scala 3!</dd>
-      
-        <dt> <a href="/news/2022/02/09/release-1.13.6.html">Apache Flink 1.13.6 Release Announcement</a></dt>
-        <dd>The Apache Flink Community is please to announce another bug fix release for Flink 1.13.</dd>
-      
-        <dt> <a href="/news/2022/01/31/release-statefun-3.2.0.html">Stateful Functions 3.2.0 Release Announcement</a></dt>
-        <dd><p>Stateful Functions is a cross-platform stack for building Stateful Serverless applications, making it radically simpler to develop scalable, consistent, and elastic distributed applications.
-This new release brings various improvements to the StateFun runtime, a leaner way to specify StateFun module components, and a brand new JavaScript SDK!</p>
-
-</dd>
-      
-        <dt> <a href="/2022/01/20/pravega-connector-101.html">Pravega Flink Connector 101</a></dt>
-        <dd>A brief introduction to the Pravega Flink Connector</dd>
-      
-        <dt> <a href="/news/2022/01/17/release-1.14.3.html">Apache Flink 1.14.3 Release Announcement</a></dt>
-        <dd>The Apache Flink community released the second bugfix version of the Apache Flink 1.14 series.</dd>
-    
-  </dl>
-
-</div>
-
-<!-- Scripts section -->
-
-<script type="text/javascript" src="/js/jquery.jcarousel.min.js"></script>
-
-<script type="text/javascript">
-
-  $(window).load(function(){
-   $(function() {
-        var jcarousel = $('.jcarousel');
-
-        jcarousel
-            .on('jcarousel:reload jcarousel:create', function () {
-                var carousel = $(this),
-                    width = carousel.innerWidth();
-
-                if (width >= 600) {
-                    width = width / 4;
-                } else if (width >= 350) {
-                    width = width / 3;
-                }
-
-                carousel.jcarousel('items').css('width', Math.ceil(width) + 'px');
-            })
-            .jcarousel({
-                wrap: 'circular',
-                autostart: true
-            });
-
-        $('.jcarousel-control-prev')
-            .jcarouselControl({
-                target: '-=1'
-            });
-
-        $('.jcarousel-control-next')
-            .jcarouselControl({
-                target: '+=1'
-            });
-
-        $('.jcarousel-pagination')
-            .on('jcarouselpagination:active', 'a', function() {
-                $(this).addClass('active');
-            })
-            .on('jcarouselpagination:inactive', 'a', function() {
-                $(this).removeClass('active');
-            })
-            .on('click', function(e) {
-                e.preventDefault();
-            })
-            .jcarouselPagination({
-                perPage: 1,
-                item: function(page) {
-                    return '<a href="#' + page + '">' + page + '</a>';
-                }
-            });
-    });
-  });
-
-</script>
-</div>
-
       </div>
     </div>
 

@@ -7,6 +7,113 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Scala Free in One Fifteen</title>
+<description>&lt;p&gt;Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath.
+Users can now leverage the Java API from any Scala version, including Scala 3!&lt;/p&gt;
+
+&lt;figure style=&quot;margin-left:auto;margin-right:auto;display:block;padding-top: 20px;padding-bottom:20px;width:75%;&quot;&gt;
+  &lt;img src=&quot;/img/blog/2022-02-22-scala-free/flink-scala-3.jpeg&quot; /&gt;
+  &lt;figcaption style=&quot;padding-top: 10px;text-align:center&quot;&gt;&lt;b&gt;Fig.1&lt;/b&gt; Flink 1.15 Scala 3 Example&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;This blog will discuss what has historically made supporting multiple Scala versions so complex, how we achieved this milestone, and the future of Scala in Apache Flink.&lt;/p&gt;
+
+&lt;div class=&quot;alert alert-info&quot;&gt;
+&lt;b&gt;TLDR&lt;/b&gt;: All Scala dependencies are now isolated to the &lt;code&gt;flink-scala&lt;/code&gt; jar. 
+To remove Scala from the user-code classpath, remove this jar from the lib directory of the Flink distribution.
+
+&lt;br /&gt;&lt;br /&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;rm flink-dist/lib/flink-scala*&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#the-classpath-and-scala&quot; id=&quot;markdown-toc-the-classpath-and-scala&quot;&gt;The Classpath and Scala&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#hiding-scala&quot; id=&quot;markdown-toc-hiding-scala&quot;&gt;Hiding Scala&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#the-future-of-scala-in-apache-flink&quot; id=&quot;markdown-toc-the-future-of-scala-in-apache-flink&quot;&gt;The Future of Scala in Apache Flink&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;the-classpath-and-scala&quot;&gt;The Classpath and Scala&lt;/h2&gt;
+
+&lt;p&gt;If you have worked with a JVM-based application, you have probably heard the term classpath.
+The classpath defines where the JVM will search for a given classfile when it needs to be loaded.
+There may only be one instance of a classfile on each classpath, forcing any dependency Flink exposes onto users.
+That is why the Flink community works hard to keep our classpath “clean” - or free of unnecessary dependencies.
+We achieve this through a combination of &lt;a href=&quot;https://github.com/apache/flink-shaded&quot;&gt;shaded dependencies&lt;/a&gt;, &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/debugging/debugging_classloading/#inverted-class-loading-and-classloader-resolution-order&quot;&gt;child first class loading&lt;/a&gt;, and a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/filesystems/plugins/&quot;&gt;plugins abstraction&lt;/a&gt; for optional components.&lt;/p&gt;
+
+&lt;p&gt;The Apache Flink runtime is primarily written in Java but contains critical components that forced Scala on the default classpath.
+And because Scala does not maintain binary compatibility across minor releases, this historically required cross-building components for all versions of Scala.
+But due to many reasons - &lt;a href=&quot;https://github.com/scala/scala/releases/tag/v2.12.8&quot;&gt;breaking changes in the compiler&lt;/a&gt;, &lt;a href=&quot;https://www.scala-lang.org/news/2.13.0&quot;&gt;a new standard library&lt;/a&gt;, and &lt;a href=&quot;https://docs.scala-lang.org/scala3/guides/macros/macros.html&quot;&gt;a reworked macro system&lt;/a&gt; - this was easier said than done.&lt;/p&gt;
+
+&lt;h2 id=&quot;hiding-scala&quot;&gt;Hiding Scala&lt;/h2&gt;
+
+&lt;p&gt;As mentioned above, Flink uses Scala in a few key components; Mesos integration, the serialization stack, RPC, and the table planner. 
+Instead of removing these dependencies or finding ways to cross-build them, the community hid Scala.
+It still exists in the codebase but no longer leaks into the user code classloader.&lt;/p&gt;
+
+&lt;p&gt;In 1.14, we took our first steps in hiding Scala from our users.
+We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
+Next, we isolated our RPC system into a dedicated classloader, including Akka.
+With these changes, the runtime itself no longer relied on Scala (hence why flink-runtime lost its Scala suffix), but Scala was still ever-present in the API layer.&lt;/p&gt;
+
+&lt;p&gt;These changes, and the ease with which we implemented them, started to make people wonder what else might be possible.
+After all, we isolated Akka in less than a month, a task stuck in the backlog for years, thought to be too time-consuming.&lt;/p&gt;
+
+&lt;p&gt;The next logical step was to decouple the DataStream / DataSet Java APIs from Scala.
+This primarily entailed the few cleanups of some &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-23967&quot;&gt;test&lt;/a&gt; &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-23968&quot;&gt;classes&lt;/a&gt; but also the identifying of code paths that are only relevant for the Scala API. 
+These paths were then migrated into the Scala API modules and only used if required.&lt;/p&gt;
+
+&lt;p&gt;For example, the &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-24017&quot;&gt;Kryo serializer&lt;/a&gt;, which we always extended to support certain Scala types, now only includes them if an application uses the Scala APIs.&lt;/p&gt;
+
+&lt;p&gt;Finally, it was time to tackle the Table API, specifically the table planner, which contains 378,655 lines of Scala code at the time of writing.
+The table planner provides parsing, planning, and optimization of SQL and Table API queries into highly optimized Java code.
+It is the most extensive Scala codebase in Flink and it cannot be ported easily to Java.
+Using what we learned from building dedicated classloaders for the RPC stack and conditional classloading for the serializers, we hid the planner behind an abstraction that does not expose any of its internals, including Scala.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-future-of-scala-in-apache-flink&quot;&gt;The Future of Scala in Apache Flink&lt;/h2&gt;
+
+&lt;p&gt;While most of these changes happened behind the scenes, they resulted in one very user-facing change: removing many scala suffixes. You can find a list of all dependencies that lost their Scala suffix at the end of this post&lt;sup id=&quot;fnref:1&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;sup id=&quot;fnref:2&quot;&gt;&lt;a href=&quot;#fn:2&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;p&gt;Additionally, changes to the Table API required several changes to the packaging and the distribution, which some power users relying on the planner internals might need to adapt to&lt;sup id=&quot;fnref:3&quot;&gt;&lt;a href=&quot;#fn:3&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;p&gt;Going forward, Flink will continue to support Scala packages for the DataStream and Table APIs compiled against Scala 2.12 while the Java API is now unlocked for users to leverage components from any Scala version.
+We are already seeing new Scala 3 wrappers pop up in the community are excited to see how users leverage these tools in their streaming pipelines&lt;sup id=&quot;fnref:4&quot;&gt;&lt;a href=&quot;#fn:4&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;&lt;sup id=&quot;fnref:5&quot;&gt;&lt;a href=&quot;#fn:5&quot; class=&quot;footnote&quot;&gt;5&lt;/a&gt;&lt;/sup&gt;&lt;sup id=&quot;fnref:6&quot;&gt;&lt;a href=&quot;#fn:6&quot; class=&quot;footnote&quot;&gt;6&lt;/a&gt;&lt;/sup&gt;!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:1&quot;&gt;
+      &lt;p&gt;flink-cep, flink-clients, flink-connector-elasticsearch-base, flink-connector-elasticsearch6, flink-connector-elasticsearch7, flink-connector-gcp-pubsub, flink-connector-hbase-1.4, flink-connector-hbase-2.2, flink-connector-hbase-base, flink-connector-jdbc, flink-connector-kafka, flink-connector-kinesis, flink-connector-nifi, flink-connector-pulsar, flink-connector-rabbitmq, flink-connector-testing, flink-connector-twitter, flink-connector-wikiedits, flink-container, flink-dstl-dfs, flink-gelly, flink-hadoop-bulk, flink-kubernetes, flink-runtime-web, flink-sql-connector-elasticsearch6, flink-sql-connector-elasticsearch7, flink-sql-connector-hbase-1.4, flink-sql-connector-hbase-2.2, flink-sql-connector-kafka, flink-sql-connector-kinesis, flink-sql-connector-rabbitmq, flink-state-processor-api, flink-statebackend-rocksdb, flink-streaming-java, flink-table-api-java-bridge, flink-test-utils, flink-yarn, flink-table-runtime, flink-table-api-java-bridge &lt;a href=&quot;#fnref:1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:2&quot;&gt;
+      &lt;p&gt;https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need &lt;a href=&quot;#fnref:2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:3&quot;&gt;
+      &lt;p&gt;https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies &lt;a href=&quot;#fnref:3&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:4&quot;&gt;
+      &lt;p&gt;https://github.com/ariskk/flink4s &lt;a href=&quot;#fnref:4&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:5&quot;&gt;
+      &lt;p&gt;https://github.com/findify/flink-adt &lt;a href=&quot;#fnref:5&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:6&quot;&gt;
+      &lt;p&gt;https://github.com/sjwiesman/flink-scala-3 &lt;a href=&quot;#fnref:6&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</description>
+<pubDate>Tue, 22 Feb 2022 01:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2022/02/22/scala-free.html</link>
+<guid isPermaLink="true">/2022/02/22/scala-free.html</guid>
+</item>
+
+<item>
 <title>Apache Flink 1.13.6 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink Community is pleased to announce another bug fix release for Flink 1.13.&lt;/p&gt;
 
@@ -19819,141 +19926,6 @@ release.  Special credits go to the following members for contributing to the
 <pubDate>Tue, 09 Apr 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2019/04/09/release-1.8.0.html</link>
 <guid isPermaLink="true">/news/2019/04/09/release-1.8.0.html</guid>
-</item>
-
-<item>
-<title>Flink and Prometheus: Cloud-native monitoring of streaming applications</title>
-<description>&lt;p&gt;This blog post describes how developers can leverage Apache Flink’s built-in &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html&quot;&gt;metrics system&lt;/a&gt; together with &lt;a href=&quot;https://prometheus.io/&quot;&gt;Prometheus&lt;/a&gt; to observe and monitor streaming applications in an effective way. This is a follow-up post from my &lt;a href=&quot;https://flink-forward.org/&quot;&gt;Flink Forward&lt;/a&gt; Berlin 2018 talk (&lt;a href=&quot;https://www.slideshare.net/MaximilianBode1/monitoring-flink-with-prometheus&quot;&gt;slides&lt;/a&gt;, &lt;a href=&quot;https://www.ververica.com/flink-forward-berlin/resources/monitoring-flink-with-prometheus&quot;&gt;video&lt;/a&gt;). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-prometheus&quot;&gt;Why Prometheus?&lt;/h2&gt;
-
-&lt;p&gt;Prometheus is a metrics-based monitoring system that was originally created in 2012. The system is completely open-source (under the Apache License 2) with a vibrant community behind it and it has graduated from the Cloud Native Foundation last year – a sign of maturity, stability and production-readiness. As we mentioned, the system is based on metrics and it is designed to measure the overall health, behavior and performance of a service. Prometheus features a multi-dimensional data model as well as a flexible query language. It is designed for reliability and can easily be deployed in traditional or containerized environments. Some of the important Prometheus concepts are:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Metrics:&lt;/strong&gt; Prometheus defines metrics as floats of information that change in time. These time series have millisecond precision.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Labels&lt;/strong&gt; are the key-value pairs associated with time series that support Prometheus’ flexible and powerful data model – in contrast to hierarchical data structures that one might experience with traditional metrics systems.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Scrape:&lt;/strong&gt; Prometheus is a pull-based system and fetches (“scrapes”) metrics data from specified sources that expose HTTP endpoints with a text-based format.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;PromQL&lt;/strong&gt; is Prometheus’ &lt;a href=&quot;https://prometheus.io/docs/prometheus/latest/querying/basics/&quot;&gt;query language&lt;/a&gt;. It can be used for both building dashboards and setting up alert rules that will trigger when specific conditions are met.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;When considering metrics and monitoring systems for your Flink jobs, there are many &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html&quot;&gt;options&lt;/a&gt;. Flink offers native support for exposing data to Prometheus via the &lt;code&gt;PrometheusReporter&lt;/code&gt; configuration. Setting up this integration is very easy.&lt;/p&gt;
-
-&lt;p&gt;Prometheus is a great choice as usually Flink jobs are not running in isolation but in a greater context of microservices. For making metrics available to Prometheus from other parts of a larger system, there are two options: There exist &lt;a href=&quot;https://prometheus.io/docs/instrumenting/clientlibs/&quot;&gt;libraries for all major languages&lt;/a&gt; to instrument other applications. Additionally, there is a wide variety of &lt;a href=&quot;https://prometheus.io/docs/instrumenting/exporters/&quot;&gt;exporters&lt;/a&gt;, which are tools that expose metrics of third-party systems (like databases or Apache Kafka) as Prometheus metrics.&lt;/p&gt;
-
-&lt;h2 id=&quot;prometheus-and-flink-in-action&quot;&gt;Prometheus and Flink in Action&lt;/h2&gt;
-
-&lt;p&gt;We have provided a &lt;a href=&quot;https://github.com/mbode/flink-prometheus-example&quot;&gt;GitHub repository&lt;/a&gt; that demonstrates the integration described above. To have a look, clone the repository, make sure &lt;a href=&quot;https://docs.docker.com/install/&quot;&gt;Docker&lt;/a&gt; is installed and run:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;./gradlew composeUp
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This builds a Flink job using the build tool &lt;a href=&quot;https://gradle.org/&quot;&gt;Gradle&lt;/a&gt; and starts up a local environment based on &lt;a href=&quot;https://docs.docker.com/compose/&quot;&gt;Docker Compose&lt;/a&gt; running the job in a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.7/ops/deployment/docker.html#flink-job-cluster&quot;&gt;Flink job cluster&lt;/a&gt; (reachable at &lt;a href=&quot;http://localhost:8081/&quot;&gt;http://localhost:8081&lt;/a&gt;) as well as a Prometheus instance (&lt;a href=&quot;http://localhost:9090/&quot;&gt;http://localhost:9090&lt;/a&gt;).&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-03-11-prometheus-monitoring/prometheusexamplejob.png&quot; width=&quot;600px&quot; alt=&quot;PrometheusExampleJob in Flink Web UI&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Job graph and custom metric for example job in Flink web interface.&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;The &lt;code&gt;PrometheusExampleJob&lt;/code&gt; has three operators: Random numbers up to 10,000 are generated, then a map counts the events and creates a histogram of the values passed through. Finally, the events are discarded without further output. The very simple code below is from the second operator. It illustrates how easy it is to add custom metrics relevant to your business logic into your Flink job.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FlinkMetricsExposingMapFunction&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RichMapFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Counter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eventCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Configuration&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;eventCounter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRuntimeContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getMetricGroup&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;counter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;events&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;eventCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;inc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;center&gt;&lt;i&gt;&lt;small&gt;Excerpt from &lt;a href=&quot;https://github.com/mbode/flink-prometheus-example/blob/master/src/main/java/com/github/mbode/flink_prometheus_example/FlinkMetricsExposingMapFunction.java&quot;&gt;FlinkMetricsExposingMapFunction.java&lt;/a&gt; demonstrating custom Flink metric.&lt;/small&gt;&lt;/i&gt;&lt;/center&gt;
-
-&lt;h2 id=&quot;configuring-prometheus-with-flink&quot;&gt;Configuring Prometheus with Flink&lt;/h2&gt;
-
-&lt;p&gt;To start monitoring Flink with Prometheus, the following steps are necessary:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;Make the &lt;code&gt;PrometheusReporter&lt;/code&gt; jar available to the classpath of the Flink cluster (it comes with the Flink distribution):&lt;/p&gt;
-
-    &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt; cp /opt/flink/opt/flink-metrics-prometheus-1.7.2.jar /opt/flink/lib
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html#reporter&quot;&gt;Configure the reporter&lt;/a&gt; in Flink’s &lt;em&gt;flink-conf.yaml&lt;/em&gt;. All job managers and task managers will expose the metrics on the configured port.&lt;/p&gt;
-
-    &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt; metrics.reporters: prom
- metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
- metrics.reporter.prom.port: 9999
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Prometheus needs to know where to scrape metrics. In a static scenario, you can simply &lt;a href=&quot;https://prometheus.io/docs/prometheus/latest/configuration/configuration/&quot;&gt;configure Prometheus&lt;/a&gt; in &lt;em&gt;prometheus.yml&lt;/em&gt; with the following:&lt;/p&gt;
-
-    &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt; scrape_configs:
- - job_name: &#39;flink&#39;
-   static_configs:
-   - targets: [&#39;job-cluster:9999&#39;, &#39;taskmanager1:9999&#39;, &#39;taskmanager2:9999&#39;]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-    &lt;p&gt;In more dynamic scenarios we recommend using Prometheus’ service discovery support for different platforms such as Kubernetes, AWS EC2 and more.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Both custom metrics are now available in Prometheus:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-03-11-prometheus-monitoring/prometheus.png&quot; width=&quot;600px&quot; alt=&quot;Prometheus web UI with example metric&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Example metric in Prometheus web UI.&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;More technical metrics from the Flink cluster (like checkpoint sizes or duration, Kafka offsets or resource consumption) are also available. If you are interested, you can check out the HTTP endpoints exposing all Prometheus metrics for the job managers and the two task managers on &lt;a href=&quot;http://localhost:9249/metrics&quot;&gt;http://localhost:9249&lt;/a&gt;, &lt;a href=&quot;http://localhost:9250/metrics&quot;&gt;http://localhost:9250&lt;/a&gt; and &lt;a href=&quot;http://localhost:9251/metrics&quot;&gt;http://localhost:9251&lt;/a&gt;, respectively.&lt;/p&gt;
-
-&lt;p&gt;To test Prometheus’ alerting feature, kill one of the Flink task managers via&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;docker kill taskmanager1
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Our Flink job can recover from this partial failure via the mechanism of &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.7/dev/stream/state/checkpointing.html&quot;&gt;Checkpointing&lt;/a&gt;. Nevertheless, after roughly one minute (as configured in the alert rule) the following alert will fire:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-03-11-prometheus-monitoring/prometheusalerts.png&quot; width=&quot;600px&quot; alt=&quot;Prometheus web UI with example alert&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Example alert in Prometheus web UI.&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;In real-world situations alerts like this one can be routed through a component called &lt;a href=&quot;https://prometheus.io/docs/alerting/alertmanager/&quot;&gt;Alertmanager&lt;/a&gt; and be grouped into notifications to systems like email, PagerDuty or Slack.&lt;/p&gt;
-
-&lt;p&gt;Go ahead and play around with the setup, and check out the &lt;a href=&quot;https://grafana.com/grafana&quot;&gt;Grafana&lt;/a&gt; instance reachable at &lt;a href=&quot;http://localhost:3000/&quot;&gt;http://localhost:3000&lt;/a&gt; (credentials &lt;em&gt;admin:flink&lt;/em&gt;) for visualizing Prometheus metrics. If there are any questions or problems, feel free to &lt;a href=&quot;https://github.com/mbode/flink-prometheus-example/issues&quot;&gt;create an issue&lt;/a&gt;. Once finished, do not forget to tear down the setup via&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;./gradlew composeDown
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Using Prometheus together with Flink provides an easy way for effective monitoring and alerting of your Flink jobs. Both projects have exciting and vibrant communities behind them with new developments and additions scheduled for upcoming releases. We encourage you to try the two technologies together as it has immensely improved our insights into Flink jobs running in production.&lt;/p&gt;
-</description>
-<pubDate>Mon, 11 Mar 2019 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/features/2019/03/11/prometheus-monitoring.html</link>
-<guid isPermaLink="true">/features/2019/03/11/prometheus-monitoring.html</guid>
 </item>
 
 </channel>
