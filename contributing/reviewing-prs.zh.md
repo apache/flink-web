@@ -89,30 +89,5 @@ title:  "如何审核 Pull Request"
 
 阅读[如何贡献文档]({{ site.baseurl }}/zh/contributing/contribute-documentation.html)了解更多。
 
-## 使用 @flinkbot 进行审核
-
-Flink 社区正在使用名为 [@flinkbot](https://github.com/flinkbot) 的服务来帮助审核 pull request。
-
-针对每个新的 pull request，机器人都会自动发表评论并跟踪审核进度：
-
-```
-### Review Progress
-
-* [ ] 1. The description looks good.
-* [ ] 2. There is consensus that the contribution should go into to Flink.
-* [ ] 3. [Does not need specific attention | Needs specific attention for X | Has attention for X by Y]
-* [ ] 4. The architectural approach is sound.
-* [ ] 5. Overall code quality is good.
-
-Please see the [Pull Request Review Guide](https://flink.apache.org/contributing/reviewing-prs.html) if you have questions about the review process.
-```
-
-审核人可以指示机器人（按顺序）勾选方框以指示审核的进度。
-
-用于批准贡献的描述，请使用 `@flinkbot approve description` @机器人。`consensus`、`architecture` 、 `quality` 情况的操作与之类似。
-
-要批准全部方面，请在 pull request 中添加一条带有 `@flinkbot approve all` 的新评论。
-
-提醒他人关注的语法是 `@flinkbot attention @username1 [@username2 ..]`。
 
 
