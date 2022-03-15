@@ -578,6 +578,12 @@ Flink Forward is a conference happening yearly in different locations around the
         <td class="text-center">Committer</td>
         <td class="text-center">martijnvisser</td>
   </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/5163645?s=50" class="committer-avatar"></td>
+        <td class="text-center">Leonard Xu</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">leonard</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
