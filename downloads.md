@@ -141,6 +141,27 @@ This version is compatible with Apache Flink version {{ flink_ml_release.source_
 
 {% endfor %}
 
+Apache Flink® Kubernetes Operator {{ site.FLINK_KUBERNETES_OPERATOR_VERSION_STABLE }} is the latest stable release for the [Flink Kubernetes Operator](https://github.com/apache/flink-kubernetes-operator).
+
+{% for flink_kubernetes_operator_release in site.flink_kubernetes_operator_releases %}
+
+## {{ flink_kubernetes_operator_release.source_release.name }}
+
+<p>
+<a href="{{ flink_kubernetes_operator_release.source_release.url }}" id="{{ flink_kubernetes_operator_release.source_release.id }}">{{ flink_kubernetes_operator_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_kubernetes_operator_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_kubernetes_operator_release.source_release.sha512_url }}">sha512</a>)
+</p>
+<p>
+<a href="{{ flink_kubernetes_operator_release.helm_release.url }}" id="{{ flink_kubernetes_operator_release.helm_release.id }}">{{ flink_kubernetes_operator_release.helm_release.name }} Helm Chart Release</a>
+(<a href="{{ flink_kubernetes_operator_release.helm_release.asc_url }}">asc</a>, <a href="{{ flink_kubernetes_operator_release.helm_release.sha512_url }}">sha512</a>)
+</p>
+
+This version is compatible with Apache Flink version {{ flink_kubernetes_operator_release.source_release.flink_version }}.
+
+---
+
+{% endfor %}
+
 ## Additional Components
 
 These are components that the Flink project develops which are not part of the
@@ -233,6 +254,18 @@ Advanced users could only import a minimal set of Flink ML dependencies for thei
 - Use artifacts `flink-ml-core_2.12` and `flink-ml-iteration_2.12` in order to develop custom ML algorithms which require iteration.
 - Use artifact `flink-ml-lib_2.12` in order to use the off-the-shelf ML algorithms from Flink ML.
 
+### Apache Flink Kubernetes Operator
+
+You can add the following dependencies to your `pom.xml` to include Apache Flink Kubernetes Operator in your project.
+
+```xml
+<dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-kubernetes-operator</artifactId>
+  <version>{{ site.FLINK_KUBERNETES_OPERATOR_VERSION_STABLE }}</version>
+</dependency>
+```
+
 ## Update Policy for old releases
 
 As of March 2017, the Flink community [decided](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
@@ -293,6 +326,17 @@ Flink Stateful Functions {{ flink_statefun_release.version_long }} - {{ flink_st
 <li>
 Flink ML {{ flink_ml_release.version_long }} - {{ flink_ml_release.release_date }}
 (<a href="https://archive.apache.org/dist/flink/flink-ml-{{ flink_ml_release.version_long }}/flink-ml-{{ flink_ml_release.version_long }}-src.tgz">Source</a>)
+</li>
+{% endfor %}
+</ul>
+
+### Flink-Kubernetes-Operator
+{% assign flink_kubernetes_operator_releases = site.release_archive.flink_kubernetes_operator %}
+<ul>
+{% for flink_kubernetes_operator_release in flink_kubernetes_operator_releases %}
+<li>
+Flink Kubernetes Operator {{ flink_kubernetes_operator_release.version_long }} - {{ flink_kubernetes_operator_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}-src.tgz">Source</a>, <a href="https://archive.apache.org/dist/flink/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}-helm.tgz">Helm Chart</a>)
 </li>
 {% endfor %}
 </ul>
