@@ -130,7 +130,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
 
 ### How to subscribe to a mailing list
 
-Before you can post a message to a mailing list, you need to subscribe to the list first. 
+Before you can post a message to a mailing list, you need to subscribe to the list first.
 
 1. Send an email without any contents or subject to *listname*-subscribe@flink.apache.org. (replace *listname* with dev, user, user-zh, ..)
 2. Wait till you receive an email with the subject "confirm subscribe to *listname*@flink.apache.org". Reply to that email, without editing the subject or including any contents
@@ -189,13 +189,17 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
     * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
 
+* **Flink Kubernetes Operator Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
+    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
+
 * **Flink Website Repository**
    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
    * GitHub mirror:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
 ### Complete List of Repositories
 
-The complete list of repositories of Apache Flink can be found under https://gitbox.apache.org/repos/asf#flink. 
+The complete list of repositories of Apache Flink can be found under https://gitbox.apache.org/repos/asf#flink.
 
 ## Training
 
@@ -647,5 +651,3 @@ The following people were very kind to mentor the project while in incubation.
 # Materials / Apache Flink Logos
 
 The [materials page]({{ site.baseurl }}/material.html) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
-
-
