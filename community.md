@@ -193,6 +193,10 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
     * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
 
+* **Flink Table Store Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-table-store.git](https://gitbox.apache.org/repos/asf/flink-table-store.git)
+    * GitHub mirror: [https://github.com/apache/flink-table-store](https://github.com/apache/flink-table-store)
+
 * **Flink Website Repository**
    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
    * GitHub mirror:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
