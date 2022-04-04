@@ -119,7 +119,7 @@ You can also find official Kubernetes Operator Docker images of the new version 
 For more details, check the [updated documentation]({{site.DOCS_BASE_URL}}flink-kubernetes-operator-docs-release-0.1/) and the
 [release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12351499).
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
-or [JIRA](https://issues.apache.org/jira/browse/)
+or [JIRA](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Kubernetes%20Operator%22)
 
 ## List of Contributors
 
