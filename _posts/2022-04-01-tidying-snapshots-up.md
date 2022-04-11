@@ -13,10 +13,10 @@ excerpt: TODO
 
 {% toc %}
 
-It's hard to argue Flink has become a well established project in the streaming ecosystem. Being a
-rather mature project requires a slight shift of priorities from thinking purely about new features
-towards caring more about stability and operational simplicity. Flink community tries to address
-some known friction points over the last couple of releases. This includes improvements to the
+Over the years, Flink has become a well established project in the data streaming domain and a
+mature project requires a slight shift of priorities from thinking purely about new features 
+towards caring more about stability and operational simplicity. The Flink community has tried to address
+some known friction points over the last couple of releases, which includes improvements to the
 snapshotting process.
 
 Flink 1.13 was the first release we announced [unaligned checkpoints]({{site.DOCS_BASE_URL}}flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) to be production-ready and
