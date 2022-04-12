@@ -47,7 +47,7 @@ are approaching end-of-life. For questions, please contact the developer mailing
 [dev@flink.apache.org](mailto:dev@flink.apache.org)
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/flink_feature_radar_2.svg" width="700px" />
+  <img src="{{ site.baseurl }}/img/flink_feature_radar_3.svg" width="700px" />
 </div>
 
 ## Feature Stages
@@ -82,29 +82,30 @@ SQL has very strong cross-batch-streaming semantics, allowing users to use the s
 and as continuous queries. Flink already contains an efficient unified query engine, and a wide set of
 integrations. With user feedback, those are continuously improved.
 
-**More Connector and Change Data Capture Support**
+**Going Beyond a SQL Stream/Batch Processing Engine**
 
-  - Change-Data-Capture: Capturing a stream of data changes, directly from databases, by attaching to the
-    transaction log. The community is adding more CDC intrgrations.
-      - External CDC connectors: [https://flink-packages.org/packages/cdc-connectors](https://flink-packages.org/packages/cdc-connectors)
-      - Background: [FLIP-105](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=147427289)
-        (CDC support for SQL) and [Debezium](https://debezium.io/).
+  - To extend the capability of a pure stream processor and make Flink ready for future use cases, 
+    [FLIP-188](https://cwiki.apache.org/confluence/display/FLINK/FLIP-188%3A+Introduce+Built-in+Dynamic+Table+Storage)
+    has been announced adding built in dynamic table storage.
+  - The experience of updating Flink SQL based jobs has been rather cumbersome as it could have
+    lead to new job graphs making restoring from savepoints/checkpoints impossible. 
+    [FLIP-190](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=191336489&src=contextnavpagetreemode)
+    that already has been shipped as MVP is targeting this.
 
-  - Data Lake Connectors: Unified streaming & batch is a powerful value proposition for Data Lakes: supporting
-    same APIs, semantics, and engine for streaming real-time processing and batch processing of historic data.
-    The community is adding deeper integrations with various Data Lake systems:
-    - [Apache Iceberg](https://iceberg.apache.org/): [https://iceberg.apache.org/flink/](https://iceberg.apache.org/flink/)
-    - [Apache Hudi](https://hudi.apache.org/): [https://hudi.apache.org/blog/apache-hudi-meets-apache-flink/](https://hudi.apache.org/blog/apache-hudi-meets-apache-flink/)
-    - [Apache Pinot](https://pinot.apache.org/): [FLIP-166](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=177045634)
 
 **Platform Infrastructure**
 
-  - To simplify the building of production SQL platforms with Flink, we are improving the SQL client and are
-    working on SQL gateway components that interface between client and cluster: [FLIP-163](https://cwiki.apache.org/confluence/display/FLINK/FLIP-163%3A+SQL+Client+Improvements)
+  - After [FLIP-163](https://cwiki.apache.org/confluence/display/FLINK/FLIP-163%3A+SQL+Client+Improvements) 
+    the community is working again on a set of SQL Client usability improvements
+    ([FLIP-189](https://cwiki.apache.org/confluence/display/FLINK/FLIP-189%3A+SQL+Client+Usability+Improvements))
+    which is aiming at improving the user experience, when using the SQL client.
 
 **Support for Common Languages, Formats, Catalogs**
 
-  - Hive Query Compatibility: [FLIP-152](https://cwiki.apache.org/confluence/display/FLINK/FLIP-152%3A+Hive+Query+Syntax+Compatibility)
+  - With [FLIP-216](https://cwiki.apache.org/confluence/display/FLINK/FLIP-216%3A++Introduce+pluggable+dialect+and++decouple+Hive+connector)
+    there's now the initiative to introduce pluggable dialects on the example of the Hive connector.
+    Including so many dependencies to make dialects work has lead to an overhead for contributors 
+    and users.
 
 Flink has a broad SQL coverage for batch (full TPC-DS support) and a state-of-the-art set of supported
 operations in streaming. There is continuous effort to add more functions and cover more SQL operations.
@@ -139,46 +140,6 @@ batch/streaming execution in the future to make it a seamless experience.
     across batch and streaming. The first iteration of the API exists, and we are porting sinks and refining the
     API in the process. See [FLIP-143](https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API).
 
-**DataStream Batch Execution**
-
-  - Flink is adding a *batch execution mode* for bounded DataStream programs. This gives users faster and simpler
-    execution and recovery of their bounded streaming applications; users do not need to worry about watermarks and
-    state sizes in this execution mode: [FLIP-140](https://cwiki.apache.org/confluence/display/FLINK/FLIP-140%3A+Introduce+batch-style+execution+for+bounded+keyed+streams)
-
-    The core batch execution mode is implemented with [great results](https://flink.apache.org/news/2020/12/10/release-1.12.0.html#batch-execution-mode-in-the-datastream-api);
-    there are ongoing improvements around aspects like broadcast state and processing-time-timers.
-    This mode requires the new unified sources and sinks that are mentioned above, so it is limited
-    to the connectors that have been ported to those new APIs.
-
-**Mixing bounded/unbounded streams, and batch/streaming execution**
-
-  - Support checkpointing when some tasks finished & Bounded stream programs shut down with a final
-    checkpoint: [FLIP-147](https://cwiki.apache.org/confluence/display/FLINK/FLIP-147%3A+Support+Checkpoints+After+Tasks+Finished)
-
-  - There are initial discussions and designs about jobs with mixed batch/streaming execution, so stay tuned for more
-    news in that area.
-
-## Subsuming DataSet with DataStream and Table API
-
-We want to eventually drop the legacy Batch-only DataSet API, have batch-and stream processing unified
-throughout the entire system.
-
-Overall Discussion: [FLIP-131](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866741)
-
-The _DataStream API_ supports batch-execution to efficiently execute streaming programs on historic data
-(see above). Takes over that set of use cases.
-
-The _Table API_ should become the default API for batch-only applications.
-
-  - Add more operations to Table API, so support common data manipulation tasks more
-   easily: [FLIP-155](https://cwiki.apache.org/confluence/display/FLINK/FLIP-155%3A+Introduce+a+few+convenient+operations+in+Table+API)
-  - Make Source and Sink definitions easier in the Table API.
-
-Improve the _interplay between the Table API and the DataStream API_ to allow switching from Table API to
-DataStream API when more control over the data types and operations is necessary.
-
-  - Interoperability between DataStream and Table APIs: [FLIP-136](https://cwiki.apache.org/confluence/display/FLINK/FLIP-136%3A++Improve+interoperability+between+DataStream+and+Table+API)
-
 <hr />
 
 # Applications vs. Clusters; "Flink as a Library"
@@ -189,15 +150,8 @@ job as a self contained application.
 
 For example as a simple Kubernetes deployment; deployed and scaled like a regular application without extra workflows.
 
-Deploy Flink jobs as self-contained Applications works for all deployment targets since Flink 1.11.0
-([FLIP-85](https://cwiki.apache.org/confluence/display/FLINK/FLIP-85+Flink+Application+Mode)).
-
-  - Reactive Scaling lets Flink applications change their parallelism in response to growing and shrinking
-    worker pools, and makes Flink compatibel with standard auto-scalers:
-    [FLIP-159](https://cwiki.apache.org/confluence/display/FLINK/FLIP-159%3A+Reactive+Mode)
-
-  - Kubernetes-based HA-services let Flink applications run on Kubernetes without requiring a ZooKeeper dependency:
-    [FLIP-144](https://cwiki.apache.org/confluence/display/FLINK/FLIP-144%3A+Native+Kubernetes+HA+for+Flink)
+  - There is currently a Kubernetes Operator being developed by the community. See
+    [FLIP-212](https://cwiki.apache.org/confluence/display/FLINK/FLIP-212%3A+Introduce+Flink+Kubernetes+Operator).
 
 <hr />
 
@@ -211,38 +165,28 @@ The community is continuously working on improving checkpointing and recovery sp
 Checkpoints and recovery are stable and have been a reliable workhorse for years. We are still
 trying to make it faster, more predictable, and to remove some confusions and inflexibility in some areas.
 
-  - Unaligned Checkpoints, to make checkpoints progress faster when applications cause backpressure:
-    [FLIP-76](https://cwiki.apache.org/confluence/display/FLINK/FLIP-76%3A+Unaligned+Checkpoints), available
-    since Flink 1.12.2.
-  - Log-based Checkpoints, for very frequent incremental checkpointing:
-    [FLIP-158](https://cwiki.apache.org/confluence/display/FLINK/FLIP-158%3A+Generalized+incremental+checkpoints)
-
-## Large Scale Batch Applications
-
-The community is working on making large scale batch execution (parallelism in the order of 10,000s)
-simpler (less configuration tuning required) and more performant.
-
-  - Introduce a more scalable batch shuffle. First parts of this have been merged, and ongoing efforts are
-    to make the memory footprint (JVM direct memory) more predictable, see
-    [FLIP-148](https://cwiki.apache.org/confluence/display/FLINK/FLIP-148%3A+Introduce+Sort-Merge+Based+Blocking+Shuffle+to+Flink)
-
-      - [FLINK-20740](https://issues.apache.org/jira/browse/FLINK-20740)
-      - [FLINK-19938](https://issues.apache.org/jira/browse/FLINK-19938)
-
-  - Make scheduler faster for higher parallelism: [FLINK-21110](https://issues.apache.org/jira/browse/FLINK-21110)
+  - [FLIP-183](https://cwiki.apache.org/confluence/display/FLINK/FLIP-183%3A+Dynamic+buffer+size+adjustment)
+    is targeting size of checkpoints by debloating the buffers. A first beta is already available.
+  - With [FLIP-151](https://cwiki.apache.org/confluence/display/FLINK/FLIP-151%3A+Incremental+snapshots+for+heap-based+state+backend) 
+    there is an ongoing effort to implement a heap based state backend.
 
 <hr />
 
-# Python APIs
+# Apache Flink as part of an ever evolving data ecosystem
 
-Most functionalities in the Java Table APIs and DataStream APIs are already supported by the Python APIs. 
-The community is continuously working on improvements such as improving the checkpoint strategy for Python UDF execution
-([FLINK-18235](https://issues.apache.org/jira/browse/FLINK-18235)), introducing more connectors support in both the Python DataStream API 
-and Python Table API so that the Python API can be used in for production implementations.
+There is almost no use case in which Apache Flink is used on its own. It has established itself
+as part of many data related reference architectures. In fact you'll find the squirrel logo covering
+several aspects. The community has added a lot of connectors and formats. With the already mentionend
+[FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) and
+[FLIP-143](https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API)
+a new default for connectors has been established.
 
-
-Stateful transformation functions for the Python DataStream API:
-[FLIP-153](https://cwiki.apache.org/confluence/display/FLINK/FLIP-153%3A+Support+state+access+in+Python+DataStream+API)
+  - There are efforts to revise the formats API with
+    [FLIP-219](https://cwiki.apache.org/confluence/display/FLINK/FLIP-219%3A+Revised+Format+API)
+  - There is ongoing work on new connectors 
+    (e.g. [Pinot](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=177045634))
+  - Connectors will be hosted in an external repository going forward. See the 
+    [ML thread](https://lists.apache.org/thread/8k1xonqt7hn0xldbky1cxfx3fzh6sj7h)
 
 <hr />
 
@@ -254,14 +198,6 @@ of the documentation.
   - Docs Tech Stack: [FLIP-157](https://cwiki.apache.org/confluence/display/FLINK/FLIP-157+Migrate+Flink+Documentation+from+Jekyll+to+Hugo)
   - General Docs Structure: [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation)
   - SQL Docs: [FLIP-60](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=127405685)
-
-<hr />
-
-# Miscellaneous Operational Tools
-
-  - Allow switching state backends with savepoints: [FLINK-20976](https://issues.apache.org/jira/browse/FLINK-20976)
-  - Support for Savepoints with more properties, like incremental savepoints, etc.:
-    [FLIP-47](https://cwiki.apache.org/confluence/display/FLINK/FLIP-47%3A+Checkpoints+vs.+Savepoints)
 
 <hr />
 
