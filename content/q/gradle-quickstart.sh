@@ -42,7 +42,10 @@ defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
 defaultFlinkVersion="${1:-1.14.4}"
-defaultScalaBinaryVersion="${2:-2.11}"
+# flink-docs-master/docs/dev/datastream/project-configuration/#gradle
+# passes the scala version prefixed with a _, e.g.: _2.12
+scalaBinaryVersionFromCmdArg="${2/_/}"
+defaultScalaBinaryVersion="${scalaBinaryVersionFromCmdArg:-2.12}"
 
 echo "This script creates a Flink project using Java and Gradle."
 
@@ -100,53 +103,49 @@ rootProject.name = '${projectName}'
 EOF
 
 cat > build.gradle <<EOF
-buildscript {
-    repositories {
-        jcenter() // this applies only to the Gradle 'Shadow' plugin
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-    }
-}
-
 plugins {
     id 'java'
     id 'application'
     // shadow plugin to produce fat JARs
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
-
-
-// artifact properties
-group = '${organization}'
-version = '${version}'
-mainClassName = '${organization}.StreamingJob'
-description = """Flink Quickstart Job"""
 
 ext {
     javaVersion = '1.8'
     flinkVersion = '${flinkVersion}'
     scalaBinaryVersion = '${scalaBinaryVersion}'
-    slf4jVersion = '1.7.7'
-    log4jVersion = '1.2.17'
+    slf4jVersion = '1.7.32'
+    log4jVersion = '2.17.1'
+    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.15"
 }
 
+// artifact properties
+group = '${organization}'
+version = '${version}'
+if (flinkVersionNew) {
+    mainClassName = '${organization}.DataStreamJob'
+} else {
+    mainClassName = '${organization}.StreamingJob'
+}
+description = """Flink Quickstart Job"""
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
 }
 
-applicationDefaultJvmArgs = ["-Dlog4j.configuration=log4j.properties"]
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
-}
+applicationDefaultJvmArgs = ["-Dlog4j.configurationFile=log4j2.properties"]
 
 // declare where to find the dependencies of your project
 repositories {
-    mavenCentral()$( if [[ "${flinkVersion}" == *-SNAPSHOT ]] ; then echo -e "\n    maven { url \"https://repository.apache.org/content/repositories/snapshots/\" }" ; else echo ""; fi )
+    mavenCentral()
+    maven {
+        url "https://repository.apache.org/content/repositories/snapshots"
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
 // NOTE: We cannot use "compileOnly" or "shadow" configurations since then we could not run code
@@ -160,7 +159,7 @@ configurations {
     flinkShadowJar.exclude group: 'org.apache.flink', module: 'force-shading'
     flinkShadowJar.exclude group: 'com.google.code.findbugs', module: 'jsr305'
     flinkShadowJar.exclude group: 'org.slf4j'
-    flinkShadowJar.exclude group: 'log4j'
+    flinkShadowJar.exclude group: 'org.apache.logging.log4j'
 }
 
 // declare the dependencies for your production and test code
@@ -169,17 +168,23 @@ dependencies {
     // Compile-time dependencies that should NOT be part of the
     // shadow jar and are provided in the lib folder of Flink
     // --------------------------------------------------------------
-    compile "org.apache.flink:flink-java:\${flinkVersion}"
-    compile "org.apache.flink:flink-streaming-java_\${scalaBinaryVersion}:\${flinkVersion}"
+    if (flinkVersionNew) {
+        implementation "org.apache.flink:flink-streaming-java:\${flinkVersion}"
+        implementation "org.apache.flink:flink-clients:\${flinkVersion}"
+    } else {
+        implementation "org.apache.flink:flink-streaming-java_\${scalaBinaryVersion}:\${flinkVersion}"
+        implementation "org.apache.flink:flink-clients_\${scalaBinaryVersion}:\${flinkVersion}"
+    }
 
     // --------------------------------------------------------------
     // Dependencies that should be part of the shadow jar, e.g.
     // connectors. These must be in the flinkShadowJar configuration!
     // --------------------------------------------------------------
-    //flinkShadowJar "org.apache.flink:flink-connector-kafka-0.11_\${scalaBinaryVersion}:\${flinkVersion}"
+    //flinkShadowJar "org.apache.flink:flink-connector-kafka:\${flinkVersion}"
 
-    compile "log4j:log4j:\${log4jVersion}"
-    compile "org.slf4j:slf4j-log4j12:\${slf4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:\${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-api:\${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-core:\${log4jVersion}"
 
     // Add test dependencies here.
     // testCompile "junit:junit:4.12"
