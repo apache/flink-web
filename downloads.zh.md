@@ -220,9 +220,6 @@ Apache Flink® ML {{ site.FLINK_ML_VERSION_STABLE }} 是机器学习库的最新
 </dependency>
 ```
 
-The `statefun-sdk` dependency is the only one you will need to start developing applications.
-The `statefun-flink-harness` dependency includes a local execution environment that allows you to locally test your application in an IDE.
-
 本地开发程序仅需要依赖 `statefun-sdk`。`statefun-flink-harness` 提供了在 IDE 中测试用户开发的程序的本地执行环境。
 
 
