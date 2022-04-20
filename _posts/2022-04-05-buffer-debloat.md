@@ -9,31 +9,35 @@ excerpt: Apache Flink adjust buffer size automatically in order to keep a balanc
 ---
 
 ## What is this article about?
-One of the most important features of Flink is providing a streaming experience with maximum possible throughput and minimum possible overhead. 
+One of the most important features of Flink is providing a streaming experience with maximum possible throughput and minimum possible memory overhead. 
 What does it actually mean? Let’s take a look at an ideal scenario:
 
-Suppose we have the job and environment that provide the one and constant processing time among all subtasks and zero delays(network, processing) and no connection issues. 
+Suppose we have the job and environment that provide the constant time for processing and sending data. 
 In this case, the job processing looks like this:
 
-While the downstream is processing record1, record2 is sent via the network, and record3 is processed by the upstream.
-As soon as the downstream has processed record1, record2 is ready to be processed, and so on.
-As we see here, the subtasks are always busy which guarantees us the maximum throughput and at the same time,
-It also doesn't use a lot of extra memory since it takes the record for processing as soon as it arrived.
+<div class="row front-graphic">
+  <img src="{{ site.baseurl }}/img/blog/2022-03-28-buffer-debloat/ideal_case.gif"/>
+</div>
 
-Unfortunately, it is obviously not reachable conditions in real life since all operators have different processing times(due to different logic, different record size, etc.), 
+As the picture shows, there is no delay between processing the two neighbor records since processing and sending times are equal. 
+This allows system to keep maximum possible throughput.
+
+Unfortunately, it is obviously not reachable conditions in real life since all operators have different processing times(due to different logic, different record size, etc.),
 and there are also different types of issues with the environment(network, server, software) that can lead to unpredictable delays.
-As result, it is not trivial to support the maximum possible throughput. It is why Flink implements different approaches to level out different types of instabilities.
 
-This article explains what is the buffer debloating feature and how it can help to reach the optimal balance between throughput and overhead.
+<div class="row front-graphic">
+  <img src="{{ site.baseurl }}/img/blog/2022-03-28-buffer-debloat/simple_problem.gif"/>
+</div>
 
-But before we look at details let’s remember how Flink transfers the data between subtasks.
+As result, it is not trivial to support the maximum possible throughput due to different types of delays.
 
+This article explains how Flink use different approaches to level out different types of instabilities and minimize idleness of operator in order to keep the highest possible throughput.
 
 ## Network stack
 
 A detailed explanation of the network stack can be found in the earlier [Flink's Network Stack](https://flink.apache.org/2019/06/05/flink-network-stack.html) block post.
 
-Here we just recall a couple of important things.
+Here we just recall a couple of important things which explains how they minimize idleness of operators.
 
 ### Network buffer
 
