@@ -162,6 +162,27 @@ This version is compatible with Apache Flink version {{ flink_kubernetes_operato
 
 {% endfor %}
 
+Apache Flink® Table Store {{ site.FLINK_TABLE_STORE_VERSION_STABLE }} is the latest stable release for the [Flink Table Store](https://github.com/apache/flink-table-store).
+
+{% for flink_table_store_release in site.flink_table_store_releases %}
+
+## {{ flink_table_store_release.source_release.name }}
+
+<p>
+<a href="{{ flink_table_store_release.source_release.url }}" id="{{ flink_table_store_release.source_release.id }}">{{ flink_table_store_release.source_release.name }} Source Release</a>
+(<a href="{{ flink_table_store_release.source_release.asc_url }}">asc</a>, <a href="{{ flink_table_store_release.source_release.sha512_url }}">sha512</a>)
+</p>
+<p>
+<a href="{{ flink_table_store_release.binaries_release.url }}" id="{{ flink_table_store_release.binaries_release.id }}">{{ flink_table_store_release.binaries_release.name }} Binaries Release</a>
+(<a href="{{ flink_table_store_release.binaries_release.asc_url }}">asc</a>, <a href="{{ flink_table_store_release.binaries_release.sha1_url }}">sha1</a>)
+</p>
+
+This version is compatible with Apache Flink version {{ flink_table_store_release.source_release.flink_version }}.
+
+---
+
+{% endfor %}
+
 ## Additional Components
 
 These are components that the Flink project develops which are not part of the
@@ -337,6 +358,17 @@ Flink ML {{ flink_ml_release.version_long }} - {{ flink_ml_release.release_date 
 <li>
 Flink Kubernetes Operator {{ flink_kubernetes_operator_release.version_long }} - {{ flink_kubernetes_operator_release.release_date }}
 (<a href="https://archive.apache.org/dist/flink/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}-src.tgz">Source</a>, <a href="https://archive.apache.org/dist/flink/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}/flink-kubernetes-operator-{{ flink_kubernetes_operator_release.version_long }}-helm.tgz">Helm Chart</a>)
+</li>
+{% endfor %}
+</ul>
+
+### Flink-Table-Store
+{% assign flink_table_store_releases = site.release_archive.flink_table_store %}
+<ul>
+{% for flink_table_store_release in flink_table_store_releases %}
+<li>
+Flink Table Store {{ flink_table_store_release.version_long }} - {{ flink_table_store_release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/flink-table-store-{{ flink_table_store_release.version_long }}-src.tgz">Source</a>, <a href="https://repo.maven.apache.org/maven2/org/apache/flink/flink-table-store-dist/{{ flink_table_store_release.version_long }}/flink-table-store-dist-{{ flink_table_store_release.version_long }}.jar">Binaries</a>)
 </li>
 {% endfor %}
 </ul>
