@@ -445,7 +445,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6509172?s=50" class="committer-avatar"></td>
     <td class="text-center">Xintong Song</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">xtsong</td>
   </tr>
   <tr>
