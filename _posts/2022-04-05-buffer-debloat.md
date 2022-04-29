@@ -76,7 +76,9 @@ As was described above, the high throughput can be reached when the in-flight da
 at the same time memory is limited and it makes sense to configure it to the optimal size greater which the throughput won't be changed anyway. 
 Obviously, this value can be found manually in experimental way but let's discuss how Flink can help with that.
 
-Flink can be switched to focusing on the time for which in-flight data can be processed rather than the size of this data. 
+Flink can be switched to focusing on the time for which in-flight data can be processed rather than the size of this data.
+This Flink's feature is called buffer debloating that automatically adjusts the size of the in-flight data depending on the current throughput
+which allows for keeping the processing time near the configured one.
 For example, instead of configuring 1GB of in-flight data per subtask, 
 it makes more sense to configure 1 second as the maximum expected time for processing all in-flight data on one subtask.
 Then, the following behaviours will be observed:
@@ -90,19 +92,22 @@ is decreased since during the backpressure the processing time increases which m
   - Zero backpressure means that the processing time is low enough and Flink can store more in-flight data for keeping the configured processing time 
 which makes the subtask prepared for possible instabilities.
 
-This Flink's feature is called buffer debloating that automatically adjusts the size of the in-flight data depending on the current throughput 
-which allows for keeping the processing time near the configured one.
-
 ## How does buffer debloating work?
 
 Conceptually, Flink has two major parameters for configuring in-flight data - the size of the network buffer(the segment) 
-and the number of maximum network buffers(managed by several real settings). 
-The buffer debloating theoretically can change all of these parameters to reach the desirable total in-flight data size but currently, 
-it is implemented only by changing the size of the network buffer.
-First, the buffer debloat constantly calculates the current throughput of the subtask. 
-Based on this throughput, and the number of the network buffers, and configured maximum processing time, 
+and the number of maximum network buffers(managed by several real settings).
+Currently, the buffer debloating manages the memory usage by adjusting only the size of the network buffer while the number of network buffers remains always the constant.
+
+<div class="alert alert-info">
+The buffer debloating doesn't change the actual buffer size but limits the usage of each buffer to some adaptable maximum. 
+As a consequence, it does not reduce the actual heap memory usage but reduces the amount of data and, hence, comes with the mentioned benefits.
+</div>
+
+The buffer debloating process can be split into the following steps:
+1. The buffer debloat constantly calculates the current throughput of the subtask. 
+2. Based on this throughput, and the number of the network buffers, and configured maximum processing time, 
 the buffer debloat calculates the new network buffer size.
-When the new buffer size is calculated, Flink smoothing the value in order to avoid  smooth spikes. 
+3. When the new buffer size is calculated, Flink smoothing the value in order to avoid  smooth spikes. 
 As result, if the new buffer size is significantly different from the old one, the subtask propagates this new size to all upstreams of the gate for which the buffer size was calculated.
 
 <div class="row front-graphic">
@@ -113,8 +118,7 @@ The picture shows that when the throughput is decreased the buffer size also dec
 This is allows us to process all buffers for the same time as with higher throughput. But as soon as the throughput is increased again, 
 the network buffer size will be increased as well which allows avoiding idling due to insufficient prepared buffers. 
 
-The important notice here is that the buffer debloating has some gap in time between detection the new throughput and actual changing the network buffer size. 
-It is why some specific cases can be handled worse than expected.
+The important notice here is that the buffer debloating has some gap in time between detection the new throughput and actual changing the network buffer size.
 </div>
 
 ## Should I use it always?
