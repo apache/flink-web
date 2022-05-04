@@ -36,7 +36,7 @@ More details and various smaller changes can be found in the
 The roadmap is continuously updated. New features and efforts should be added to the roadmap once
 there is consensus that they will happen and what they will roughly look like for the user.
 
-**Last Update:** 2021-09-16
+**Last Update:** 2022-04-19
 
 <hr />
 
