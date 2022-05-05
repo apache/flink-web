@@ -45,7 +45,7 @@ In order to use the base sink, you will need to add the following dependency to 
 
 ## Element Converter Interface
 
-[ElementConverter](https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/writer/ElementConverter.java)
+[ElementConverter](https://github.com/apache/flink/blob/release-1.15.0/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/writer/ElementConverter.java)
 
 ```java
 public interface ElementConverter<InputT, RequestEntryT> extends Serializable {
@@ -56,7 +56,7 @@ The concrete sink implementation should provide a way to convert from an element
 
 ## Sink Writer Interface
 
-[AsyncSinkWriter](https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/writer/AsyncSinkWriter.java)
+[AsyncSinkWriter](https://github.com/apache/flink/blob/release-1.15.0/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/writer/AsyncSinkWriter.java)
 
 There is a buffer in the sink writer that holds the request entries that have been sent to the sink but not yet written to the destination. An element of the buffer is a `RequestEntryWrapper<RequestEntryT>` consisting of the `RequestEntryT` along with the size of that record.
 
@@ -129,7 +129,7 @@ class MySinkWriter<InputT> extends AsyncSinkWriter<InputT, RequestEntryT> {
 
 ## Sink Interface
 
-[AsyncSinkBase](https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/AsyncSinkBase.java)
+[AsyncSinkBase](https://github.com/apache/flink/blob/release-1.15.0/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/AsyncSinkBase.java)
 
 ```java
 class MySink<InputT> extends AsyncSinkBase<InputT, RequestEntryT> {
@@ -143,7 +143,7 @@ class MySink<InputT> extends AsyncSinkBase<InputT, RequestEntryT> {
 ```
 AsyncSinkBase implementations return their own extension of the `AsyncSinkWriter` from `createWriter()`.
 
-At the time of writing, the [Kinesis Data Streams sink](https://github.com/apache/flink/tree/release-1.15/flink-connectors/flink-connector-aws-kinesis-streams) and [Kinesis Data Firehose sink](https://github.com/apache/flink/tree/release-1.15/flink-connectors/flink-connector-aws-kinesis-firehose) are using this base sink. 
+At the time of writing, the [Kinesis Data Streams sink](https://github.com/apache/flink/tree/release-1.15.0/flink-connectors/flink-connector-aws-kinesis-streams) and [Kinesis Data Firehose sink](https://github.com/apache/flink/tree/release-1.15.0/flink-connectors/flink-connector-aws-kinesis-firehose) are using this base sink. 
 
 # Metrics
 
