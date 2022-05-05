@@ -61,7 +61,7 @@ For a detailed [getting started guide]({{site.DOCS_BASE_URL}}flink-table-store-d
 
 ## What's Next?
 
-The community is currently working on hardening the core operator logic, stabilizing the storage format and adding the remaining bits for making the Flink Table Store production ready.
+The community is currently working on hardening the core logic, stabilizing the storage format and adding the remaining bits for making the Flink Table Store production ready.
 
 In the upcoming 0.2.0 release you can expect (at-least) the following additional features:
 
