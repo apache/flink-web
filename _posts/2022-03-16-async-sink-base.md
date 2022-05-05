@@ -58,6 +58,8 @@ The concrete sink implementation should provide a way to convert from an element
 
 [AsyncSinkWriter](https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-base/src/main/java/org/apache/flink/connector/base/sink/writer/AsyncSinkWriter.java)
 
+There is a buffer in the sink writer that holds the request entries that have been sent to the sink but not yet written to the destination. An element of the buffer is a `RequestEntryWrapper<RequestEntryT>` consisting of the `RequestEntryT` along with the size of that record.
+
 ```java
 public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable>
         implements StatefulSink.StatefulSinkWriter<InputT, BufferedRequestState<RequestEntryT>> {
@@ -70,7 +72,7 @@ public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable
 
 We will submit the `requestEntries` asynchronously to the destination from here. Sink implementers should use the client libraries of the destination they intend to write to, to perform this.
 
-Should any elements fail to be persisted, they should be requeued back in the buffer for retry using `requestResult.accept(...list of failed entries...)`. However, retrying any element that is known to be faulty and consistently failing, will result in that element being requeued forever, therefore a sensible strategy for determining what should be retried is highly recommended. If no errors were returned, we must indicate this with `requestResult.accept(Collections.emptyList())`.
+Should any elements fail to be persisted, they will be requeued back in the buffer for retry using `requestResult.accept(...list of failed entries...)`. However, retrying any element that is known to be faulty and consistently failing, will result in that element being requeued forever, therefore a sensible strategy for determining what should be retried is highly recommended. If no errors were returned, we must indicate this with `requestResult.accept(Collections.emptyList())`.
 
 If at any point, it is determined that a fatal error has occurred and that we should throw a runtime exception from the sink, we can call `getFatalExceptionCons().accept(...);` from anywhere in the concrete sink writer.
 
@@ -82,7 +84,7 @@ public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable
     // ...
 }
 ```
-The async sink has a concept of size of elements in the buffer. This allows users to specify a byte size threshold beyond which elements will be flushed. However the sink implementer is best positioned to determine what is the most sensible measure of size for each `RequestEntryT` is. If there is no way to determine the size of a record, then the value `0` may be returned, and the sink will not flush based on record size triggers.
+The async sink has a concept of size of elements in the buffer. This allows users to specify a byte size threshold beyond which elements will be flushed. However the sink implementer is best positioned to determine what the most sensible measure of size for each `RequestEntryT` is. If there is no way to determine the size of a record, then the value `0` may be returned, and the sink will not flush based on record size triggers.
 
 ```java
 public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable>
@@ -101,8 +103,8 @@ public abstract class AsyncSinkWriter<InputT, RequestEntryT extends Serializable
 }
 ```
 
-By default, the method `snapshotState` returns all the elements in the buffer to be saved down for snapshots. Any elements that have been removed from the buffer for writing and were therefore previously in flight have already been completed due to the sink operator calling `flush(true)` on the sink writer.
-You may want to save down additional state from the concrete sink. You can achieve this by overriding `snapshotState`, and restoring from the saved state in the constructor. You will receive the saved state by overriding `restoreWriter` in your concrete sink. In this method, you should construct a sink writer, passing in the recovered state.
+By default, the method `snapshotState` returns all the elements in the buffer to be saved for snapshots. Any elements that were previously removed from the buffer are guaranteed to be persisted in the destination by a preceding call to `AsyncWriter#flush(true)`.
+You may want to save additional state from the concrete sink. You can achieve this by overriding `snapshotState`, and restoring from the saved state in the constructor. You will receive the saved state by overriding `restoreWriter` in your concrete sink. In this method, you should construct a sink writer, passing in the recovered state.
 
 ```java
 class MySinkWriter<InputT> extends AsyncSinkWriter<InputT, RequestEntryT> {
@@ -162,8 +164,8 @@ There are six sink configuration settings that control the buffering, flushing, 
 * `long maxTimeInBufferMS` - maximum amount of time an element may remain in the buffer. In most cases elements are flushed as a result of the batch size (in bytes or number) being reached or during a snapshot. However, there are scenarios where an element may remain in the buffer forever or a long period of time. To mitigate this, a timer is constantly active in the buffer such that: while the buffer is not empty, it will flush every maxTimeInBufferMS milliseconds.
 * `long maxRecordSizeInBytes` - maximum size in bytes allowed for a single record, as determined by `getSizeInBytes()`.
 
-Destinations typically have a defined throughput limit and will begin throttling or rejecting requests once near. With multiple subtasks, we employ [Additive Increase Multiplicative Decrease (AIMD)](https://en.wikipedia.org/wiki/Additive_increase/multiplicative_decrease) as a strategy for selecting the optimal batch size.
+Destinations typically have a defined throughput limit and will begin throttling or rejecting requests once near. We employ [Additive Increase Multiplicative Decrease (AIMD)](https://en.wikipedia.org/wiki/Additive_increase/multiplicative_decrease) as a strategy for selecting the optimal batch size.
 
 # Summary
 
-The AsyncSinkBase is a new abstraction that makes maintaining and creating async sinks easier. This will be available in Flink 1.15 and we hope that you will try it out and give us feedback on it.
+The AsyncSinkBase is a new abstraction that makes creating and maintaining async sinks easier. This will be available in Flink 1.15 and we hope that you will try it out and give us feedback on it.
