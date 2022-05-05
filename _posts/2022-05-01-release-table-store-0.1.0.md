@@ -22,7 +22,24 @@ Please check out the full [documentation]({{site.DOCS_BASE_URL}}flink-table-stor
 Note: Flink Table Store is still in beta status and undergoing rapid development,
 we do not recommend that you use it directly in a production environment.
 
-**Core Features**
+## What is Flink Table Store
+
+Open [Flink official website](https://flink.apache.org/), you can see the following line:
+`Apache Flink - Stateful Computations over Data Streams.` Flink focuses on distributed computing,
+which brings real-time big data computing. But pure computation doesn't bring value, users need
+to combine Flink with some kind of external storage.
+
+For a long time, we found that no external storage can fit Flink's computation model perfectly,
+which brings troubles to users. So Flink Table Store was born, it is a storage built specifically
+for Flink, for big data real-time update scenario. From now on, Flink is no longer just a computing
+engine.
+
+Flink Table Store is a unified streaming and batch table format:
+- As the storage of Flink, it first provides the capability of Queue.
+- On top of the Queue capability, it precipitates historical data to data lakes.
+- The data on data lakes can be updated and analyzed in near real-time.
+
+## Core Features
 
 Flink Table Store supports the following usage:
 - **Streaming Insert**: Write changelog streams, including CDC from database and streams.
