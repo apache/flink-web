@@ -7,6 +7,797 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Exploring the thread mode in PyFlink</title>
+<description>&lt;p&gt;PyFlink was introduced in Flink 1.9 which purpose is to bring the power of Flink to Python users and allow Python users to develop Flink jobs in Python language.
+The functionality becomes more and more mature through the development in the past releases.&lt;/p&gt;
+
+&lt;p&gt;Before Flink 1.15, Python user-defined functions will be executed in separate Python processes (based on the &lt;a href=&quot;https://docs.google.com/document/d/1B9NmaBSKCnMJQp-ibkxvZ_U233Su67c1eYgBhrqWP24/edit#heading=h.khjybycus70&quot;&gt;Apache Beam Portability Framework&lt;/a&gt;).
+It will bring additional serialization/deserialization overhead and also communication overhead. In scenarios where the data size is big, e.g. image processing, etc,
+this overhead becomes non-negligible. Besides, since it involves inter-process communication, the processing latency is also non-negligible,
+which is unacceptable in scenarios where the latency is critical, e.g. quantitative transaction, etc.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.15, we have introduced a new execution mode named ‘thread’ mode (based on &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt;) where the Python user-defined functions will be executed in the JVM as
+a thread instead of a separate Python process. In this article, we will dig into the details about this execution mode and also share some benchmark data to
+give users a basic understanding of how it works and which scenarios it’s applicable for.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#process-mode&quot; id=&quot;markdown-toc-process-mode&quot;&gt;Process Mode&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#pemja&quot; id=&quot;markdown-toc-pemja&quot;&gt;PEMJA&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#pemja-architecture&quot; id=&quot;markdown-toc-pemja-architecture&quot;&gt;PEMJA Architecture&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#comparison-with-other-solutions&quot; id=&quot;markdown-toc-comparison-with-other-solutions&quot;&gt;Comparison with other solutions&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#thread-mode&quot; id=&quot;markdown-toc-thread-mode&quot;&gt;Thread Mode&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#comparisons-between-process-mode-and-thread-mode&quot; id=&quot;markdown-toc-comparisons-between-process-mode-and-thread-mode&quot;&gt;Comparisons between process mode and thread mode&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#benefits-of-thread-mode&quot; id=&quot;markdown-toc-benefits-of-thread-mode&quot;&gt;Benefits of thread mode&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#limitations&quot; id=&quot;markdown-toc-limitations&quot;&gt;Limitations&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#usage&quot; id=&quot;markdown-toc-usage&quot;&gt;Usage&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#benchmarkhttpsgithubcomhuangxingbopyflink-benchmark&quot; id=&quot;markdown-toc-benchmarkhttpsgithubcomhuangxingbopyflink-benchmark&quot;&gt;&lt;a href=&quot;https://github.com/HuangXingBo/pyflink-benchmark&quot;&gt;Benchmark&lt;/a&gt;&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#test-environment&quot; id=&quot;markdown-toc-test-environment&quot;&gt;Test environment&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#test-results&quot; id=&quot;markdown-toc-test-results&quot;&gt;Test results&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#summary--future-work&quot; id=&quot;markdown-toc-summary--future-work&quot;&gt;Summary &amp;amp; Future work&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h2 id=&quot;process-mode&quot;&gt;Process Mode&lt;/h2&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-architecture-overview.png&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Fig. 1 - PyFlink Architecture Overview&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;From Fig. 1, we can see the architecture of PyFlink. As shown on the left side of Fig.1, users could use PyFlink API(Python Table API &amp;amp; SQL or Python DataStream API) to declare the logic of jobs,
+which will be finally translated into JobGraph (DAG of the job) which could be recognized by Flink’s execution framework. It should be noted that Python operators (Flink operators whose purpose is to
+execute Python user-defined functions) will be used to execute the Python user-defined functions.&lt;/p&gt;
+
+&lt;p&gt;On the right side of Fig. 1, it shows the details of the Python operators where the Python user-defined functions were executed in separate Python processes.&lt;/p&gt;
+
+&lt;p&gt;In order to communicate with the Python worker process, a series of communication services are required between the Python operator(runs in JVM) and the Python worker(runs in Python VM).
+PyFlink has employed &lt;a href=&quot;https://docs.google.com/document/d/1B9NmaBSKCnMJQp-ibkxvZ_U233Su67c1eYgBhrqWP24/edit#heading=h.khjybycus70&quot;&gt;Apache Beam Portability framework&lt;/a&gt; to execute Python user-defined functions which provides the basic building blocks required for PyFlink.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-process-mode.png&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Fig. 2 - PyFlink Runtime in Process Mode&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Process mode can be executed stably and efficiently in most scenarios. It is enough for more users. However, in some scenarios, it doesn’t work well due to the additional serialization/deserialization overhead.
+One of the most typical scenarios is image processing, where the input data size is often very big. Besides, since it involves inter-process communication, the processing latency is also non-negligible
+which is unacceptable in scenarios where latency is critical, e.g. quantitative transaction, etc. In order to overcome these problems, we have introduced a new execution mode(thread mode)
+where Python user-defined functions will be executed in the JVM as a thread instead of a separate Python process. In the following section, we will dig into the details of this new execution mode.&lt;/p&gt;
+
+&lt;h2 id=&quot;pemja&quot;&gt;PEMJA&lt;/h2&gt;
+
+&lt;p&gt;Before digging into the thread mode, let’s introduce a library &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; firstly, which is the core to the architecture of thread mode.&lt;/p&gt;
+
+&lt;p&gt;As we all know, Java Native Interface (JNI) is a standard programming interface for writing Java native methods and embedding the Java virtual machine into native applications.
+What’s more, CPython provides Python/C API to help embed Python in C Applications.&lt;/p&gt;
+
+&lt;p&gt;So if we combine these two interfaces together, we can embed Python in Java Application. Since this library solves a general problem that Python and Java could call each other,
+we have open sourced it as an independent project, and PyFlink has depended on &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; since Flink 1.15 to support thread mode.&lt;/p&gt;
+
+&lt;h3 id=&quot;pemja-architecture&quot;&gt;PEMJA Architecture&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pemja.png&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Fig. 3 - PEMJA Architecture&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;As we can see from the architecture of &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; in Fig. 3, JVM and PVM can call each other in the same process through &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; Library.&lt;/p&gt;
+
+&lt;p&gt;Firstly, &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; will start a daemon thread in JVM, which is responsible for initializing the Python Environment and creating a Python Main Interpreter owned by this process.
+The reason why &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; uses a dedicated thread to initialize Python Environment is to avoid potential deadlocks in Python Interpreter.
+Python Interpreter could deadlock when trying to acquire the GIL through methods such as &lt;a href=&quot;https://docs.python.org/3/c-api/init.html#c.PyGILState_Ensure&quot;&gt;PyGILState_*&lt;/a&gt; in Python/C API concurrently.
+It should be noted that &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; doesn’t call those methods directly, however, it may happen that third-party libraries may call them, e.g. &lt;a href=&quot;https://numpy.org/&quot;&gt;numpy&lt;/a&gt;, etc.
+To get around this, we use a dedicated thread to initialize the Python Environment.&lt;/p&gt;
+
+&lt;p&gt;Then, each Java worker thread can invoke the Python functions through the Python &lt;a href=&quot;https://docs.python.org/3/c-api/init.html&quot;&gt;ThreadState&lt;/a&gt; created from Python Main Interpreter.&lt;/p&gt;
+
+&lt;h3 id=&quot;comparison-with-other-solutions&quot;&gt;Comparison with other solutions&lt;/h3&gt;
+
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Framework&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Principle&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Limitations&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;a href=&quot;https://www.jython.org/&quot;&gt;Jython&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Python compiler implemented in Java&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Only support for Python2&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;a href=&quot;https://www.graalvm.org/python/&quot;&gt;GraalVM&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Truffle framework&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Compatibility issues with various Python ecological libraries&lt;/li&gt;
+          &lt;li&gt;Works only with GraalVM&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;a href=&quot;https://github.com/jpype-project/jpype&quot;&gt;JPype&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;JNI + Python/C API&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Don’t support Java calling Python&lt;/li&gt;
+          &lt;li&gt;Only support for CPython&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;a href=&quot;https://github.com/ninia/jep&quot;&gt;Jep&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;JNI + Python/C API&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Difficult to integrate&lt;/li&gt;
+          &lt;li&gt;Performance is not good enough&lt;/li&gt;
+          &lt;li&gt;Only support for CPython&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;JNI + Python/C API&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Only support for CPython&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;In the table above, we have made a basic comparison of the popular solutions of Java/Python calling libraries.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.jython.org/&quot;&gt;Jython&lt;/a&gt;: Jython is a Python interpreter implemented in Java language. Because its implementation language is Java,
+the interoperability between code implemented by Python syntax and Java code will be very natural.
+However, Jython does not support Python 3 anymore, and it is no longer actively maintained.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.graalvm.org/python/&quot;&gt;GraalVM&lt;/a&gt;: GraalVM takes use of Truffle framework to support interoperability between Python and Java.
+However, it has the limitation that not all the Python libraries are supported. As we know, many Python libraries rely on standard CPython to implement their C extensions.
+The other problem is that it only works with GraalVM, which means high migration costs.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/jpype-project/jpype&quot;&gt;JPype&lt;/a&gt;: Similar to &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt;,
+JPype is also a framework built using JNI and Python/C API, but JPype only supports calling Java from Python.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/ninia/jep&quot;&gt;Jep&lt;/a&gt;: Similar to &lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt;, Jep is also a framework built using JNI and Python/C API and it supports calling Python from Java.
+However, it doesn’t provide a jar to the maven repository and the process of loading native packages needs to be specified in advance through jvm parameters or environment variables when the JVM starts,
+which makes it difficult to integrate. Furthermore, our benchmark shows that the performance is not very good.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt;: Similar to Jep and JPype, PEMJA is built on CPython, so it cannot support other Python interpreters, such as PyPy, etc.
+Since CPython is the most used implementation and standard of Python Runtime officially provided by Python, most libraries of the Python ecology are built on CPython Runtime and so could work with PEMJA naturally.&lt;/p&gt;
+
+&lt;h2 id=&quot;thread-mode&quot;&gt;Thread Mode&lt;/h2&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-thread-mode.png&quot; /&gt;
+&lt;br /&gt;
+&lt;i&gt;&lt;small&gt;Fig. 4 - PyFlink Runtime in Thread Mode&lt;/small&gt;&lt;/i&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;From the picture above, we can see that in thread mode, the Python user-defined function runs in the same process as the Python operator(which runs in JVM).
+&lt;a href=&quot;https://github.com/alibaba/pemja&quot;&gt;PEMJA&lt;/a&gt; is used as a bridge between the Java code and the Python code.&lt;/p&gt;
+
+&lt;p&gt;Since the Python user-defined function runs in JVM, for each input data received from the upstream operators, it will be passed to
+the Python user-defined function directly instead of buffered and passed to the Python user-defined function in a batch.
+Therefore, thread mode could have lower latency compared to the process mode. Currently, if users want to achieve lower latency in process mode, usually they need to configure the
+&lt;code&gt;python.fn-execution.bundle.size&lt;/code&gt; or &lt;code&gt;python.fn-execution.bundle.time&lt;/code&gt; to a lower value. However, since it involves inter-process communication,
+the latency is still a little high in some scenarios. However, this is not a problem any more in thread mode. Besides, configuring &lt;code&gt;python.fn-execution.bundle.size&lt;/code&gt; or &lt;code&gt;python.fn-execution.bundle.time&lt;/code&gt; to
+a lower value usually will affect the overall performance of the job and this will also not be a problem in thread mode.&lt;/p&gt;
+
+&lt;h2 id=&quot;comparisons-between-process-mode-and-thread-mode&quot;&gt;Comparisons between process mode and thread mode&lt;/h2&gt;
+
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Execution Mode&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Benefits&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Limitations&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Process Mode&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Better resource isolation&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;IPC overhead&lt;/li&gt;
+          &lt;li&gt;High implementation complexity&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Thread Mode&lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Higher throughput&lt;/li&gt;
+          &lt;li&gt;Lower latency&lt;/li&gt;
+          &lt;li&gt;Less checkpoint time&lt;/li&gt;
+          &lt;li&gt;Less usage restrictions&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+      &lt;td style=&quot;text-align: justify&quot;&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Only support for CPython&lt;/li&gt;
+          &lt;li&gt;Multiple jobs cannot use different Python interpreters in session mode&lt;/li&gt;
+          &lt;li&gt;Performance is affected by the GIL&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;benefits-of-thread-mode&quot;&gt;Benefits of thread mode&lt;/h3&gt;
+
+&lt;p&gt;Since it processes data in batches in process mode, currently Python user-defined functions could not be used in some scenarios,
+e.g. used in the Join(Table API &amp;amp; SQL) condition and taking columns both from the left table and the right table as inputs.
+However, this will not be a big problem any more in thread mode because of the nature that it handles the data one by one instead of a batch.&lt;/p&gt;
+
+&lt;p&gt;Unlike process mode which sends and receives data asynchronously in batches, in thread mode, data will be processed synchronously one by one.
+So usually it will have lower latency and also less checkpoint time. In terms of performance, since there is no inter-process communication,
+it could avoid data serialization/deserialization and communication overhead, as well as the stage of copying and context switching between kernel space and user space,
+so it usually will have better performance in thread mode.&lt;/p&gt;
+
+&lt;h3 id=&quot;limitations&quot;&gt;Limitations&lt;/h3&gt;
+
+&lt;p&gt;However, there are also some limitations for thread mode:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;It only supports CPython which is also one of the most used Python interpreters.&lt;/li&gt;
+  &lt;li&gt;It doesn’t support session mode well and so it’s recommended that users only use thread mode in per-job or application deployments.
+The reason is it doesn’t support using different Python interpreters for the jobs running in the same TaskManager.
+This limitation comes from the fact that many Python libraries assume that they will only be initialized once in the process, so they use a lot of static variables.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;usage&quot;&gt;Usage&lt;/h2&gt;
+
+&lt;p&gt;The execution mode could be configured via the configuration &lt;code&gt;python.execution-mode&lt;/code&gt;. It has two possible values:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;process&lt;/code&gt;: The Python user-defined functions will be executed in a separate Python process. (default)&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;thread&lt;/code&gt;: The Python user-defined functions will be executed in the same process as Java operators.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For example, you could configure it as following in Python Table API:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Specify `process` mode&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;python.execution-mode&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;process&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Specify `thread` mode&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;table_env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;python.execution-mode&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;thread&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It should be noted that since this is still the first release of ‘thread’ mode, currently there are still many limitations about it,
+e.g. it only supports Python ScalarFunction of Python Table API &amp;amp; SQL. It will fall back to ‘process’ mode where ‘thread’ mode is not supported.
+So it may happen that you configure a job to execute in thread mode, however, it’s actually executed in ‘process’ execution mode.&lt;/p&gt;
+
+&lt;h2 id=&quot;benchmarkhttpsgithubcomhuangxingbopyflink-benchmark&quot;&gt;&lt;a href=&quot;https://github.com/HuangXingBo/pyflink-benchmark&quot;&gt;Benchmark&lt;/a&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;test-environment&quot;&gt;Test environment&lt;/h3&gt;
+
+&lt;p&gt;OS: Alibaba Cloud Linux (Aliyun Linux) release 2.1903 LTS (Hunting Beagle)&lt;/p&gt;
+
+&lt;p&gt;CPU: Intel(R) Xeon(R) Platinum 8269CY CPU @ 2.50GHz&lt;/p&gt;
+
+&lt;p&gt;Memory: 16G&lt;/p&gt;
+
+&lt;p&gt;CPython: Python 3.7.3&lt;/p&gt;
+
+&lt;p&gt;JDK: OpenJDK Runtime Environment (build 1.8.0_292-b10)&lt;/p&gt;
+
+&lt;p&gt;PyFlink: 1.15.0&lt;/p&gt;
+
+&lt;h3 id=&quot;test-results&quot;&gt;Test results&lt;/h3&gt;
+
+&lt;p&gt;Here, we test the json processing which is a very common scenario for PyFlink users.&lt;/p&gt;
+
+&lt;p&gt;The UDF implementation is as following:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# python udf&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@udf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STRING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;func_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;general&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;json_value_lower&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loads&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lower&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dumps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Java UDF&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JsonValueLower&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ScalarFunction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ObjectMapper&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ObjectWriter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;writer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FunctionContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mapper&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ObjectMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;writer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;writerWithDefaultPrettyPrinter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;StringObject&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;readValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringObject&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setA&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toLowerCase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;writer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;writeValueAsString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;JsonProcessingException&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;RuntimeException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Failed to read json value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringObject&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getA&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setA&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;StringObject{&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;a=&amp;#39;&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&amp;#39;\&amp;#39;&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&amp;#39;}&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The test results is as following:&lt;/p&gt;
+
+&lt;table width=&quot;95%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Type (input data size)&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;QPS&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Latency&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Checkpoint Time&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Java UDF (100k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;900&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2ms&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;100ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Java UDF (10k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;20us&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Java UDF (1k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1us&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Java UDF (100)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;28w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;200ns&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Process Mode (100k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;900&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5s-10s&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5s&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Process Mode (10k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;7000&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5s-10s&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3s&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Process Mode (1k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3.6w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3s&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3s&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Process Mode (100)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;12w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2s&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2s&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Thread Mode (100k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1200&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1ms&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;100ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Thread Mode (10k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1.2w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;20us&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Thread Mode (1k)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3us&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Thread Mode (100)&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;12w&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1us&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;10ms&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-performance.jpg&quot; /&gt;
+&lt;/center&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-latency.jpg&quot; /&gt;
+&lt;/center&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-06-pyflink-1.15-thread-mode/pyflink-checkpoint-time.jpg&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;As we can see from the test results:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;If you care about latency and checkpoint time, thread mode is your better choice. The processing latency could be decreased from several seconds in process mode to microseconds in thread mode.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Thread mode can bring better performance than process mode when data serialization/deserialization is not negligible relative to UDF calculation itself.
+Compared to process mode, benchmark has shown that the throughput could be increased by 2x in common scenarios such as json processing in thread mode.
+​​However, if the UDF calculation is slow and spends much longer time, then it is more recommended to use process mode, because the process mode is more mature and it has better resource isolation.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;When the performance of Python UDF is close to that of Java UDF, the end-to-end performance of thread mode will be close to that of Java UDF.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;summary--future-work&quot;&gt;Summary &amp;amp; Future work&lt;/h2&gt;
+
+&lt;p&gt;In this article, we have introduced the ‘thread’ execution mode in PyFlink which is a new feature introduced in Flink 1.15.
+Compared with the ‘process’ execution mode, users will get better performance, lower latency, less checkpoint time in ‘thread’ mode.
+However, there are also some limitations about ‘thread’ mode, e.g. poor support for session deployment mode, etc.&lt;/p&gt;
+
+&lt;p&gt;It should be noted that since this is still the first release of ‘thread’ mode, currently there are still many limitations about it,
+e.g. it only supports Python ScalarFunction of Python Table API &amp;amp; SQL. We’re planning to extend it to other places where Python user-defined functions could be used in next releases.&lt;/p&gt;
+</description>
+<pubDate>Fri, 06 May 2022 14:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/05/06/pyflink-1.15-thread-mode.html</link>
+<guid isPermaLink="true">/2022/05/06/pyflink-1.15-thread-mode.html</guid>
+</item>
+
+<item>
+<title>Improvements to Flink operations: Snapshots Ownership and Savepoint Formats</title>
+<description>&lt;p&gt;Flink has become a well established data streaming engine and a
+mature project requires some shifting of priorities from thinking purely about new features 
+towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address
+some known friction points, which includes improvements to the
+snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing. Snapshots include savepoints and checkpoints.&lt;/p&gt;
+
+&lt;p&gt;This post will outline the journey of improving snapshotting in past releases and the upcoming improvements in Flink 1.15, which includes making it possible to take savepoints in the native state backend specific format as well as clarifying snapshots ownership.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#past-improvements-to-the-snapshotting-process&quot; id=&quot;markdown-toc-past-improvements-to-the-snapshotting-process&quot;&gt;Past improvements to the snapshotting process&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#new-improvements-to-the-snapshotting-process&quot; id=&quot;markdown-toc-new-improvements-to-the-snapshotting-process&quot;&gt;New improvements to the snapshotting process&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#the-new-restore-modes&quot; id=&quot;markdown-toc-the-new-restore-modes&quot;&gt;The new restore modes&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#legacy-mode&quot; id=&quot;markdown-toc-legacy-mode&quot;&gt;LEGACY mode&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#noclaim-default-mode&quot; id=&quot;markdown-toc-noclaim-default-mode&quot;&gt;NO_CLAIM (default) mode&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#claim-mode&quot; id=&quot;markdown-toc-claim-mode&quot;&gt;CLAIM mode&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#savepoint-format&quot; id=&quot;markdown-toc-savepoint-format&quot;&gt;Savepoint format&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#capabilities-and-limitations&quot; id=&quot;markdown-toc-capabilities-and-limitations&quot;&gt;Capabilities and limitations&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#summary&quot; id=&quot;markdown-toc-summary&quot;&gt;Summary&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;past-improvements-to-the-snapshotting-process&quot;&gt;Past improvements to the snapshotting process&lt;/h1&gt;
+
+&lt;p&gt;Flink 1.13 was the first release where we announced &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing&quot;&gt;unaligned checkpoints&lt;/a&gt; to be production-ready. We
+encouraged people to use them if their jobs are backpressured to a point where it causes issues for
+checkpoints.  We also &lt;a href=&quot;/news/2021/05/03/release-1.13.0.html#switching-state-backend-with-savepoints&quot;&gt;unified the binary format of savepoints&lt;/a&gt; across all
+different state backends, which enables stateful switching of savepoints.&lt;/p&gt;
+
+&lt;p&gt;Flink 1.14 also brought additional improvements. As an alternative and as a complement
+to unaligned checkpoints, we introduced a feature called &lt;a href=&quot;/news/2021/09/29/release-1.14.0.html#buffer-debloating&quot;&gt;“buffer debloating”&lt;/a&gt;. This is built
+around the concept of automatically adjusting the amount of in-flight data that needs to be aligned
+while snapshotting. We also fixed another long-standing problem and made it
+possible to &lt;a href=&quot;/news/2021/09/29/release-1.14.0.html#checkpointing-and-bounded-streams&quot;&gt;continue checkpointing even if there are finished tasks&lt;/a&gt; in a JobGraph.&lt;/p&gt;
+
+&lt;h1 id=&quot;new-improvements-to-the-snapshotting-process&quot;&gt;New improvements to the snapshotting process&lt;/h1&gt;
+
+&lt;p&gt;You can expect more improvements in Flink 1.15! We continue to be invested in making it easy 
+to operate Flink clusters and have tackled the following problems. :)&lt;/p&gt;
+
+&lt;p&gt;Savepoints can be expensive
+to take and restore from if taken for a very large state stored in the RocksDB state backend. In
+order to circumvent this issue, we have seen users leveraging the externalized incremental checkpoints
+instead of savepoints in order to benefit from the native RocksDB format. However, checkpoints and savepoints
+serve different operational purposes. Thus, we now made it possible to take savepoints in the
+native state backend specific format, while still maintaining some characteristics of savepoints (i.e. making them relocatable).&lt;/p&gt;
+
+&lt;p&gt;Another issue reported with externalized checkpoints is that it is not clear who owns the
+checkpoint files (Flink or the user?). This is especially problematic when it comes to incremental RocksDB checkpoints
+where you can easily end up in a situation where you do not know which checkpoints depend on which files
+which makes it tough to clean those files up. To solve this issue, we added explicit restore
+modes (CLAIM, NO_CLAIM, and LEGACY) which clearly define whether Flink should take
+care of cleaning up the snapshots or whether it should remain the user’s responsibility.
+ .&lt;/p&gt;
+
+&lt;h2 id=&quot;the-new-restore-modes&quot;&gt;The new restore modes&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code&gt;Restore Mode&lt;/code&gt; determines who takes ownership of the files that make up savepoints or
+externalized checkpoints after they are restored. Snapshots, which are either checkpoints or savepoints
+in this context, can be owned either by a user or Flink itself. If a snapshot is owned by a user,
+Flink will not delete its files and will not depend on the existence
+of such files since it might be deleted outside of Flink’s control.&lt;/p&gt;
+
+&lt;p&gt;The restore modes are &lt;code&gt;CLAIM&lt;/code&gt;, &lt;code&gt;NO_CLAIM&lt;/code&gt;, and &lt;code&gt;LEGACY&lt;/code&gt; (for backwards compatibility). You can pass the restore mode like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ bin/flink run -s :savepointPath -restoreMode :mode -n [:runArgs]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;While each restore mode serves a specific purpose, we believe the default &lt;em&gt;NO_CLAIM&lt;/em&gt; mode is a good
+tradeoff in most situations, as it provides clear ownership with a small price for the first
+checkpoint after the restore.&lt;/p&gt;
+
+&lt;p&gt;Let’s dig further into each of the modes.&lt;/p&gt;
+
+&lt;h3 id=&quot;legacy-mode&quot;&gt;LEGACY mode&lt;/h3&gt;
+
+&lt;p&gt;The legacy mode is how Flink dealt with snapshots until version 1.15. In this mode, Flink will never delete the initial
+checkpoint. Unfortunately, at the same time, it is not clear if a user can ever delete it as well. 
+The problem here is that Flink might immediately build an incremental checkpoint on top of the
+restored one. Therefore, subsequent checkpoints depend on the restored checkpoint. Overall, the
+ownership is not well defined in this mode.&lt;/p&gt;
+
+&lt;div style=&quot;text-align: center&quot;&gt;
+  &lt;img src=&quot;/img/blog/2022-05-06-restore-modes/restore-mode-legacy.svg&quot; alt=&quot;LEGACY restore mode&quot; width=&quot;70%&quot; /&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;noclaim-default-mode&quot;&gt;NO_CLAIM (default) mode&lt;/h3&gt;
+
+&lt;p&gt;To fix the issue of files that no one can reliably claim ownership of, we introduced the &lt;code&gt;NO_CLAIM&lt;/code&gt;
+mode as the new default. In this mode, Flink will not assume ownership of the snapshot and will leave the files in
+the user’s control and never delete any of the files.  You can start multiple jobs from the
+same snapshot in this mode.&lt;/p&gt;
+
+&lt;p&gt;In order to make sure Flink does not depend on any of the files from that snapshot, it will force
+the first (successful) checkpoint to be a full checkpoint as opposed to an incremental one. This
+only makes a difference for &lt;code&gt;state.backend: rocksdb&lt;/code&gt;, because all other state backends always take
+full checkpoints.&lt;/p&gt;
+
+&lt;p&gt;Once the first full checkpoint completes, all subsequent checkpoints will be taken as
+usual/configured. Consequently, once a checkpoint succeeds, you can manually delete the original
+snapshot. You can not do this earlier, because without any completed checkpoints, Flink will - upon
+failure - try to recover from the initial snapshot.&lt;/p&gt;
+
+&lt;div style=&quot;text-align: center&quot;&gt;
+  &lt;img src=&quot;/img/blog/2022-05-06-restore-modes/restore-mode-no_claim.svg&quot; alt=&quot;NO_CLAIM restore mode&quot; width=&quot;70%&quot; /&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;claim-mode&quot;&gt;CLAIM mode&lt;/h3&gt;
+
+&lt;p&gt;If you do not want to sacrifice any performance while taking the first checkpoint, we suggest
+looking into the &lt;code&gt;CLAIM&lt;/code&gt; mode. In this mode, Flink claims ownership of the snapshot
+and essentially treats it like a checkpoint: it controls the lifecycle and might delete it if it is
+not needed for recovery anymore. Hence, it is not safe to manually delete the snapshot or to start
+two jobs from the same snapshot. Flink keeps around a configured number of checkpoints.&lt;/p&gt;
+
+&lt;div style=&quot;text-align: center&quot;&gt;
+  &lt;img src=&quot;/img/blog/2022-05-06-restore-modes/restore-mode-claim.svg&quot; alt=&quot;CLAIM restore mode&quot; width=&quot;70%&quot; /&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;savepoint-format&quot;&gt;Savepoint format&lt;/h2&gt;
+
+&lt;p&gt;You can now trigger savepoints in the native format of state backends.
+This has been introduced to match two characteristics, one of both savepoints and
+checkpoints:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;self-contained, relocatable, and owned by users&lt;/li&gt;
+  &lt;li&gt;lightweight (and thus fast to take and recover from)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In order to provide the two features in a single concept, we provided a way for Flink to create a
+savepoint in a (native) binary format of the used state backend. This brings a significant difference
+especially in combination with the &lt;code&gt;state.backend: rocksdb&lt;/code&gt; setting and incremental snapshots.&lt;/p&gt;
+
+&lt;p&gt;That state backend can leverage RocksDB native on-disk data structures which are usually referred to
+as SST files. Incremental checkpoints leveraged those files and are
+collections of those SST files with some additional metadata, which can be quickly reloaded
+into the working directory of RocksDB upon restore.&lt;/p&gt;
+
+&lt;p&gt;Native savepoints can use the same mechanism of uploading the SST files instead of dumping the
+entire state into a canonical Flink format. There is one additional benefit over simply using the
+externalized incremental checkpoints: native savepoints are still relocatable and self-contained
+in a single directory. In case of checkpoints that do not hold, because a single SST file can be
+used by multiple checkpoints, and thus is put into a common shared directory. That is why they are
+called incremental.&lt;/p&gt;
+
+&lt;p&gt;You can choose the savepoint format when triggering the savepoint like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;# take an intermediate savepoint
+$ bin/flink savepoint --type [native/canonical] :jobId [:targetDirectory]
+
+# stop the job with a savepoint
+$ bin/flink stop --type [native/canonical] --savepointPath [:targetDirectory] :jobId
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;capabilities-and-limitations&quot;&gt;Capabilities and limitations&lt;/h3&gt;
+
+&lt;p&gt;Unfortunately it is not possible to provide the same guarantees for all types of snapshots 
+(canonical or native savepoints and aligned or unaligned checkpoints). The main difference between
+checkpoints and savepoints is that savepoints are still triggered and owned by users. Flink does not
+create them automatically nor ever depends on their existence. Their main purpose is still for planned,
+manual backups, whereas checkpoints are used for recovery. In database terms, savepoints are similar
+to backups, whereas checkpoints are like recovery logs.&lt;/p&gt;
+
+&lt;p&gt;Having additional dimensions of properties in each of the two main snapshots category does not make
+it easier, therefore we try to list what you can achieve with every type of snapshot.&lt;/p&gt;
+
+&lt;p&gt;The following table gives an overview of capabilities and limitations for the various types of
+savepoints and checkpoints.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;✓ - Flink fully supports this type of snapshot&lt;/li&gt;
+  &lt;li&gt;x - Flink doesn’t support this type of snapshot&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Operation&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Canonical Savepoint&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Native Savepoint&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Aligned Checkpoint&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Unaligned Checkpoint&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;State backend change&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;State Processor API(writing)&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;State Processor API(reading)&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Self-contained and relocatable&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Schema evolution&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Arbitrary job upgrade&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Non-arbitrary job upgrade&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Flink minor version upgrade&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;x&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Flink bug/patch version upgrade&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Rescaling&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;✓&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;State backend change - you can restore from the snapshot with a different state.backend than the
+one for which the snapshot was taken&lt;/li&gt;
+  &lt;li&gt;State Processor API (writing) - The ability to create new snapshot via State Processor API.&lt;/li&gt;
+  &lt;li&gt;State Processor API (reading) - The ability to read state from the existing snapshot via State
+Processor API.&lt;/li&gt;
+  &lt;li&gt;Self-contained and relocatable - One snapshot directory contains everything it needs for recovery.
+You can move the directory around.&lt;/li&gt;
+  &lt;li&gt;Schema evolution - Changing the data type of the &lt;em&gt;state&lt;/em&gt; in your UDFs.&lt;/li&gt;
+  &lt;li&gt;Arbitrary job upgrade - Restoring the snapshot with the different partitioning type(rescale,
+rebalance, map, etc.)
+or with a different record type for the existing operator. In other words you can add arbitrary
+operators anywhere in your job graph.&lt;/li&gt;
+  &lt;li&gt;Non-arbitrary job upgrade - In contrary to the above, you still should be able to add new
+operators, but certain limitations apply. You can not change partitioning for existing operators
+or the data type of records being exchanged.&lt;/li&gt;
+  &lt;li&gt;Flink minor version upgrade - Restoring a snapshot which was taken for an older minor version of
+Flink (1.x → 1.y).&lt;/li&gt;
+  &lt;li&gt;Flink bug/patch version upgrade - Restoring a snapshot which was taken for an older patch version
+of Flink (1.14.x → 1.14.y).&lt;/li&gt;
+  &lt;li&gt;Rescaling - Restoring the snapshot with a different parallelism than was used during the snapshot
+creation.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;We hope the changes we introduced over the last releases make it easier to operate Flink in respect
+to snapshotting. We are eager to hear from you if any of the new features have helped you solve problems you’ve faced in the past.
+At the same time, if you still struggle with an issue or you had to work around some obstacles, please let
+us know! Maybe we will be able to incorporate your approach or find a different solution together.&lt;/p&gt;
+</description>
+<pubDate>Fri, 06 May 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/05/06/restore-modes.html</link>
+<guid isPermaLink="true">/2022/05/06/restore-modes.html</guid>
+</item>
+
+<item>
 <title>Announcing the Release of Apache Flink 1.15</title>
 <description>&lt;p&gt;Thanks to our well-organized and open community, Apache Flink continues 
 &lt;a href=&quot;https://www.apache.org/foundation/docs/FY2021AnnualReport.pdf&quot;&gt;to grow&lt;/a&gt; as a 
@@ -19884,249 +20675,6 @@ If you need to turn off credit-based flow control, you can add this to your &lt;
 <pubDate>Wed, 05 Jun 2019 10:45:00 +0200</pubDate>
 <link>https://flink.apache.org/2019/06/05/flink-network-stack.html</link>
 <guid isPermaLink="true">/2019/06/05/flink-network-stack.html</guid>
-</item>
-
-<item>
-<title>State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink</title>
-<description>&lt;p&gt;A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.&lt;/p&gt;
-
-&lt;p&gt;In this post, we motivate the State TTL feature and discuss its use cases. Moreover, we show how to use and configure it. We explain how Flink internally manages state with TTL and present some exciting additions to the feature in Flink 1.8.0. The blog post concludes with an outlook on future improvements and extensions.&lt;/p&gt;
-
-&lt;h1 id=&quot;the-transient-nature-of-state&quot;&gt;The Transient Nature of State&lt;/h1&gt;
-
-&lt;p&gt;There are two major reasons why state should be maintained only for a limited time. For example, let’s imagine a Flink application that ingests a stream of user login events and stores for each user the time of the last login to improve the experience of frequent visitors.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Controlling the size of state.&lt;/strong&gt;
-Being able to efficiently manage an ever-growing state size is a primary use case for state TTL. Oftentimes, data needs to be persisted temporarily while there is some user activity around it, e.g. web sessions. When the activity ends there is no longer interest in that data while it still occupies storage. Flink 1.8.0 introduces background cleanup of old state based on TTL that makes the eviction of no-longer-necessary data frictionless. Previously, the application developer had to take extra actions and explicitly remove useless state to free storage space. This manual clean up procedure was not only error prone but also less efficient than the new lazy method to remove state. Following our previous example of storing the time of the last login, this might not be necessary after some time because the user can be treated as “infrequent” later on.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Complying with data protection and sensitive data requirements.&lt;/strong&gt;
-Recent developments around data privacy regulations, such as the General Data Protection Regulation (GDPR) introduced by the European Union, make compliance with such data requirements or treating sensitive data a top priority for many use cases and applications. An example of such use cases includes applications that require keeping data for a specific timeframe and preventing access to it thereafter. This is a common challenge for companies providing short-term services to their customers. The state TTL feature gives guarantees for how long an application can access state and hence can help to comply with data protection regulations.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Both requirements can be addressed by a feature that periodically, yet continuously, removes the state for a key once it becomes unnecessary or unimportant and there is no requirement to keep it in storage any more.&lt;/p&gt;
-
-&lt;h1 id=&quot;state-ttl-for-continuous-cleanup-of-application-state&quot;&gt;State TTL for continuous cleanup of application state&lt;/h1&gt;
-
-&lt;p&gt;The 1.6.0 release of Apache Flink introduced the State TTL feature. It enabled developers of stream processing applications to configure the state of operators to expire and be cleaned up after a defined timeout (time-to-live). In Flink 1.8.0 the feature was extended, including continuous cleanup of old entries for both the RocksDB and the heap state backends (FSStateBackend and MemoryStateBackend), enabling a continuous cleanup process of old entries (according to the TTL setting).&lt;/p&gt;
-
-&lt;p&gt;In Flink’s DataStream API, application state is defined by a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.8/dev/stream/state/state.html#using-managed-keyed-state&quot;&gt;state descriptor&lt;/a&gt;. State TTL is configured by passing a &lt;code&gt;StateTtlConfiguration&lt;/code&gt; object to a state descriptor. The following Java example shows how to create a state TTL configuration and provide it to the state descriptor that holds the last login time of a user as a &lt;code&gt;Long&lt;/code&gt; value:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.state.StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.time.Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.api.common.state.ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setUpdateType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;UpdateType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;OnCreateAndWrite&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setStateVisibility&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;StateVisibility&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;NeverReturnExpired&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    
-&lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lastUserLogin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; 
-    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ValueStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;lastUserLogin&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;lastUserLogin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;enableTimeToLive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Flink provides multiple options to configure the behavior of the state TTL functionality.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;When is the Time-to-Live reset?&lt;/strong&gt; 
-By default, the expiration time of a state entry is updated when the state is modified. Optionally, it can also be updated on read access at the cost of an additional write operation to update the timestamp.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Can the expired state be accessed one last time?&lt;/strong&gt; 
-State TTL employs a lazy strategy to clean up expired state. This can lead to the situation that an application attempts to read state which is expired but hasn’t been removed yet. You can configure whether such a read request returns the expired state or not. In either case, the expired state is immediately removed afterwards. While the option of returning expired state favors data availability, not returning expired state can be required for data protection regulations.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Which time semantics are used for the Time-to-Live timers?&lt;/strong&gt; 
-With Flink 1.8.0, users can only define a state TTL in terms of processing time. The support for event time is planned for future Apache Flink releases.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can read more about how to use state TTL in the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/dev/stream/state/state.html#state-time-to-live-ttl&quot;&gt;Apache Flink documentation&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Internally, the State TTL feature is implemented by storing an additional timestamp of the last relevant state access, along with the actual state value. While this approach adds some storage overhead, it allows Flink to check for the expired state during state access, checkpointing, recovery, or dedicated storage cleanup procedures.&lt;/p&gt;
-
-&lt;h1 id=&quot;taking-out-the-garbage&quot;&gt;“Taking out the Garbage”&lt;/h1&gt;
-
-&lt;p&gt;When a state object is accessed in a read operation, Flink will check its timestamp and clear the state if it is expired (depending on the configured state visibility, the expired state is returned or not). Due to this lazy removal, expired state that is never accessed again will forever occupy storage space unless it is garbage collected.&lt;/p&gt;
-
-&lt;p&gt;So how can the expired state be removed without the application logic explicitly taking care of it? In general, there are different possible strategies to remove it in the background.&lt;/p&gt;
-
-&lt;h2 id=&quot;keep-full-state-snapshots-clean&quot;&gt;Keep full state snapshots clean&lt;/h2&gt;
-
-&lt;p&gt;Flink 1.6.0 already supported automatic eviction of the expired state when a full snapshot for a checkpoint or savepoint is taken. Note that state eviction is not applied for incremental checkpoints. State eviction on full snapshots must be explicitly enabled as shown in the following example:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupFullSnapshot&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The local storage stays untouched but the size of the stored snapshot is reduced. The local state of an operator will only be cleaned up when the operator reloads its state from a snapshot, i.e. in case of recovery or when starting from a savepoint.&lt;/p&gt;
-
-&lt;p&gt;Due to these limitations, applications still need to actively remove state after it expired in Flink 1.6.0. To improve the user experience, Flink 1.8.0 introduces two more autonomous cleanup strategies, one for each of Flink’s two state backend types. We describe them below.&lt;/p&gt;
-
-&lt;h2 id=&quot;incremental-cleanup-in-heap-state-backends&quot;&gt;Incremental cleanup in Heap state backends&lt;/h2&gt;
-
-&lt;p&gt;This approach is specific to the Heap state backends (FSStateBackend and MemoryStateBackend). The idea is that the storage backend keeps a lazy global iterator over all state entries. Certain events, for instance state access, trigger an incremental cleanup. Every time an incremental cleanup is triggered, the iterator is advanced. The traversed state entries are checked and expired once are removed. The following code example shows how to enable incremental cleanup:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// check 10 keys for every state access&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupIncrementally&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If enabled, every state access triggers a cleanup step. For every clean up step, a certain number of state entries are checked for expiration. There are two tuning parameters. The first defines the number of state entries to check for each cleanup step. The second parameter is a flag to trigger a cleanup step after each processed record, additionally to each state access.&lt;/p&gt;
-
-&lt;p&gt;There are two important caveats about this approach: 
-* The first one is that the time spent for the incremental cleanup increases the record processing latency.
-* The second one should be practically negligible but still worth mentioning: if no state is accessed or no records are processed, expired state won’t be removed.&lt;/p&gt;
-
-&lt;h2 id=&quot;rocksdb-background-compaction-to-filter-out-expired-state&quot;&gt;RocksDB background compaction to filter out expired state&lt;/h2&gt;
-
-&lt;p&gt;If your application uses the RocksDB state backend, you can enable another cleanup strategy which is based on a Flink specific compaction filter. RocksDB periodically runs asynchronous compactions to merge state updates and reduce storage. The Flink compaction filter checks the expiration timestamp of state entries with TTL and discards all expired values.&lt;/p&gt;
-
-&lt;p&gt;The first step to activate this feature is to configure the RocksDB state backend by setting the following Flink configuration option: &lt;code&gt;state.backend.rocksdb.ttl.compaction.filter.enabled&lt;/code&gt;. Once the RocksDB state backend is configured, the compaction cleanup strategy is enabled for a state as shown in the following code example:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttlConfig&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StateTtlConfig&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;days&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cleanupInRocksdbCompactFilter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Keep in mind that calling the Flink TTL filter slows down the RocksDB compaction.&lt;/p&gt;
-
-&lt;h2 id=&quot;eager-state-cleanup-with-timers&quot;&gt;Eager State Cleanup with Timers&lt;/h2&gt;
-
-&lt;p&gt;Another way to manually cleanup state is based on Flink timers. This is an idea that the community is currently evaluating for future releases. With this approach, a cleanup timer is registered for every state access. This approach is more predictable because state is eagerly removed as soon as it expires. However, it is more expensive because the timers consume storage along with the original state.&lt;/p&gt;
-
-&lt;h1 id=&quot;future-work&quot;&gt;Future work&lt;/h1&gt;
-
-&lt;p&gt;Apart from including the timer-based cleanup strategy, mentioned above, the Flink community has plans to further improve the state TTL feature. The possible improvements include adding support of TTL for event time scale (only processing time is supported at the moment) and enabling State TTL for queryable state.&lt;/p&gt;
-
-&lt;p&gt;We encourage you to join the conversation and share your thoughts and ideas in the &lt;a href=&quot;https://issues.apache.org/jira/projects/FLINK/summary&quot;&gt;Apache Flink JIRA board&lt;/a&gt; or by subscribing to the Apache Flink dev mailing list. Feedback or suggestions are always appreciated and we look forward to hearing your thoughts on the Flink mailing lists.&lt;/p&gt;
-
-&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;Time-based state access restrictions and controlling the size of application state are common challenges in the world of stateful stream processing. Flink’s 1.8.0 release significantly improves the State TTL feature by adding support for continuous background cleanup of expired state objects. The new clean up mechanisms relieve you from manually implementing state cleanup. They are also more efficient due to their lazy nature. State TTL gives you control over the size of your application state so that you can focus on the core logic of your applications.&lt;/p&gt;
-</description>
-<pubDate>Sun, 19 May 2019 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/2019/05/19/state-ttl.html</link>
-<guid isPermaLink="true">/2019/05/19/state-ttl.html</guid>
-</item>
-
-<item>
-<title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL</title>
-<description>&lt;p&gt;Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of &lt;strong&gt;temporal data&lt;/strong&gt;, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables1.png&quot; width=&quot;500px&quot; alt=&quot;Taxi Fares and Conversion Rates&quot; /&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;For example:&lt;/strong&gt; given a stream with Taxi Fare events tied to the local currency of the ride location, we might want to convert the fare price to a common currency for further processing. As conversion rates excel at fluctuating over time, each Taxi Fare event would need to be matched to the rate that was valid at the time the event occurred in order to produce a reliable result.&lt;/p&gt;
-
-&lt;h2 id=&quot;modelling-temporal-data-with-flink&quot;&gt;Modelling Temporal Data with Flink&lt;/h2&gt;
-
-&lt;p&gt;In the 1.7 release, Flink has introduced the concept of &lt;strong&gt;temporal tables&lt;/strong&gt; into its streaming SQL and Table API: parameterized views on append-only tables — or, any table that only allows records to be inserted, never updated or deleted — that are interpreted as a changelog and keep data closely tied to time context, so that it can be interpreted as valid only within a specific period of time. Transforming a stream into a temporal table requires:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Defining a &lt;strong&gt;primary key&lt;/strong&gt; and a &lt;strong&gt;versioning field&lt;/strong&gt; that can be used to keep track of the changes that happen over time;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Exposing the stream as a &lt;strong&gt;temporal table function&lt;/strong&gt; that maps each point in time to a static relation.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.8/dev/table/udfs.html#table-functions&quot;&gt;table function&lt;/a&gt; class and can be defined in the same straightforward way to be used with the Table API or SQL parser.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.table.functions.TemporalTableFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
- 
-&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;
- 
-&lt;span class=&quot;c1&quot;&gt;// Get the stream and table environments.&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StreamTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTableEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;c1&quot;&gt;// Provide a sample static data set of the rates history table.&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;();&lt;/span&gt;
- 
-&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;USD&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;EUR&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;114L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;YEN&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;EUR&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;116L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;USD&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;105L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
- 
-&lt;span class=&quot;c1&quot;&gt;// Create and register an example table using the sample data set.&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tuple2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistoryStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromCollection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;n&quot;&gt;Table&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;fromDataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ratesHistoryStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;r_currency, r_rate, r_proctime.proctime&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;RatesHistory&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;c1&quot;&gt;// Create and register the temporal table function &amp;quot;rates&amp;quot;.&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Define &amp;quot;r_proctime&amp;quot; as the versioning field and &amp;quot;r_currency&amp;quot; as the primary key.&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;TemporalTableFunction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rates&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratesHistory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;createTemporalTableFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;r_proctime&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;r_currency&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;n&quot;&gt;tEnv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;registerFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Rates&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rates&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
- 
-&lt;span class=&quot;o&quot;&gt;(...)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;What does this &lt;strong&gt;Rates&lt;/strong&gt; function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;11:00&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables2.png&quot; width=&quot;650px&quot; alt=&quot;Point-in-time Querying&quot; /&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;Even though Flink does not yet support querying temporal table functions with a constant time attribute parameter, these functions can be used to cover a much more interesting scenario: temporal table joins.&lt;/p&gt;
-
-&lt;h2 id=&quot;streaming-joins-using-temporal-tables&quot;&gt;Streaming Joins using Temporal Tables&lt;/h2&gt;
-
-&lt;p&gt;Temporal tables reach their full potential when used in combination — erm, joined — with streaming data, for instance to power applications that must continuously whitelist against a reference dataset that changes over time for auditing or regulatory compliance. While efficient joins have long been an enduring challenge for query processors due to computational cost and resource consumption, joins over streaming data carry some additional challenges:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The &lt;strong&gt;unbounded&lt;/strong&gt; nature of streams means that inputs are continuously evaluated and intermediate join results can consume memory resources indefinitely. Flink gracefully manages its memory consumption out-of-the-box (even for heavier cases where joins require spilling to disk) and supports time-windowed joins to bound the amount of data that needs to be kept around as state;&lt;/li&gt;
-  &lt;li&gt;Streaming data might be &lt;strong&gt;out-of-order&lt;/strong&gt; and &lt;strong&gt;late&lt;/strong&gt;, so it is not possible to enforce an ordering upfront and time handling requires some thinking to avoid unnecessary outputs and retractions.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In the particular case of temporal data, time-windowed joins are not enough (well, at least not without getting into some expensive tweaking): sooner or later, each reference record will fall outside of the window and be wiped from state, no longer being considered for future join results. To address this limitation, Flink has introduced support for temporal table joins to cover time-varying relations.&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables3.png&quot; width=&quot;500px&quot; alt=&quot;Temporal Table Join between Taxi Fares and Conversion Rates&quot; /&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;Each record from the append-only table on the probe side (&lt;code&gt;Taxi Fare&lt;/code&gt;) is joined with the version of the record from the temporal table on the build side (&lt;code&gt;Conversion Rate&lt;/code&gt;) that most closely matches the probe side record time attribute (&lt;code&gt;time&lt;/code&gt;) for the same value of the primary key (&lt;code&gt;currency&lt;/code&gt;). Remember the temporal table function (&lt;code&gt;Rates&lt;/code&gt;) we registered earlier? It can now be used to express this join as a simple SQL statement that would otherwise require a heavier statement with a subquery.&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-05-13-temporal-tables/TemporalTables4.png&quot; width=&quot;700px&quot; alt=&quot;Regular Join vs. Temporal Table Join&quot; /&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;Temporal table joins support both &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins&quot;&gt;processing&lt;/a&gt; and &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins&quot;&gt;event time&lt;/a&gt; semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Narrowing the &lt;strong&gt;scope&lt;/strong&gt; of the join: only the time-matching version of &lt;code&gt;ratesHistory&lt;/code&gt; is visible for a given &lt;code&gt;taxiFare.time&lt;/code&gt;;&lt;/li&gt;
-  &lt;li&gt;Pruning &lt;strong&gt;unneeded records&lt;/strong&gt; from state: for cases using event time, records between current time and the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks&quot;&gt;watermark&lt;/a&gt; delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;All this means it is now possible to express continuous stream enrichment in relational and time-varying terms using Flink without dabbling into syntactic patchwork or compromising performance. In other words: stream time-travelling minus the flux capacitor. Extending this syntax to batch processing for enriching historic data with proper (event) time semantics is also part of the Flink roadmap!&lt;/p&gt;
-
-&lt;p&gt;If you’d like to get some &lt;strong&gt;hands-on practice in joining streams with Flink SQL&lt;/strong&gt; (and Flink SQL in general), checkout this &lt;a href=&quot;https://github.com/ververica/sql-training/wiki&quot;&gt;free training for Flink SQL&lt;/a&gt;. The training environment is based on Docker and set up in just a few minutes.&lt;/p&gt;
-
-&lt;p&gt;Subscribe to the &lt;a href=&quot;/community.html#mailing-lists&quot;&gt;Apache Flink mailing lists&lt;/a&gt; to stay up-to-date with the latest developments in this space.&lt;/p&gt;
-</description>
-<pubDate>Tue, 14 May 2019 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/2019/05/14/temporal-tables.html</link>
-<guid isPermaLink="true">/2019/05/14/temporal-tables.html</guid>
 </item>
 
 </channel>
