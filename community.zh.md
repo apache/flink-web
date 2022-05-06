@@ -212,6 +212,8 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
 
 # PMC 和 Committer 列表
 
+以下列表可能不是最新。最新列表请参考<a href="https://projects.apache.org/committee.html?flink">此页面</a>。
+
 <table class="table table-striped">
   <thead>
     <th class="text-center"></th>

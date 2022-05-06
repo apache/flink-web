@@ -219,6 +219,8 @@ Flink Forward is a conference happening yearly in different locations around the
 
 # People
 
+The list below could be outdated. Please find the most up-to-date list <a href="https://projects.apache.org/committee.html?flink">here</a>.
+
 <table class="table table-striped">
   <thead>
     <th class="text-center"></th>
