@@ -481,6 +481,12 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">twalthr</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/99001603?s=50" class="committer-avatar"></td>
+    <td class="text-center">Feng Wang</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">fengwang</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
     <td class="text-center">Shaoxuan Wang</td>
     <td class="text-center">PMC, Committer</td>
