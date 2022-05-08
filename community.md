@@ -379,6 +379,12 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">andra</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars.githubusercontent.com/u/11065508?v=4" class="committer-avatar"></td>
+    <td class="text-center">Yuan Mei</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">yuanmei</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/89049?s=50" class="committer-avatar"></td>
     <td class="text-center">Robert Metzger</td>
     <td class="text-center">PMC, Committer</td>
