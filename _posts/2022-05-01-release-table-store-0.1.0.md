@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Apache Flink Table Store 0.1.0 Release Announcement"
-subtitle: "Unified streaming and batch store for building dynamic tables on Apache Flink."
+subtitle: "For building dynamic tables for both stream and batch processing in Flink, supporting high speed data ingestion and timely data query."
 date: 2022-05-01T08:00:00.000Z
 categories: news
 authors:
@@ -13,9 +13,8 @@ authors:
 The Apache Flink community is pleased to announce the preview release of the
 [Apache Flink Table Store](https://github.com/apache/flink-table-store) (0.1.0).
 
-Flink Table Store is a unified streaming and batch store for building dynamic tables
-on Apache Flink. It uses a full Log-Structured Merge-Tree (LSM) structure for high speed
-and a large amount of data update & query capability.
+Flink Table Store is for building dynamic tables for both stream and batch processing in Flink,
+supporting high speed data ingestion and timely data query.
 
 Please check out the full [documentation]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.1/) for detailed information and user guides.
 
@@ -29,52 +28,48 @@ Open [Flink official website](https://flink.apache.org/), you can see the follow
 which brings real-time big data computing. Users need to combine Flink with some kind of external storage.
 
 The message queue will be used in both source & intermediate stages in streaming pipeline, to guarantee the
-latency stay within seconds. There will also be a real-time OLAP system receiving processed data in streaming
-fashion and serving user’s ad-hoc queries.
+latency stay within seconds. But users need more than just stream consumption for intermediate data. The users
+may have query needs for intermediate data:
+- For example, after a data error, the user needs to troubleshoot where there is a problem in the pipeline.
+- Business may also have flexible query requirements to analyze intermediate data.
 
-Everything works fine as long as users only care about the aggregated results. But when users start to care
-about the intermediate data, they will immediately hit a blocker: Intermediate kafka tables are not queryable.
-
-Therefore, users use multiple systems. Writing to a lake store like Apache Hudi, Apache Iceberg while writing to Queue,
-the lake store keeps historical data at a lower cost.
-
-There are two main issues with doing this:
+So some users use multiple systems to store intermediate data, but this can cause many problems:
 - High understanding bar for users: It’s also not easy for users to understand all the SQL connectors,
   learn the capabilities and restrictions for each of those. Users may also want to play around with
   streaming & batch unification, but don't really know how, given the connectors are most of the time different
   in batch and streaming use cases.
 - Increasing architecture complexity: It’s hard to choose the most suited external systems when the requirements
   include streaming pipelines, offline batch jobs, ad-hoc queries. Multiple systems will increase the operation
-  and maintenance complexity. Users at least need to coordinate between the queue system and file system of each
-  table, which is error-prone.
+  and maintenance complexity.
 
-The Flink Table Store aims to provide a unified storage abstraction:
+Flink Table Store aims to provide a unified storage abstraction, the user will only see one abstraction. 
+Table Store offers the following core capabilities:
 - Table Store provides storage of historical data while providing queue abstraction.
-- Table Store provides competitive historical storage with lake storage capability, using LSM file structure
-  to store data on DFS, providing real-time updates and queries at a lower cost.
-- Table Store coordinates between the queue storage and historical storage, providing hybrid read and write capabilities.
-- Table Store is a storage created for Flink, which satisfies all the concepts of Flink SQL and is the most
-  suitable storage abstraction for Flink.
+- Table Store provides streaming queries with minimum latency down to milliseconds.
+- Table Store provides Batch/OLAP queries with minimum latency down to the second level.
+- Table Store provides incremental snapshots for stream consumption by default. Users
+  don't need to solve the problem of hybrid different stores.
 
-## Core Features
+<figure style="align-content: center">
+  <img src="{{ site.baseurl }}/img/blog/table-store/table-store-architecture.svg" style="display: block; margin-left: auto; margin-right: auto; width: 600px"/>
+</figure>
 
-Flink Table Store supports the following usage:
-- **Streaming Insert**: Write changelog streams, including CDC from the database and streams.
-- **Batch Insert**: Write batch data as offline warehouse, including OVERWRITE support.
-- **Batch/OLAP Query**: Read the snapshot of the storage, efficient querying of real-time data.
-- **Streaming Query**: Read the storage changes, ensure exactly-once consistency.
-
-Flink Table Store uses the following technologies to support the above user usages:
-- Hybrid Storage: Integrating Apache Kafka to achieve real-time stream computation.
-- LSM Structure: For a large amount of data updates and high performance queries.
-- Columnar File Format: Use Apache ORC to support efficient querying.
-- Lake Storage: Metadata and data on DFS and Object Store.
+In this preview version, as shown in the architecture above:
+- Users can use Flink to insert data into the Table Store, supporting not only CDC stream inserts from the database,
+  but also batch inserts from the offline data warehouse.
+- Users can use Flink to stream query the table store, users can also use Flink or Hive or other engines to
+  batch/OLAP query the table store.
+- Table Store uses a hybrid storage architecture, using Lake Store to store historical data and Queue system
+  (Kafka integration is currently supported) to store incremental data, and provides incremental snapshots
+  for hybrid streaming reads.
+- Table Store's Lake Store stores data as columnar files on DFS/CloudStorage, uses the LSM Structure for a large amount of data
+  updates and high performance queries.
 
 Many thanks for the inspiration of the following systems: [Apache Iceberg](https://iceberg.apache.org/) and [RocksDB](http://rocksdb.org/).
 
 ## Getting started
 
-For a detailed [getting started guide]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.1/docs/try-table-store/quick-start/) please check the documentation site.
+Please refer to the [getting started guide]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.1/docs/try-table-store/quick-start/) for more details.
 
 ## What's Next?
 
@@ -82,7 +77,7 @@ The community is currently working on hardening the core logic, stabilizing the 
 
 In the upcoming 0.2.0 release you can expect (at-least) the following additional features:
 
-* Ecology: Support Flink Table Store Reader for Apache Hive Engine
+* Ecosystem: Support Flink Table Store Reader for Apache Hive Engine
 * Core: Support the adjustment of the number of Bucket
 * Core: Support for Append Only Data, Table Store is not just limited to update scenarios
 * Core: Full Schema Evolution
@@ -90,7 +85,7 @@ In the upcoming 0.2.0 release you can expect (at-least) the following additional
 
 In the medium term, you can also expect:
 
-* Ecology: Support Flink Table Store Reader for Trino, PrestoDB and Apache Spark
+* Ecosystem: Support Flink Table Store Reader for Trino, PrestoDB and Apache Spark
 * Flink Table Store Service to accelerate updates and improve query performance
 
 Please give the preview release a try, share your feedback on the Flink mailing list and contribute to the project!
