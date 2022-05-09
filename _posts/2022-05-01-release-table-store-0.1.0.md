@@ -5,9 +5,10 @@ subtitle: "For building dynamic tables for both stream and batch processing in F
 date: 2022-05-01T08:00:00.000Z
 categories: news
 authors:
-- Jingsong Lee:
+- JingsongLi:
   name: "Jingsong Lee"
-
+- becketqin:
+  name: "Jiangjie (Becket) Qin"
 ---
 
 The Apache Flink community is pleased to announce the preview release of the
@@ -20,26 +21,21 @@ we do not recommend that you use it directly in a production environment.
 
 ## What is Flink Table Store
 
-Open [Flink official website](https://flink.apache.org/), you can see the following line:
-`Apache Flink - Stateful Computations over Data Streams.` Flink focuses on distributed computing,
-which brings real-time big data computing. Users need to combine Flink with some kind of external storage.
+In the past years, thanks to our numerous contributors and users, Apache Flink has established
+itself as one of the best distributed computing engines, especially for stateful stream processing
+at large scale. However, there are still a few challenges people are facing when they try to obtain
+insights from their data in real-time. Among these challenges, one prominent problem is lack of
+storage that caters to all the computing patterns.
 
-The message queue will be used in both source & intermediate stages in streaming pipeline, to guarantee the
-latency stay within seconds. But users need more than just stream consumption for intermediate data. The users
-may have query needs for intermediate data:
+As of now it is quite common that people deploy a few storage systems to work with Flink for different
+purposes. A typical setup is a message queue for stream processing, a scannable file system / object store
+for batch processing and ad-hoc queries, and a K-V store for lookups. Such architecture posts challenges
+in data quality and sysetm maintenance, due to its complexity and heterogeneity. This is becoming a major
+issue that hurts the end-to-end user experience of streaming and batch unification brought by Apache Flink.
 
-* For example, after a data error, the user needs to troubleshoot where there is a problem in the pipeline.
-* Business may also have flexible query requirements to analyze intermediate data.
-
-So some users use multiple systems to store intermediate data, but this can cause many problems:
-
-* High understanding bar for users: It’s also not easy for users to understand all the SQL connectors,
-  learn the capabilities and restrictions for each of those. Users may also want to play around with
-  streaming & batch unification, but don't really know how, given the connectors are most of the time different
-  in batch and streaming use cases.
-* Increasing architecture complexity: It’s hard to choose the most suited external systems when the requirements
-  include streaming pipelines, offline batch jobs, ad-hoc queries. Multiple systems will increase the operation
-  and maintenance complexity.
+The goal of Flink table store is to address the above issues. It is an important step of the project.
+It extends Flink's capability from computing to the storage domain. So we can provide a better end-to-end
+experience to the users.
 
 Flink Table Store aims to provide a unified storage abstraction, the user will only see one abstraction. 
 Table Store offers the following core capabilities:
@@ -63,8 +59,8 @@ In this preview version, as shown in the architecture above:
 * Table Store uses a hybrid storage architecture, using Lake Store to store historical data and Queue system
   (Kafka integration is currently supported) to store incremental data, and provides incremental snapshots
   for hybrid streaming reads.
-* Table Store's Lake Store stores data as columnar files on DFS/CloudStorage, uses the LSM Structure for a large amount of data
-  updates and high performance queries.
+* Table Store's Lake Store stores data as columnar files on file system / object store, uses the LSM Structure
+  for a large amount of data updates and high performance queries.
 
 Many thanks for the inspiration of the following systems: [Apache Iceberg](https://iceberg.apache.org/) and [RocksDB](http://rocksdb.org/).
 
