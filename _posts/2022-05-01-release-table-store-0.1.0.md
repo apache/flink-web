@@ -50,9 +50,9 @@ Table Store offers the following core capabilities:
 - Table Store provides incremental snapshots for stream consumption by default. Users
   don't need to solve the problem of hybrid different stores.
 
-<figure style="align-content: center">
-  <img src="{{ site.baseurl }}/img/blog/table-store/table-store-architecture.svg" style="display: block; margin-left: auto; margin-right: auto; width: 600px"/>
-</figure>
+<center>
+<img src="{{site.baseurl}}/img/blog/table-store/table-store-architecture.png" width="70%"/>
+</center>
 
 In this preview version, as shown in the architecture above:
 - Users can use Flink to insert data into the Table Store, supporting not only CDC stream inserts from the database,
