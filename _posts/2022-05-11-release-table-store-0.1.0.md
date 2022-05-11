@@ -16,8 +16,8 @@ The Apache Flink community is pleased to announce the preview release of the
 
 Please check out the full [documentation]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.1/) for detailed information and user guides.
 
-Note: Flink Table Store is still in beta status and undergoing rapid development,
-we do not recommend that you use it directly in a production environment.
+Note: Flink Table Store is still in beta status and undergoing rapid development.
+We do not recommend that you use it directly in a production environment.
 
 ## What is Flink Table Store
 
@@ -29,22 +29,22 @@ storage that caters to all the computing patterns.
 
 As of now it is quite common that people deploy a few storage systems to work with Flink for different
 purposes. A typical setup is a message queue for stream processing, a scannable file system / object store
-for batch processing and ad-hoc queries, and a K-V store for lookups. Such architecture posts challenges
-in data quality and sysetm maintenance, due to its complexity and heterogeneity. This is becoming a major
+for batch processing and ad-hoc queries, and a K-V store for lookups. Such an architecture posts challenge
+in data quality and system maintenance, due to its complexity and heterogeneity. This is becoming a major
 issue that hurts the end-to-end user experience of streaming and batch unification brought by Apache Flink.
 
-The goal of Flink table store is to address the above issues. It is an important step of the project.
+The goal of Flink table store is to address the above issues. This is an important step of the project.
 It extends Flink's capability from computing to the storage domain. So we can provide a better end-to-end
 experience to the users.
 
 Flink Table Store aims to provide a unified storage abstraction, so users don't have to build the hybrid
 storage by themselves. More specifically, Table Store offers the following core capabilities:
 
-* support storage of large datasets and allows read / write in both batch and streaming manner.
-* support streaming queries with minimum latency down to milliseconds.
-* support Batch/OLAP queries with minimum latency down to the second level.
-* support incremental snapshots for stream consumption by default. So users don't need to solve the
-  problem of hybrid different stores by themselves.
+* Support storage of large datasets and allows read / write in both batch and streaming manner.
+* Support streaming queries with minimum latency down to milliseconds.
+* Support Batch/OLAP queries with minimum latency down to the second level.
+* Support incremental snapshots for stream consumption by default. So users don't need to solve the
+  problem of combining different stores by themselves.
 
 <center>
 <img src="{{site.baseurl}}/img/blog/table-store/table-store-architecture.png" width="100%"/>
@@ -55,13 +55,13 @@ In this preview version, as shown in the architecture above:
 * Users can use Flink to insert data into the Table Store, either by streaming the change log
   captured from databases, or by loading the data in batches from the other stores like data warehouses.
 * Users can use Flink to query the table store in different ways, including streaming queries and
-  Batch/OLAP queries. It is also worth noting that users can also use other engines such as Apache Hive to
-  query from the table store.
+  Batch/OLAP queries. It is also worth noting that users can use other engines such as Apache Hive to
+  query from the table store as well.
 * Under the hood, table Store uses a hybrid storage architecture, using a Lake Store to store historical data
   and a Queue system (Apache Kafka integration is currently supported) to store incremental data. It provides
   incremental snapshots for hybrid streaming reads.
 * Table Store's Lake Store stores data as columnar files on file system / object store, and uses the LSM Structure
-  to support a large amount of data updates and high performance queries.
+  to support a large amount of data updates and high-performance queries.
 
 Many thanks for the inspiration of the following systems: [Apache Iceberg](https://iceberg.apache.org/) and [RocksDB](http://rocksdb.org/).
 
