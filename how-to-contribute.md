@@ -95,7 +95,7 @@ When contributing documentation, please review the rendered HTML versions of the
 cd docs
 ./build_docs.sh -p
 ```
-Now, open your browser at `http://localhost:4000` and check out the pages you changed.
+Now, open your browser at `http://localhost:1313` and check out the pages you changed.
 
 ## Contribute changes to the Website
 
