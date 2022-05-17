@@ -81,22 +81,25 @@ This Flink's feature is called buffer debloating that automatically adjusts the 
 which allows for keeping the processing time near the configured one.
 For example, instead of configuring 1GB of in-flight data per subtask, 
 it makes more sense to configure 1 second as the maximum expected time for processing all in-flight data on one subtask.
-Then, the following behaviours will be observed:
 
-- In case of [backpressure](https://flink.apache.org/2021/07/07/backpressure.html):
-  - The checkpoint time for [aligned checkpoint](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#checkpointing) become more predictable since we know that every task holds in-flight data 
+The benefits of buffer debloating is better visible when [backpressure](https://flink.apache.org/2021/07/07/backpressure.html) occurs. 
+The reason is that no backpressure means that the downstream task is processing input faster than (or equally fast as) data arrives 
+such that its input buffer is barely filled and, consequently, buffer debloating has almost no visible effect.
+
+This is the opposite when [backpressure](https://flink.apache.org/2021/07/07/backpressure.html) occurs as it means input buffers are frequently filled. 
+Since buffer debloating limits the amount of data in the input buffer, we observe the following benefits with regard to checkpointing:
+
+- The checkpoint time for [aligned checkpoint](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#checkpointing) become more predictable since we know that every task holds in-flight data 
 which can be processed for the configured time, which is important since [aligned checkpoint's barriers](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#barriers) travels along with other buffers in the same priority
-  - The size of files on disk for [unaligned checkpoint](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) 
+- The size of files on disk for [unaligned checkpoint](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) 
 is decreased since during the backpressure the processing time increases which means that for conformity the configured processing time Flink should keep less in-flight data
-- In case of zero [backpressure](https://flink.apache.org/2021/07/07/backpressure.html):
-  - Zero backpressure means that the processing time is low enough and Flink can store more in-flight data for keeping the configured processing time 
-which makes the subtask prepared for possible instabilities.
 
 ## How does buffer debloating work?
 
 Conceptually, Flink has two major parameters for configuring in-flight data - the size of the network buffer(the segment) 
 and the number of maximum network buffers(managed by several real settings).
-Currently, the buffer debloating manages the memory usage by adjusting only the size of the network buffer while the number of network buffers remains always the constant.
+For simplicity, the buffer debloating currently manages the memory usage by adjusting only the size of the network buffer while the number of network buffers remains always constant.
+Nevertheless, the benefits of buffer debloating with regard to checkpointing are effective as described before.
 
 <div class="alert alert-info">
 The buffer debloating doesn't change the actual buffer size but limits the usage of each buffer to some adaptable maximum. 
