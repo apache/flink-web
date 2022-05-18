@@ -7,6 +7,107 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Getting into Low-Latency Gears with Apache Flink - Part One</title>
+<description>&lt;p&gt;Apache Flink is a stream processing framework well known for its low latency processing capabilities. It is generic and suitable for a wide range of use cases. As a Flink application developer or a cluster administrator, you need to find the right gear that is best for your application. In other words, you don’t want to be driving a luxury sports car while only using the first gear.&lt;/p&gt;
+
+&lt;p&gt;In this multi-part series, we will present a collection of low-latency techniques in Flink. Part one starts with types of latency in Flink and the way we measure the end-to-end latency, followed by a few techniques that optimize latency directly. Part two continues with a few more direct latency optimization techniques. Further parts of this series will cover techniques that improve latencies by optimizing throughput. For each optimization technique, we will clarify what it is, when to use it, and what to keep in mind when using it. We will also show experimental results to support our statements.&lt;/p&gt;
+
+&lt;p&gt;This series of blog posts is a write-up of &lt;a href=&quot;https://www.youtube.com/watch?v=4dwwokhQHwo&quot;&gt;our talk in Flink Forward Global 2021&lt;/a&gt; and includes additional latency optimization techniques and details.&lt;/p&gt;
+
+&lt;h1 id=&quot;latency&quot;&gt;Latency&lt;/h1&gt;
+
+&lt;h2 id=&quot;types-of-latency&quot;&gt;Types of latency&lt;/h2&gt;
+
+&lt;p&gt;Latency can refer to different things. &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/metrics/#end-to-end-latency-tracking&quot;&gt;LatencyMarkers&lt;/a&gt; in Flink measure the time it takes for the markers to travel from each source operator to each downstream operator. As LatencyMarkers bypass user functions in operators, the measured latencies do not reflect the entire end-to-end latency but only a part of it. Flink also supports tracking the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/metrics/#state-access-latency-tracking&quot;&gt;state access latency&lt;/a&gt;, which measures the response latency when state is read/written. One can also manually measure the time taken by some operators, or get this data with profilers. However, what users usually care about is the end-to-end latency, including the time spent in user-defined functions, in the stream processing framework, and when state is accessed. End-to-end latency is what we will focus on.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-we-measure-end-to-end-latency&quot;&gt;How we measure end-to-end latency&lt;/h2&gt;
+
+&lt;p&gt;There are two scenarios to consider. In the first scenario, a pipeline does a simple transformation, and there are no timers or any other complex event time logic. For example, a pipeline that produces one output event for each input event. In this case, we measure the processing delay as the latency, that is, &lt;code&gt;t2 - t1&lt;/code&gt; as shown in the diagram.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:40%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/scenario1-simple.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;The second scenario is where complex event time logic is involved (e.g., timers, aggregation, windowing). In this case, we measure the event time lag as the latency, that is, &lt;code&gt;current processing time - current watermark&lt;/code&gt;. The event time lag gives us the difference between the expected output time and the actual output time.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:40%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/scenario2-eventtime.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;In both scenarios, we capture a histogram and show the 99th percentile of the end-to-end latency. The latency we measure here includes the time an event stays in the source message queue (e.g., Kafka). The reason for this is that it covers the scenarios where a source operator in a pipeline is backpressured by other operators. The more the source operator is backpressured, the longer the messages stay in the message queue. So, including the time events stay in the message queue in the latency gives us how slow or fast a pipeline is.&lt;/p&gt;
+
+&lt;h1 id=&quot;low-latency-optimization-techniques&quot;&gt;Low-latency optimization techniques&lt;/h1&gt;
+
+&lt;p&gt;We will discuss low-latency techniques in two groups: techniques that optimize latency directly and techniques that improve latency by optimizing throughput.
+Each of these techniques can be as simple as a configuration change or may require code changes, or both. We have created a git repository containing the example jobs used in our experiments to support our statements. Keep in mind that all the experimental results we will show are specific to those jobs and the environment they run in. Your job may show different results depending on where the latency bottleneck is.&lt;/p&gt;
+
+&lt;h2 id=&quot;direct-latency-optimization&quot;&gt;Direct latency optimization&lt;/h2&gt;
+
+&lt;h3 id=&quot;allocate-enough-resources&quot;&gt;Allocate enough resources&lt;/h3&gt;
+&lt;p&gt;An obvious but often forgotten low-latency technique is to allocate enough resources to your job. Flink has some metrics (e.g., &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/monitoring/back_pressure/#task-performance-metrics&quot;&gt;idleTimeMsPerSecond&lt;/a&gt;, &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/monitoring/back_pressure/#task-performance-metrics&quot;&gt;busyTimeMsPerSecond&lt;/a&gt;, &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/monitoring/back_pressure/#task-performance-metrics&quot;&gt;backPressureTimeMsPerSecond&lt;/a&gt;) to indicate whether an operator/subtask is busy or not. This can also be spotted easily in the job graph on Flink’s Web UI if you are using &lt;a href=&quot;https://flink.apache.org/2021/07/07/backpressure.html&quot;&gt;Flink 1.13 or later&lt;/a&gt;. If some operators in your job are 100% busy, they will backpressure upstream operators and the backpressure may propagate up to the source operators.  Backpressure slows down the pipeline and results in high latency. If you scale up your job by adding more CPU/memory resources or scale out by increasing the parallelism, your job will be able to process events faster or process more events in parallel which leads to reduced latencies. We recommend having an average load below 70% under normal circumstances to accommodate load spikes that come from input data, timers, windowing, or other sources. You should adjust the threshold based on your job resource usage patterns and your latency requirements.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;You can apply this optimization&lt;/strong&gt; if your job or part of it is running at its total CPU/memory capacity and you have more resources that can be allocated to the job. In the case of scaling out with high parallelism, your streaming job must be able to make use of the additional resources. For example, the job should not have fixed parallelisms in the code, the job should not be bottlenecked on the source streams, and the input streams are partitionable by keys such that they can be processed in parallel and have no severe data skew, etc. In the case of scaling up by allocating more CPU cores, your streaming job must not be bottlenecked on a single thread or any other resources.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Keep in mind&lt;/strong&gt; that allocating more resources may result in increased financial costs, especially when you are running jobs in the cloud.&lt;/p&gt;
+
+&lt;p&gt;Below are the experimental results of &lt;a href=&quot;https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java&quot;&gt;WindowingJob&lt;/a&gt;. As you can see from the graph at the left, when the parallelism was 2, the two subtasks were often 100% busy. After we increased the parallelism to 3, the three subtasks were around 75% busy. As a result, the 99th percentile latency reduces from around 3 seconds to 650 milliseconds.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:90%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/increase-parallelism.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h3 id=&quot;use-applicable-state-backends&quot;&gt;Use applicable state backends&lt;/h3&gt;
+
+&lt;p&gt;When using the &lt;code&gt;filesystem&lt;/code&gt; (Flink 1.12 or early) or &lt;code&gt;hashmap&lt;/code&gt; (Flink 1.13 or later) state backend, the state objects are stored in memory and can be accessed directly. In contrast, when using the &lt;code&gt;rocksdb&lt;/code&gt; state backend, every state access has to go through a (de-)serialization process which in addition may involve disk accesses. So using &lt;code&gt;filesystem/hashmap&lt;/code&gt; state backend can help reduce latency.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;You can apply this optimization&lt;/strong&gt; if your state size is very small compared to the memory you can allocate to your job and your state size will not grow beyond your memory capacity. You can set the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/memory/mem_setup_tm/#managed-memory&quot;&gt;managed memory&lt;/a&gt; size to 0 if not needed. Since Flink 1.13, you can always start with the &lt;code&gt;hashmap&lt;/code&gt; state backend and seamlessly switch to the &lt;code&gt;rocksdb&lt;/code&gt; state backend via &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-41%3A+Unify+Binary+format+for+Keyed+State&quot;&gt;savepoints&lt;/a&gt; when the state increases to the size that is close to your memory capacity. Note that you should closely monitor the memory usage and perform the switch &lt;strong&gt;before&lt;/strong&gt; an out-of-memory happens. Please refer to &lt;a href=&quot;https://flink.apache.org/2021/01/18/rocksdb.html&quot;&gt;this Flink blog post&lt;/a&gt; for best practices when using the &lt;code&gt;rocksdb&lt;/code&gt; state backend.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Keep in mind&lt;/strong&gt; that heap-based state backends use more memory compared with RocksDB due to their copy-on-write data structure and Java’s on-heap object representation. Heap-based state backends can be affected by the garbage collector which makes them less predictable and may lead to high tail latencies. Also, as of now, there is no support for incremental checkpointing (this is being developed in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-151%3A+Incremental+snapshots+for+heap-based+state+backend&quot;&gt;FLIP-151&lt;/a&gt;). You should measure the difference before you make the switch.&lt;/p&gt;
+
+&lt;p&gt;Our experiments with the previously mentioned &lt;a href=&quot;https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java&quot;&gt;WindowingJob&lt;/a&gt; after switching the state backend from &lt;code&gt;rocksdb&lt;/code&gt; to &lt;code&gt;hashmap&lt;/code&gt; show a further reduction of the latency down to 500ms. Depending on your job’s state access pattern, you may see larger or smaller improvements. The graph on the right shows the garbage collection’s impact on the latency.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:90%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/choose-state-backend.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h3 id=&quot;emit-watermarks-quickly&quot;&gt;Emit watermarks quickly&lt;/h3&gt;
+
+&lt;p&gt;When using a periodic &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/event-time/generating_watermarks/&quot;&gt;watermark generator&lt;/a&gt;, Flink generates a watermark every 200 ms. This means that, by default, each parallel watermark generator does not produce watermark updates until 200 ms have passed. While this may be sufficient for many cases, if you are aiming for sub-second latencies, you could try reducing the interval even further, for example, to 100 ms.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;You can apply this optimization&lt;/strong&gt; if you use event time and a periodic watermark generator, and you are aiming for sub-second latencies.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Keep in mind&lt;/strong&gt; that watermark generation that is too frequent may also degrade performance because more watermarks must be processed by the framework. Moreover, even though watermarks are only created every 200 milliseconds, watermarks may arrive at much higher frequencies further downstream in your job because tasks may receive watermarks from multiple parallel watermark generators.&lt;/p&gt;
+
+&lt;p&gt;We re-ran the previous &lt;a href=&quot;https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java&quot;&gt;WindowingJob&lt;/a&gt; experiment with the reduced watermark interval &lt;code&gt;pipeline.auto-watermark-interval: 100ms&lt;/code&gt; and reduced the latency further to 430ms.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:50%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/watermark-interval.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h3 id=&quot;flush-network-buffers-early&quot;&gt;Flush network buffers early&lt;/h3&gt;
+
+&lt;p&gt;Flink uses buffers when sending data from one task to another over the network. Buffers are flushed and sent out when they are filled up or when the default timeout of 100ms has passed. Again, if you are aiming for sub-second latencies, you can lower the timeout to reduce latencies.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;You can apply this optimization&lt;/strong&gt; if you are aiming for sub-second latencies.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Keep in mind&lt;/strong&gt; that network buffer timeout that is too low may reduce throughput.&lt;/p&gt;
+
+&lt;p&gt;As seen in the following experiment results, by using &lt;code&gt;execution.buffer-timeout: 10 ms&lt;/code&gt; in &lt;a href=&quot;https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java&quot;&gt;WindowingJob&lt;/a&gt;, we again reduced the latency (now to 370ms).&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;8&quot; style=&quot;width:50%&quot; src=&quot;/img/blog/2022-05-18-latency-part1/buffer-timeout.png&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In part one of this multi-part series, we discussed types of latency in Flink and the way we measure end-to-end latency. Then we presented a few latency optimization techniques with a focus on direct latency optimization. For each technique, we explained what it is, when to use it, and what to keep in mind when using it. Part two will continue with a few more direct latency optimization techniques. Stay tuned!&lt;/p&gt;
+</description>
+<pubDate>Wed, 18 May 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/05/18/latency-part1.html</link>
+<guid isPermaLink="true">/2022/05/18/latency-part1.html</guid>
+</item>
+
+<item>
 <title>Apache Flink Table Store 0.1.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is pleased to announce the preview release of the
 &lt;a href=&quot;https://github.com/apache/flink-table-store&quot;&gt;Apache Flink Table Store&lt;/a&gt; (0.1.0).&lt;/p&gt;
@@ -20239,153 +20340,6 @@ Enabling latency metrics can significantly impact the performance of the cluster
 <pubDate>Tue, 23 Jul 2019 17:30:00 +0200</pubDate>
 <link>https://flink.apache.org/2019/07/23/flink-network-stack-2.html</link>
 <guid isPermaLink="true">/2019/07/23/flink-network-stack-2.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.8.1 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the first bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes more than 40 fixes and minor improvements for Flink 1.8.1. The list below includes a detailed list of all improvements, sub-tasks and bug fixes.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.8.1.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Sub-task
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10921&quot;&gt;FLINK-10921&lt;/a&gt;] -         Prioritize shard consumers in Kinesis Consumer by event time 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12617&quot;&gt;FLINK-12617&lt;/a&gt;] -         StandaloneJobClusterEntrypoint should default to random JobID for non-HA setups 
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9445&quot;&gt;FLINK-9445&lt;/a&gt;] -         scala-shell uses plain java command
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10455&quot;&gt;FLINK-10455&lt;/a&gt;] -         Potential Kafka producer leak in case of failures
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10941&quot;&gt;FLINK-10941&lt;/a&gt;] -         Slots prematurely released which still contain unconsumed data 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11059&quot;&gt;FLINK-11059&lt;/a&gt;] -         JobMaster may continue using an invalid slot if releasing idle slot meet a timeout
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11107&quot;&gt;FLINK-11107&lt;/a&gt;] -         Avoid memory stateBackend to create arbitrary folders under HA path when no checkpoint path configured
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11897&quot;&gt;FLINK-11897&lt;/a&gt;] -         ExecutionGraphSuspendTest does not wait for all tasks to be submitted
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11915&quot;&gt;FLINK-11915&lt;/a&gt;] -         DataInputViewStream skip returns wrong value
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11987&quot;&gt;FLINK-11987&lt;/a&gt;] -         Kafka producer occasionally throws NullpointerException
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12009&quot;&gt;FLINK-12009&lt;/a&gt;] -         Wrong check message about heartbeat interval for HeartbeatServices
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12042&quot;&gt;FLINK-12042&lt;/a&gt;] -         RocksDBStateBackend mistakenly uses default filesystem
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12112&quot;&gt;FLINK-12112&lt;/a&gt;] -         AbstractTaskManagerProcessFailureRecoveryTest process output logging does not work properly
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12132&quot;&gt;FLINK-12132&lt;/a&gt;] -         The example in /docs/ops/deployment/yarn_setup.md should be updated due to the change FLINK-2021
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12184&quot;&gt;FLINK-12184&lt;/a&gt;] -         HistoryServerArchiveFetcher isn&amp;#39;t compatible with old version
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12219&quot;&gt;FLINK-12219&lt;/a&gt;] -         Yarn application can&amp;#39;t stop when flink job failed in per-job yarn cluster mode
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12247&quot;&gt;FLINK-12247&lt;/a&gt;] -         fix NPE when writing an archive file to a FileSystem
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12260&quot;&gt;FLINK-12260&lt;/a&gt;] -         Slot allocation failure by taskmanager registration timeout and race
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12296&quot;&gt;FLINK-12296&lt;/a&gt;] -         Data loss silently in RocksDBStateBackend when more than one operator(has states) chained in a single task 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12297&quot;&gt;FLINK-12297&lt;/a&gt;] -         Make ClosureCleaner recursive
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12301&quot;&gt;FLINK-12301&lt;/a&gt;] -         Scala value classes inside case classes cannot be serialized anymore in Flink 1.8.0
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12342&quot;&gt;FLINK-12342&lt;/a&gt;] -         Yarn Resource Manager Acquires Too Many Containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12375&quot;&gt;FLINK-12375&lt;/a&gt;] -         flink-container job jar does not have read permissions
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12416&quot;&gt;FLINK-12416&lt;/a&gt;] -         Docker build script fails on symlink creation ln -s
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12544&quot;&gt;FLINK-12544&lt;/a&gt;] -         Deadlock while releasing memory and requesting segment concurrent in SpillableSubpartition
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12547&quot;&gt;FLINK-12547&lt;/a&gt;] -         Deadlock when the task thread downloads jars using BlobClient
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12646&quot;&gt;FLINK-12646&lt;/a&gt;] -         Use reserved IP as unrouteable IP in RestClientTest
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12688&quot;&gt;FLINK-12688&lt;/a&gt;] -         Make serializer lazy initialization thread safe in StateDescriptor
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12740&quot;&gt;FLINK-12740&lt;/a&gt;] -         SpillableSubpartitionTest deadlocks on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12835&quot;&gt;FLINK-12835&lt;/a&gt;] -         Time conversion is wrong in ManualClock
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12863&quot;&gt;FLINK-12863&lt;/a&gt;] -         Race condition between slot offerings and AllocatedSlotReport
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12865&quot;&gt;FLINK-12865&lt;/a&gt;] -         State inconsistency between RM and TM on the slot status
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12871&quot;&gt;FLINK-12871&lt;/a&gt;] -         Wrong SSL setup examples in docs
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12895&quot;&gt;FLINK-12895&lt;/a&gt;] -         TaskManagerProcessFailureBatchRecoveryITCase.testTaskManagerProcessFailure failed on travis 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12896&quot;&gt;FLINK-12896&lt;/a&gt;] -         TaskCheckpointStatisticDetailsHandler uses wrong value for JobID when archiving
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-11126&quot;&gt;FLINK-11126&lt;/a&gt;] -         Filter out AMRMToken in the TaskManager credentials
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12137&quot;&gt;FLINK-12137&lt;/a&gt;] -         Add more proper explanation on flink streaming connectors 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12169&quot;&gt;FLINK-12169&lt;/a&gt;] -         Improve Javadoc of MessageAcknowledgingSourceBase
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12378&quot;&gt;FLINK-12378&lt;/a&gt;] -         Consolidate FileSystem Documentation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12391&quot;&gt;FLINK-12391&lt;/a&gt;] -         Add timeout to transfer.sh
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12539&quot;&gt;FLINK-12539&lt;/a&gt;] -         StreamingFileSink: Make the class extendable to customize for different usecases
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Test
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12350&quot;&gt;FLINK-12350&lt;/a&gt;] -         RocksDBStateBackendTest doesn&amp;#39;t cover the incremental checkpoint code path
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Task
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12460&quot;&gt;FLINK-12460&lt;/a&gt;] -         Change taskmanager.tmp.dirs to io.tmp.dirs in configuration docs
-&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-<pubDate>Tue, 02 Jul 2019 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2019/07/02/release-1.8.1.html</link>
-<guid isPermaLink="true">/news/2019/07/02/release-1.8.1.html</guid>
 </item>
 
 </channel>
