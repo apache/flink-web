@@ -7,6 +7,380 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Improving speed and stability of checkpointing with generic log-based incremental checkpoints</title>
+<description>&lt;h1 id=&quot;introduction&quot;&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).&lt;/p&gt;
+
+&lt;p&gt;Furthermore, сheckpoint duration also defines the reasonable interval with which checkpoints are made. A shorter interval provides the following advantages:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Lower latency for transactional sinks: Transactional sinks commit on checkpoints, so faster checkpoints mean more frequent commits.&lt;/li&gt;
+  &lt;li&gt;More predictable checkpoint intervals: Currently, the duration of a checkpoint depends on the size of the artifacts that need to be persisted in the checkpoint storage.&lt;/li&gt;
+  &lt;li&gt;Less work on recovery. The more frequently the checkpoint, the fewer events need to be re-processed after recovery.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Following are the main factors affecting checkpoint duration in Flink:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Barrier travel time and alignment duration&lt;/li&gt;
+  &lt;li&gt;Time to take state snapshot and persist it onto the durable highly-available storage (such as S3)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Recent improvements such as &lt;a href=&quot;https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1.html&quot;&gt;Unaligned checkpoints&lt;/a&gt; and &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-183%3A+Dynamic+buffer+size+adjustment&quot;&gt; Buffer debloating &lt;/a&gt; try to address (1), especially in the presence of back-pressure. Previously, &lt;a href=&quot;https://flink.apache.org/features/2018/01/30/incremental-checkpointing.html&quot;&gt; Incremental checkpoints &lt;/a&gt; were introduced to reduce the size of a snapshot, thereby reducing the time required to store it (2).&lt;/p&gt;
+
+&lt;p&gt;However, there are still some cases when this duration is high&lt;/p&gt;
+
+&lt;h3 id=&quot;every-checkpoint-is-delayed-by-at-least-one-task-with-high-parallelism&quot;&gt;Every checkpoint is delayed by at least one task with high parallelism&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-30-changelog-state-backend/failing-task.png&quot; /&gt;
+&lt;br /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;With the existing incremental checkpoint implementation of the RocksDB state backend, every subtask needs to periodically perform some form of compaction. That compaction results in new, relatively big files, which in turn increase the upload time (2). The probability of at least one node performing such compaction and thus slowing down the whole checkpoint grows proportionally to the number of nodes. In large deployments, almost every checkpoint becomes delayed by some node.&lt;/p&gt;
+
+&lt;h3 id=&quot;unnecessary-delay-before-uploading-state-snapshot&quot;&gt;Unnecessary delay before uploading state snapshot&lt;/h3&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-05-30-changelog-state-backend/checkpoint-timing.png&quot; /&gt;
+&lt;br /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;State backends don’t start any snapshotting work until the task receives at least one checkpoint barrier, increasing the effective checkpoint duration. This is suboptimal if the upload time is comparable to the checkpoint interval; instead, a snapshot could be uploaded continuously throughout the interval.&lt;/p&gt;
+
+&lt;p&gt;This work discusses the mechanism introduced in Flink 1.15 to address the above cases by continuously persisting state changes on non-volatile storage while performing materialization in the background. The basic idea is described in the following section, and then important implementation details are highlighted. Subsequent sections discuss benchmarking results, limitations, and future work.&lt;/p&gt;
+
+&lt;h1 id=&quot;high-level-overview&quot;&gt;High-level Overview&lt;/h1&gt;
+
+&lt;p&gt;The core idea is to introduce a state changelog (a log that records state changes); this changelog allows operators to persist state changes in a very fine-grained manner, as described below:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Stateful operators write the state changes to the state changelog, in addition to applying them to the state tables in RocksDB or the in-mem Hashtable.&lt;/li&gt;
+  &lt;li&gt;An operator can acknowledge a checkpoint as soon as the changes in the log have reached the durable checkpoint storage.&lt;/li&gt;
+  &lt;li&gt;The state tables are persisted periodically as well, independent of the checkpoints. We call this procedure the materialization of the state on the durable checkpoint storage.&lt;/li&gt;
+  &lt;li&gt;Once the state is materialized on the checkpoint storage, the state changelog can be truncated to the point where the state is materialized.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This can be illustrated as follows:&lt;/p&gt;
+
+&lt;center&gt;
+    &lt;div style=&quot;overflow-x: auto&quot;&gt;
+        &lt;div style=&quot;width:150%&quot;&gt;
+            &lt;img style=&quot;display:inline; max-width: 33%; max-height: 200px; margin-left: -1%&quot; src=&quot;/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_1.png&quot; /&gt; 
+            &lt;img style=&quot;display:inline; max-width: 33%; max-height: 200px; margin-left: -1%&quot; src=&quot;/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_2.png&quot; /&gt; 
+            &lt;img style=&quot;display:inline; max-width: 33%; max-height: 200px; margin-left: -1%&quot; src=&quot;/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_3.png&quot; /&gt; 
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;br /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;This approach mirrors what database systems do, adjusted to distributed checkpoints:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Changes (inserts/updates/deletes) are written to the transaction log, and the transaction is considered durable once the log is synced to disk (or other durable storage).&lt;/li&gt;
+  &lt;li&gt;The changes are also materialized in the tables (so the database system can efficiently query the table). The tables are usually persisted asynchronously.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Once all relevant parts of the changed tables have been persisted, the transaction log can be truncated, which is similar to the materialization procedure in our approach.&lt;/p&gt;
+
+&lt;p&gt;Such a design makes a number of trade-offs:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Increased use of network IO and remote storage space for changelog&lt;/li&gt;
+  &lt;li&gt;Increased memory usage to buffer state changes&lt;/li&gt;
+  &lt;li&gt;Increased time to replay state changes during the recovery process&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The last one, may or may not be compensated by more frequent checkpoints. More frequent checkpoints mean less re-processing is needed after recovery.&lt;/p&gt;
+
+&lt;h1 id=&quot;system-architecture&quot;&gt;System architecture&lt;/h1&gt;
+
+&lt;h2 id=&quot;changelog-storage-dstl&quot;&gt;Changelog storage (DSTL)&lt;/h2&gt;
+
+&lt;p&gt;The component that is responsible for actually storing state changes has the following requirements.&lt;/p&gt;
+
+&lt;h3 id=&quot;durability&quot;&gt;Durability&lt;/h3&gt;
+&lt;p&gt;Changelog constitutes a part of a checkpoint, and therefore the same durability guarantees as for checkpoints must be provided. However, the duration for which the changelog is stored is expected to be short (until the changes are materialized).&lt;/p&gt;
+
+&lt;h3 id=&quot;workload&quot;&gt;Workload&lt;/h3&gt;
+&lt;p&gt;The workload is write-heavy: changelog is written continuously, and it is only read in case of failure. Once written, data can not be modified.&lt;/p&gt;
+
+&lt;h3 id=&quot;latency&quot;&gt;Latency&lt;/h3&gt;
+&lt;p&gt;We target checkpoint duration of 1s in the Flink 1.15 MVP for 99% of checkpoints. Therefore, an individual write request must complete within that duration or less (if parallelism is 100, then 99.99% of write requests must complete within 1s).&lt;/p&gt;
+
+&lt;h3 id=&quot;consistency&quot;&gt;Consistency&lt;/h3&gt;
+&lt;p&gt;Once a change is persisted (and acknowledged to JM), it must be available for replay to enable recovery (this can be achieved by using a single machine, quorum, or synchronous replication).&lt;/p&gt;
+
+&lt;h3 id=&quot;concurrency&quot;&gt;Concurrency&lt;/h3&gt;
+
+&lt;p&gt;Each task writes to its own changelog, which prevents concurrency issues across multiple tasks. However, when a task is restarted, it needs to write to the same log, which may cause concurrency issues. This is addressed by:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Using unique log segment identifiers while writing&lt;/li&gt;
+  &lt;li&gt;Fencing previous execution attempts on JM when handling checkpoint acknowledgments&lt;/li&gt;
+  &lt;li&gt;After closing the log, treating it as Flink state, which is read-only and is discarded by a single JM (leader)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To emphasize the difference in durability requirements and usage compared to other systems (durable, short-lived, append-only), the component is called &lt;strong&gt;“Durable Short-term Log” (DSTL)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;DSTL can be implemented in many ways, such as Distributed Log, Distributed File System* (DFS), or even a database. In the MVP version in Flink 1.15, we chose DFS because of the following reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;No additional external dependency; DFS is readily available in most environments and is already used to store checkpoints&lt;/li&gt;
+  &lt;li&gt;No additional stateful components to manage; using any other persistence medium would incur additional operational overhead&lt;/li&gt;
+  &lt;li&gt;DFS natively provides durability and consistency guarantees which need to be taken care of when implementing a new customized distributed log storage (in particular, when implementing replication)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;On the other hand, the DFS approach has the following disadvantages:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;has higher latency than for example Distributed Log writing to the local disks&lt;/li&gt;
+  &lt;li&gt;its scalability is limited by DFS (most Storage Providers start rate-limiting at some point)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;However, after some initial experimentation, we think the performance of popular DFS could satisfy 80% of the use cases, and more results will be illustrated with the MVP version in a later section.
+DFS here makes no distinction between DFS and object stores.&lt;/p&gt;
+
+&lt;p&gt;Using RocksDB as an example, this approach can be illustrated at the high level as follows. State updates are replicated to both RocksDB and DSTL by the Changelog State Backend. 
+DSTL continuously writes state changes to DFS and flushes them periodically and on checkpoint. That way, checkpoint time only depends on the time to flush a small amount of data. 
+RocksDB on the other hand is still used for querying the state. Furthermore, its SSTables are periodically uploaded to DFS, which is called “materialization”. That upload is independent of and is much less frequent than checkpointing procedure, with 10 minutes as the default interval.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img style=&quot;max-width: 80%&quot; src=&quot;/img/blog/2022-05-30-changelog-state-backend/changelog-simple.png&quot; /&gt;
+&lt;br /&gt;
+&lt;/center&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;There are a few more issues worth highlighting here:&lt;/p&gt;
+
+&lt;h2 id=&quot;state-cleanup&quot;&gt;State cleanup&lt;/h2&gt;
+&lt;p&gt;State changelog needs to be truncated once the corresponding changes are materialized. It becomes more complicated with re-scaling and sharing the underlying files across multiple operators. However, Flink already provides a mechanism called &lt;code&gt;SharedStateRegistry&lt;/code&gt; similar to file system reference counting. Log fragments can be viewed as shared state objects, and therefore can be tracked by this &lt;code&gt;SharedStateRegistry&lt;/code&gt; (please see &lt;a href=&quot;https://www.ververica.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview&quot;&gt; this &lt;/a&gt; article for more information on how &lt;code&gt;SharedStateRegistry&lt;/code&gt; was used previously).&lt;/p&gt;
+
+&lt;h2 id=&quot;dfs-specific-issues&quot;&gt;DFS-specific issues&lt;/h2&gt;
+
+&lt;h3 id=&quot;small-files-problem&quot;&gt;Small files problem&lt;/h3&gt;
+&lt;p&gt;One issue with using DFS is that much more and likely smaller files are created for each checkpoint. And with the increased checkpoint frequency, there are more checkpoints.
+To mitigate this, state changes related to the same job on a TM are grouped into a single file.&lt;/p&gt;
+
+&lt;h3 id=&quot;high-tail-latency&quot;&gt;High tail latency&lt;/h3&gt;
+&lt;p&gt;DFS are known for high tail latencies, although this has been improving in recent years.
+To address the high-tail-latency problem, write requests are retried when they fail to complete within a timeout, which is 1 second by default (but can be configured manually).&lt;/p&gt;
+
+&lt;h1 id=&quot;benchmark-results&quot;&gt;Benchmark results&lt;/h1&gt;
+
+&lt;p&gt;The improvement of checkpoint stability and speed after enabling Changelog highly depends on the factors below:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The difference between the changelog diff size and the full state size (or incremental state size, if comparing changelog to incremental checkpoints).&lt;/li&gt;
+  &lt;li&gt;The ability to upload the updates continuously during the checkpoint (e.g. an operator might maintain state in memory and only update Flink state objects on checkpoint - in this case, changelog wouldn’t help much).&lt;/li&gt;
+  &lt;li&gt;The ability to group updates from multiple tasks (multiple tasks must be deployed on a single TM). Grouping the updates leads to fewer files being created thereby reducing the load on DFS, which improves the stability.&lt;/li&gt;
+  &lt;li&gt;The ability of the underlying backend to accumulate updates to the same key before flushing (This makes state change log potentially contain more updates compared to just the final value, leading to a larger incremental changelog state size)&lt;/li&gt;
+  &lt;li&gt;The speed of the underlying durable storage (the faster it is, the less significant the improvement)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The following setup was used in the experiment:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Parallelism: 50&lt;/li&gt;
+  &lt;li&gt;Running time: 21h&lt;/li&gt;
+  &lt;li&gt;State backend: RocksDB (incremental checkpoint enabled)&lt;/li&gt;
+  &lt;li&gt;Storage: S3 (Presto plugin)&lt;/li&gt;
+  &lt;li&gt;Machine type: AWS m5.xlarge (4 slots per TM)&lt;/li&gt;
+  &lt;li&gt;Checkpoint interval: 10ms&lt;/li&gt;
+  &lt;li&gt;State Table materialization interval: 3m&lt;/li&gt;
+  &lt;li&gt;Input rate: 50K events per second&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;valuestate-workload&quot;&gt;ValueState workload&lt;/h2&gt;
+&lt;p&gt;A workload updating mostly the new keys each time would benefit the most.&lt;/p&gt;
+
+&lt;table border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;&amp;nbsp;&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Changelog Disabled&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Changelog Enabled&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Records processed&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;3,808,629,616&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;3,810,508,130&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Checkpoints made&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;10,023&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;108,649&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Checkpoint duration, 90%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;6s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;664ms&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Checkpoint duration, 99.9%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;10s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;1s&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Full checkpoint size *, 99%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;19.6GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;25.6GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;Recovery time (local recovery disabled)&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;20-21s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;35-65s (depending on the checkpoint)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;As can be seen from the above table, checkpoint duration is reduced 10 times for 99.9% of checkpoints, while space usage increases by 30%, and recovery time increases by 66%-225%.&lt;/p&gt;
+
+&lt;p&gt;More details about the checkpoints (Changelog Enabled / Changelog Disabled):&lt;/p&gt;
+
+&lt;table border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Percentile&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;End to End Duration&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Checkpointed Data Size *&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Full Checkpoint Data Size *&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;50%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;311ms / 5s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;14.8MB / 3.05GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;24.2GB / 18.5GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;90%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;664ms / 6s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;23.5MB / 4.52GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;25.2GB / 19.3GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;99%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;1s / 7s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;36.6MB / 5.19GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;25.6GB / 19.6GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;99.9%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;1s / 10s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;52.8MB / 6.49GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;25.7GB / 19.8GB&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;* Checkpointed Data Size is the size of data persisted after receiving the necessary number of checkpoint barriers, during a so-called synchronous and then asynchronous checkpoint phases. Most of the data is persisted pre-emptively (i.e. after the previous checkpoint and before the current one), and that’s why this size is much lower when the Changelog is enabled.
+&lt;br /&gt;
+* Full checkpoint size is the total size of all the files comprising the checkpoint, including any files reused from the previous checkpoints. Compared to a normal checkpoint, the one with a changelog is less compact, keeping all the historical values since the last materialization, and therefore consumes much more space&lt;/p&gt;
+
+&lt;h2 id=&quot;window-workload&quot;&gt;Window workload&lt;/h2&gt;
+&lt;p&gt;This workload used Processing Time Sliding Window. As can be seen below, checkpoints are still faster, resulting in 3 times shorter durations; but storage amplification is much higher in this case (45 times more space consumed):&lt;/p&gt;
+
+&lt;p&gt;Checkpoint Statistics for Window Workload with Changelog Enabled / Changelog Disabled&lt;/p&gt;
+
+&lt;table border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Percentile&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;End to End Duration&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Checkpointed Data Size&lt;/th&gt;
+      &lt;th style=&quot;padding: 5px&quot;&gt;Full Checkpoint Data Size&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;50%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;791ms / 1s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;269MB / 1.18GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;85.5GB / 1.99GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;90%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;1s / 1s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;292MB / 1.36GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;97.4GB / 2.16GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;99%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;1s / 6s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;310MB / 1.67GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;103GB / 2.26GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;99.9%&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;2s / 6s&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;324MB / 1.87GB&lt;/td&gt;
+      &lt;td style=&quot;padding: 5px&quot;&gt;104GB / 2.30GB&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The increase in space consumption (Full Checkpoint Data Size) can be attributed to:
+1. Assigning each element to multiple sliding windows (and persisting the state changelog for each). While RocksDB and Heap have the same issue, with changelog the impact is multiplied even further.
+2. As mentioned above, if the underlying state backend (i.e. RocksDB) is able to accumulate multiple state updates for the same key without flushing, the snapshot will be smaller in size than the changelog. In this particular case of sliding window, the updates to its contents are eventually followed by purging that window. If those updates and purge happen during the same checkpoint, then it’s quite likely that the window is not included in the snapshot.
+This also implies that the faster the window is purged, the smaller the size of the snapshot is.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion-and-future-work&quot;&gt;Conclusion and future work&lt;/h1&gt;
+&lt;p&gt;Generic log-based incremental checkpoints is released as MVP version in Flink 1.15. This version demonstrates that solutions based on modern DFS can provide good enough latency. Furthermore, checkpointing time and stability are improved significantly by using the Changelog. However, some trade-offs must be made before using it (in particular, space amplification).
+&lt;br /&gt;
+In the next releases, we plan to enable more use cases for Changelog, e.g., by reducing recovery time via local recovery and improving compatibility.&lt;/p&gt;
+
+&lt;p&gt;Another direction is further reducing latency. This can be achieved by using faster storage, such as Apache Bookkeeper or Apache Kafka.&lt;/p&gt;
+
+&lt;p&gt;Besides that, we are investigating other applications of Changelog, such as WAL for sinks and queryable states.&lt;/p&gt;
+
+&lt;p&gt;We encourage you to try out this feature and assess the pros and cons of using it in your setup. The simplest way to do this it is to add the following to your flink-conf.yaml:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;state.backend.changelog.enabled: true
+state.backend.changelog.storage: filesystem 
+dstl.dfs.base-path: &amp;lt;location similar to state.checkpoints.dir&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Please see the full documentation &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/ops/state/state_backends/#enabling-changelog&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;acknowledgments&quot;&gt;Acknowledgments&lt;/h1&gt;
+
+&lt;p&gt;We thank Stephan Ewen for the initial idea of the project, and many other engineers including Piotr Nowojski, Yu Li and Yun Tang for design discussions and code reviews.&lt;/p&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-158%3A+Generalized+incremental+checkpoints&quot;&gt; FLIP-158 &lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/ops/state/state_backends/#enabling-changelog&quot;&gt; generic log-based incremental checkpoints documentation &lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1.html&quot;&gt; Unaligned checkpoints &lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-183%3A+Dynamic+buffer+size+adjustment&quot;&gt; Buffer debloating &lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://flink.apache.org/features/2018/01/30/incremental-checkpointing.html&quot;&gt; Incremental checkpoints &lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+</description>
+<pubDate>Mon, 30 May 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/05/30/changelog-state-backend.html</link>
+<guid isPermaLink="true">/2022/05/30/changelog-state-backend.html</guid>
+</item>
+
+<item>
 <title>Getting into Low-Latency Gears with Apache Flink - Part Two</title>
 <description>&lt;p&gt;This series of blog posts present a collection of low-latency techniques in Flink. In &lt;a href=&quot;https://flink.apache.org/2022/05/18/latency-part1.html&quot;&gt;part one&lt;/a&gt;, we discussed the types of latency in Flink and the way we measure end-to-end latency and presented a few techniques that optimize latency directly. In this post, we will continue with a few more direct latency optimization techniques. Just like in part one, for each optimization technique, we will clarify what it is, when to use it, and what to keep in mind when using it. We will also show experimental results to support our statements.&lt;/p&gt;
 
@@ -19694,380 +20068,6 @@ Transaction{timestamp=1563395831000, origin=1, target=&#39;3&#39;, amount=160}}
 <pubDate>Tue, 10 Sep 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2019/09/10/community-update.html</link>
 <guid isPermaLink="true">/news/2019/09/10/community-update.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.9.0 Release Announcement</title>
-<description>&lt;p&gt;The Apache Flink community is proud to announce the release of Apache Flink
-1.9.0.&lt;/p&gt;
-
-&lt;p&gt;The Apache Flink project’s goal is to develop a stream processing system to
-unify and power many forms of real-time and offline data processing
-applications as well as event-driven applications. In this release, we have
-made a huge step forward in that effort, by integrating Flink’s stream and
-batch processing capabilities under a single, unified runtime.&lt;/p&gt;
-
-&lt;p&gt;Significant features on this path are batch-style recovery for batch jobs and
-a preview of the new Blink-based query engine for Table API and SQL queries.
-We are also excited to announce the availability of the State Processor API,
-which is one of the most frequently requested features and enables users to
-read and write savepoints with Flink DataSet jobs. Finally, Flink 1.9 includes
-a reworked WebUI and previews of Flink’s new Python Table API and its
-integration with the Apache Hive ecosystem.&lt;/p&gt;
-
-&lt;p&gt;This blog post describes all major new features and improvements, important
-changes to be aware of and what to expect moving forward. For more details,
-check the &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12344601&quot;&gt;complete release
-changelog&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The binary distribution and source artifacts for this release are now
-available via the &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;Downloads&lt;/a&gt; page of
-the Flink project, along with the updated
-&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/&quot;&gt;documentation&lt;/a&gt;.
-Flink 1.9 is API-compatible with previous 1.x releases for APIs annotated with
-the &lt;code&gt;@Public&lt;/code&gt; annotation.&lt;/p&gt;
-
-&lt;p&gt;Please feel encouraged to download the release and share your thoughts with
-the community through the Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing
-lists&lt;/a&gt; or
-&lt;a href=&quot;https://issues.apache.org/jira/projects/FLINK/summary&quot;&gt;JIRA&lt;/a&gt;. As always,
-feedback is very much appreciated!&lt;/p&gt;
-
-&lt;div class=&quot;page-toc&quot;&gt;
-&lt;ul id=&quot;markdown-toc&quot;&gt;
-  &lt;li&gt;&lt;a href=&quot;#new-features-and-improvements&quot; id=&quot;markdown-toc-new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#fine-grained-batch-recovery-flip-1&quot; id=&quot;markdown-toc-fine-grained-batch-recovery-flip-1&quot;&gt;Fine-grained Batch Recovery (FLIP-1)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#state-processor-api-flip-43&quot; id=&quot;markdown-toc-state-processor-api-flip-43&quot;&gt;State Processor API (FLIP-43)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#stop-with-savepoint-flip-34&quot; id=&quot;markdown-toc-stop-with-savepoint-flip-34&quot;&gt;Stop-with-Savepoint (FLIP-34)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#flink-webui-rework&quot; id=&quot;markdown-toc-flink-webui-rework&quot;&gt;Flink WebUI Rework&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#preview-of-the-new-blink-sql-query-processor&quot; id=&quot;markdown-toc-preview-of-the-new-blink-sql-query-processor&quot;&gt;Preview of the new Blink SQL Query Processor&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#preview-of-full-hive-integration-flink-10556&quot; id=&quot;markdown-toc-preview-of-full-hive-integration-flink-10556&quot;&gt;Preview of Full Hive Integration (FLINK-10556)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#preview-of-the-new-python-table-api-flip-38&quot; id=&quot;markdown-toc-preview-of-the-new-python-table-api-flip-38&quot;&gt;Preview of the new Python Table API (FLIP-38)&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#important-changes&quot; id=&quot;markdown-toc-important-changes&quot;&gt;Important Changes&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#release-notes&quot; id=&quot;markdown-toc-release-notes&quot;&gt;Release Notes&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#list-of-contributors&quot; id=&quot;markdown-toc-list-of-contributors&quot;&gt;List of Contributors&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;/div&gt;
-
-&lt;h2 id=&quot;new-features-and-improvements&quot;&gt;New Features and Improvements&lt;/h2&gt;
-
-&lt;h3 id=&quot;fine-grained-batch-recovery-flip-1&quot;&gt;Fine-grained Batch Recovery (FLIP-1)&lt;/h3&gt;
-
-&lt;p&gt;The time to recover a batch (DataSet, Table API and SQL) job from a task
-failure was significantly reduced. Until Flink 1.9, task failures in batch
-jobs were recovered by canceling all tasks and restarting the whole job, i.e,
-the job was started from scratch and all progress was voided. With this
-release, Flink can be configured to limit the recovery to only those tasks
-that are in the same &lt;strong&gt;failover region&lt;/strong&gt;. A failover region is the set of
-tasks that are connected via pipelined data exchanges. Hence, the
-batch-shuffle connections of a job define the boundaries of its failover
-regions. More details are available in
-&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures&quot;&gt;FLIP-1&lt;/a&gt;.
-&lt;img src=&quot;/img/blog/release-19-flip1.png&quot; alt=&quot;alt_text&quot; title=&quot;Fine-grained Batch
-Recovery&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;To use this new failover strategy, you need to do the following
-settings:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Make sure you have the entry &lt;code&gt;jobmanager.execution.failover-strategy:
-region&lt;/code&gt; in your &lt;code&gt;flink-conf.yaml&lt;/code&gt;.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The configuration of the 1.9 distribution has that entry by default,
-  but when reusing a configuration file from previous setups, you have to add
-  it manually.&lt;/p&gt;
-
-&lt;p&gt;Moreover, you need to set the &lt;code&gt;ExecutionMode&lt;/code&gt; of batch jobs in the
-&lt;code&gt;ExecutionConfig&lt;/code&gt; to &lt;code&gt;BATCH&lt;/code&gt; to configure that data shuffles are not pipelined
-and jobs have more than one failover region.&lt;/p&gt;
-
-&lt;p&gt;The “Region” failover strategy also improves the recovery of “embarrassingly
-parallel” streaming jobs, i.e., jobs without any shuffle like keyBy() or
-rebalance. When such a job is recovered, only the tasks of the affected
-pipeline (failover region) are restarted. For all other streaming jobs, the
-recovery behavior is the same as in prior Flink versions.&lt;/p&gt;
-
-&lt;h3 id=&quot;state-processor-api-flip-43&quot;&gt;State Processor API (FLIP-43)&lt;/h3&gt;
-
-&lt;p&gt;Up to Flink 1.9, accessing the state of a job from the outside was limited to
-the (still) experimental &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/dev/stream/state/queryable_state.html&quot;&gt;Queryable
-State&lt;/a&gt;.
-This release introduces a new, powerful library to read, write and modify
-state snapshots using the batch DataSet API. In practice, this means:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Flink job state can be bootstrapped by reading data from external systems,
-such as external databases, and converting it into a savepoint.&lt;/li&gt;
-  &lt;li&gt;State in savepoints can be queried using any of Flink’s batch APIs
-(DataSet, Table, SQL), for example to analyze relevant state patterns or
-check for discrepancies in state that can support application auditing or
-troubleshooting.&lt;/li&gt;
-  &lt;li&gt;The schema of state in savepoints can be migrated offline, compared to the
-previous approach requiring online migration on schema access.&lt;/li&gt;
-  &lt;li&gt;Invalid data in savepoints can be identified and corrected.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The new State Processor API covers all variations of snapshots: savepoints,
-full checkpoints and incremental checkpoints. More details are available in
-&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-43%3A+State+Processor+API&quot;&gt;FLIP-43&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;stop-with-savepoint-flip-34&quot;&gt;Stop-with-Savepoint (FLIP-34)&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/ops/state/savepoints.html#operations&quot;&gt;Cancelling with a
-savepoint&lt;/a&gt;
-is a common operation for stopping/restarting, forking or updating Flink jobs.
-However, the existing implementation did not guarantee output persistence to
-external storage systems for exactly-once sinks. To improve the end-to-end
-semantics when stopping a job, Flink 1.9 introduces a new &lt;code&gt;SUSPEND&lt;/code&gt; mode to
-stop a job with a savepoint that is consistent with the emitted data.
-You can suspend a job with Flink’s CLI client as follows:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;bin/flink stop -p [:targetDirectory] :jobId
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The final job state is set to &lt;code&gt;FINISHED&lt;/code&gt; on success, allowing
-users to detect failures of the requested operation.&lt;/p&gt;
-
-&lt;p&gt;More details are available in
-&lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=103090212&quot;&gt;FLIP-34&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;flink-webui-rework&quot;&gt;Flink WebUI Rework&lt;/h3&gt;
-
-&lt;p&gt;After a
-&lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Change-underlying-Frontend-Architecture-for-Flink-Web-Dashboard-td24902.html&quot;&gt;discussion&lt;/a&gt;
-about modernizing the internals of Flink’s WebUI, this component was
-reconstructed using the latest stable version of Angular — basically, a bump
-from Angular 1.x to 7.x. The redesigned version is the default in 1.9.0,
-however there is a link to switch to the old WebUI.&lt;/p&gt;
-
-&lt;div class=&quot;row&quot;&gt; &lt;div class=&quot;col-sm-6&quot;&gt; &lt;span&gt;&lt;img class=&quot;thumbnail&quot; src=&quot;/img/blog/release-19-web1.png&quot; /&gt;&lt;/span&gt; &lt;/div&gt; &lt;div class=&quot;col-sm-6&quot;&gt; &lt;span&gt;&lt;img class=&quot;thumbnail&quot; src=&quot;/img/blog/release-19-web2.png&quot; /&gt;&lt;/span&gt; &lt;/div&gt;
-    &lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Moving forward, feature parity for the old version of the WebUI 
-will not be guaranteed.&lt;/p&gt;
-
-&lt;h3 id=&quot;preview-of-the-new-blink-sql-query-processor&quot;&gt;Preview of the new Blink SQL Query Processor&lt;/h3&gt;
-
-&lt;p&gt;Following the &lt;a href=&quot;/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;donation of
-Blink&lt;/a&gt; to
-Apache Flink, the community worked on integrating Blink’s query optimizer and
-runtime for the Table API and SQL. As a first step, we refactored the
-monolithic &lt;code&gt;flink-table&lt;/code&gt; module into smaller modules
-(&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions&quot;&gt;FLIP-32&lt;/a&gt;).
-This resulted in a clear separation of and well-defined interfaces between the
-Java and Scala API modules and the optimizer and runtime modules.&lt;/p&gt;
-
-&lt;p&gt;&lt;span&gt;&lt;img style=&quot;width:50%&quot; src=&quot;/img/blog/release-19-stack.png&quot; /&gt;&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;Next, we extended Blink’s planner to implement the new optimizer interface
-such that there are now two pluggable query processors to execute Table API
-and SQL statements: the pre-1.9 Flink processor and the new Blink-based query
-processor. The Blink-based query processor offers better SQL coverage (full TPC-H
-coverage in 1.9, TPC-DS coverage is planned for the next release) and improved
-performance for batch queries as the result of more extensive query
-optimization (cost-based plan selection and more optimization rules), improved
-code-generation, and tuned operator implementations.
-The Blink-based query processor also provides a more powerful streaming runner,
-with some new features (e.g. dimension table join, TopN, deduplication) and 
-optimizations to solve data-skew in aggregation and more useful built-in
-functions.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The semantics and set of supported operations of the query
-processors are mostly, but not fully aligned.&lt;/p&gt;
-
-&lt;p&gt;However, the integration of Blink’s query processor is not fully completed
-yet. Therefore, the pre-1.9 Flink processor is still the default processor in
-Flink 1.9 and recommended for production settings. You can enable the Blink
-processor by configuring it via the &lt;code&gt;EnvironmentSettings&lt;/code&gt; when creating a
-&lt;code&gt;TableEnvironment&lt;/code&gt;. The selected processor must be on the classpath of the
-executing Java process. For cluster setups, both query processors are
-automatically loaded with the default configuration. When running a query from
-your IDE you need to explicitly &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/dev/table/#table-program-dependencies&quot;&gt;add a planner
-dependency&lt;/a&gt;
-to your project.&lt;/p&gt;
-
-&lt;h4 id=&quot;other-improvements-to-the-table-api-and-sql&quot;&gt;&lt;strong&gt;Other Improvements to the Table API and SQL&lt;/strong&gt;&lt;/h4&gt;
-
-&lt;p&gt;Besides the exciting progress around the Blink planner, the community worked
-on a whole set of other improvements to these interfaces, including:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Scala-free Table API and SQL for Java users
-(&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A+Restructure+flink-table+for+future+contributions&quot;&gt;FLIP-32&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
-
-    &lt;p&gt;As part of the refactoring and splitting of the flink-table module, two
-separate API modules for Java and Scala were created. For Scala users,
-nothing really changes, but Java users can use the Table API and/or SQL now
-without pulling in a Scala dependency.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Rework of the Table API Type System&lt;/strong&gt;
-&lt;strong&gt;(&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-37%3A+Rework+of+the+Table+API+Type+System&quot;&gt;FLIP-37&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
-
-    &lt;p&gt;The community implemented a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/dev/table/types.html#data-types&quot;&gt;new data type
-system&lt;/a&gt;
-to detach the Table API from Flink’s
-&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/dev/types_serialization.html#flinks-typeinformation-class&quot;&gt;TypeInformation&lt;/a&gt;
-class and improve its compliance with the SQL standard. This is still a
-work in progress and expected to be completed in the next release. In
-Flink 1.9, UDFs are―among other things―not ported to the new type system
-yet.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Multi-column and Multi-row Transformations for Table API&lt;/strong&gt;
-&lt;strong&gt;(&lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=97552739&quot;&gt;FLIP-29&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
-
-    &lt;p&gt;The functionality of the Table API was extended with a set of
-transformations that support multi-row and/or multi-column inputs and
-outputs. These transformations significantly ease the implementation of
-processing logic that would be cumbersome to implement with relational
-operators.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;New, Unified Catalog APIs&lt;/strong&gt;
-&lt;strong&gt;(&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-30%3A+Unified+Catalog+APIs&quot;&gt;FLIP-30&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
-
-    &lt;p&gt;We reworked the catalog APIs to store metadata and unified the handling of
-internal and external catalogs. This effort was mainly initiated as a
-prerequisite for the Hive integration (see below), but improves the overall
-convenience of managing catalog metadata in Flink. Besides improving the
-catalog interfaces, we also extended their functionality. Previously table
-definitions for Table API or SQL queries were volatile. With Flink 1.9, the
-metadata of tables which are registered with a SQL DDL statement can be
-persisted in a catalog. This means you can add a table that is backed by a
-Kafka topic to a Metastore catalog and from then on query this table
-whenever your catalog is connected to Metastore.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;DDL Support in the SQL API
-(&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10232&quot;&gt;FLINK-10232&lt;/a&gt;)&lt;/strong&gt;&lt;/p&gt;
-
-    &lt;p&gt;Up to this point, Flink SQL only supported DML statements (e.g. &lt;code&gt;SELECT&lt;/code&gt;,
-&lt;code&gt;INSERT&lt;/code&gt;). External tables (table sources and sinks) had to be registered
-via Java/Scala code or configuration files. For 1.9, we added support for
-SQL DDL statements to register and remove tables and views (&lt;code&gt;CREATE TABLE,
-DROP TABLE)&lt;/code&gt;. However, we did not add
-stream-specific syntax extensions to define timestamp extraction and
-watermark generation, yet. Full support for streaming use cases is planned
-for the next release.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;preview-of-full-hive-integration-flink-10556&quot;&gt;Preview of Full Hive Integration (FLINK-10556)&lt;/h3&gt;
-
-&lt;p&gt;Apache Hive is widely used in Hadoop’s ecosystem to store and query large
-amounts of structured data. Besides being a query processor, Hive features a
-catalog called Metastore to manage and organize large datasets. A common
-integration point for query processors is to integrate with Hive’s Metastore
-in order to be able to tap into the data managed by Hive.&lt;/p&gt;
-
-&lt;p&gt;Recently, the community started implementing an external catalog for Flink’s
-Table API and SQL that connects to Hive’s Metastore. In Flink 1.9, users will
-be able to query and process all data that is stored in Hive. As described
-earlier, you will also be able to persist metadata of Flink tables in Metastore.
-Moreover, the Hive integration includes support to use Hive’s UDFs in Flink
-Table API or SQL queries. More details are available in
-&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10556&quot;&gt;FLINK-10556&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;While, previously, table definitions for Table API or SQL queries were always
-volatile, the new catalog connector additionally allows persisting a table in
-Metastore that is created with a SQL DDL statement (see above). This means
-that you connect to Metastore and register a table that is, for example,
-backed by a Kafka topic. From now on, you can query that table whenever your
-catalog is connected to Metastore.&lt;/p&gt;
-
-&lt;p&gt;Please note that the Hive support in Flink 1.9 is experimental. We are
-planning to stabilize these features for the next release and are looking
-forward to your feedback.&lt;/p&gt;
-
-&lt;h3 id=&quot;preview-of-the-new-python-table-api-flip-38&quot;&gt;Preview of the new Python Table API (FLIP-38)&lt;/h3&gt;
-
-&lt;p&gt;This release also introduces a first version of a Python Table API
-(&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API&quot;&gt;FLIP-38&lt;/a&gt;).
-This marks the start towards our goal of bringing
-full-fledged Python support to Flink. The feature was designed as a slim
-Python API wrapper around the Table API, basically translating Python Table
-API method calls into Java Table API calls. In the initial version that ships
-with Flink 1.9, the Python Table API does not support UDFs yet, but just
-standard relational operations. Support for UDFs implemented in Python is on
-the roadmap for future releases.&lt;/p&gt;
-
-&lt;p&gt;If you’d like to try the new Python API, you have to manually &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/flinkDev/building.html#build-pyflink&quot;&gt;install
-PyFlink&lt;/a&gt;.
-From there, you can have a look at &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/tutorials/python_table_api.html&quot;&gt;this
-walkthrough&lt;/a&gt;
-or explore it on your own. The &lt;a href=&quot;http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/VOTE-Publish-the-PyFlink-into-PyPI-td31201.html&quot;&gt;community is currently
-working&lt;/a&gt;
-on preparing a &lt;code&gt;pyflink&lt;/code&gt; Python package that will be made available for
-installation via &lt;code&gt;pip&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;important-changes&quot;&gt;Important Changes&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The Table API and SQL are now part of the default configuration of the
-Flink distribution. Before, the Table API and SQL had to be enabled by
-moving the corresponding JAR file from ./opt to ./lib.&lt;/li&gt;
-  &lt;li&gt;The machine learning library (flink-ml) has been removed in preparation for
-&lt;a href=&quot;https://docs.google.com/document/d/1StObo1DLp8iiy0rbukx8kwAJb0BwDZrQrMWub3DzsEo/edit&quot;&gt;FLIP-39&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;The old DataSet and DataStream Python APIs have been removed in favor of
-&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-38%3A+Python+Table+API&quot;&gt;FLIP-38&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;Flink can be compiled and run on Java 9. Note that certain components
-interacting with external systems (connectors, filesystems, reporters) may
-not work since the respective projects may have skipped Java 9 support.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
-
-&lt;p&gt;Please review the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/release-notes/flink-1.9.html&quot;&gt;release
-notes&lt;/a&gt;
-for a more detailed list of changes and new features if you plan to upgrade
-your Flink setup to Flink 1.9.0.&lt;/p&gt;
-
-&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
-
-&lt;p&gt;We would like to thank all contributors who have made this release possible:&lt;/p&gt;
-
-&lt;p&gt;Abdul Qadeer (abqadeer), Aitozi, Alberto Romero, Aleksey Pak, Alexander
-Fedulov, Alice Yan, Aljoscha Krettek, Aloys, Andrew Duffy, Andrey Zagrebin,
-Ankur, Artsem Semianenka, Benchao Li, Biao Liu, Bo WANG, Bowen L, Chesnay
-Schepler, Clark Yang, Congxian Qiu, Cristian, Danny Chan, David Moravek, Dawid
-Wysakowicz, Dian Fu, EronWright, Fabian Hueske, Fabio Lombardelli, Fokko
-Driesprong, Gao Yun, Gary Yao, Gen Luo, Gyula Fora, Hequn Cheng,
-Hongtao Zhang, Huang Xingbo, HuangXingBo, Hugo Da Cruz Louro, Humberto
-Rodríguez A, Hwanju Kim, Igal Shilman, Jamie Grier, Jark Wu, Jason, Jasper
-Yue, Jeff Zhang, Jiangjie (Becket) Qin, Jiezhi.G, Jincheng Sun, Jing Zhang,
-Jingsong Lee, Juan Gentile, Jungtaek Lim, Kailash Dayanand, Kevin
-Bohinski, Konstantin Knauf, Konstantinos Papadopoulos, Kostas Kloudas, Kurt
-Young, Lakshmi, Lakshmi Gururaja Rao, Leeviiii, LouisXu, Maximilian Michels,
-Nico Kruber, Niels Basjes, Paul Lam, PengFei Li, Peter Huang, Pierre Zemb,
-Piotr Nowojski, Piyush Narang, Richard Deurwaarder, Robert Metzger, Robert
-Stoll, Romano Vacca, Rong Rong, Rui Li, Ryantaocer, Scott Mitchell, Seth
-Wiesman, Shannon Carey, Shimin Yang, Stefan Richter, Stephan Ewen, Stephen
-Connolly, Steven Wu, SuXingLee, TANG Wen-hui, Thomas Weise, Till Rohrmann,
-Timo Walther, Tom Goong, TsReaper, Tzu-Li (Gordon) Tai, Ufuk Celebi,
-Victor Wong, WangHengwei, Wei Zhong, WeiZhong94, Xintong Song, Xpray,
-XuQianJin-Stars, Xuefu Zhang, Xupingyong, Yangze Guo, Yu Li, Yun Gao, Yun
-Tang, Zhanchun Zhang, Zhenghua Gao, Zhijiang, Zhu Zhu, Zili
-Chen, aloys, arganzheng, azagrebin, bd2019us, beyond1920, biao.liub,
-blueszheng, boshu Zheng, chenqi, chummyhe89, chunpinghe, dcadmin,
-dianfu, godfrey he, guanghui01.rong, hehuiyuan, hello, hequn8128, 
-jackyyin, joongkeun.yang, klion26, lamber-ken, leesf, liguowei,
-lincoln-lil, liyafan82, luoqi, mans2singh, maqingxiang, maxin, mjl, okidogi,
-ozan, potseluev, qiangsi.lq, qiaoran, robbinli, shaoxuan-wang, shengqian.zhou,
-shenlang.sl, shuai-xu, sunhaibotb, tianchen, tianchen92,
-tison, tom_gong, vinoyang, vthinkxie, wanggeng3, wenhuitang, winifredtamg,
-xl38154, xuyang1706, yangfei5, yanghua, yuzhao.cyz,
-zhangxin516, zhangxinxing, zhaofaxian, zhijiang, zjuwangg, 林小铂,
-黄培松, 时无两丶.&lt;/p&gt;
-</description>
-<pubDate>Thu, 22 Aug 2019 04:30:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2019/08/22/release-1.9.0.html</link>
-<guid isPermaLink="true">/news/2019/08/22/release-1.9.0.html</guid>
 </item>
 
 </channel>
