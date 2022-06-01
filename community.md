@@ -8,7 +8,7 @@ title: "Community & Project Info"
 
 ## How do I get help from Apache Flink?
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](/contributing/how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](/contributing/how-to-contribute.html).
 
 
 ## Mailing Lists
@@ -144,6 +144,20 @@ If you send us an email with a code snippet, make sure that:
 3. you keep formatting when pasting code in order to keep the code readable
 4. there are enough import statements to avoid ambiguities
 
+## Slack
+
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-19uavkkkw-qwMimi9gawIv9Fz9xFuqrw)
+After creating an account in Slack, don't forget to introduce yourself in #introductions.
+Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
+Any existing Slack member can also invite anyone else to join. 
+
+There are a couple of community rules: 
+
+* **Be respectful** - This is the most important rule!
+* All important decisions and conclusions **must be reflected back to the mailing lists.** 
+  "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
+* Use **Slack threads** to keep parallel conversations from overwhelming a channel.
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. These should be picked-up voluntarily.
 
 ## Stack Overflow
 

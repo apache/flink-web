@@ -8,7 +8,7 @@ title: "社区 & 项目信息"
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 *用户邮件列表* 获得帮助。你还可以加入社区专属的 [Slack 空间](#slack)。有些 Committer 同时会关注 [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink)。请在提问的时候记得添加 apache-flink 的标签。问题反馈以及新特性的讨论则可以在 *开发邮件列表* 或者 [Jira]({{ site.jira }}) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南](/contributing/how-to-contribute.html)。
 
 ## 邮件列表
 
@@ -142,6 +142,19 @@ title: "社区 & 项目信息"
 3. 对代码进行格式化操作，以提高可读性
 4. 添加足够的上下文，确保代码没有模棱两可的地方
 
+## Slack
+
+你可以通过[此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-19uavkkkw-qwMimi9gawIv9Fz9xFuqrw)加入 Apache Flink 社区专属的 Slack 工作空间。
+在成功加入后，不要忘记在 #introductions 频道介绍你自己。
+Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。
+所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
+
+在 Slack 空间交流时，请遵守以下规则：
+
+* **保持尊重** - 这是最重要的规则
+* 所有重要的决定和结论**必须在邮件列表中有所体现**。“没有发生在邮件列表上的事情，即视为没有发生。” - [Apache 准则](http://theapacheway.com/on-list/)
+* 使用 **Slack 消息列（Thread）**使频道（Channel）中的多组同时进行的对话保持有序。
+* **不要通过私信（Direct Message）**要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。
 
 ## Stack Overflow
 
