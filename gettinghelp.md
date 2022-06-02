@@ -26,6 +26,13 @@ If you'd like to post to the mailing list, you need to
 
 Please note that you won't receive a respose to your mail if you are not subscribed.
 
+### Slack
+
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-19uavkkkw-qwMimi9gawIv9Fz9xFuqrw)
+After creating an account in Slack, don't forget to introduce yourself in #introductions.
+Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
+Any existing Slack member can also invite anyone else to join.
+
 ### Stack Overflow
 
 Many members of the Flink community are active on [Stack Overflow](https://stackoverflow.com). You can search for questions and answers or post your questions using the [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink) tag. 

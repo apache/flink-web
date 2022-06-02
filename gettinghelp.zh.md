@@ -26,6 +26,13 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 
 请注意，如果你没有订阅邮件列表，你将不会收到邮件的回复。
 
+### Slack
+
+你可以通过[此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-19uavkkkw-qwMimi9gawIv9Fz9xFuqrw)加入 Apache Flink 社区专属的 Slack 工作空间。
+在成功加入后，不要忘记在 #introductions 频道介绍你自己。
+Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。
+所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
+
 ### Stack Overflow
 
 Flink 社区的许多成员都活跃在 [Stack Overflow](https://stackoverflow.com)。你可以在这里搜索问题和答案，或者使用 [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink)  标签来发布你的问题。
