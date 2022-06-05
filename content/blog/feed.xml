@@ -7,6 +7,150 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Apache Flink Kubernetes Operator 1.0.0 Release Announcement</title>
+<description>&lt;p&gt;In the last two months since our &lt;a href=&quot;https://flink.apache.org/news/2022/04/03/release-kubernetes-operator-0.1.0.html&quot;&gt;initial preview release&lt;/a&gt; the community has been hard at work to stabilize and improve the core Flink Kubernetes Operator logic.
+We are now proud to announce the first production ready release of the operator project.&lt;/p&gt;
+
+&lt;h2 id=&quot;release-highlights&quot;&gt;Release Highlights&lt;/h2&gt;
+
+&lt;p&gt;The Flink Kubernetes Operator 1.0.0 version brings numerous improvements and new features to almost every aspect of the operator.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;New &lt;strong&gt;v1beta1&lt;/strong&gt; API version &amp;amp; compatibility guarantees&lt;/li&gt;
+  &lt;li&gt;Session Job Management support&lt;/li&gt;
+  &lt;li&gt;Support for Flink 1.13, 1.14 and 1.15&lt;/li&gt;
+  &lt;li&gt;Deployment recovery and rollback&lt;/li&gt;
+  &lt;li&gt;New Operator metrics&lt;/li&gt;
+  &lt;li&gt;Improved configuration management&lt;/li&gt;
+  &lt;li&gt;Custom validators&lt;/li&gt;
+  &lt;li&gt;Savepoint history and cleanup&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;new-api-version-and-compatibility-guarantees&quot;&gt;New API version and compatibility guarantees&lt;/h3&gt;
+
+&lt;p&gt;The 1.0.0 release brings a new API version: &lt;strong&gt;v1beta1&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Don’t let the name confuse you, we consider v1beta1 the first production ready API release, and we will maintain backward compatibility for your applications going forward.&lt;/p&gt;
+
+&lt;p&gt;If you are already using the 0.1.0 preview release you can read about the upgrade process &lt;a href=&quot;https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.0/docs/operations/upgrade/#upgrading-from-v1alpha1---v1beta1&quot;&gt;here&lt;/a&gt;, or check our detailed &lt;a href=&quot;https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.0/docs/operations/compatibility/&quot;&gt;compatibility guarantees&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;session-job-management&quot;&gt;Session Job Management&lt;/h3&gt;
+
+&lt;p&gt;One of the most exciting new features of 1.0.0 is the introduction of the FlinkSessionJob resource. In contrast with the FlinkDeployment that allows us to manage Application and Session Clusters, the FlinkSessionJob allows users to manage Flink jobs on a running Session deployment.&lt;/p&gt;
+
+&lt;p&gt;This is extremely valuable in environments where users want to deploy Flink jobs quickly and iteratively and also allows cluster administrators to manage the session cluster independently of the running jobs.&lt;/p&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;flink.apache.org/v1beta1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;FlinkSessionJob&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;basic-session-job-example&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;deploymentName&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;basic-session-cluster&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;jarURI&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;https://repo1.maven.org/maven2/org/apache/flink/flink-examples-streaming_2.12/1.15.0/flink-examples-streaming_2.12-1.15.0-TopSpeedWindowing.jar&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;parallelism&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;4&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;upgradeMode&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;stateless&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;multi-version-flink-support&quot;&gt;Multi-version Flink support&lt;/h3&gt;
+
+&lt;p&gt;The Flink Kubernetes Operator now supports the following Flink versions out-of-the box:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Flink 1.15 (Recommended)&lt;/li&gt;
+  &lt;li&gt;Flink 1.14&lt;/li&gt;
+  &lt;li&gt;Flink 1.13&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Flink 1.15 comes with a set of features that allow deeper integration for the operator. We recommend using Flink 1.15 to get the best possible operational experience.&lt;/p&gt;
+
+&lt;h3 id=&quot;deployment-recovery-and-rollbacks&quot;&gt;Deployment Recovery and Rollbacks&lt;/h3&gt;
+
+&lt;p&gt;We have added two new features to make Flink cluster operations smoother when using the operator.&lt;/p&gt;
+
+&lt;p&gt;Now the operator will try to recover Flink JobManager deployments that went missing for some reason. Maybe it was accidentally deleted by the user or another service in the cluster. As long as HA was enabled and the job did not fatally fail, the operator will try to restore the job from the latest available checkpoint.&lt;/p&gt;
+
+&lt;p&gt;We also added experimental support for application upgrade rollbacks. With this feature the operator will monitor new application upgrades and if they don’t become stable (healthy &amp;amp; running) within a configurable period, they will be rolled back to the latest stable specification previously deployed.&lt;/p&gt;
+
+&lt;p&gt;While this feature will likely see improvements and new settings in the coming versions, it already provides benefits in cases where we have a large number of jobs with strong uptime requirements where it’s better to roll back than be stuck in a failing state.&lt;/p&gt;
+
+&lt;h3 id=&quot;improved-operator-metrics&quot;&gt;Improved Operator Metrics&lt;/h3&gt;
+
+&lt;p&gt;Beyond the existing JVM based system metrics, additional Operator specific metrics were added to the current release.&lt;/p&gt;
+
+&lt;table class=&quot;table table-bordered&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Metrics&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+      &lt;th&gt;Type&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Namespace&lt;/td&gt;
+      &lt;td&gt;FlinkDeployment.Count&lt;/td&gt;
+      &lt;td&gt;Number of managed FlinkDeployment instances per namespace&lt;/td&gt;
+      &lt;td&gt;Gauge&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Namespace&lt;/td&gt;
+      &lt;td&gt;FlinkDeployment.&amp;lt;Status&amp;gt;.Count&lt;/td&gt;
+      &lt;td&gt;Number of managed FlinkDeployment resources per &amp;lt;Status&amp;gt; per namespace. &amp;lt;Status&amp;gt; can take values from: READY, DEPLOYED_NOT_READY, DEPLOYING, MISSING, ERROR&lt;/td&gt;
+      &lt;td&gt;Gauge&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Namespace&lt;/td&gt;
+      &lt;td&gt;FlinkSessionJob.Count&lt;/td&gt;
+      &lt;td&gt;Number of managed FlinkSessionJob instances per namespace&lt;/td&gt;
+      &lt;td&gt;Gauge&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h2&gt;
+
+&lt;p&gt;Our intention is to advance further on the &lt;a href=&quot;https://operatorframework.io/operator-capabilities/&quot;&gt;Operator Maturity Model&lt;/a&gt; by adding more dynamic/automatic features&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Standalone deployment mode support &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-225%3A+Implement+standalone+mode+support+in+the+kubernetes+operator&quot;&gt;FLIP-225&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Auto-scaling using Horizontal Pod Autoscaler&lt;/li&gt;
+  &lt;li&gt;Dynamic change of watched namespaces&lt;/li&gt;
+  &lt;li&gt;Pluggable Status and Event reporters (Making it easier to integrate with proprietary control planes)&lt;/li&gt;
+  &lt;li&gt;SQL jobs support&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;release-resources&quot;&gt;Release Resources&lt;/h2&gt;
+
+&lt;p&gt;The source artifacts and helm chart are now available on the updated &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;Downloads&lt;/a&gt;
+page of the Flink website.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://archive.apache.org/dist/flink/flink-kubernetes-operator-1.0.0/&quot;&gt;official 1.0.0 release archive&lt;/a&gt; doubles as a Helm repository that you can easily register locally:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;helm repo add flink-kubernetes-operator-1.0.0 https://archive.apache.org/dist/flink/flink-kubernetes-operator-1.0.0/
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;helm install flink-kubernetes-operator flink-kubernetes-operator-1.0.0/flink-kubernetes-operator --set webhook.create&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;You can also find official Kubernetes Operator Docker images of the new version on &lt;a href=&quot;https://hub.docker.com/r/apache/flink-kubernetes-operator&quot;&gt;Dockerhub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;For more details, check the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.0/&quot;&gt;updated documentation&lt;/a&gt; and the
+&lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12351500&quot;&gt;release notes&lt;/a&gt;.
+We encourage you to download the release and share your feedback with the community through the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;Flink mailing lists&lt;/a&gt;
+or &lt;a href=&quot;https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Kubernetes%20Operator%22&quot;&gt;JIRA&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h2&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank each and every one of the contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;Aitozi, Biao Geng, ConradJam, Fuyao Li, Gyula Fora, Jaganathan Asokan, James Busche, liuzhuo, Márton Balassi, Matyas Orhidi, Nicholas Jiang, Ted Chang, Thomas Weise, Xin Hao, Yang Wang, Zili Chen&lt;/p&gt;
+</description>
+<pubDate>Sun, 05 Jun 2022 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2022/06/05/release-kubernetes-operator-1.0.0.html</link>
+<guid isPermaLink="true">/news/2022/06/05/release-kubernetes-operator-1.0.0.html</guid>
+</item>
+
+<item>
 <title>Improving speed and stability of checkpointing with generic log-based incremental checkpoints</title>
 <description>&lt;h1 id=&quot;introduction&quot;&gt;Introduction&lt;/h1&gt;
 
@@ -19860,214 +20004,6 @@ Transaction{timestamp=1563395831000, origin=1, target=&#39;3&#39;, amount=160}}
 <pubDate>Wed, 11 Sep 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2019/09/11/release-1.8.2.html</link>
 <guid isPermaLink="true">/news/2019/09/11/release-1.8.2.html</guid>
-</item>
-
-<item>
-<title>Flink Community Update - September&#39;19</title>
-<description>&lt;p&gt;This has been an exciting, fast-paced year for the Apache Flink community. But with over 10k messages across the mailing lists, 3k Jira tickets and 2k pull requests, it is not easy to keep up with the latest state of the project. Plus everything happening around it. With that in mind, we want to bring back regular community updates to the Flink blog.&lt;/p&gt;
-
-&lt;p&gt;The first post in the series takes you on an little detour across the year, to freshen up and make sure you’re all up to date.&lt;/p&gt;
-
-&lt;div class=&quot;page-toc&quot;&gt;
-&lt;ul id=&quot;markdown-toc&quot;&gt;
-  &lt;li&gt;&lt;a href=&quot;#the-year-so-far-in-flink&quot; id=&quot;markdown-toc-the-year-so-far-in-flink&quot;&gt;The Year (so far) in Flink&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#integration-of-the-chinese-speaking-community&quot; id=&quot;markdown-toc-integration-of-the-chinese-speaking-community&quot;&gt;Integration of the Chinese-speaking community&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#improving-flinks-documentation&quot; id=&quot;markdown-toc-improving-flinks-documentation&quot;&gt;Improving Flink’s Documentation&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#adjusting-the-contribution-process-and-experience&quot; id=&quot;markdown-toc-adjusting-the-contribution-process-and-experience&quot;&gt;Adjusting the Contribution Process and Experience&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#new-committers-and-pmc-members&quot; id=&quot;markdown-toc-new-committers-and-pmc-members&quot;&gt;New Committers and PMC Members&lt;/a&gt;        &lt;ul&gt;
-          &lt;li&gt;&lt;a href=&quot;#new-pmc-members&quot; id=&quot;markdown-toc-new-pmc-members&quot;&gt;New PMC Members&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;#new-committers&quot; id=&quot;markdown-toc-new-committers&quot;&gt;New Committers&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#the-bigger-picture&quot; id=&quot;markdown-toc-the-bigger-picture&quot;&gt;The Bigger Picture&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#upcoming-events&quot; id=&quot;markdown-toc-upcoming-events&quot;&gt;Upcoming Events&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#north-america&quot; id=&quot;markdown-toc-north-america&quot;&gt;North America&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#europe&quot; id=&quot;markdown-toc-europe&quot;&gt;Europe&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#asia&quot; id=&quot;markdown-toc-asia&quot;&gt;Asia&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;/div&gt;
-
-&lt;h1 id=&quot;the-year-so-far-in-flink&quot;&gt;The Year (so far) in Flink&lt;/h1&gt;
-
-&lt;p&gt;Two major versions were released this year: &lt;a href=&quot;https://flink.apache.org/news/2019/04/09/release-1.8.0.html&quot;&gt;Flink 1.8&lt;/a&gt; and &lt;a href=&quot;https://flink.apache.org/news/2019/08/22/release-1.9.0.html&quot;&gt;Flink 1.9&lt;/a&gt;; paving the way for the goal of making Flink the first framework to seamlessly support stream and batch processing with a single, unified runtime. The &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;contribution of Blink&lt;/a&gt; to Apache Flink was key in accelerating the path to this vision and reduced the waiting time for long-pending user requests — such as Hive integration, (better) Python support, the rework of Flink’s Machine Learning library and…fine-grained failure recovery (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures&quot;&gt;FLIP-1&lt;/a&gt;).&lt;/p&gt;
-
-&lt;p&gt;The 1.9 release was the result of the &lt;strong&gt;biggest community effort the project has experienced so far&lt;/strong&gt;, with the number of contributors soaring to 190 (see &lt;a href=&quot;#the-bigger-picture&quot;&gt;The Bigger Picture&lt;/a&gt;). For a quick overview of the upcoming work for Flink 1.10 (and beyond), have a look at the updated &lt;a href=&quot;https://flink.apache.org/roadmap.html&quot;&gt;roadmap&lt;/a&gt;!&lt;/p&gt;
-
-&lt;h2 id=&quot;integration-of-the-chinese-speaking-community&quot;&gt;Integration of the Chinese-speaking community&lt;/h2&gt;
-
-&lt;p&gt;As the number of Chinese-speaking Flink users rapidly grows, the community is working on translating resources and creating dedicated spaces for discussion to invite and include these users in the wider Flink community. Part of the ongoing work is described in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-35%3A+Support+Chinese+Documents+and+Website&quot;&gt;FLIP-35&lt;/a&gt; and has resulted in:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A new user mailing list (user-zh@f.a.o) dedicated to Chinese-speakers.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;A Chinese translation of the Apache Flink &lt;a href=&quot;https://flink.apache.org/zh/&quot;&gt;website&lt;/a&gt; and &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/zh/&quot;&gt;documentation&lt;/a&gt;.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Multiple meetups organized all over China, with the biggest one reaching a whopping number of 500+ participants. Some of these meetups were also organized in collaboration with communities from other projects, like Apache Pulsar and Apache Kafka.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_3.png&quot; width=&quot;800px&quot; alt=&quot;China Meetup&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;In case you’re interested in knowing more about this work in progress, Robert Metzger and Fabian Hueske will be diving into “Inviting Apache Flink’s Chinese User Community” at the upcoming ApacheCon Europe 2019 (see &lt;a href=&quot;#upcoming-flink-community-events&quot;&gt;Upcoming Flink Community Events&lt;/a&gt;).&lt;/p&gt;
-
-&lt;h2 id=&quot;improving-flinks-documentation&quot;&gt;Improving Flink’s Documentation&lt;/h2&gt;
-
-&lt;p&gt;Besides the translation effort, the community has also been working quite hard on a &lt;strong&gt;Flink docs overhaul&lt;/strong&gt;. The main goals are to:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Organize and clean-up the structure of the docs;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Align the content with the overall direction of the project;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Improve the &lt;em&gt;getting-started&lt;/em&gt; material and make the content more accessible to different levels of Flink experience.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.9/concepts/glossary.html#glossary&quot;&gt;Glossary&lt;/a&gt; in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation&quot;&gt;FLIP-42&lt;/a&gt; and the corresponding &lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12639&quot;&gt;umbrella Jira ticket&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;adjusting-the-contribution-process-and-experience&quot;&gt;Adjusting the Contribution Process and Experience&lt;/h2&gt;
-
-&lt;p&gt;The &lt;a href=&quot;https://flink.apache.org/contributing/how-to-contribute.html&quot;&gt;guidelines&lt;/a&gt; to contribute to Apache Flink have been reworked on the website, in an effort to lower the entry barrier for new contributors and reduce the overall friction in the contribution process. In addition, the Flink community discussed and adopted &lt;a href=&quot;https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=120731026&quot;&gt;bylaws&lt;/a&gt; to help the community collaborate and coordinate more smoothly.&lt;/p&gt;
-
-&lt;p&gt;For code contributors, a &lt;a href=&quot;https://flink.apache.org/contributing/code-style-and-quality-preamble.html&quot;&gt;Code Style and Quality Guide&lt;/a&gt; that captures the expected standards for contributions was also added to the “Contributing” section of the Flink website.&lt;/p&gt;
-
-&lt;p&gt;It’s important to stress that &lt;strong&gt;contributions are not restricted to code&lt;/strong&gt;. Non-code contributions such as mailing list support, documentation work or organization of community events are equally as important to the development of the project and highly encouraged.&lt;/p&gt;
-
-&lt;h2 id=&quot;new-committers-and-pmc-members&quot;&gt;New Committers and PMC Members&lt;/h2&gt;
-
-&lt;p&gt;The Apache Flink community has welcomed &lt;strong&gt;5 new Committers&lt;/strong&gt; and &lt;strong&gt;4 PMC (Project Management Committee) Members&lt;/strong&gt; in 2019, so far:&lt;/p&gt;
-
-&lt;h3 id=&quot;new-pmc-members&quot;&gt;New PMC Members&lt;/h3&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;Jincheng Sun, Kete (Kurt) Young, Kostas Kloudas, Thomas Weise
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;new-committers&quot;&gt;New Committers&lt;/h3&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;Andrey Zagrebin, Hequn, Jiangjie (Becket) Qin, Rong Rong, Zhijiang Wang
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Congratulations and thank you for your hardworking commitment to Flink!&lt;/p&gt;
-
-&lt;h1 id=&quot;the-bigger-picture&quot;&gt;The Bigger Picture&lt;/h1&gt;
-
-&lt;p&gt;Flink continues to push the boundaries of (stream) data processing, and the community is proud to see an ever-increasingly diverse set of contributors, users and technologies join the ecosystem.&lt;/p&gt;
-
-&lt;p&gt;In the timeframe of three releases, the project jumped from &lt;strong&gt;112 to 190 contributors&lt;/strong&gt;, also doubling down on the number of requested changes and improvements. To top it off, the Flink GitHub repository recently reached the milestone of &lt;strong&gt;10k stars&lt;/strong&gt;, all the way up from the incubation days in 2014.&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_1.png&quot; width=&quot;1000px&quot; alt=&quot;GitHub&quot; /&gt;
-&lt;/center&gt;
-
-&lt;p&gt;The activity across the user@ and dev@&lt;sup&gt;1&lt;/sup&gt; mailing lists shows a healthy heartbeat, and the gradual ramp up of user-zh@ suggests that this was a well-received community effort. Looking at the numbers for the same period in 2018, the dev@ mailing list has seen the biggest surge in activity, with an average growth of &lt;strong&gt;2.5x in the number of messages and distinct users&lt;/strong&gt; — a great reflection of the hyperactive pace of development of the Flink codebase.&lt;/p&gt;
-
-&lt;p&gt;&lt;img style=&quot;float: right;&quot; src=&quot;/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_2.png&quot; width=&quot;420px&quot; alt=&quot;Mailing Lists&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;In support of these observations, the report for the financial year of 2019 from the Apache Software Foundation (ASF) features Flink as one of the most thriving open source projects, with mentions for:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Most Active Visits and Downloads&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Most Active Sources: Visits&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Most Active Sources: Clones&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Top Repositories by Number of Commits&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Top Most Active Apache Mailing Lists (user@ and dev@)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Hats off to our fellows at Apache Beam for an astounding year, too! For more detailed insights, check the &lt;a href=&quot;https://s3.amazonaws.com/files-dist/AnnualReports/FY2018%20Annual%20Report.pdf&quot;&gt;full report&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;p&gt;&lt;sup&gt;1. Excluding messages from “jira@apache.org”.&lt;/sup&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;upcoming-events&quot;&gt;Upcoming Events&lt;/h1&gt;
-
-&lt;p&gt;As the conference and meetup season ramps up again, here are some events to keep an eye out for talks about Flink and opportunities to mingle with the wider stream processing community.&lt;/p&gt;
-
-&lt;h3 id=&quot;north-america&quot;&gt;North America&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://conferences.oreilly.com/strata/strata-ny&quot;&gt;Strata Data Conference 2019&lt;/a&gt;&lt;/strong&gt;, September 23-26, New York, USA
-    &lt;p&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;[Meetup] &lt;strong&gt;&lt;a href=&quot;https://www.meetup.com/Bay-Area-Apache-Flink-Meetup/events/262680261/&quot;&gt;Apache Flink Bay Area Meetup&lt;/a&gt;&lt;/strong&gt;, September 24, San Francisco, USA
-    &lt;p&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://www.meetup.com/Bay-Area-Apache-Flink-Meetup/events/262680261/&quot;&gt;Scale By The Bay 2019&lt;/a&gt;&lt;/strong&gt;, November 13-15, San Francisco, USA&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;europe&quot;&gt;Europe&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[Meetup] &lt;strong&gt;&lt;a href=&quot;https://www.meetup.com/Apache-Flink-London-Meetup/events/264123672&quot;&gt;Apache Flink London Meetup&lt;/a&gt;&lt;/strong&gt;, September 23, London, UK
-    &lt;p&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://europe-2019.flink-forward.org&quot;&gt;Flink Forward Europe 2019&lt;/a&gt;&lt;/strong&gt;, October 7-9, Berlin, Germany
-    &lt;p&gt;&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;
-        &lt;p&gt;The next edition of Flink Forward Europe is around the corner and the &lt;a href=&quot;https://europe-2019.flink-forward.org/conference-program&quot;&gt;program&lt;/a&gt; has been announced, featuring 70+ talks as well as panel discussions and interactive “Ask Me Anything” sessions with core Flink committers. If you’re looking to learn more about Flink and share your experience with other community members, there really is &lt;a href=&quot;(https://vimeo.com/296403091)&quot;&gt;no better place&lt;/a&gt; than Flink Forward!&lt;/p&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; if you are a &lt;strong&gt;committer for any Apache project&lt;/strong&gt;, you can &lt;strong&gt;get a free ticket&lt;/strong&gt; by registering with your Apache email address and using the discount code: &lt;em&gt;FFEU19-ApacheCommitter&lt;/em&gt;.&lt;/p&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://aceu19.apachecon.com/&quot;&gt;ApacheCon Berlin 2019&lt;/a&gt;&lt;/strong&gt;, October 22-24, Berlin, Germany&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://www.data2day.de/&quot;&gt;Data2Day 2019&lt;/a&gt;&lt;/strong&gt;, October 22-24, Ludwigshafen, Germany&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://bigdatatechwarsaw.eu&quot;&gt;Big Data Tech Warsaw 2020&lt;/a&gt;&lt;/strong&gt;, February 7, Warsaw, Poland
-    &lt;p&gt;&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;The Call For Presentations (CFP) is now &lt;a href=&quot;https://bigdatatechwarsaw.eu/cfp/&quot;&gt;open&lt;/a&gt;.&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;asia&quot;&gt;Asia&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;[Conference] &lt;strong&gt;&lt;a href=&quot;https://m.aliyun.com/markets/aliyun/developer/ffa2019&quot;&gt;Flink Forward Asia 2019&lt;/a&gt;&lt;/strong&gt;, November 28-30, Beijing, China
-    &lt;p&gt;&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;The second edition of Flink Forward Asia is also happening later this year, in Beijing, and the CFP is &lt;a href=&quot;https://developer.aliyun.com/special/ffa2019&quot;&gt;open&lt;/a&gt; until September 20.&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;If you’d like to keep a closer eye on what’s happening in the community, subscribe to the &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;community mailing list&lt;/a&gt; to get fine-grained weekly updates, upcoming event announcements and more. Also, please reach out if you’re interested in organizing or being part of Flink events in your area!&lt;/p&gt;
-</description>
-<pubDate>Tue, 10 Sep 2019 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2019/09/10/community-update.html</link>
-<guid isPermaLink="true">/news/2019/09/10/community-update.html</guid>
 </item>
 
 </channel>
