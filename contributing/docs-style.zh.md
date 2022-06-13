@@ -1,131 +1,90 @@
 ---
-title:  "Documentation Style Guide"
+title:  "文档样式指南"
 ---
 
-This guide provides an overview of the essential style guidelines for writing
-and contributing to the Flink documentation. It's meant to support your
-contribution journey in the greater community effort to improve and extend
-existing documentation — and help make it more **accessible**, **consistent**
-and **inclusive**.
+本指南概述了在编辑以及贡献 Flink 文档中必要的样式原则。目的是在你的贡献之旅中可以投入更好的社区精力去改进和扩展既有文档，并使其更 **易读**、 **一致** 和 **全面**。
 
 {% toc %}
 
-## Language
+## 语言
 
-The Flink documentation is maintained in **US English** and **Chinese** — when
-extending or updating the documentation, both versions should be addressed in
-one pull request. If you are not familiar with the Chinese language, make sure
-that your contribution is complemented by these additional steps:
+Flink 同时维护了 **英文** 和 **中文** 两种文档，当你拓展或者更新文档时，需要在 pull request 中包含两种语言版本。如果你不熟悉中文，确保本次贡献补充了如下额外操作：
 
-* Open a
-  [JIRA](https://issues.apache.org/jira/projects/FLINK/issues/FLINK-12070?filter=allopenissues)
-  ticket for the translation, tagged with the chinese-translation component;
-* Link the ticket to the original contribution JIRA ticket.
+* 开一个翻译的 [JIRA](https://issues.apache.org/jira/projects/FLINK/issues/FLINK-12070?filter=allopenissues) 请求单，并打上 chinese-translation 的标签；
 
-Looking for style guides to contribute with translating existing documentation
-to Chinese? Go ahead and consult [this translation
-specification](https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications).
+* 在此请求单上添加到原始 JIRA 请求单的链接。
 
-[Back to top](#top)
+正在寻求有助于将现有文档翻译成中文的风格指南？请继续查阅 [这个翻译规范](https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications)。
 
-## Language Style
+[回到顶部](#top)
 
-Below, you find some basic guidelines that can help ensure readability and
-accessibility in your writing. For a deeper and more complete dive into
-language style, also refer to the [General Guiding
-Principles](#general-guiding-principles).
+## 语言风格
 
-### Voice and Tone
+如下，你可以看到一些初步的原则，这些原则可以确保书写中的可读性和通俗易懂。如果想更深入、更细致的了解语言风格，也可以参考 [通用准则](#general-guiding-principles)。
 
-* **Use active voice.** [Active
-  voice](https://medium.com/@DaphneWatson/technical-writing-active-vs-passive-voice-485dfaa4e498)
-  supports brevity and makes content more engaging. If you add _by zombies_
-  after the verb in a sentence and it still makes sense, you are using the
-  passive voice.
+### 语态和语气
+
+* **使用主动语态。**[主动语态](https://medium.com/@DaphneWatson/technical-writing-active-vs-passive-voice-485dfaa4e498)简洁，并让内容更具有吸引力。如果你在句子的动词后添加 _by zombies_ 后仍然读的通，那么你用的就是被动语态。
 
   <div class="alert alert-info">
-    <b>Active Voice</b>
+    <b>主动语态</b>
     <p>"You can run this example in your IDE or on the command line."</p>
 
     <p></p>
 
-    <b>Passive Voice</b> 
+    <b>被动语态</b> 
     <p>"This example can be run in your IDE or on the command line (by zombies)."</p>
   </div>
 
-* **Use you, never we.** Using _we_ can be confusing and patronizing to some
-  users, giving the impression that “we are all members of a secret club and
-  _you_ didn’t get a membership invite”. Address the user as _you_.
 
-* **Avoid gender- and culture-specific language.** There is no need to identify
-  gender in documentation: technical writing should be
-  [gender-neutral](https://techwhirl.com/gender-neutral-technical-writing/).
-  Also, jargon and conventions that you take for granted in your own language
-  or culture are often different elsewhere. Humor is a staple example: a great
-  joke in one culture can be widely misinterpreted in another.
+  <div class="alert alert-info"> 
+    <b>关于语态：</b>
+    <p>如上语态规范主要是写英文文档过程中注意，中文文档仍然以 <a href='https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications'>这个翻译规范</a> 为准 
+  </div>
 
-* **Avoid qualifying and prejudging actions.** For a user that is frustrated or
-  struggling to complete an action, using words like _quick_ or _easy_ can lead
-  to a poor documentation experience.
 
-* **Avoid using uppercase words** to highlight or emphasize statements.
-  Highlighting key words with e.g. **bold** or _italic_ font usually appears more polite.
-  If you want to draw attention to important but not obvious statements,
-  try to group them into separate paragraphs starting with a label,
-  highlighted with a corresponding HTML tag:
+* **使用你，而不是我们。** 用 _我们_ 会让用户感到困惑以及傲慢，给人“我们是一个秘密组织的成员，而 _你_ 并没有获得会员邀请”的感觉。所以用 _你_ 来建议用户。
+
+* **避免使用针对性别和文化的语言。**文档无需指定性别：技术写作应当 [性别中立](https://techwhirl.com/gender-neutral-technical-writing/)。还有，在你的文化和日常交流中被认为是理所应当的行话和惯例，在其他地方可能很不一样。幽默就是很典型的例子：在某个文化中很棒的笑话，但在其他文化中可能被广泛误解。
+
+* **避免对操作做能力限定以及对难度提前下结论。**对于很艰难才能完成操作或者操作中很容易沮丧的用户，使用诸如 _快速_ 或者 _容易_ 是糟糕的文档体验。
+
+* **避免使用大写单词**来突出或者强调陈述。使用例如 **加粗** 或者 _斜体_ 来突出关键词通常会更礼貌。如果一个不明显的声明需要突出以引起更多的注意，可以按照段落分组，段落以标签开头，配合对应的 HTML 标记来突出显示：
   * `<span class="label label-info">Note</span>`
   * `<span class="label label-warning">Warning</span>`
   * `<span class="label label-danger">Danger</span>`
 
-### Using Flink-specific Terms
+### 使用 Flink 特定术语
 
-Use clear definitions of terms or provide additional instructions on what
-something means by adding a link to a helpful resource, such as other
-documentation pages or the [Flink
-Glossary]({{site.DOCS_BASE_URL}}flink-docs-stable/docs/concepts/glossary).
-The Glossary is a work in progress, so you can also propose new terms by
-opening a pull-request.
+使用清晰的术语定义，也可以对要表达的内容提供有帮助的资源链接来辅助说明，例如其他的文档页面或者 [Flink 术语表]({{site.DOCS_BASE_URL}}flink-docs-stable/docs/concepts/glossary)。目前，术语表仍在编辑中，新术语可以开 pull-request 来提交。
 
-[Back to top](#top)
+[回到顶部](#top)
 
-## Repository
+## 代码仓库
 
-Markdown files (.md) should have a short name that summarizes the topic
-covered, spelled in **lowercase** and with **dashes (-)** separating the
-words. The Chinese version file should have the same name as the English
-version, but suffixed with **.zh.md**.
+Markdown 文件（.md）的文件名应该是能高度总结主题的短名称，文件名全部 **小写** 并用 **破折号（-）** 分隔单词。中文的文件名和英文一致，但以 **.zh.md** 结尾。
 
-[Back to top](#top)
+[回到顶部](#top)
 
-## Syntax
+## 语法
 
-The documentation website is generated using
-[Jekyll](https://jekyllrb.com/docs/) and the pages are written in
-[Markdown](https://daringfireball.net/projects/markdown/syntax), a lightweight
-portable format for web publishing (but not limited to it).
+本文档网站使用 [Jekyll](https://jekyllrb.com/docs/) 生成，页面使用 [Markdown](https://daringfireball.net/projects/markdown/syntax) 编写，一种用于网页发布的轻量可移植格式（但不限于此）。
 
-### Extended Syntax
+### 拓展语法
 
-Markdown can also be used in combination with [GitHub Flavored
-Markdown](https://guides.github.com/features/mastering-markdown/) and plain
-[HTML](http://www.simplehtmlguide.com/cheatsheet.php). For example, some
-contributors prefer to use HTML tags for images and are free to do so with this
-intermix.
+Markdown 还可以混合使用 [GitHub 风格的
+Markdown](https://guides.github.com/features/mastering-markdown/) 和纯 [HTML](http://www.simplehtmlguide.com/cheatsheet.php)。 例如，一些贡献者更喜欢使用 HTML 标签来表示图片，这种混合的方式就很方便。
 
-### Front Matter
+<a name="front-matter"></a>
 
-In addition to Markdown, each file contains a YAML [front matter
-block](https://jekyllrb.com/docs/front-matter/) that will be used to set
-variables and metadata on the page. The front matter must be the first thing in
-the file and must be specified as a valid YAML set between triple-dashed lines.
+### 前言
+
+除 Markdown 之外，每个文件还包含一个 YAML [前言区块](https://jekyllrb.com/docs/front-matter/)，用于设置页面变量以及元数据。前言必须在文件的最开始，由三条虚线之间的有效 YAML 集合来指定。
 
 <div class="alert alert-warning">
-  <h3>Apache License</h3>
+  <h3>Apache 许可证</h3>
 
-  <p>For every documentation file, the front matter should be immediately
-  followed by the Apache License statement. For both language versions, this
-  block must be stated in US English and copied in the exact same words as in
-  the following example.</p>
+  <p>对于每一个文档， 前言后都应当紧随一个Apache 许可证声明。两种语言版本的声明都用英语表示，并按照如下实例完全复制。</p>
 </div>
 
 ```
@@ -151,201 +110,176 @@ under the License.
 -->
 ```
 
-Below are the front matter variables most commonly used along the Flink
-documentation.
+下面是 Flink 文档前言中常用的变量。
 
 <font size="3">
 <table width="100%" class="table table-bordered">
   <thead>
   <tr>
     <th></th>
-    <th style="vertical-align : middle;"><center><b>Variable</b></center></th>
-    <th style="vertical-align : middle;"><center><b>Possible Values</b></center></th>
-    <th style="vertical-align : middle;"><center><b>Description</b></center></th>
+    <th style="vertical-align : middle;"><center><b>变量名</b></center></th>
+    <th style="vertical-align : middle;"><center><b>可能值</b></center></th>
+    <th style="vertical-align : middle;"><center><b>描述</b></center></th>
   </tr>
   <tr>
-    <td><b>Layout</b></td>
+    <td><b>布局</b></td>
     <td>layout</td>
     <td>{base,plain,redirect}</td>
-    <td>The layout file to use. Layout files are located under the <i>_layouts</i> directory.</td>
+    <td>要使用的布局文件。布局文件位于 <i>_layouts</i> 目录下。</td>
   </tr>
   <tr>
-    <td><b>Content</b></td>
+    <td><b>内容</b></td>
     <td>title</td>
     <td>%s</td>
-    <td>The title to be used as the top-level (Level-1) heading for the page.</td>
+    <td>此标题是页面最顶部 （1级） 的标题。</td>
   </tr>
   <tr>
-	    <td rowspan="4" style="vertical-align : middle;"><b>Navigation</b></td>
+	    <td rowspan="4" style="vertical-align : middle;"><b>导航</b></td>
 	    <td>nav-id</td>
 	    <td>%s</td>
-	    <td>The ID of the page. Other pages can use this ID as their nav-parent_id.</td>
+	    <td>页面 ID。其他页面可以使用此 ID 作为他们的 nav-parent_id。</td>
 	  </tr>
 	  <tr>
 	    <td>nav-parent_id</td>
 	    <td>{root,%s}</td>
-	    <td>The ID of the parent page. The lowest navigation level is root.</td>
+	    <td>页面父级 ID。最低导航级别为 root。</td>
 	  </tr>
 	  <tr>
 	    <td>nav-pos</td>
 	    <td>%d</td>
-	    <td>The relative position of pages per navigation level.</td>
+	    <td>在每个导航级别下页面的相对位置。</td>
 	  </tr>
 	  <tr>
 	    <td>nav-title</td>
 	    <td>%s</td>
-	    <td>The title to use as an override of the default link text (title).</td>
+	    <td>此标题用于重载默认的文本链接（标题）</td>
 	  </tr>
  </thead>
 </table>
 </font>
 
-Documentation-wide information and configuration settings that sit under
-`_config.yml` are also available to the front matter through the site variable.
-These settings can be accessed using the following syntax:
+文档范围的信息和配置位于 `_config.yml` 下，在前言中也是可用的，通过 site 变量使用。可以使用以下语法访问这些设置：
 
 ```liquid
 {{ "{{ site.CONFIG_KEY " }}}}
 ```
-The placeholder will be replaced with the value of the variable named `CONFIG_KEY` when generating the documentation.
+当生成文档时，占位符会被替换成变量 `CONFIG_KEY` 的值。
 
-[Back to top](#top)
+[回到顶部](#top)
 
-## Formatting
+## 格式化
 
-Listed in the following sections are the basic formatting guidelines to get you
-started with writing documentation that is consistent and simple to navigate.
+以下各节列出了基本的格式准则，可以帮助你开始编写一致且易于浏览的文档。
 
-### Headings
+### 标题
 
-In Markdown, headings are any line prefixed with a hash (#), with the number of
-hashes indicating the level of the heading. Headings should be nested and
-consecutive — never skip a header level for styling reasons!
+在 Markdown 中，标题是任意以井号（#）开头的行，井号的数量表示标题级别。标题永远是嵌套和连续的，不能因为样式原因跳过标题级别！
 
 <font size="3">
 <table width="100%" class="table table-bordered">
   <thead>
   <tr>
-    <th style="vertical-align : middle;"><center><b>Syntax</b></center></th>
-    <th style="vertical-align : middle;"><center><b>Level</b></center></th>
-    <th style="vertical-align : middle;"><center><b>Description</b></center></th>
+    <th style="vertical-align : middle;"><center><b>语法</b></center></th>
+    <th style="vertical-align : middle;"><center><b>级别</b></center></th>
+    <th style="vertical-align : middle;"><center><b>描述</b></center></th>
   </tr>
   <tr>
-    <td># Heading</td>
-    <td><center>Level-1</center></td>
-    <td>The page title is defined in the Front Matter, so this level should <b>not be used</b>.</td>
+    <td># 标题</td>
+    <td><center>1级</center></td>
+    <td>页面标题在前言中定义，此级别标题 <b>不应该使用</b>。</td>
   </tr>
   <tr>
-    <td>## Heading</td>
-    <td><center>Level-2</center></td>
-    <td>Starting level for Sections. Used to organize content by higher-level topics or goals.</td>
+    <td>## 标题</td>
+    <td><center>2级</center></td>
+    <td>章节的起始级别。用于按照高级别的主题或者目标来组织内容。</td>
   </tr>
   <tr>
-    <td>### Heading</td>
-    <td><center>Level-3</center></td>
-    <td rowspan="2" style="vertical-align : middle;">Sub-sections. Used in each Section to separate supporting information or tasks.</td>
+    <td>### 标题</td>
+    <td><center>3级</center></td>
+    <td rowspan="2" style="vertical-align : middle;">子章节。在每个章节中用于分隔次要信息或者任务。</td>
   </tr>
   <tr>
-    <td>#### Heading</td>
-    <td><center>Level-4</center></td>
+    <td>#### 标题</td>
+    <td><center>4级</center></td>
   </tr>
 </thead>
 </table>
 </font>
 
 <div class="alert alert-warning">
-  <h3>Best Practice</h3>
+  <h3>最佳实践</h3>
 
-  Use descriptive language in the phrasing of headings. For example, for a
-  documentation page on dynamic tables, "Dynamic Tables and Continuous Queries"
-  is more descriptive than "Background" or "Technical Information".
+  标题使用叙述语言的措辞。例如，一个动态表格的文档页面，“动态表格和连续查询”就比“背景”或者“技术信息”更有描述性。
 </div>
 
-### Table of Contents
+### 目录
 
-In the documentation build, the **Table Of Contents** (TOC) is automatically
-generated from the headings of the page using the following line of markup:
+在文档构建过程中，**标题**（TOC) 从页面标题自动生成，通过如下行标记使用： 
 
 ```liquid
 {{ "{:toc" }}}
 ```
 
-All headings up to **Level-3** are considered. To exclude a particular heading
-from the TOC:
+仔细考虑下大于 **3级** 的标题。在 TOC 中去除指定标题：
 
 ```liquid
-{{ "# Excluded Heading
+{{ "# 排除在外的标题
 {:.no_toc" }}}
 ```
 
 <div class="alert alert-warning">
-  <h3>Best Practice</h3>
+  <h3>最佳实践</h3>
 
-  Write a short and concise introduction to the topic that is being covered and
-  place it before the TOC. A little context, such an outline of key messages,
-  goes a long way in ensuring that the documentation is consistent and
-  accessible to all levels of knowledge.
+  为所涵盖的主题写一个简短的介绍，并放在 TOC 之前。一些上下文，例如关键信息的概述，对于确保文档的连贯、降低阅读门槛都大有帮助。
 </div>
 
-### Navigation
+### 导航
 
-In the documentation build, navigation is defined using properties configured
-in the [front-matter variables](#front-matter) of each page. 
+在文档构建中，导航的属性通过每个页面中的 [前言变量](#front-matter)配置。
 
-It's possible to use _Back to Top_ links in extensive documentation pages, so
-that users can navigate to the top of the page without having to scroll back up
-manually. In markup, this is implemented as a placeholder that is replaced with
-a default link when generating the documentation:
+在比较长的文档页面中使用 _回到首页_ 是很有必要的，这样用户就可以直接跳转到顶部而不用手动向上滑动。在使用标记中，通过在构建文档时替换占位符为一个默认的链接来实现：
 
 ```liquid
 {{ "{% top " }}%}
 ```
 
 <div class="alert alert-warning">
-  <h3>Best Practice</h3>
-
-  It's recommended to use Back to Top links at least at the end of each Level-2
-  section.
+  <h3>最佳实践</h3>
+  
+  建议至少要在 2 级章节的结尾处添加回到首页链接。
 </div>
 
-### Annotations
+### 标注
 
-In case you want to include edge cases, tightly related information or
-nice-to-knows in the documentation, it’s a (very) good practice to highlight
-them using special annotations.
+如果你需要在文档中添加边缘案例、紧密相关或者最好了解的信息，使用特殊的标注来高亮是一个（很）好的实践。
 
-* To highlight a tip or piece of information that may be helpful to know:
+* 突出显示提示以及有助于理解的信息：
 
   ```html
   <div class="alert alert-info"> // Info Message </div>
   ```
 
-* To signal danger of pitfalls or call attention to an important piece of
-  information that is crucial to follow:
+* 发出陷阱危险信号，或提醒关注必须要遵循的重要信息：
 
   ```html
   <div class="alert alert-danger"> // Danger Message </div>
   ```
 
-### Links
+### 链接
 
-Adding links to documentation is an effective way to guide the user into a
-better understanding of the topic being discussed without the risk of
-overwriting.
+添加文档链接是一种有效的方法--可以引导用户更好的理解正在讨论的主题，而不会有重写的风险。
 
-* **Links to sections in the page.** Each heading generates an implicit
-  identifier to directly link it within a page. This identifier is generated by
-  making the heading lowercase and replacing internal spaces with hyphens.
+* **指向页面中各节的链接。** 每个标题都会生成一个隐式标识符，以便在页面中直接跳转。此标识符是通过将标题设置为小写并将内部空格替换为连字符来生成的。
 
-  * **Heading:** ## Heading Title
-  * **ID:** #heading-title
+  * **标题：** ## Heading Title
+  * **ID：** #heading-title
   <p></p>
 
   ```liquid 
   [Link Text](#heading-title) 
   ```
 
-* **Links to other pages of the Flink documentation.**
+* **链接到 Flink 文档的其他页面。**
 
   {% raw %}
   ```liquid 
@@ -353,55 +287,43 @@ overwriting.
   ```
   {% endraw %}
 
-* **Links to external pages**
+* **指向外部页面的链接**
 
   ```liquid 
   [Link Text](external_url)
   ```
 
 <div class="alert alert-warning">
-  <h3>Best Practice</h3>
+  <h3>最佳实践</h3>
 
-  Use descriptive links that provide information on the action or destination.
-  For example, avoid using "Learn More" or "Click Here" links.
+  链使用可以提供操作或者目标信息的描述性链接名称。例如，避免使用“了解更多”或“单击此处”链接。
 </div>
 
-### Visual Elements
+### 可视化内容
 
-Figures and other visual elements are placed under the root _fig_ folder and
-can be referenced in documentation pages using a syntax similar to that of
-links:
+图形和其他可视化内容放置在根目录的 _fig_ 目录下，可以使用类似于链接的语法在文档页面中引用：
 
 ```liquid 
 ![Picture Text]({{ "{{ site.baseurl " }}}}/fig/image_name.png){:height="200px" width="200px"}
 ```
 
-Or using plain HTML:
+或者使用纯 HTML：
 
 {% highlight html %}
 <img src="{{ site.baseurl }}/fig/image_name.png" class="center" height="200px" width="200px"/>
 {% endhighlight %}
 
 <div class="alert alert-warning">
-  <h3>Best Practice</h3>
+  <h3>最佳实践</h3>
 
-  Use flowcharts, tables and figures where appropriate or necessary for
-  additional clarification, but never as a standalone source of information.
-  Make sure that any text included in those elements is large enough to read
-  and that the overall resolution is adequate.
+  在适当或必要的情况下使用流程图、表格和图形进行额外说明，但切勿作为独立的信息来源。确保内容中的字体大小不影响阅读，并且整体分辨率足够。
 </div>
 
-### Code
+### 代码
 
-* **Inline code.** Small code snippets or references to language constructs in
-  normal text flow should be highlighted using surrounding backticks ( **\`**
-  ).
+* **行内代码、** 使用包围的反引号（ **\`**）来高亮正常文本流中的小代码段或者语言结构类型的引用。
 
-* **Code blocks.** Code that represents self-contained examples, feature
-  walkthroughs, demonstration of best practices or other useful scenarios
-  should be wrapped using a fenced code block with appropriate [syntax
-  highlighting](https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers).
-  One way of achieving this with markup is:
+* **代码块。** 表示自包含示例、功能演练、最佳实践演示或其他有用场景的代码，应使用带有适当 [语法高亮]((https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers))显示的围栏代码块（fenced code block）进行包装。其中一种代码块实现方式如下：
 
 
   ```liquid 
@@ -410,7 +332,7 @@ Or using plain HTML:
   {{"{% endhighlight"}}%} 
   ```
 
-  which is equivalent to using triple backticks ( **\`\`\`** ):
+  这相当于使用三个反引号 ( **\`\`\`** ):
 
   ````liquid
   ```java 
@@ -418,7 +340,7 @@ Or using plain HTML:
   ```
   ````
 
-  When specifying multiple programming languages, each code block should be styled as a tab:
+  指定多个编程语言时，每个代码块都应设置为选项卡样式:
 
   ```html
   <div class="codetabs" markdown="1">
@@ -442,73 +364,57 @@ Or using plain HTML:
   </div>
   ```
 
-  These code blocks are often used to learn and explore, so there are a few
-  best practices to keep in mind:
+  在学习和探索过程会经常使用代码块，留心这些最佳实践：
 
-  * **Showcase key development tasks.** Reserve code examples for common
-    implementation scenarios that are meaningful for users. Leave more lengthy
-    and complicated examples for tutorials or walkthroughs.
+  * **展示关键开发任务。** 对用户有意义的通用实现场景需要保留代码样例。对教程或者演示提供足够长度和复杂的示例代码。
 
-  * **Ensure the code is standalone.** Code examples should be self-contained
-    and not have external dependencies (except for outlier cases such as
-    examples on how to use specific connectors). Include all import statements
-    without using wildcards, so that newcomers can understand and learn which
-    packages are being used.
+  * **确保代码是独立的。** 代码示例应该是自包含的，并且没有外部依赖项（异常情况除外，例如有关如何使用特定连接器的示例）。包括所有不使用通配符的导入语句，以便新手理解和学习正在使用哪些包。
 
-  * **Avoid shortcuts.** For example, handle exceptions and cleanup as you
-    would in real-world code.
+  * **避免捷径。** 例如，像处理实际代码一样处理异常和清理。
 
-  * **Include comments, but don’t overdo it.** Provide an introduction
-    describing the main functionality of the code and possible caveats that
-    might not be obvious from reading it. Use comments to clarify
-    implementation details and to describe the expected output.
+  * **使用注释，但不要过度。** 提供说明，用于描述代码的主要功能和可能的注意事项，这些注意事项可能在阅读时并不明显。使用注释来阐明实现细节并描述预期输出。
 
-[Back to top](#top)
+* **代码块中的命令。**可以使用 `bash` 语法记录命令。当给文档添加命令的时候考虑如下内容：
+  * **参数名称长一点。** 长一点的参数名能很好的帮助用户理解命令的目的。相对于短名称，用户应该更喜欢长名称。
+  * **每个参数占据一行。**长名称可能会让命令难以阅读。每个参数占据一行能提升可读性。为了支持复制粘贴，需要在命令的每个中间行使用反斜杠 `\` 转义换行。 
+  * **缩进。**每个新参数行应缩进6个空格。
+  * **用前缀 `$` 来标识命令的开始。**同一处代码块中的多行命令会影响可读性。在每个新命令前放美元符 `$` 有助于识别命令的开头。
+  
+  一个格式正确的命令如下：
 
-## General Guiding Principles
+  ```bash
+$ ./bin/flink run-application \
+        --target kubernetes-application \
+        -Dkubernetes.cluster-id=my-first-application-cluster \
+        -Dkubernetes.container.image=custom-image-name \
+        local:///opt/flink/usrlib/my-flink-job.jar
+  ```
 
-This style guide has the overarching goal of setting the foundation for
-documentation that is **Accessible**, **Consistent**, **Objective**,
-**Logical** and **Inclusive**.
 
-#### Accessible
+[回到首页](#top)
 
-The Flink community is diverse and international, so you need to think wide and
-globally when writing documentation. Not everyone speaks English at a native
-level and the level of experience with Flink (and stream processing in general)
-ranges from absolute beginners to experienced advanced users. Ensure technical
-accuracy and linguistic clarity in the content you produce so that it can be
-understood by all users.
+<a name="general-guiding-principles"></a>
 
-#### Consistent
+## 通用准则
 
-Stick to the basic guidelines detailed in this style guide and use your own
-best judgment to uniformly spell, capitalize, hyphenate, bold and italicize
-text. Correct grammar, punctuation and spelling are desirable, but not a hard
-requirement — documentation contributions are open to any level of language
-proficiency.
+本风格指南的首要目标是为写出**易读**、**一致**、**客观**、**合乎逻辑**以及**全面**的文档奠定基础。
 
-#### Objective
+#### 易读的
 
-Keep your sentences short and to the point. As a rule of thumb, if a sentence
-is shorter than 14 words, readers will likely understand 90 percent of its
-content. Sentences with more than 25 words are usually harder to understand and
-should be revised and split, when possible. Being concise and using well-known
-keywords also allows users to navigate to relevant documentation with little
-effort.
+Flink 社区是多元化和国际化的，所以在编写文档时需要放眼全球。不是每个人的母语都是英语，而且使用 Flink （以及一般的流处理）的经验也是从初学者到资深不等。因此要确保内容的技术准确性以及语言清晰度，以便所有的用户都能理解。
 
-#### Logical
+#### 一致的
 
-Be mindful that most users will scan through online content and only read
-around [28 percent of it](https://www.nngroup.com/articles/website-reading/).
-This underscores the importance of grouping related ideas together into a clear
-hierarchy of information and using focused, descriptive headings. Placing the
-most relevant information in the first two paragraphs of each section is a good
-practice that increases the “return of time invested” for the user.
+坚持本样式指南中详细的基本准则，并用自己的最佳判断来统一拼写、大小写、连字符、粗体和斜体。正确的语法、标点符号和拼写是值得做的，但并不是必须的--贡献文档对任何语言熟练度都是开放的。
 
-#### Inclusive
+#### 客观的
 
-Use positive language and concrete, relatable examples to ensure the content is
-findable and welcoming to all users. The documentation is translated to other
-languages, so using simple language and familiar words also helps reduce the
-translation effort.
+句子应该简洁和提纲挈领。根据经验，如果一个句子少于 14 个单词，读者就会很容易理解 90% 的内容。但如果大于 25 个单词通常就会很难理解了，应尽可能修改和拆分。简明和众所周知的关键词能让用户轻松的定位到相关的文档。
+
+#### 合乎逻辑的
+
+请注意，大部分用户只会浏览大约 [28% 的在线内容](https://www.nngroup.com/articles/website-reading/) 。这突出表明了将相关的概念按照清晰的信息结构分组、内容聚焦以及使用描述性标题的重要性。将最相关的内容放在每个章节的头两个段落是很好的实践，这样能增加用户的“时间投入回报”。
+
+#### 全面的
+
+使用积极主动的语法以及准确、有关联性的样例，以确保内容可被检索到并且对所有用户都是友好可读的。文档也会被翻译成其他语言，所以使用简单的语法和熟悉的单词有助于减少翻译的工作量。
