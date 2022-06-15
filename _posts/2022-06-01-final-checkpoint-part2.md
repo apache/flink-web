@@ -104,7 +104,7 @@ section.
 
 ## How did Jobs in Flink Finish Before?
 
-Strictly speaking, a job might be finished in two scenarios: all sources finish or users execute
+A job might finish in two ways: all sources finish or users execute
 [`stop-with-savepoint [--drain]`](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/cli/#stopping-a-job-gracefully-creating-a-final-savepoint).
 Let’s first have a look at the detailed process of finishing before. 
 
@@ -119,7 +119,7 @@ until the last task is finished.
 ```
 1. Source operators emit MAX_WATERMARK
 2. On received MAX_WATERMARK for non-source operators
-    a. Trigger all the event times
+    a. Trigger all the event-time timers
     b. Emit MAX_WATERMARK
 3. Source tasks finished
     a. endInput(inputId) for all the operators
@@ -138,27 +138,27 @@ until the last task is finished.
 ### When users execute stop-with-savepoint [--drain]
 
 Users could execute the command stop-with-savepoint [--drain] for both bounded and unbounded jobs to trigger jobs to finish.
-In this case, Flink would first trigger a synchronous savepoint and all the tasks would stall after seeing the synchronous
+In this case, Flink first triggers a synchronous savepoint and all the tasks would stall after seeing the synchronous
 savepoint. If the savepoint succeeds, all the source operators would finish actively and the job would finish the same as the above scenario. 
 
 ```
 1. Trigger a savepoint
-2. All the tasks blocked till the savepoint succeed
-3. Finish the source tasks actively
+2. Sources received savepoint trigger RPC
     a. If with –-drain
         i. source operators emit MAX_WATERMARK
+    b. Source emits savepoint barrier
+3. On received MAX_WATERMARK for non-source operators
+    a. Trigger all the event times
+    b. Emit MAX_WATERMARK
+4. On received savepoint barrier for non-source operators
+    a. The task blocks till the savepoint succeed
+5. Finish the source tasks actively
+    a. If with –-drain
         ii. endInput(inputId) for all the operators
     b. close() for all the operators
     c. dispose() for all the operators
     d. Emit EndOfPartitionEvent
     e. Task cleanup
-4. On received MAX_WATERMARK for non-source operators
-    a. Trigger all the event times
-    b. Emit MAX_WATERMARK
-5. On source finished or EndOfPartitionEvent
-    a. endInput(int inputId)
-    b. close()
-    c. dispose()
 6. On received EndOfPartitionEvent for non-source tasks
     a. If with –-drain
         i. endInput(int inputId) for all the operators
@@ -175,22 +175,22 @@ otherwise the job is expected to terminate permanently. Thus we only emit `MAX_W
 ## Revise the Finishing Steps
 
 As described in part one, after revising the process of finishing, we have decoupled the process of "finishing operator logic"
-and "finishing task" by introducing a new `EndOfDataEvent`. After the revision each task will first
-notify the descendants with an `EndOfDataEvent` after executing all the logic
+and "finishing task" by introducing a new `EndOfData` event. After the revision each task will first
+notify the descendants with an `EndOfData` event after executing all the logic
 so that the descendants also have chances to finish executing the operator logic, then
-all the tasks could wait for the next checkpoint or the specified savepoint concurrently to succeed to commit all the remaining data
-before getting finished. This section will present the detailed protocol of the revised process. Since we have renamed
+all the tasks could wait for the next checkpoint or the specified savepoint concurrently to commit all the remaining data. 
+This section will present the detailed protocol of the revised process. Since we have renamed
 `close()` /`dispose()` to `close()` / `finish()`, we’ll stick to the new terminologies in the following description.
 
 The revised process of finishing is shown as follows:
 
 ```
-1. Source tasks finished due to no more records or received stop-with-savepoint. 
+1. Source tasks finished due to no more records or stop-with-savepoint. 
     a. if no more records or stop-with-savepoint –-drain
         i. source operators emit MAX_WATERMARK
         ii. endInput(inputId) for all the operators
         iii. finish() for all the operators
-    b. emit EndOfData(isDrain)
+    b. emit EndOfData[isDrain = true] event
     c. Wait for the next checkpoint / the savepoint after operator finished complete
     d. close() for all the operators
     e. Emit EndOfPartitionEvent
@@ -202,7 +202,7 @@ The revised process of finishing is shown as follows:
     a. If isDrain
         i. endInput(int inputId) for all the operators
         ii. finish() for all the operators
-    b. Emit EndOfData(isDrain)
+    b. Emit EndOfData[isDrain = the flag value of the received event]
 4. On received EndOfPartitionEvent for non-source tasks
     a. Wait for the next checkpoint / the savepoint after operator finished complete
     b. close() for all the operators
@@ -220,16 +220,16 @@ The revised process of finishing is shown as follows:
 An example of the process of job finishing is shown in Figure 3. 
 
 If Task `C` finishes after processing all the records, it first emits the max-watermark, then finishes the operators and emits
-the EndOfDataEvent. After that, it waits for the next checkpoint to complete and then emits the `EndOfPartitionEvent`. 
+the `EndOfData` event. After that, it waits for the next checkpoint to complete and then emits the `EndOfPartitionEvent`. 
 
-Task `D` finishes all the operators right after receiving the EndOfDataEvent. Since any checkpoints taken after operators finish
+Task `D` finishes all the operators right after receiving the `EndOfData` event. Since any checkpoints taken after operators finish
 can commit all the pending records and be the final checkpoint, Task `D`’s final checkpoint would be the same as Task `C`’s since
-the barrier must be emitted after the EndOfDataEvent. 
+the barrier must be emitted after the `EndOfData` event. 
 
 Task `E` is a bit different in that it has two inputs. Task `A` might continue to run for a while and, thus, Task `E` needs to wait
-until it receives an EndOfDataEvent also from the other input before finishing operators and its final checkpoint might be different. 
+until it receives an `EndOfData` event also from the other input before finishing operators and its final checkpoint might be different. 
 
-On the other hand, when using  stop-with-savepoint, the process is similar except that all the tasks need to wait for the exact
+On the other hand, when using `stop-with-savepoint`, the process is similar except that all the tasks need to wait for the exact
 savepoint before finishing instead of just any checkpoints. Moreover, since both Task `C` and Task `A` would finish at the same time,
 Task `E` would also be able to wait for this particular savepoint before finishing. 
 
@@ -237,4 +237,4 @@ Task `E` would also be able to wait for this particular savepoint before finishi
 
 In this part we have presented more details of how the checkpoint are taken with finished tasks and the revised process
 of finishing. We hope the details could provide more insights of the thoughts and implementations for this part of work. Still, if you
-have any questions, please feel free to start a discussion or report an  issue in the dev or user mailing list.
+have any questions, please feel free to start a discussion or report an issue in the dev or user mailing list.
