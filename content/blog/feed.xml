@@ -7,6 +7,253 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs</title>
+<description>&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#introduction&quot; id=&quot;markdown-toc-introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#get-started&quot; id=&quot;markdown-toc-get-started&quot;&gt;Get Started&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#configure-to-use-adaptive-batch-scheduler&quot; id=&quot;markdown-toc-configure-to-use-adaptive-batch-scheduler&quot;&gt;Configure to use adaptive batch scheduler&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#set-the-parallelism-of-operators-to--1&quot; id=&quot;markdown-toc-set-the-parallelism-of-operators-to--1&quot;&gt;Set the parallelism of operators to -1&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#implementation-details&quot; id=&quot;markdown-toc-implementation-details&quot;&gt;Implementation Details&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#collect-sizes-of-consumed-datasets&quot; id=&quot;markdown-toc-collect-sizes-of-consumed-datasets&quot;&gt;Collect sizes of consumed datasets&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#decide-proper-parallelisms-of-job-vertices&quot; id=&quot;markdown-toc-decide-proper-parallelisms-of-job-vertices&quot;&gt;Decide proper parallelisms of job vertices&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#limit-the-maximum-ratio-of-broadcast-bytes&quot; id=&quot;markdown-toc-limit-the-maximum-ratio-of-broadcast-bytes&quot;&gt;Limit the maximum ratio of broadcast bytes&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#normalize-the-parallelism-to-the-closest-power-of-2&quot; id=&quot;markdown-toc-normalize-the-parallelism-to-the-closest-power-of-2&quot;&gt;Normalize the parallelism to the closest power of 2&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#build-up-execution-graph-dynamically&quot; id=&quot;markdown-toc-build-up-execution-graph-dynamically&quot;&gt;Build up execution graph dynamically&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#create-execution-vertices-and-execution-edges-lazily&quot; id=&quot;markdown-toc-create-execution-vertices-and-execution-edges-lazily&quot;&gt;Create execution vertices and execution edges lazily&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#flexible-subpartition-mapping&quot; id=&quot;markdown-toc-flexible-subpartition-mapping&quot;&gt;Flexible subpartition mapping&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#update-and-schedule-the-dynamic-execution-graph&quot; id=&quot;markdown-toc-update-and-schedule-the-dynamic-execution-graph&quot;&gt;Update and schedule the dynamic execution graph&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#future-improvement&quot; id=&quot;markdown-toc-future-improvement&quot;&gt;Future improvement&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#auto-rebalancing-of-workloads&quot; id=&quot;markdown-toc-auto-rebalancing-of-workloads&quot;&gt;Auto-rebalancing of workloads&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;introduction&quot;&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.&lt;/p&gt;
+
+&lt;p&gt;To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, we introduced the adaptive batch scheduler in Flink 1.15. The adaptive batch scheduler can automatically decide parallelism of an operator according to the size of its consumed datasets. Here are the benefits the adaptive batch scheduler can bring:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Batch job users can be relieved from parallelism tuning.&lt;/li&gt;
+  &lt;li&gt;Parallelism tuning is fine grained considering different operators. This is particularly beneficial for SQL jobs which can only be set with a global parallelism previously.&lt;/li&gt;
+  &lt;li&gt;Parallelism tuning can better fit consumed datasets which have a varying volume size every day.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;get-started&quot;&gt;Get Started&lt;/h1&gt;
+
+&lt;p&gt;To automatically decide parallelism of operators, you need to:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Configure to use adaptive batch scheduler.&lt;/li&gt;
+  &lt;li&gt;Set the parallelism of operators to -1.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;configure-to-use-adaptive-batch-scheduler&quot;&gt;Configure to use adaptive batch scheduler&lt;/h2&gt;
+
+&lt;p&gt;To use adaptive batch scheduler, you need to set configurations as below:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Set &lt;code&gt;jobmanager.scheduler: AdaptiveBatch&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Leave the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/deployment/config/#execution-batch-shuffle-mode&quot;&gt;execution.batch-shuffle-mode&lt;/a&gt; unset or explicitly set it to &lt;code&gt;ALL-EXCHANGES-BLOCKING&lt;/code&gt; (default value). Currently, the adaptive batch scheduler only supports batch jobs whose shuffle mode is &lt;code&gt;ALL-EXCHANGES-BLOCKING&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In addition, there are several related configuration options to control the upper bounds and lower bounds of tuned parallelisms, to specify expected data volume to process by each operator, and to specify the default parallelism of sources. More details can be found in the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/deployment/elastic_scaling/#configure-to-use-adaptive-batch-scheduler&quot;&gt;feature documentation page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;set-the-parallelism-of-operators-to--1&quot;&gt;Set the parallelism of operators to -1&lt;/h2&gt;
+
+&lt;p&gt;The adaptive batch scheduler only automatically decides parallelism of operators whose parallelism is not set (which means the parallelism is -1). To leave parallelism unset, you should configure as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Set &lt;code&gt;parallelism.default: -1&lt;/code&gt; for all jobs.&lt;/li&gt;
+  &lt;li&gt;Set &lt;code&gt;table.exec.resource.default-parallelism: -1&lt;/code&gt; for SQL jobs.&lt;/li&gt;
+  &lt;li&gt;Don’t call &lt;code&gt;setParallelism()&lt;/code&gt; for operators in DataStream/DataSet jobs.&lt;/li&gt;
+  &lt;li&gt;Don’t call &lt;code&gt;setParallelism()&lt;/code&gt; on &lt;code&gt;StreamExecutionEnvironment/ExecutionEnvironment&lt;/code&gt; in DataStream/DataSet jobs.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;implementation-details&quot;&gt;Implementation Details&lt;/h1&gt;
+
+&lt;p&gt;In this section, we will elaborate the details of the implementation. Before that, we need to briefly introduce some concepts involved:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobVertex.java&quot;&gt;JobVertex&lt;/a&gt; and &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java&quot;&gt;JobGraph&lt;/a&gt;: A job vertex is an operator chain formed by chaining several operators together for better performance. The job graph is a data flow consisting of job vertices.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionVertex.java&quot;&gt;ExecutionVertex&lt;/a&gt; and &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java&quot;&gt;ExecutionGraph&lt;/a&gt;: An execution vertex represents a parallel subtask of a job vertex, which will eventually be instantiated as a physical task. For example, a job vertex with a parallelism of 100 will generate 100 execution vertices. The execution graph is the physical execution topology consisting of all execution vertices.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;More details about the above concepts can be found in the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/internals/job_scheduling/#jobmanager-data-structures&quot;&gt;Flink documentation&lt;/a&gt;. Note that the adaptive batch scheduler decides the parallelism of operators by deciding the parallelism of the job vertices which consist of these operators. To automatically decide parallelism of job vertices, we introduced the following changes:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Enabled the scheduler to collect sizes of finished datasets.&lt;/li&gt;
+  &lt;li&gt;Introduced a new component &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/VertexParallelismDecider.java&quot;&gt;VertexParallelismDecider&lt;/a&gt; to compute proper parallelisms of job vertices according to the sizes of their consumed results.&lt;/li&gt;
+  &lt;li&gt;Enabled to dynamically build up execution graph to allow the parallelisms of job vertices to be decided lazily. The execution graph starts with an empty execution topology and then gradually attaches the vertices during job execution.&lt;/li&gt;
+  &lt;li&gt;Introduced the adaptive batch scheduler to update and schedule the dynamic execution graph.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The details will be introduced in the following sections.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/1-overall-structure.png&quot; width=&quot;60%&quot; /&gt;
+&lt;br /&gt;
+Fig. 1 - The overall structure of automatically deciding parallelism
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;collect-sizes-of-consumed-datasets&quot;&gt;Collect sizes of consumed datasets&lt;/h2&gt;
+
+&lt;p&gt;The adaptive batch scheduler decides the parallelism of vertices by the size of input results, so the scheduler needs to know the sizes of result partitions produced by tasks. We introduced a numBytesProduced counter to record the size of each produced result partition, the accumulated result of the counter will be sent to the scheduler when tasks finish.&lt;/p&gt;
+
+&lt;h2 id=&quot;decide-proper-parallelisms-of-job-vertices&quot;&gt;Decide proper parallelisms of job vertices&lt;/h2&gt;
+
+&lt;p&gt;We introduced a new component &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/VertexParallelismDecider.java&quot;&gt;VertexParallelismDecider&lt;/a&gt; to compute proper parallelisms of job vertices according to the sizes of their consumed results. The computation algorithm is as follows:&lt;/p&gt;
+
+&lt;p&gt;Suppose&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;V&lt;/em&gt;&lt;/strong&gt; is the bytes of data the user expects to be processed by each task.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;totalBytes&lt;sub&gt;non-broadcast&lt;/sub&gt;&lt;/em&gt;&lt;/strong&gt; is the sum of the non-broadcast result sizes consumed by this job vertex.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;totalBytes&lt;sub&gt;broadcast&lt;/sub&gt;&lt;/em&gt;&lt;/strong&gt; is the sum of the broadcast result sizes consumed by this job vertex.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;maxBroadcastRatio&lt;/em&gt;&lt;/strong&gt; is the maximum ratio of broadcast bytes that affects the parallelism calculation.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;em&gt;normalize(&lt;/em&gt;&lt;/strong&gt;x&lt;strong&gt;&lt;em&gt;)&lt;/em&gt;&lt;/strong&gt; is a function that round &lt;strong&gt;&lt;em&gt;x&lt;/em&gt;&lt;/strong&gt; to the closest power of 2.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;then the parallelism of this job vertex &lt;strong&gt;&lt;em&gt;P&lt;/em&gt;&lt;/strong&gt; will be:&lt;/p&gt;
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/parallelism-formula.png&quot; width=&quot;60%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;Note that we introduced two special treatment in the above formula :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;#limit-the-maximum-ratio-of-broadcast-bytes&quot;&gt;Limit the maximum ratio of broadcast bytes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#normalize-the-parallelism-to-the-closest-power-of-2&quot;&gt;Normalize the parallelism to the closest power of 2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, the above formula cannot be used to decide the parallelism of the source vertices, because the source vertices have no input. To solve it, we introduced the configuration option &lt;code&gt;jobmanager.adaptive-batch-scheduler.default-source-parallelism&lt;/code&gt; to allow users to manually configure the parallelism of source vertices. Note that not all data sources need this option, because some data sources can automatically infer parallelism (For example, HiveTableSource, see &lt;a href=&quot;https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-hive/src/main/java/org/apache/flink/connectors/hive/HiveParallelismInference.java&quot;&gt;HiveParallelismInference&lt;/a&gt; for more detail). For these sources, it is recommended to decide parallelism by themselves.&lt;/p&gt;
+
+&lt;h3 id=&quot;limit-the-maximum-ratio-of-broadcast-bytes&quot;&gt;Limit the maximum ratio of broadcast bytes&lt;/h3&gt;
+&lt;p&gt;As you can see, we limit the maximum ratio of broadcast bytes that affects the parallelism calculation to &lt;strong&gt;&lt;em&gt;maxBroadcastRatio&lt;/em&gt;&lt;/strong&gt;. That is, the non-broadcast bytes processed by each task is at least &lt;strong&gt;&lt;em&gt;(1-maxBroadcastRatio) * V&lt;/em&gt;&lt;/strong&gt;. If not so，when the total broadcast bytes is close to &lt;strong&gt;&lt;em&gt;V&lt;/em&gt;&lt;/strong&gt;, even if the total non-broadcast bytes is very small, it may cause a large parallelism, which is unnecessary and may lead to resource waste and large task deployment overhead.&lt;/p&gt;
+
+&lt;p&gt;Generally, the broadcast dataset is usually relatively small against the other co-processed datasets, so we set the maximum ratio to 0.5 by default. The value is hard coded in the first version, and we may make it configurable later.&lt;/p&gt;
+
+&lt;h3 id=&quot;normalize-the-parallelism-to-the-closest-power-of-2&quot;&gt;Normalize the parallelism to the closest power of 2&lt;/h3&gt;
+&lt;p&gt;The normalize is to avoid introducing data skew. To better understand this section, we suggest you read the &lt;a href=&quot;#flexible-subpartition-mapping&quot;&gt;Flexible subpartition mapping&lt;/a&gt; section first.&lt;/p&gt;
+
+&lt;p&gt;Taking Fig. 4 (b) as example, A1/A2 produces 4 subpartitions, and the decided parallelism of B is 3. In this case, B1 will consume 1 subpartition, B2 will consume 1 subpartition, and B3 will consume 2 subpartitions. We assume that subpartitions have the same amount of data, which means B3 will consume twice the data of other tasks, data skew is introduced due to the subpartition mapping.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, we need to make the subpartitions evenly consumed by downstream tasks, which means the number of subpartitions should be a multiple of the number of downstream tasks. For simplicity, we require the user-specified max parallelism to be 2&lt;sup&gt;N&lt;/sup&gt;, and then adjust the calculated parallelism to a closest 2&lt;sup&gt;M&lt;/sup&gt; (M &amp;lt;= N), so that we can guarantee that subpartitions will be evenly consumed by downstream tasks.&lt;/p&gt;
+
+&lt;p&gt;Note that this is a temporary solution, the ultimate solution would be the &lt;a href=&quot;#auto-rebalancing-of-workloads&quot;&gt;Auto-rebalancing of workloads&lt;/a&gt;, which may come soon.&lt;/p&gt;
+
+&lt;h2 id=&quot;build-up-execution-graph-dynamically&quot;&gt;Build up execution graph dynamically&lt;/h2&gt;
+&lt;p&gt;Before the adaptive batch scheduler was introduced to Flink, the execution graph was fully built in a static way before starting scheduling. To allow parallelisms of job vertices to be decided lazily, the execution graph must be able to be built up dynamically.&lt;/p&gt;
+
+&lt;h3 id=&quot;create-execution-vertices-and-execution-edges-lazily&quot;&gt;Create execution vertices and execution edges lazily&lt;/h3&gt;
+&lt;p&gt;A dynamic execution graph means that a Flink job starts with an empty execution topology, and then gradually attaches vertices during job execution, as shown in Fig. 2.&lt;/p&gt;
+
+&lt;p&gt;The execution topology consists of execution vertices and execution edges. The execution vertices will be created and attached to the execution topology only when:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The parallelism of the corresponding job vertex is decided.&lt;/li&gt;
+  &lt;li&gt;All upstream execution vertices are already attached.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The parallelism of the job vertex needs to be decided first so that Flink knows how many execution vertices should be created. Upstream execution vertices need to be attached first so that Flink can connect the newly created execution vertices to the upstream vertices with execution edges.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/2-dynamic-graph.png&quot; width=&quot;90%&quot; /&gt;
+&lt;br /&gt;
+Fig. 2 - Build up execution graph dynamically
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;flexible-subpartition-mapping&quot;&gt;Flexible subpartition mapping&lt;/h3&gt;
+&lt;p&gt;Before the adaptive batch scheduler was introduced to Flink, when deploying a task, Flink needed to know the parallelism of its consumer job vertex. This is because consumer vertex parallelism is used to decide the number of subpartitions produced by each upstream task. The reason behind that is, for one result partition, different subpartitions serve different consumer execution vertices. More specifically, one consumer execution vertex only consumes data from subpartition with the same index.&lt;/p&gt;
+
+&lt;p&gt;Taking Fig. 3 as example, parallelism of the consumer B is 2, so the result partition produced by A1/A2 should contain 2 subpartitions, the subpartition with index 0 serves B1, and the subpartition with index 1 serves B2.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/3-static-graph-subpartition-mapping.png&quot; width=&quot;30%&quot; /&gt;
+&lt;br /&gt;
+Fig. 3 - How subpartitions serve consumer execution vertices with static execution graph
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;But obviously, this doesn’t work for dynamic graphs, because when a job vertex is deployed, the parallelism of its consumer job vertices may not have been decided yet. To enable Flink to work in this case, we need a way to allow a job vertex to run without knowing the parallelism of its consumer job vertices.&lt;/p&gt;
+
+&lt;p&gt;To achieve this goal, we can set the number of subpartitions to be the max parallelism of the consumer job vertex. Then when the consumer execution vertices are deployed, they should be assigned with a subpartition range to consume. Suppose N is the number of consumer execution vertices and P is the number of subpartitions. For the kth consumer execution vertex, the consumed subpartition range should be:&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/range-formula.png&quot; width=&quot;55%&quot; /&gt;
+&lt;/center&gt;
+
+&lt;p&gt;Taking Fig. 4 as example, the max parallelism of B is 4, so A1/A2 have 4 subpartitions. And then if the decided parallelism of B is 2, then the subpartitions mapping will be Fig. 4 (a), if the decided parallelism of B is 3, then the subpartitions mapping will be  Fig. 4 (b).&lt;/p&gt;
+
+&lt;center&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/4-dynamic-graph-subpartition-mapping.png&quot; width=&quot;75%&quot; /&gt;
+&lt;br /&gt;
+Fig. 4 - How subpartitions serve consumer execution vertices with dynamic graph
+&lt;/center&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;update-and-schedule-the-dynamic-execution-graph&quot;&gt;Update and schedule the dynamic execution graph&lt;/h2&gt;
+&lt;p&gt;The adaptive batch scheduler scheduling is similar to the default scheduler, the only difference is that an empty dynamic execution graph will be generated initially and vertices will be attached later. Before handling any scheduling event, the scheduler will try deciding the parallelisms of job vertices, and then initialize them to generate execution vertices, connecting execution edges, and update the execution graph.&lt;/p&gt;
+
+&lt;p&gt;The scheduler will try to decide the parallelism of all job vertices before handling each scheduling event, and the parallelism decision will be made for each job vertex in topological order:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;For source vertices, the parallelism should have been decided before starting scheduling.&lt;/li&gt;
+  &lt;li&gt;For non-source vertices, the parallelism can be decided only when all its consumed results are fully produced.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;After deciding the parallelism, the scheduler will try to initialize the job vertices in topological order. A job vertex that can be initialized should meet the following conditions:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The parallelism of the job vertex has been decided and the job vertex has not been initialized yet.&lt;/li&gt;
+  &lt;li&gt;All upstream job vertices have been initialized.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;future-improvement&quot;&gt;Future improvement&lt;/h1&gt;
+
+&lt;h2 id=&quot;auto-rebalancing-of-workloads&quot;&gt;Auto-rebalancing of workloads&lt;/h2&gt;
+
+&lt;p&gt;When running batch jobs, data skew may occur (a task needs to process much larger data than other tasks), which leads to long-tail tasks and further slows down the finish of jobs. Users usually hope that the system can automatically solve this problem. 
+One typical data skew case is that some subpartitions have a significantly larger amount of data than others. This case can be solved by finer grained subpartitions and auto-rebalancing of workload. The work of the adaptive batch scheduler can be considered as the first step towards it, because the requirements of auto-rebalancing are similar to adaptive batch scheduler, they both need the support of dynamic graphs and the collection of result partitions size.
+Based on the implementation of adaptive batch scheduler, we can solve the above problem by increasing max parallelism (for finer grained subpartitions) and simply changing the subpartition range division algorithm (for auto-rebalancing). In the current design, the subpartition range is divided according to the number of subpartitions, we can change it to divide according to the amount of data in subpartitions, so that the amount of data within each subpartition range can be approximately the same. In this way, workloads of downstream tasks can be balanced.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;br /&gt;
+&lt;img src=&quot;/img/blog/2022-06-17-adaptive-batch-scheduler/5-auto-rebalance.png&quot; width=&quot;75%&quot; /&gt;
+&lt;br /&gt;
+Fig. 5 - Auto-rebalance with finer grained subpartitions
+&lt;/center&gt;
+</description>
+<pubDate>Fri, 17 Jun 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/06/17/adaptive-batch-scheduler.html</link>
+<guid isPermaLink="true">/2022/06/17/adaptive-batch-scheduler.html</guid>
+</item>
+
+<item>
 <title>Apache Flink Kubernetes Operator 1.0.0 Release Announcement</title>
 <description>&lt;p&gt;In the last two months since our &lt;a href=&quot;https://flink.apache.org/news/2022/04/03/release-kubernetes-operator-0.1.0.html&quot;&gt;initial preview release&lt;/a&gt; the community has been hard at work to stabilize and improve the core Flink Kubernetes Operator logic.
 We are now proud to announce the first production ready release of the operator project.&lt;/p&gt;
@@ -19913,97 +20160,6 @@ Transaction{timestamp=1563395831000, origin=1, target=&#39;3&#39;, amount=160}}
 <pubDate>Fri, 13 Sep 2019 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/feature/2019/09/13/state-processor-api.html</link>
 <guid isPermaLink="true">/feature/2019/09/13/state-processor-api.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.8.2 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the second bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes 23 fixes and minor improvements for Flink 1.8.1. The list below includes a detailed list of all fixes and improvements.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.8.2.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13941&quot;&gt;FLINK-13941&lt;/a&gt;] -         Prevent data-loss by not cleaning up small part files from S3.
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-9526&quot;&gt;FLINK-9526&lt;/a&gt;] -         BucketingSink end-to-end test failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-10368&quot;&gt;FLINK-10368&lt;/a&gt;] -         &amp;#39;Kerberized YARN on Docker test&amp;#39; unstable
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12319&quot;&gt;FLINK-12319&lt;/a&gt;] -         StackOverFlowError in cep.nfa.sharedbuffer.SharedBuffer
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12736&quot;&gt;FLINK-12736&lt;/a&gt;] -         ResourceManager may release TM with allocated slots
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12889&quot;&gt;FLINK-12889&lt;/a&gt;] -         Job keeps in FAILING state
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13059&quot;&gt;FLINK-13059&lt;/a&gt;] -         Cassandra Connector leaks Semaphore on Exception; hangs on close
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13159&quot;&gt;FLINK-13159&lt;/a&gt;] -         java.lang.ClassNotFoundException when restore job
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13367&quot;&gt;FLINK-13367&lt;/a&gt;] -         Make ClosureCleaner detect writeReplace serialization override
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13369&quot;&gt;FLINK-13369&lt;/a&gt;] -         Recursive closure cleaner ends up with stackOverflow in case of circular dependency
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13394&quot;&gt;FLINK-13394&lt;/a&gt;] -         Use fallback unsafe secure MapR in nightly.sh
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13484&quot;&gt;FLINK-13484&lt;/a&gt;] -         ConnectedComponents end-to-end test instable with NoResourceAvailableException
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13499&quot;&gt;FLINK-13499&lt;/a&gt;] -         Remove dependency on MapR artifact repository
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13508&quot;&gt;FLINK-13508&lt;/a&gt;] -         CommonTestUtils#waitUntilCondition() may attempt to sleep with negative time
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13586&quot;&gt;FLINK-13586&lt;/a&gt;] -         Method ClosureCleaner.clean broke backward compatibility between 1.8.0 and 1.8.1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13761&quot;&gt;FLINK-13761&lt;/a&gt;] -         `SplitStream` should be deprecated because `SplitJavaStream` is deprecated
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13789&quot;&gt;FLINK-13789&lt;/a&gt;] -         Transactional Id Generation fails due to user code impacting formatting string
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13806&quot;&gt;FLINK-13806&lt;/a&gt;] -         Metric Fetcher floods the JM log with errors when TM is lost
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13807&quot;&gt;FLINK-13807&lt;/a&gt;] -         Flink-avro unit tests fails if the character encoding in the environment is not default to UTF-8
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13897&quot;&gt;FLINK-13897&lt;/a&gt;] -         OSS FS NOTICE file is placed in wrong directory
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12578&quot;&gt;FLINK-12578&lt;/a&gt;] -         Use secure URLs for Maven repositories
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12741&quot;&gt;FLINK-12741&lt;/a&gt;] -         Update docs about Kafka producer fault tolerance guarantees
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12749&quot;&gt;FLINK-12749&lt;/a&gt;] -         Add Flink Operations Playground documentation
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Wed, 11 Sep 2019 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2019/09/11/release-1.8.2.html</link>
-<guid isPermaLink="true">/news/2019/09/11/release-1.8.2.html</guid>
 </item>
 
 </channel>
