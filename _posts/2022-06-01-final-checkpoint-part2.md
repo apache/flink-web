@@ -33,7 +33,7 @@ find the new "source" tasks to initiate the checkpoint, namely those tasks that 
 no running precedent tasks. CheckpointCoordinator does the computation atomically at the JobManager side
 based on the latest states recorded in the execution graph.
 
-It is also possible that tasks finished before they actually get triggered: when the checkpoint coordinator
+There might be race conditions when triggering tasks: when the checkpoint coordinator
 decides to trigger one task and starts emitting the RPC, it is possible that the task is just finished and
 reporting the FINISHED status to JobManager. In this case, the RPC message would fail and the checkpoint would be aborted.
 
@@ -83,7 +83,7 @@ would be affected for the following reasons:
 
 1. The broadcast state always replicates the state of the first subtask to the other subtasks. If the first subtask is finished,
 an empty state would be distributed and the operator would run from scratch, which is not correct.
-2. The operator state with union distribution merges the states of all the subtasks and then scatters the merged state to all the
+2. The operator state with union distribution merges the states of all the subtasks and then sends the merged state to all the
 subtasks. Based on this behavior, some operators may choose one subtask to store a shared value and after restarting this value will
 be distributed to all the subtasks. However, if this chosen task is finished, the state would be lost. 
 
@@ -93,7 +93,7 @@ state with union redistribution, we have to collect the states of all the subtas
 abort the checkpoint if parts of subtasks finished for operators using this kind of state. 
 
 In principle, you should be able to modify your job (which changes the dataflow graph) and restore from a previous checkpoint. That said,
-there are certain graph modifications that are not supported. These kinds of changes include adding a new operator before a fully finished
+there are certain graph modifications that are not supported. These kinds of changes include adding a new operator as the precedent of a fully finished
 one. Flink would check for such modifications and throw exceptions while restoring.
 
 # The Revised Process of Finishing
@@ -106,11 +106,12 @@ section.
 
 A job might finish in two ways: all sources finish or users execute
 [`stop-with-savepoint [--drain]`](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/cli/#stopping-a-job-gracefully-creating-a-final-savepoint).
-Let’s first have a look at the detailed process of finishing before. 
+Let’s first have a look at the detailed process of finishing before FLIP-147.
 
 ### When sources finish
 
-If all the sources are bounded, a job would finish after all the sources finished. In this case, the sources would first
+If all the sources are bounded, The job will finish after all the input records are processed and all the result are
+committed to external systems. In this case, the sources would first
 emit a `MAX_WATERMARK` (`Long.MAX_VALUE`) and then start to terminate the task. On termination, a task would call `endOfInput()`,
 `close()` and `dispose()` for all the operators, then emit an `EndOfPartitionEvent` to the downstream tasks. The intermediate tasks
 would start terminating after receiving an `EndOfPartitionEvent` from all the input channels, and this process will continue
@@ -170,7 +171,7 @@ savepoint. If the savepoint succeeds, all the source operators would finish acti
 
 A parameter `–-drain` is supported with `stop-with-savepoint`: if not specified, the job is expected to resume from this savepoint,
 otherwise the job is expected to terminate permanently. Thus we only emit `MAX_WATERMARK` to trigger all the event timers and call
-`endInput()` for the later case. 
+`endInput()` in the later case.
 
 ## Revise the Finishing Steps
 
@@ -190,7 +191,9 @@ The revised process of finishing is shown as follows:
         i. source operators emit MAX_WATERMARK
         ii. endInput(inputId) for all the operators
         iii. finish() for all the operators
-    b. emit EndOfData[isDrain = true] event
+        iv. emit EndOfData[isDrain = true] event
+    b. else if stop-with-savepoint
+        i. emit EndOfData[isDrain = false] event
     c. Wait for the next checkpoint / the savepoint after operator finished complete
     d. close() for all the operators
     e. Emit EndOfPartitionEvent
@@ -219,6 +222,7 @@ The revised process of finishing is shown as follows:
 
 An example of the process of job finishing is shown in Figure 3. 
 
+Let's first have a look at the example that all the source tasks are bounded.
 If Task `C` finishes after processing all the records, it first emits the max-watermark, then finishes the operators and emits
 the `EndOfData` event. After that, it waits for the next checkpoint to complete and then emits the `EndOfPartitionEvent`. 
 
@@ -229,12 +233,12 @@ the barrier must be emitted after the `EndOfData` event.
 Task `E` is a bit different in that it has two inputs. Task `A` might continue to run for a while and, thus, Task `E` needs to wait
 until it receives an `EndOfData` event also from the other input before finishing operators and its final checkpoint might be different. 
 
-On the other hand, when using `stop-with-savepoint`, the process is similar except that all the tasks need to wait for the exact
+On the other hand, when using `stop-with-savepoint [--drain]`, the process is similar except that all the tasks need to wait for the exact
 savepoint before finishing instead of just any checkpoints. Moreover, since both Task `C` and Task `A` would finish at the same time,
-Task `E` would also be able to wait for this particular savepoint before finishing. 
+Task `E` would also be able to wait for this particular savepoint before finishing.
 
 # Conclusion
 
-In this part we have presented more details of how the checkpoint are taken with finished tasks and the revised process
+In this part we have presented more details of how the checkpoints are taken with finished tasks and the revised process
 of finishing. We hope the details could provide more insights of the thoughts and implementations for this part of work. Still, if you
 have any questions, please feel free to start a discussion or report an issue in the dev or user mailing list.

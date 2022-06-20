@@ -42,7 +42,7 @@ users often have mixed jobs involving both unbounded streams and bounded side-in
 In streaming mode, [checkpointing](https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/checkpointing/)
 is the vital mechanism in supporting exactly-once guarantees. By periodically snapshotting the
 aligned states of operators, Flink can recover from the latest checkpoint and continue execution when failover happens. However,
-previously Flink could not take checkpoints if any tasks gets finished. This would cause problems for jobs with both bounded and unbounded
+previously Flink could not take checkpoints if any task gets finished. This would cause problems for jobs with both bounded and unbounded
 sources: if there are no checkpoints after the bounded part finished, the unbounded part might need to reprocess a large amount of
 records in case of a failure. 
 
@@ -97,7 +97,8 @@ Based on the ability to take checkpoints with finished tasks, we could then solv
 operators could not commit all the data when running in streaming mode. As the background, Flink jobs
 have two ways to finish:
 
-1.	All sources are bound and they processed all the input records. The job will finish after all the sources are finished.
+1.	All sources are bound and they processed all the input records. The job will finish after all the
+input records are processed and all the result are committed to external systems.
 2.	Users execute `stop-with-savepoint [--drain]`. The job will take a savepoint and then finish. With `–-drain`, the job
 will be stopped permanently and is also required to commit all the data. However, without `--drain` the job might
 be resumed from the savepoint later, thus not all data are required to be committed, as long as the state of the data could be
@@ -105,14 +106,14 @@ recovered from the savepoint.
 
 Let's first have a look at the case of bounded sources. To achieve end-to-end exactly-once,
 two-phase-commit operators only commit data after a checkpoint following this piece of data succeed.
-However, previously there is no such an opportunity for the data between the last periodic checkpoint and job finish,
+However, previously there is no such an opportunity for the data between the last periodic checkpoint and job getting finished,
 and the data finally gets lost. Note that it is also not correct if we directly commit the data on job finished, since
-if there are failovers after that (like due to other unfinished tasks get failed), the data will be replayed and cause replication.
+if there are failovers after that (like due to other unfinished tasks get failed), the data will be replayed and cause duplication.
 
 The case of `stop-with-savepoint --drain` also has problems. The previous implementation first stalls the execution and
-take a savepoint. After the savepoint succeeds, all the source tasks would stop actively. Although the savepoint seems to
+takes a savepoint. After the savepoint succeeds, all the source tasks would stop actively. Although the savepoint seems to
 provide the opportunity to commit all the data, some processing logic is in fact executed during the job getting stopped,
-and the records produced would be deserted by mistake. For example, calling `endInput()` method for operators happens during
+and the records produced would be discarded by mistake. For example, calling `endInput()` method for operators happens during
 the stopping phase, some operators like the async operator might still emit new records in this method.
 
 At last, although `stop-with-savepoint` without draining is not required to commit all the data, we hope the job finish process could
@@ -151,7 +152,7 @@ Therefore, we do not take the intuitive option. Instead, we decoupled *"finishin
 all the operators would first finish their execution logic as a whole, including calling lifecycle methods like `endInput()`,
 then each operator could wait for the next checkpoint concurrently. Besides, for stop-with-savepoint we also reverted the current
 implementation similarly: all the tasks will first finish executing the operators' logic, then they simply wait for the next savepoint
-to happen before finish. Therefore, in this way the finish processes are unified and the data could be fully committed for all the cases.
+to happen before finish. Therefore, in this way the finishing processes are unified and the data could be fully committed for all the cases.
 
 Based on this thought, as shown in the right part of Figure 3, to decoupled the process of "finishing operator logic"
 and "finishing tasks", we introduced a new `EndOfData` event. For each task, after executing all the operator logic it would first notify
@@ -164,7 +165,7 @@ cases of normal finishing and failover. However, this was not clear from their n
 
 - `finish()` marks the termination of the operator and no more records are allowed after `finish()` is called. It should
   only be called when sources are finished or when the `-–drain` parameter is specified.
-- `close()` is used to do cleanup and release all the holding resources.
+- `close()` is used to do cleanup and release all the held resources.
 
 # Conclusion
 
