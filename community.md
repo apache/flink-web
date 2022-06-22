@@ -644,6 +644,12 @@ The list below could be outdated. Please find the most up-to-date list <a href="
         <td class="text-center">PMC, Committer</td>
         <td class="text-center">wangyang0918</td>
   </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/33114724?s=50" class="committer-avatar"></td>
+        <td class="text-center">Shengkai Fang</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">shengkai</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
