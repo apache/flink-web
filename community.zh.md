@@ -409,6 +409,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">chiwanpark</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars.githubusercontent.com/u/18453087?s=50" class="committer-avatar"></td>
+    <td class="text-center">Qingsheng Ren</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">renqs</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2128543?s=50" class="committer-avatar"></td>
     <td class="text-center">Stefan Richter</td>
     <td class="text-center">Committer</td>
