@@ -41,7 +41,7 @@ function mkPackage() {
 defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
-defaultFlinkVersion="${1:-1.15.0}"
+defaultFlinkVersion="${1:-1.15.1}"
 # flink-docs-master/docs/dev/datastream/project-configuration/#gradle
 # passes the scala version prefixed with a _, e.g.: _2.12
 scalaBinaryVersionFromCmdArg="${2/_/}"
