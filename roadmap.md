@@ -204,3 +204,6 @@ of the documentation.
 # Stateful Functions
 
 The Stateful Functions subproject has its own roadmap published under [statefun.io](https://statefun.io/).
+
+# Flink Kubernetes Operator
+The Flink Kubernetes Operator subproject has its own roadmap under the [documentation](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/development/roadmap/).
