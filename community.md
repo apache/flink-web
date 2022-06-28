@@ -255,7 +255,7 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">mbalassi</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/858078?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/858078?s=50" class="committer-avatar"></td>
     <td class="text-center">Paris Carbone</td>
     <td class="text-center">Committer</td>
     <td class="text-center">senorcarbone</td>
@@ -273,7 +273,7 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">shuyichen</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/18818196?v=4" class="committer-avatar"/></td>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/18818196?s=50" class="committer-avatar"/></td>
     <td class="text-center">Zili Chen</td>
     <td class="text-center">Committer</td>
     <td class="text-center">tison</td>
@@ -339,19 +339,19 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">fhueske</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/498957?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/498957?s=50" class="committer-avatar"></td>
     <td class="text-center">Vasia Kalavri</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">vasia</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2405800?s=50" class="committer-avatar"></td>
     <td class="text-center">Kostas Kloudas</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">kkloudas</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?v=3&s=50" class="committer-avatar"></td>
+    <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?s=50" class="committer-avatar"></td>
     <td class="text-center">Konstantin Knauf</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">knaufk</td>
@@ -363,7 +363,7 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">aljoscha</td>
   </tr>
   <tr>
-    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/213026?s=50&v=4" class="committer-avatar"></td>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/213026?s=50" class="committer-avatar"></td>
     <td class="text-center">Nico Kruber</td>
     <td class="text-center">Committer</td>
     <td class="text-center">nkruber</td>
