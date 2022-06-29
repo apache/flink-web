@@ -18,7 +18,7 @@ Flink provides several features to ensure that applications keep running and rem
 * **Consistent Checkpoints**: Flink's recovery mechanism is based on consistent checkpoints of an application's state. In case of a failure, the application is restarted and its state is loaded from the latest checkpoint. In combination with resettable stream sources, this feature can guarantee *exactly-once state consistency*.
 * **Efficient Checkpoints**: Checkpointing the state of an application can be quite expensive if the application maintains terabytes of state. Flink's can perform asynchronous and incremental checkpoints, in order to keep the impact of checkpoints on the application's latency SLAs very small.
 * **End-to-End Exactly-Once**: Flink features transactional sinks for specific storage systems that guarantee that data is only written out exactly once, even in case of failures.
-* **Integration with Cluster Managers**: Flink is tightly integrated with cluster managers, such as [Hadoop YARN](https://hadoop.apache.org), [Mesos](https://mesos.apache.org), or [Kubernetes](https://kubernetes.io). When a process fails, a new process is automatically started to take over its work. 
+* **Integration with Cluster Managers**: Flink is tightly integrated with cluster managers, such as [Hadoop YARN](https://hadoop.apache.org) or [Kubernetes](https://kubernetes.io). When a process fails, a new process is automatically started to take over its work. 
 * **High-Availability Setup**: Flink feature a high-availability mode that eliminates all single-points-of-failure. The HA-mode is based on [Apache ZooKeeper](https://zookeeper.apache.org), a battle-proven service for reliable distributed coordination.
 
 ## Update, Migrate, Suspend, and Resume Your Applications
@@ -31,7 +31,7 @@ Flink's *Savepoints* are a unique and powerful feature that solves the issue of 
 * **Cluster Migration**: Using savepoints, applications can be migrated (or cloned) to different clusters.
 * **Flink Version Updates**: An application can be migrated to run on a new Flink version using a savepoint.
 * **Application Scaling**: Savepoints can be used to increase or decrease the parallelism of an application.
-* **A/B Tests and What-If Scenarios**: The performance or quality of two (or more) different versions of an application can be compared by starting all versions from the same savepoint. 
+* **A/B Tests and What-If Scenarios**: The performance or quality of two (or more) different versions of an application can be compared by starting all versions from the same savepoint.
 * **Pause and Resume**: An application can be paused by taking a savepoint and stopping it. At any later point in time, the application can be resumed from the savepoint.
 * **Archiving**: Savepoints can be archived to be able to reset the state of an application to an earlier point in time.
 
@@ -43,7 +43,7 @@ Flink integrates nicely with many common logging and monitoring services and pro
 
 * **Web UI**: Flink features a web UI to inspect, monitor, and debug running applications. It can also be used to submit executions for execution or cancel them.
 * **Logging**: Flink implements the popular slf4j logging interface and integrates with the logging frameworks [log4j](https://logging.apache.org/log4j/2.x/) or [logback](https://logback.qos.ch/).
-* **Metrics**: Flink features a sophisticated metrics system to collect and report system and user-defined metrics. Metrics can be exported to several reporters, including [JMX](https://en.wikipedia.org/wiki/Java_Management_Extensions), Ganglia, [Graphite](https://graphiteapp.org/), [Prometheus](https://prometheus.io/), [StatsD](https://github.com/etsy/statsd), [Datadog](https://www.datadoghq.com/), and [Slf4j](https://www.slf4j.org/). 
+* **Metrics**: Flink features a sophisticated metrics system to collect and report system and user-defined metrics. Metrics can be exported to several reporters, including [JMX](https://en.wikipedia.org/wiki/Java_Management_Extensions), Ganglia, [Graphite](https://graphiteapp.org/), [Prometheus](https://prometheus.io/), [StatsD](https://github.com/etsy/statsd), [Datadog](https://www.datadoghq.com/), and [Slf4j](https://www.slf4j.org/).
 * **REST API**: Flink exposes a REST API to submit a new application, take a savepoint of a running application, or cancel an application. The REST API also exposes meta data and collected metrics of running or completed applications.
 
 <hr/>

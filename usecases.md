@@ -4,14 +4,14 @@ title: "Use Cases"
 
 <hr />
 
-Apache Flink is an excellent choice to develop and run many different types of applications due to its extensive features set. Flink's features include support for stream and batch processing, sophisticated state management, event-time processing semantics, and exactly-once consistency guarantees for state. Moreover, Flink can be deployed on various resource providers such as YARN, Apache Mesos, and Kubernetes but also as stand-alone cluster on bare-metal hardware. Configured for high availability, Flink does not have a single point of failure. Flink has been proven to scale to thousands of cores and terabytes of application state, delivers high throughput and low latency, and powers some of the world's most demanding stream processing applications.
+Apache Flink is an excellent choice to develop and run many different types of applications due to its extensive features set. Flink's features include support for stream and batch processing, sophisticated state management, event-time processing semantics, and exactly-once consistency guarantees for state. Moreover, Flink can be deployed on various resource providers such as YARN and Kubernetes, but also as stand-alone cluster on bare-metal hardware. Configured for high availability, Flink does not have a single point of failure. Flink has been proven to scale to thousands of cores and terabytes of application state, delivers high throughput and low latency, and powers some of the world's most demanding stream processing applications.
 
 Below, we explore the most common types of applications that are powered by Flink and give pointers to real-world examples.
 
 * <a href="#eventDrivenApps">Event-driven Applications</a>
 * <a href="#analytics">Data Analytics Applications</a>
 * <a href="#pipelines">Data Pipeline Applications</a>
-  
+
 ## Event-driven Applications <a name="eventDrivenApps"></a>
 
 ### What are event-driven applications?
@@ -33,7 +33,7 @@ Instead of querying a remote database, event-driven applications access their da
 
 ### How does Flink support event-driven applications?
 
-The limits of event-driven applications are defined by how well a stream processor can handle time and state. Many of Flink's outstanding features are centered around these concepts. Flink provides a rich set of state primitives that can manage very large data volumes (up to several terabytes) with exactly-once consistency guarantees. Moreover, Flink's support for event-time, highly customizable window logic, and fine-grained control of time as provided by the `ProcessFunction` enable the implementation of advanced business logic. Moreover, Flink features a library for Complex Event Processing (CEP) to detect patterns in data streams. 
+The limits of event-driven applications are defined by how well a stream processor can handle time and state. Many of Flink's outstanding features are centered around these concepts. Flink provides a rich set of state primitives that can manage very large data volumes (up to several terabytes) with exactly-once consistency guarantees. Moreover, Flink's support for event-time, highly customizable window logic, and fine-grained control of time as provided by the `ProcessFunction` enable the implementation of advanced business logic. Moreover, Flink features a library for Complex Event Processing (CEP) to detect patterns in data streams.
 
 However, Flink's outstanding feature for event-driven applications is savepoint. A savepoint is a consistent state image that can be used as a starting point for compatible applications. Given a savepoint, an application can be updated or adapt its scale, or multiple versions of an application can be started for A/B testing.
 
@@ -41,7 +41,7 @@ However, Flink's outstanding feature for event-driven applications is savepoint.
 
 * <a href="https://sf-2017.flink-forward.org/kb_sessions/streaming-models-how-ing-adds-models-at-runtime-to-catch-fraudsters/">Fraud detection</a>
 * <a href="https://sf-2017.flink-forward.org/kb_sessions/building-a-real-time-anomaly-detection-system-with-flink-mux/">Anomaly detection</a>
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/dynamically-configured-stream-processing-using-flink-kafka/">Rule-based alerting</a> 
+* <a href="https://sf-2017.flink-forward.org/kb_sessions/dynamically-configured-stream-processing-using-flink-kafka/">Rule-based alerting</a>
 * <a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink/">Business process monitoring</a>
 * <a href="https://berlin-2017.flink-forward.org/kb_sessions/drivetribes-kappa-architecture-with-apache-flink/">Web application (social network)</a>
 
@@ -61,7 +61,7 @@ Apache Flink supports streaming as well as batch analytical applications as show
 
 ### What are the advantages of streaming analytics applications?
 
-The advantages of continuous streaming analytics compared to batch analytics are not limited to a much lower latency from events to insight due to elimination of periodic import and query execution. In contrast to batch queries, streaming queries do not have to deal with artificial boundaries in the input data which are caused by periodic imports and the bounded nature of the input. 
+The advantages of continuous streaming analytics compared to batch analytics are not limited to a much lower latency from events to insight due to elimination of periodic import and query execution. In contrast to batch queries, streaming queries do not have to deal with artificial boundaries in the input data which are caused by periodic imports and the bounded nature of the input.
 
 Another aspect is a simpler application architecture. A batch analytics pipeline consist of several independent components to periodically schedule data ingestion and query execution. Reliably operating such a pipeline is non-trivial because failures of one component affect the following steps of the pipeline. In contrast, a streaming analytics application which runs on a sophisticated stream processor like Flink incorporates all steps from data ingestions to continuous result computation. Therefore, it can rely on the engine's failure recovery mechanism.
 
@@ -80,7 +80,7 @@ Flink provides very good support for continuous streaming as well as batch analy
 
 ### What are data pipelines?
 
-Extract-transform-load (ETL) is a common approach to convert and move data between storage systems. Often ETL jobs are periodically triggered to copy data from from transactional database systems to an analytical database or a data warehouse. 
+Extract-transform-load (ETL) is a common approach to convert and move data between storage systems. Often ETL jobs are periodically triggered to copy data from from transactional database systems to an analytical database or a data warehouse.
 
 Data pipelines serve a similar purpose as ETL jobs. They transform and enrich data and can move it from one storage system to another. However, they operate in a continuous streaming mode instead of being periodically triggered. Hence, they are able to read records from sources that continuously produce data and move it with low latency to their destination. For example a data pipeline might monitor a file system directory for new files and write their data into an event log. Another application might materialize an event stream to a database or incrementally build and refine a search index.
 
@@ -92,7 +92,7 @@ The figure below depicts the difference between periodic ETL jobs and continuous
 
 ### What are the advantages of data pipelines?
 
-The obvious advantage of continuous data pipelines over periodic ETL jobs is the reduced latency of moving data to its destination. Moreover, data pipelines are more versatile and can be employed for more use cases because they are able to continuously consume and emit data. 
+The obvious advantage of continuous data pipelines over periodic ETL jobs is the reduced latency of moving data to its destination. Moreover, data pipelines are more versatile and can be employed for more use cases because they are able to continuously consume and emit data.
 
 ### How does Flink support data pipelines?
 
@@ -101,5 +101,4 @@ Many common data transformation or enrichment tasks can be addressed by Flink's 
 ### What are typical data pipeline applications?
 
 * <a href="https://ververica.com/blog/blink-flink-alibaba-search">Real-time search index building</a> in e-commerce
-* <a href="https://jobs.zalando.com/tech/blog/apache-showdown-flink-vs.-spark/">Continuous ETL</a> in e-commerce 
-
+* <a href="https://jobs.zalando.com/tech/blog/apache-showdown-flink-vs.-spark/">Continuous ETL</a> in e-commerce
