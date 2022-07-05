@@ -16,8 +16,7 @@ Many Flink users, contributors, and committers are subscribed to Flink's user ma
 
 Before posting to the mailing list, you can search the mailing list archives for email threads that discuss issues related to yours on the following websites.
 
-- [Apache Pony Mail Archive](https://lists.apache.org/list.html?user@flink.apache.org)
-- [Nabble Archive](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
+- [Apache Mailing List Archive](https://lists.apache.org/list.html?user@flink.apache.org)
 
 If you'd like to post to the mailing list, you need to
 
@@ -26,6 +25,13 @@ If you'd like to post to the mailing list, you need to
 3. send your email to `user@flink.apache.org`.
 
 Please note that you won't receive a respose to your mail if you are not subscribed.
+
+### Slack
+
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1bzkfauxc-L0VaezhCQoORKRW1hOBLEA)
+After creating an account in Slack, don't forget to introduce yourself in #introductions.
+Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
+Any existing Slack member can also invite anyone else to join.
 
 ### Stack Overflow
 

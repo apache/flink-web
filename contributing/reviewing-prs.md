@@ -92,30 +92,4 @@ If the pull request introduces a new feature, the feature should be documented. 
 
 See more about how to [contribute documentation]({{ site.baseurl }}/contributing/contribute-documentation.html).
 
-## Review with the @flinkbot
-
-The Flink community is using a service called [@flinkbot](https://github.com/flinkbot) to help with the review of the pull requests.
-
-The bot automatically posts a comment tracking the review progress for each new pull request:
-
-```
-### Review Progress
-
-* [ ] 1. The description looks good.
-* [ ] 2. There is consensus that the contribution should go into to Flink.
-* [ ] 3. [Does not need specific attention | Needs specific attention for X | Has attention for X by Y]
-* [ ] 4. The architectural approach is sound.
-* [ ] 5. Overall code quality is good.
-
-Please see the [Pull Request Review Guide](https://flink.apache.org/contributing/reviewing-prs.html) if you have questions about the review process.
-```
-
-Reviewers can instruct the bot to tick off the boxes (in order) to indicate the progress of the review.
-
-For approving the description of the contribution, mention the bot with `@flinkbot approve description`. This works similarly with `consensus`, `architecture` and `quality`.
-
-For approving all aspects, put a new comment with `@flinkbot approve all` into the pull request.
-
-The syntax for requiring attention is `@flinkbot attention @username1 [@username2 ..]`.
-
 

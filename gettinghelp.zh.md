@@ -17,7 +17,6 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 在发送邮件到邮件列表之前，你可以搜索以下网站的邮件列表存档，从中找到你关注问题的相关讨论。
 
 - [Apache Pony 邮件存档](https://lists.apache.org/list.html?user@flink.apache.org)
-- [Nabble 存档](http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/)
 
 如果你想发送到邮件列表，你需要：
 
@@ -26,6 +25,13 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 3. 发送你的电子邮件到 `user@flink.apache.org`
 
 请注意，如果你没有订阅邮件列表，你将不会收到邮件的回复。
+
+### Slack
+
+你可以通过[此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1bzkfauxc-L0VaezhCQoORKRW1hOBLEA)加入 Apache Flink 社区专属的 Slack 工作空间。
+在成功加入后，不要忘记在 #introductions 频道介绍你自己。
+Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。
+所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 
 ### Stack Overflow
 

@@ -32,7 +32,7 @@ Each file must include the Apache license information as a header.
 
 ## 2. Tools
 
-We recommend to follow the [IDE Setup Guide](https://ci.apache.org/projects/flink/flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
+We recommend to follow the [IDE Setup Guide]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
 
 
 <!---
@@ -163,7 +163,7 @@ That way, you get warnings from IntelliJ about all sections where you have to re
 _Note: This means that `@Nonnull` annotations are usually not necessary, but can be used in certain cases to override a previous annotation, or to point non-nullability out in a context where one would expect a nullable value._
 
 `Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`.
-See also [usage of Java Optional](code-style-and-quality-java.md#java-optional).
+See also [usage of Java Optional](code-style-and-quality-java.html#java-optional).
 
 
 ### Avoid Code Duplication
@@ -210,29 +210,6 @@ then the S3 access should be factored out into an interface and test should repl
 * This naturally requires to be able to inject dependencies (see above)
 
 ⇒ Please note that these steps often require more effort in implementing tests (factoring out interfaces, creating dedicated test stubs), but make the tests more resilient to changes in other components, i.e., you do not need to touch the tests when making unrelated changes.
-
-
-**Write targeted tests**
-
-* <span style="text-decoration:underline;">Test contracts not implementations</span>: Test that after a sequence of actions, the components are in a certain state, rather than testing that the components followed a sequence of internal state modifications.
-    * For example, a typical antipattern is to check whether one specific method was called as part of the test
-* A way to enforce this is to try to follow the _Arrange_, _Act_, _Assert_ test structure when writing a unit test ([https://xp123.com/articles/3a-arrange-act-assert/](https://xp123.com/articles/3a-arrange-act-assert/))
-
-    This helps to communicate the intention of the test (what is the scenario under test) rather than the mechanics of the tests. The technical bits go to a static methods at the bottom of the test class.
-
-    Example of tests in Flink that follow this pattern are:
-
-    * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
-    * [https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java](https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java)
-
-
-**Avoid Mockito - Use reusable test implementations**
-
-* Mockito-based tests tend to be costly to maintain in the long run by encouraging duplication of functionality and testing for implementation rather than effect
-    * More details: [https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8](https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8)
-* Instead, create reusable test implementations and utilities
-    * That way, when some class changes, we only have to update a few test utils or mocks
-
 
 ### Performance Awareness
 
@@ -319,6 +296,64 @@ Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or
     * A class might be used by multiple modules in the future and might belong into a `common` module in this case.
 
 
+
+## 7. Testing
+
+### Tooling
+
+We are moving our codebase to [JUnit 5](https://junit.org/junit5/docs/current/user-guide/) and [AssertJ](https://assertj.github.io/doc/) as our testing framework and assertions library of choice.
+
+Unless there is a specific reason, make sure you use JUnit 5 and AssertJ when contributing to Flink with new tests and even when modifying existing tests. Don't use Hamcrest, JUnit assertions and `assert` directive.
+Make your tests readable and don't duplicate assertions logic provided by AssertJ or by [custom assertions](https://assertj.github.io/doc/#assertj-core-custom-assertions) provided by some flink modules.
+For example, avoid:
+
+```java
+assert list.size() == 10;
+for (String item : list) {
+    assertTrue(item.length() < 10);
+}
+```
+
+And instead use:
+
+```java
+assertThat(list)
+    .hasSize(10)
+    .allMatch(item -> item.length() < 10);
+```
+
+### Write targeted tests
+
+* <span style="text-decoration:underline;">Test contracts not implementations</span>: Test that after a sequence of actions, the components are in a certain state, rather than testing that the components followed a sequence of internal state modifications.
+  * For example, a typical antipattern is to check whether one specific method was called as part of the test
+* A way to enforce this is to try to follow the _Arrange_, _Act_, _Assert_ test structure when writing a unit test ([https://xp123.com/articles/3a-arrange-act-assert/](https://xp123.com/articles/3a-arrange-act-assert/))
+
+  This helps to communicate the intention of the test (what is the scenario under test) rather than the mechanics of the tests. The technical bits go to a static methods at the bottom of the test class.
+
+  Example of tests in Flink that follow this pattern are:
+
+  * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
+  * [https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java](https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java)
+
+
+### Avoid Mockito - Use reusable test implementations
+
+* Mockito-based tests tend to be costly to maintain in the long run by encouraging duplication of functionality and testing for implementation rather than effect
+  * More details: [https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8](https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8)
+* Instead, create reusable test implementations and utilities
+  * That way, when some class changes, we only have to update a few test utils or mocks
+
+### Avoid timeouts in JUnit tests
+
+Generally speaking, we should avoid setting local timeouts in JUnit tests but rather depend on the
+global timeout in Azure. The global timeout benefits from taking thread dumps just before timing out
+the build, easing debugging.
+
+At the same time, any timeout value that you manually set is arbitrary. If it's set too low, you get
+test instabilities. What too low means depends on numerous factors, such as hardware and current
+utilization (especially I/O). Moreover, a local timeout is more maintenance-intensive. It's one more
+knob where you can tweak a build. If you change the test a bit, you also need to double-check the
+timeout. Hence, there have been quite a few commits that just increase timeouts.
 
 
 

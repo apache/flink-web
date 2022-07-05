@@ -24,6 +24,8 @@ git clone https://github.com/<your-user-name>/flink.git
 
 ...请确保已经有一个相对应的 [Jira](https://issues.apache.org/jira/browse/FLINK) issue 存在了。我们要求所有文档更改都需要关联一个 Jira issue，除了一些微不足道的修复，如拼写错误。
 
+同时，先阅读一下 [文档样式指南]({{ site.baseurl }}/zh/contributing/docs-style.html) 能够很好的帮助你写出易懂、连贯和全面的文档。
+
 ## 更新或扩展文档
 
 Flink 文档是用 [Markdown](http://daringfireball.net/projects/markdown/) 编写的。Markdown 是一种轻量级标记语言，可以通过工具转化成 HTML。

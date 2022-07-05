@@ -8,7 +8,7 @@ title: "Community & Project Info"
 
 ## How do I get help from Apache Flink?
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](/contributing/how-to-contribute.html).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira]({{ site.jira }}). Those interested in contributing to Flink should check out the [contribution guide](/contributing/how-to-contribute.html).
 
 
 ## Mailing Lists
@@ -32,7 +32,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:news-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>Read only list</i></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-news/">Archives</a> <br>
+      <a href="https://lists.apache.org/list.html?news@flink.apache.org">Archives</a> <br>
     </td>
   </tr>
   <tr>
@@ -45,7 +45,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:community@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-community/">Archives</a> <br>
+      <a href="https://lists.apache.org/list.html?community@flink.apache.org">Archives</a> <br>
     </td>
   </tr>
   <tr>
@@ -58,8 +58,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user/">Archives</a> <br>
-      <a href="http://apache-flink-user-mailing-list-archive.2336050.n4.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?user@flink.apache.org">Archives</a>
     </td>
   </tr>
     <tr>
@@ -72,8 +71,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:user-zh@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-user-zh/">Archives</a> <br>
-      <a href="http://apache-flink.147419.n8.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?user-zh@flink.apache.org">Archives</a>
     </td>
   </tr>
   <tr>
@@ -86,8 +84,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:dev@flink.apache.org">Post</a></td>
     <td class="text-center">
-      <a href="http://mail-archives.apache.org/mod_mbox/flink-dev/">Archives</a> <br>
-      <a href="http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/">Nabble Archive</a>
+      <a href="https://lists.apache.org/list.html?dev@flink.apache.org">Archives</a>
     </td>
   </tr>
   <tr>
@@ -100,7 +97,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
       <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:builds-unsubscribe@flink.apache.org">Unsubscribe</a></td>
       <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>Read only list</i></td>
       <td class="text-center">
-        <a href="http://mail-archives.apache.org/mod_mbox/flink-builds/">Archives</a> <br>
+        <a href="https://lists.apache.org/list.html?builds@flink.apache.org">Archives</a>
       </td>
     </tr>
   <tr>
@@ -113,7 +110,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-digest-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:issues-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i><i>Read only list</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-issues/">Archives</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?issues@flink.apache.org">Archives</a></td>
   </tr>
   <tr>
     <td>
@@ -125,7 +122,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-digest-subscribe@flink.apache.org">Subscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <a href="mailto:commits-unsubscribe@flink.apache.org">Unsubscribe</a></td>
     <td class="text-center"><i class="fa fa-pencil-square-o"></i> <i>Read only list</i></td>
-    <td class="text-center"><a href="http://mail-archives.apache.org/mod_mbox/flink-commits/">Archives</a></td>
+    <td class="text-center"><a href="https://lists.apache.org/list.html?commits@flink.apache.org">Archives</a></td>
   </tr>
 </table>
 
@@ -133,7 +130,7 @@ There are many ways to get help from the Apache Flink community. The [mailing li
 
 ### How to subscribe to a mailing list
 
-Before you can post a message to a mailing list, you need to subscribe to the list first. 
+Before you can post a message to a mailing list, you need to subscribe to the list first.
 
 1. Send an email without any contents or subject to *listname*-subscribe@flink.apache.org. (replace *listname* with dev, user, user-zh, ..)
 2. Wait till you receive an email with the subject "confirm subscribe to *listname*@flink.apache.org". Reply to that email, without editing the subject or including any contents
@@ -147,6 +144,20 @@ If you send us an email with a code snippet, make sure that:
 3. you keep formatting when pasting code in order to keep the code readable
 4. there are enough import statements to avoid ambiguities
 
+## Slack
+
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1bzkfauxc-L0VaezhCQoORKRW1hOBLEA)
+After creating an account in Slack, don't forget to introduce yourself in #introductions.
+Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
+Any existing Slack member can also invite anyone else to join. 
+
+There are a couple of community rules: 
+
+* **Be respectful** - This is the most important rule!
+* All important decisions and conclusions **must be reflected back to the mailing lists.** 
+  "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
+* Use **Slack threads** to keep parallel conversations from overwhelming a channel.
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. These should be picked-up voluntarily.
 
 ## Stack Overflow
 
@@ -170,31 +181,43 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 
 ## Source Code
 
-### Flink core repository
+### Main Repositories
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
-- **GitHub mirror**: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
+* **Flink Core Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink.git](https://gitbox.apache.org/repos/asf/flink.git)
+    * GitHub mirror: [https://github.com/apache/flink.git](https://github.com/apache/flink.git)
 
-### Flink Stateful Functions repository
+* **Flink Docker Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
+    * GitHub mirror: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
-- **GitHub mirror**: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
+* **Flink Stateful Functions Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
+   * GitHub mirror: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
 
-### Flink-shaded repositories (shaded dependency libraries)
+* **Flink Stateful Functions Docker Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
+   * GitHub mirror: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-shaded.git](https://gitbox.apache.org/repos/asf/flink-shaded.git)
-- **GitHub mirror**:  [https://github.com/apache/flink-shaded.git](https://github.com/apache/flink-shaded.git)
+* **Flink ML Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
+    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
 
-### Flink Website repositories
+* **Flink Kubernetes Operator Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
+    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
 
-- **ASF repository**: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
-- **GitHub mirror**:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
+* **Flink Table Store Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-table-store.git](https://gitbox.apache.org/repos/asf/flink-table-store.git)
+    * GitHub mirror: [https://github.com/apache/flink-table-store](https://github.com/apache/flink-table-store)
 
-### Bahir Flink repositories (additional connectors)
+* **Flink Website Repository**
+   * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
+   * GitHub mirror:  [https://github.com/apache/flink-web.git](https://github.com/apache/flink-web.git)
 
-- **ASF repository**: [https://git-wip-us.apache.org/repos/asf/bahir-flink.git](https://git-wip-us.apache.org/repos/asf/bahir-flink.git)
-- **GitHub mirror**:  [https://github.com/apache/bahir-flink.git](https://github.com/apache/bahir-flink.git)
+### Complete List of Repositories
 
+The complete list of repositories of Apache Flink can be found under https://gitbox.apache.org/repos/asf#flink.
 
 ## Training
 
@@ -208,9 +231,9 @@ The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apac
 
 Flink Forward is a conference happening yearly in different locations around the world. Up to date information about the conference is available on <a href="https://www.flink-forward.org/">Flink-Forward.org</a>.
 
-
-
 # People
+
+The list below could be outdated. Please find the most up-to-date list <a href="https://projects.apache.org/committee.html?flink">here</a>.
 
 <table class="table table-striped">
   <thead>
@@ -262,6 +285,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">hequn</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4950503?s=50" class="committer-avatar"/></td>
+    <td class="text-center">Danny Cranmer</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">dannycranmer</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/1452518?s=50" class="committer-avatar"></td>
     <td class="text-center">Xingcan Cui</td>
     <td class="text-center">Committer</td>
@@ -298,6 +327,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">greg</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/8536293?s=50" class="committer-avatar"></td>
+    <td class="text-center">Xingbo Huang</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">hxb</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/2388347?s=50" class="committer-avatar"></td>
     <td class="text-center">Fabian Hueske</td>
     <td class="text-center">PMC, Committer</td>
@@ -318,7 +353,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/11538663?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Konstantin Knauf</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">knaufk</td>
   </tr>
   <tr>
@@ -336,7 +371,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/9601882?s=50" class="committer-avatar"></td>
     <td class="text-center">Jingsong Lee</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">lzljs3620320</td>
   </tr>
   <tr>
@@ -358,6 +393,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">andra</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars.githubusercontent.com/u/11065508?v=4" class="committer-avatar"></td>
+    <td class="text-center">Yuan Mei</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">yuanmei</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/89049?s=50" class="committer-avatar"></td>
     <td class="text-center">Robert Metzger</td>
     <td class="text-center">PMC, Committer</td>
@@ -374,6 +415,12 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Chiwan Park</td>
     <td class="text-center">Committer</td>
     <td class="text-center">chiwanpark</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars.githubusercontent.com/u/18453087?s=50" class="committer-avatar"></td>
+    <td class="text-center">Qingsheng Ren</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">renqs</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/2128543?s=50" class="committer-avatar"></td>
@@ -426,7 +473,7 @@ Flink Forward is a conference happening yearly in different locations around the
   <tr>
     <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/6509172?s=50" class="committer-avatar"></td>
     <td class="text-center">Xintong Song</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">xtsong</td>
   </tr>
   <tr>
@@ -458,6 +505,18 @@ Flink Forward is a conference happening yearly in different locations around the
     <td class="text-center">Timo Walther</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">twalthr</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/99001603?s=50" class="committer-avatar"></td>
+    <td class="text-center">Feng Wang</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">fengwang</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/8684799?s=50" class="committer-avatar"></td>
+    <td class="text-center">Yangze Guo</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">guoyangze</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
@@ -519,7 +578,78 @@ Flink Forward is a conference happening yearly in different locations around the
 	<td class="text-center">Committer</td>
 	<td class="text-center">sjwiesman</td>
   </tr>
-
+  <tr>
+        <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/1425623?s=50" class="committer-avatar"></td>
+        <td class="text-center">Congxian Qiu</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">klion26</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/8777671?s=50" class="committer-avatar"></td>
+        <td class="text-center">Godfrey He</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">godfrey</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/1709104?s=50" class="committer-avatar"></td>
+        <td class="text-center">Yun Tang</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">tangyun</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/44194288?s=50" class="committer-avatar"></td>
+        <td class="text-center">Wei Zhong</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">weizhong</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5869249?s=50" class="committer-avatar"></td>
+        <td class="text-center">Zhu Zhu</td>
+        <td class="text-center">PMC, Committer</td>
+        <td class="text-center">zhuzh</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars0.githubusercontent.com/u/546103?s=50" class="committer-avatar"></td>
+        <td class="text-center">Igal Shilman</td>
+        <td class="text-center">PMC, Committer</td>
+        <td class="text-center">igalshilman</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4471524?s=50" class="committer-avatar"></td>
+        <td class="text-center">Benchao Li</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">libenchao</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/2989614?s=50" class="committer-avatar"></td>
+        <td class="text-center">Martijn Visser</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">martijnvisser</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/5163645?s=50" class="committer-avatar"></td>
+        <td class="text-center">Leonard Xu</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">leonard</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/1525333?s=400" class="committer-avatar"></td>
+        <td class="text-center">Jing Zhang</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">jingzhang</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/15904523?s=50" class="committer-avatar"></td>
+        <td class="text-center">Yang Wang</td>
+        <td class="text-center">PMC, Committer</td>
+        <td class="text-center">wangyang0918</td>
+  </tr>
+  <tr>
+        <td class="text-center"><img src="https://avatars.githubusercontent.com/u/33114724?s=50" class="committer-avatar"></td>
+        <td class="text-center">Shengkai Fang</td>
+        <td class="text-center">Committer</td>
+        <td class="text-center">shengkai</td>
+  </tr>
 </table>
 
 You can reach committers directly at `<apache-id>@apache.org`. A list of all contributors can be found [here]({{ site.FLINK_CONTRIBUTORS_URL }}).
@@ -577,5 +707,3 @@ The following people were very kind to mentor the project while in incubation.
 # Materials / Apache Flink Logos
 
 The [materials page]({{ site.baseurl }}/material.html) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
-
-
