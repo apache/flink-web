@@ -13,7 +13,7 @@ excerpt: This post presents more details on the changes on the checkpoint proced
 
 ---
 
-In the [first part]({{site.baseurl}}/2022/06/01/final-checkpoint-part1.html) of this blog,
+In the [first part]({{site.baseurl}}/2022/07/11/final-checkpoint-part1.html) of this blog,
 we have briefly introduced the work to support checkpoints after tasks get
 finished and revised the process of finishing. In this part we will present more details on the implementation,
 including how we support checkpoints with finished tasks and the revised protocol of the finish process.
