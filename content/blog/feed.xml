@@ -7,6 +7,419 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>FLIP-147: Support Checkpoints After Tasks Finished - Part Two</title>
+<description>&lt;p&gt;In the &lt;a href=&quot;/2022/06/01/final-checkpoint-part1.html&quot;&gt;first part&lt;/a&gt; of this blog,
+we have briefly introduced the work to support checkpoints after tasks get
+finished and revised the process of finishing. In this part we will present more details on the implementation,
+including how we support checkpoints with finished tasks and the revised protocol of the finish process.&lt;/p&gt;
+
+&lt;h1 id=&quot;implementation-of-support-checkpointing-with-finished-tasks&quot;&gt;Implementation of support Checkpointing with Finished Tasks&lt;/h1&gt;
+
+&lt;p&gt;As described in part one,
+to support checkpoints after some tasks are finished, the core idea is to mark
+the finished operators in checkpoints and skip executing these operators after recovery. To implement this idea,
+we enhanced the checkpointing procedure to generate the flag and use the flag on recovery. This section presents
+more details on the process of taking checkpoints with finished tasks and recovery from such checkpoints.&lt;/p&gt;
+
+&lt;p&gt;Previously, checkpointing only worked when all tasks were running. As shown in the Figure 1, in this case the
+checkpoint coordinator first notify all the source tasks, and then the source tasks further notify the
+downstream tasks to take snapshots via barrier events. Similarly, if there are finished tasks, we need to
+find the new “source” tasks to initiate the checkpoint, namely those tasks that are still running but have
+no running precedent tasks. CheckpointCoordinator does the computation atomically at the JobManager side
+based on the latest states recorded in the execution graph.&lt;/p&gt;
+
+&lt;p&gt;There might be race conditions when triggering tasks: when the checkpoint coordinator
+decides to trigger one task and starts emitting the RPC, it is possible that the task is just finished and
+reporting the FINISHED status to JobManager. In this case, the RPC message would fail and the checkpoint would be aborted.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:50%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/checkpoint_trigger.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em&quot;&gt;
+  Figure 1. The tasks chosen as the new sources when taking checkpoint with finished tasks. The principle is to
+  choose the running tasks whose precedent tasks are all finished. 
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;In order to keep track of the finish status of each operator, we need to extend the checkpoint format.
+A checkpoint consists of the states of all the stateful operators, and the state of one operator consists of the
+entries from all its parallel instances. Note that the concept of Task is not reflected in the checkpoint. Task
+is more of a physical execution container that drives the behavior of operators. It is not well-defined across
+multiple executions of the same job since job upgrades might modify the operators contained in one task. 
+Therefore, the finished status should also be attached to the operators.&lt;/p&gt;
+
+&lt;p&gt;As shown in the Figure 2, operators could be classified into three types according to their finished status:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Fully finished: If all the instances of an operator are finished, we could view the logic of the operators as
+fully executed and we should skip the execution of the operator after recovery. We need to store a special flag for this
+kind of operator.&lt;/li&gt;
+  &lt;li&gt;Partially finished: If only some instances of an operator are finished, then we still need to continue executing the
+remaining logic of this operator. As a whole we could view the state of the operator as the set of entries collected from all the
+running instances, which represents the remaining workload for this operator.&lt;/li&gt;
+  &lt;li&gt;No finished instances: In this case, the state of the operator is the same as the one taken when no tasks are finished.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:50%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em&quot;&gt;
+  Figure 2. An illustration of the extended checkpoint format.
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;If the job is later restored from a checkpoint taken with finished tasks, we would skip executing all the logic for fully
+finished operators, and execute normally for the operators with no finished instances.&lt;/p&gt;
+
+&lt;p&gt;However, this would be a bit complex for the partially finished operators. The state of partially finished operators would be
+redistributed to all the instances, similar to rescaling when the parallelism is changed. Among all the types of states that
+Flink offers, the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/state/#using-keyed-state&quot;&gt;keyed state&lt;/a&gt;
+and &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/state/#using-operator-state&quot;&gt;operator state&lt;/a&gt;
+with even-split redistribution would work normally, but the 
+&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/state/#broadcast-state&quot;&gt;broadcast state&lt;/a&gt; and 
+&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/state/#using-operator-state&quot;&gt;operator state with union redistribution&lt;/a&gt;
+would be affected for the following reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;The broadcast state always replicates the state of the first subtask to the other subtasks. If the first subtask is finished,
+an empty state would be distributed and the operator would run from scratch, which is not correct.&lt;/li&gt;
+  &lt;li&gt;The operator state with union distribution merges the states of all the subtasks and then sends the merged state to all the
+subtasks. Based on this behavior, some operators may choose one subtask to store a shared value and after restarting this value will
+be distributed to all the subtasks. However, if this chosen task is finished, the state would be lost.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These two issues would not occur when rescaling since there would be no finished tasks in that scenario. To address
+these issues, we chose one of the running subtasks instead to acquire the current state for the broadcast state. For the operator
+state with union redistribution, we have to collect the states of all the subtasks to maintain the semantics. Thus, currently we
+abort the checkpoint if parts of subtasks finished for operators using this kind of state.&lt;/p&gt;
+
+&lt;p&gt;In principle, you should be able to modify your job (which changes the dataflow graph) and restore from a previous checkpoint. That said,
+there are certain graph modifications that are not supported. These kinds of changes include adding a new operator as the precedent of a fully finished
+one. Flink would check for such modifications and throw exceptions while restoring.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-revised-process-of-finishing&quot;&gt;The Revised Process of Finishing&lt;/h1&gt;
+
+&lt;p&gt;As described in the part one, based on the ability to take checkpoints with finished tasks, we revised the process of finishing
+so that we could always commit all the data for two-phase-commit sinks. We’ll show the detailed protocol of the finished process in this
+section.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-did-jobs-in-flink-finish-before&quot;&gt;How did Jobs in Flink Finish Before?&lt;/h2&gt;
+
+&lt;p&gt;A job might finish in two ways: all sources finish or users execute
+&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/cli/#stopping-a-job-gracefully-creating-a-final-savepoint&quot;&gt;&lt;code&gt;stop-with-savepoint [--drain]&lt;/code&gt;&lt;/a&gt;.
+Let’s first have a look at the detailed process of finishing before FLIP-147.&lt;/p&gt;
+
+&lt;h3 id=&quot;when-sources-finish&quot;&gt;When sources finish&lt;/h3&gt;
+
+&lt;p&gt;If all the sources are bounded, The job will finish after all the input records are processed and all the result are
+committed to external systems. In this case, the sources would first
+emit a &lt;code&gt;MAX_WATERMARK&lt;/code&gt; (&lt;code&gt;Long.MAX_VALUE&lt;/code&gt;) and then start to terminate the task. On termination, a task would call &lt;code&gt;endOfInput()&lt;/code&gt;,
+&lt;code&gt;close()&lt;/code&gt; and &lt;code&gt;dispose()&lt;/code&gt; for all the operators, then emit an &lt;code&gt;EndOfPartitionEvent&lt;/code&gt; to the downstream tasks. The intermediate tasks
+would start terminating after receiving an &lt;code&gt;EndOfPartitionEvent&lt;/code&gt; from all the input channels, and this process will continue
+until the last task is finished.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;1. Source operators emit MAX_WATERMARK
+2. On received MAX_WATERMARK for non-source operators
+    a. Trigger all the event-time timers
+    b. Emit MAX_WATERMARK
+3. Source tasks finished
+    a. endInput(inputId) for all the operators
+    b. close() for all the operators
+    c. dispose() for all the operators
+    d. Emit EndOfPartitionEvent
+    e. Task cleanup
+4. On received EndOfPartitionEvent for non-source tasks
+    a. endInput(int inputId) for all the operators
+    b. close() for all the operators
+    c. dispose() for all the operators
+    d. Emit EndOfPartitionEvent
+    e. Task cleanup
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;when-users-execute-stop-with-savepoint---drain&quot;&gt;When users execute stop-with-savepoint [–drain]&lt;/h3&gt;
+
+&lt;p&gt;Users could execute the command stop-with-savepoint [–drain] for both bounded and unbounded jobs to trigger jobs to finish.
+In this case, Flink first triggers a synchronous savepoint and all the tasks would stall after seeing the synchronous
+savepoint. If the savepoint succeeds, all the source operators would finish actively and the job would finish the same as the above scenario.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;1. Trigger a savepoint
+2. Sources received savepoint trigger RPC
+    a. If with –-drain
+        i. source operators emit MAX_WATERMARK
+    b. Source emits savepoint barrier
+3. On received MAX_WATERMARK for non-source operators
+    a. Trigger all the event times
+    b. Emit MAX_WATERMARK
+4. On received savepoint barrier for non-source operators
+    a. The task blocks till the savepoint succeed
+5. Finish the source tasks actively
+    a. If with –-drain
+        ii. endInput(inputId) for all the operators
+    b. close() for all the operators
+    c. dispose() for all the operators
+    d. Emit EndOfPartitionEvent
+    e. Task cleanup
+6. On received EndOfPartitionEvent for non-source tasks
+    a. If with –-drain
+        i. endInput(int inputId) for all the operators
+    b. close() for all the operators
+    c. dispose() for all the operators
+    d. Emit EndOfPartitionEvent
+    e. Task cleanup
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;A parameter &lt;code&gt;–-drain&lt;/code&gt; is supported with &lt;code&gt;stop-with-savepoint&lt;/code&gt;: if not specified, the job is expected to resume from this savepoint,
+otherwise the job is expected to terminate permanently. Thus we only emit &lt;code&gt;MAX_WATERMARK&lt;/code&gt; to trigger all the event timers and call
+&lt;code&gt;endInput()&lt;/code&gt; in the latter case.&lt;/p&gt;
+
+&lt;h2 id=&quot;revise-the-finishing-steps&quot;&gt;Revise the Finishing Steps&lt;/h2&gt;
+
+&lt;p&gt;As described in part one, after revising the process of finishing, we have decoupled the process of “finishing operator logic”
+and “finishing task” by introducing a new &lt;code&gt;EndOfData&lt;/code&gt; event. After the revision each task will first
+notify the descendants with an &lt;code&gt;EndOfData&lt;/code&gt; event after executing all the logic
+so that the descendants also have chances to finish executing the operator logic, then
+all the tasks could wait for the next checkpoint or the specified savepoint concurrently to commit all the remaining data. 
+This section will present the detailed protocol of the revised process. Since we have renamed
+&lt;code&gt;close()&lt;/code&gt; /&lt;code&gt;dispose()&lt;/code&gt; to &lt;code&gt;finish()&lt;/code&gt; / &lt;code&gt;close()&lt;/code&gt;, we’ll stick to the new terminologies in the following description.&lt;/p&gt;
+
+&lt;p&gt;The revised process of finishing is shown as follows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;1. Source tasks finished due to no more records or stop-with-savepoint. 
+    a. if no more records or stop-with-savepoint –-drain
+        i. source operators emit MAX_WATERMARK
+        ii. endInput(inputId) for all the operators
+        iii. finish() for all the operators
+        iv. emit EndOfData[isDrain = true] event
+    b. else if stop-with-savepoint
+        i. emit EndOfData[isDrain = false] event
+    c. Wait for the next checkpoint / the savepoint after operator finished complete
+    d. close() for all the operators
+    e. Emit EndOfPartitionEvent
+    f. Task cleanup
+2. On received MAX_WATERMARK for non-source operators
+    a. Trigger all the event times
+    b. Emit MAX_WATERMARK
+3. On received EndOfData for non-source tasks
+    a. If isDrain
+        i. endInput(int inputId) for all the operators
+        ii. finish() for all the operators
+    b. Emit EndOfData[isDrain = the flag value of the received event]
+4. On received EndOfPartitionEvent for non-source tasks
+    a. Wait for the next checkpoint / the savepoint after operator finished complete
+    b. close() for all the operators
+    c. Emit EndOfPartitionEvent
+    d. Task cleanup
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:60%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/example_job_finish.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em&quot;&gt;
+  Figure 3. An example job of the revised process of finishing.
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;An example of the process of job finishing is shown in Figure 3.&lt;/p&gt;
+
+&lt;p&gt;Let’s first have a look at the example that all the source tasks are bounded.
+If Task &lt;code&gt;C&lt;/code&gt; finishes after processing all the records, it first emits the max-watermark, then finishes the operators and emits
+the &lt;code&gt;EndOfData&lt;/code&gt; event. After that, it waits for the next checkpoint to complete and then emits the &lt;code&gt;EndOfPartitionEvent&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Task &lt;code&gt;D&lt;/code&gt; finishes all the operators right after receiving the &lt;code&gt;EndOfData&lt;/code&gt; event. Since any checkpoints taken after operators finish
+can commit all the pending records and be the final checkpoint, Task &lt;code&gt;D&lt;/code&gt;’s final checkpoint would be the same as Task &lt;code&gt;C&lt;/code&gt;’s since
+the barrier must be emitted after the &lt;code&gt;EndOfData&lt;/code&gt; event.&lt;/p&gt;
+
+&lt;p&gt;Task &lt;code&gt;E&lt;/code&gt; is a bit different in that it has two inputs. Task &lt;code&gt;A&lt;/code&gt; might continue to run for a while and, thus, Task &lt;code&gt;E&lt;/code&gt; needs to wait
+until it receives an &lt;code&gt;EndOfData&lt;/code&gt; event also from the other input before finishing operators and its final checkpoint might be different.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, when using &lt;code&gt;stop-with-savepoint [--drain]&lt;/code&gt;, the process is similar except that all the tasks need to wait for the exact
+savepoint before finishing instead of just any checkpoints. Moreover, since both Task &lt;code&gt;C&lt;/code&gt; and Task &lt;code&gt;A&lt;/code&gt; would finish at the same time,
+Task &lt;code&gt;E&lt;/code&gt; would also be able to wait for this particular savepoint before finishing.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;In this part we have presented more details of how the checkpoints are taken with finished tasks and the revised process
+of finishing. We hope the details could provide more insights of the thoughts and implementations for this part of work. Still, if you
+have any questions, please feel free to start a discussion or report an issue in the dev or user mailing list.&lt;/p&gt;
+</description>
+<pubDate>Mon, 11 Jul 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/07/11/final-checkpoint-part2.html</link>
+<guid isPermaLink="true">/2022/07/11/final-checkpoint-part2.html</guid>
+</item>
+
+<item>
+<title>FLIP-147: Support Checkpoints After Tasks Finished - Part One</title>
+<description>&lt;h1 id=&quot;motivation&quot;&gt;Motivation&lt;/h1&gt;
+
+&lt;p&gt;Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions,
+Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases.
+Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing,
+operating, and maintaining consistency between streaming and batch backfilling jobs, like
+&lt;a href=&quot;https://www.ververica.com/blog/apache-flinks-stream-batch-unification-powers-alibabas-11.11-in-2020&quot;&gt;the case for Alibaba&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Flink provides two execution modes under the unified programming API: the streaming mode and the batch mode.
+The streaming mode processes records incrementally based on the states, thus it supports both bounded and unbounded sources.
+The batch mode works with bounded sources and usually has a better performance for bounded jobs because it executes all the
+tasks in topological order and avoids random state access by pre-sorting the input records. Although batch mode is often the
+preferred mode to process bounded jobs, streaming mode is also required for various reasons. For example, users may want to deal
+with records containing retraction or exploit the property that data is roughly sorted by event times in streaming mode
+(like the case in &lt;a href=&quot;https://www.youtube.com/watch?t=666&amp;amp;v=4qSlsYogALo&amp;amp;feature=youtu.be&quot;&gt;Kappa+ Architecture&lt;/a&gt;). Moreover,
+users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:70%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/stream_batch_cmp.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em&quot;&gt;
+  Figure 1. A comparison of the Streaming mode and Batch mode for the example Count operator. For streaming mode, the arrived
+  elements are not sorted, the operator would read / write the state corresponding to the element for computation.
+  For batch mode, the arrived elements are first sorted as a whole and then processed.
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;In streaming mode, &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/checkpointing/&quot;&gt;checkpointing&lt;/a&gt;
+is the vital mechanism in supporting exactly-once guarantees. By periodically snapshotting the
+aligned states of operators, Flink can recover from the latest checkpoint and continue execution when failover happens. However,
+previously Flink could not take checkpoints if any task gets finished. This would cause problems for jobs with both bounded and unbounded
+sources: if there are no checkpoints after the bounded part finished, the unbounded part might need to reprocess a large amount of
+records in case of a failure.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, being unable to take checkpoints with finished tasks is a problem for jobs using two-phase-commit sinks to achieve
+&lt;a href=&quot;https://flink.apache.org/features/2018/03/01/end-to-end-exactly-once-apache-flink.html&quot;&gt;end-to-end exactly-once processing&lt;/a&gt;.
+The two-phase-commit sinks first write data to temporary files or external transactions,
+and commit the data only after a checkpoint completes to ensure the data would not be replayed on failure. However, if a job
+contains bounded sources, committing the results would not be possible after the bounded sources finish. Also because of that,
+for bounded jobs we have no way to commit the last piece of data after the first source task finished, and previously the bounded
+jobs just ignore the uncommitted data when finishing. These behaviors caused a lot of confusion and are always asked in the user
+mailing list.&lt;/p&gt;
+
+&lt;p&gt;Therefore, to complete the support of streaming mode for jobs using bounded sources, it is important for us to&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Support taking checkpoints with finished tasks.&lt;/li&gt;
+  &lt;li&gt;Furthermore, revise the process of finishing so that all the data could always be committed.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The remaining blog briefly describes the changes we made to achieve the above goals. In the next blog,
+we’ll share more details on how they are implemented.&lt;/p&gt;
+
+&lt;h1 id=&quot;support-checkpointing-with-finished-tasks&quot;&gt;Support Checkpointing with Finished Tasks&lt;/h1&gt;
+
+&lt;p&gt;The core idea of supporting checkpoints with finished tasks is to mark the finished operators in checkpoints and skip
+executing these operators after recovery. As illustrated in Figure 2, a checkpoint is composed of the states of all
+the operators. If all the subtasks of an operator have finished, we could mark it as fully finished and skip the
+execution of this operator on startup. For other operators, their states are composed of the states of all the
+running subtasks. The states will be repartitioned on restarting and all the new subtasks restarted with the assigned states.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:50%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em&quot;&gt;
+  Figure 2. An illustration of the extended checkpoint format.
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;To support creating such a checkpoint for jobs with finished tasks, we extended the checkpoint procedure.
+Previously the checkpoint coordinator inside the JobManager first notifies all the sources to report snapshots,
+then all the sources further notify their descendants via broadcasting barrier events. Since now the sources might
+have already finished, the checkpoint coordinator would instead treat the running tasks who also do not have running
+precedent tasks as “new sources”, and it notifies these tasks to initiate the checkpoints. Finally, if the subtasks of
+an operator are either finished on triggering checkpoint or have finished processing all the data on snapshotting states,
+the operator would be marked as fully finished.&lt;/p&gt;
+
+&lt;p&gt;The changes of the checkpoint procedure are transparent to users except that for checkpoints indeed containing
+finished tasks, we disallowed adding new operators as precedents of the fully finished ones, since it would make the fully
+finished operators have running precedents after restarting, which conflicts with the design that tasks finished
+in topological order.&lt;/p&gt;
+
+&lt;h1 id=&quot;revise-the-process-of-finishing&quot;&gt;Revise the Process of Finishing&lt;/h1&gt;
+
+&lt;p&gt;Based on the ability to take checkpoints with finished tasks, we could then solve the issue that two-phase-commit
+operators could not commit all the data when running in streaming mode. As the background, Flink jobs
+have two ways to finish:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;All sources are bound and they processed all the input records. The job will finish after all the
+input records are processed and all the result are committed to external systems.&lt;/li&gt;
+  &lt;li&gt;Users execute &lt;code&gt;stop-with-savepoint [--drain]&lt;/code&gt;. The job will take a savepoint and then finish. With &lt;code&gt;–-drain&lt;/code&gt;, the job
+will be stopped permanently and is also required to commit all the data. However, without &lt;code&gt;--drain&lt;/code&gt; the job might
+be resumed from the savepoint later, thus not all data are required to be committed, as long as the state of the data could be
+recovered from the savepoint.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Let’s first have a look at the case of bounded sources. To achieve end-to-end exactly-once,
+two-phase-commit operators only commit data after a checkpoint following this piece of data succeeded.
+However, previously there is no such an opportunity for the data between the last periodic checkpoint and job getting finished,
+and the data finally gets lost. Note that it is also not correct if we directly commit the data on job finished, since
+if there are failovers after that (like due to other unfinished tasks getting failed), the data will be replayed and cause duplication.&lt;/p&gt;
+
+&lt;p&gt;The case of &lt;code&gt;stop-with-savepoint --drain&lt;/code&gt; also has problems. The previous implementation first stalls the execution and
+takes a savepoint. After the savepoint succeeds, all the source tasks would stop actively. Although the savepoint seems to
+provide the opportunity to commit all the data, some processing logic is in fact executed during the job getting stopped,
+and the records produced would be discarded by mistake. For example, calling &lt;code&gt;endInput()&lt;/code&gt; method for operators happens during
+the stopping phase, some operators like the async operator might still emit new records in this method.&lt;/p&gt;
+
+&lt;p&gt;At last, although &lt;code&gt;stop-with-savepoint&lt;/code&gt; without draining is not required to commit all the data, we hope the job finish process could
+be unified for all the cases to keep the code clean.&lt;/p&gt;
+
+&lt;p&gt;To fix the remaining issues, we need to modify the process of finishing to ensure all the data getting committed for the required cases.
+An intuitive idea is to directly insert a step to the tasks’ lifecycle to wait for the next checkpoint, as shown in the left part
+of Figure 3. However, it could not solve all the issues.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:90%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/finish_cmp.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em&quot;&gt;
+  Figure 3. A comparison of the two options to ensure tasks committed all the data before getting finished. The first
+  option directly inserts a step in the tasks’ lifecycle to wait for the next checkpoint, which disallows the tasks to wait
+  for the same checkpoint / savepoint. The second option decouples the notification of finishing operator logic and finishing tasks,
+  thus it allows all the tasks to first process all records, then they have the chance to wait for the same checkpoint / savepoint.
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;For the case of bounded sources, the intuitive idea works, but it might have performance issues in some cases:
+as exemplified in Figure 4, If there are multiple cascading tasks containing two-phase commit sinks, each task would
+wait for the next checkpoint separately, thus the job needs to wait for three more checkpoints during finishing,
+which might prolong the total execution time for a long time.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img vspace=&quot;20&quot; style=&quot;width:90%&quot; src=&quot;/img/blog/2022-07-11-final-checkpoint/example_job.png&quot; /&gt;
+&lt;p style=&quot;font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em&quot;&gt;
+    Figure 4. An example job that contains a chain of tasks containing two-phase-commit operators. 
+&lt;/p&gt;
+&lt;/center&gt;
+
+&lt;p&gt;For the case of &lt;code&gt;stop-with-savepoint [--drain]&lt;/code&gt;, the intuitive idea does not work since different tasks have to
+wait for different checkpoints / savepoints, thus we could not finish the job with a specific savepoint.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we do not take the intuitive option. Instead, we decoupled &lt;em&gt;“finishing operator logic”&lt;/em&gt; and &lt;em&gt;“finishing tasks”&lt;/em&gt;:
+all the tasks would first finish their execution logic as a whole, including calling lifecycle methods like &lt;code&gt;endInput()&lt;/code&gt;,
+then each task could wait for the next checkpoint concurrently. Besides, for stop-with-savepoint we also reverted the current
+implementation similarly: all the tasks will first finish executing the operators’ logic, then they simply wait for the next savepoint
+to happen before finish. Therefore, in this way the finishing processes are unified and the data could be fully committed for all the cases.&lt;/p&gt;
+
+&lt;p&gt;Based on this thought, as shown in the right part of Figure 3, to decoupled the process of “finishing operator logic”
+and “finishing tasks”, we introduced a new &lt;code&gt;EndOfData&lt;/code&gt; event. For each task, after executing all the operator logic it would first notify
+the descendants with an &lt;code&gt;EndOfData&lt;/code&gt; event so that the descendants also have chances to finish executing the operator logic. Then all
+the tasks could wait for the next checkpoint or the specified savepoint concurrently to commit all the remaining data before getting finished.&lt;/p&gt;
+
+&lt;p&gt;At last, it is also worthy to mention we have clarified and renamed the &lt;code&gt;close()&lt;/code&gt; and &lt;code&gt;dispose()&lt;/code&gt; methods in the operators’ lifecycle.
+The two methods are in fact different since &lt;code&gt;close()&lt;/code&gt; is only called when the task finishes normally and dispose() is called in both
+cases of normal finishing and failover. However, this was not clear from their names. Therefore, we rename the two methods to &lt;code&gt;finish()&lt;/code&gt; and &lt;code&gt;close()&lt;/code&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;finish()&lt;/code&gt; marks the termination of the operator and no more records are allowed after &lt;code&gt;finish()&lt;/code&gt; is called. It should
+only be called when sources are finished or when the &lt;code&gt;-–drain&lt;/code&gt; parameter is specified.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;close()&lt;/code&gt; is used to do cleanup and release all the held resources.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;By supporting the checkpoints after tasks finished and revising the process of finishing, we can support checkpoints for jobs with
+both bounded and unbounded sources, and ensure the bounded job gets all output records committed before it finishes. The motivation
+behind this change is to ensure data consistency, results completeness, and failure recovery if there are bounded sources in the pipeline.
+The final checkpoint mechanism was first implemented in Flink 1.14 and enabled by default in Flink 1.15. If you have any questions,
+please feel free to start a discussion or report an issue in the dev or user mailing list.&lt;/p&gt;
+</description>
+<pubDate>Mon, 11 Jul 2022 02:00:00 +0200</pubDate>
+<link>https://flink.apache.org/2022/07/11/final-checkpoint-part1.html</link>
+<guid isPermaLink="true">/2022/07/11/final-checkpoint-part1.html</guid>
+</item>
+
+<item>
 <title>Apache Flink ML 2.1.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is excited to announce the release of Flink ML 2.1.0!
 This release focuses on improving Flink ML’s infrastructure, such as Python SDK,
@@ -19951,288 +20364,6 @@ To understand why this is the case, let us start with articulating a realistic s
 <pubDate>Wed, 15 Jan 2020 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html</link>
 <guid isPermaLink="true">/news/2020/01/15/demo-fraud-detection.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.8.3 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the third bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes 45 fixes and minor improvements for Flink 1.8.2. The list below includes a detailed list of all fixes and improvements.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.8.3.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Sub-task
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13723&quot;&gt;FLINK-13723&lt;/a&gt;] -         Use liquid-c for faster doc generation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13724&quot;&gt;FLINK-13724&lt;/a&gt;] -         Remove unnecessary whitespace from the docs&amp;#39; sidenav
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13725&quot;&gt;FLINK-13725&lt;/a&gt;] -         Use sassc for faster doc generation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13726&quot;&gt;FLINK-13726&lt;/a&gt;] -         Build docs with jekyll 4.0.0.pre.beta1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13791&quot;&gt;FLINK-13791&lt;/a&gt;] -         Speed up sidenav by using group_by
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12342&quot;&gt;FLINK-12342&lt;/a&gt;] -         Yarn Resource Manager Acquires Too Many Containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13184&quot;&gt;FLINK-13184&lt;/a&gt;] -         Starting a TaskExecutor blocks the YarnResourceManager&amp;#39;s main thread
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13728&quot;&gt;FLINK-13728&lt;/a&gt;] -         Fix wrong closing tag order in sidenav
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13746&quot;&gt;FLINK-13746&lt;/a&gt;] -         Elasticsearch (v2.3.5) sink end-to-end test fails on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13749&quot;&gt;FLINK-13749&lt;/a&gt;] -         Make Flink client respect classloading policy
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13892&quot;&gt;FLINK-13892&lt;/a&gt;] -         HistoryServerTest failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13936&quot;&gt;FLINK-13936&lt;/a&gt;] -         NOTICE-binary is outdated
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13966&quot;&gt;FLINK-13966&lt;/a&gt;] -         Jar sorting in collect_license_files.sh is locale dependent
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13995&quot;&gt;FLINK-13995&lt;/a&gt;] -         Fix shading of the licence information of netty
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13999&quot;&gt;FLINK-13999&lt;/a&gt;] -         Correct the documentation of MATCH_RECOGNIZE
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14009&quot;&gt;FLINK-14009&lt;/a&gt;] -         Cron jobs broken due to verifying incorrect NOTICE-binary file
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14010&quot;&gt;FLINK-14010&lt;/a&gt;] -         Dispatcher &amp;amp; JobManagers don&amp;#39;t give up leadership when AM is shut down
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14043&quot;&gt;FLINK-14043&lt;/a&gt;] -         SavepointMigrationTestBase is super slow
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14107&quot;&gt;FLINK-14107&lt;/a&gt;] -         Kinesis consumer record emitter deadlock under event time alignment
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14175&quot;&gt;FLINK-14175&lt;/a&gt;] -         Upgrade KPL version in flink-connector-kinesis to fix application OOM
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14235&quot;&gt;FLINK-14235&lt;/a&gt;] -         Kafka010ProducerITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceCustomOperator fails on travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14315&quot;&gt;FLINK-14315&lt;/a&gt;] -         NPE with JobMaster.disconnectTaskManager
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14337&quot;&gt;FLINK-14337&lt;/a&gt;] -         HistoryServerTest.testHistoryServerIntegration failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14347&quot;&gt;FLINK-14347&lt;/a&gt;] -         YARNSessionFIFOITCase.checkForProhibitedLogContents found a log with prohibited string
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14370&quot;&gt;FLINK-14370&lt;/a&gt;] -         KafkaProducerAtLeastOnceITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceRegularSink fails on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14398&quot;&gt;FLINK-14398&lt;/a&gt;] -         Further split input unboxing code into separate methods
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14413&quot;&gt;FLINK-14413&lt;/a&gt;] -         shade-plugin ApacheNoticeResourceTransformer uses platform-dependent encoding
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14434&quot;&gt;FLINK-14434&lt;/a&gt;] -         Dispatcher#createJobManagerRunner should not start JobManagerRunner
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14562&quot;&gt;FLINK-14562&lt;/a&gt;] -         RMQSource leaves idle consumer after closing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14589&quot;&gt;FLINK-14589&lt;/a&gt;] -         Redundant slot requests with the same AllocationID leads to inconsistent slot table
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15036&quot;&gt;FLINK-15036&lt;/a&gt;] -         Container startup error will be handled out side of the YarnResourceManager&amp;#39;s main thread
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12848&quot;&gt;FLINK-12848&lt;/a&gt;] -         Method equals() in RowTypeInfo should consider fieldsNames
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13729&quot;&gt;FLINK-13729&lt;/a&gt;] -         Update website generation dependencies
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13965&quot;&gt;FLINK-13965&lt;/a&gt;] -         Keep hasDeprecatedKeys and deprecatedKeys methods in ConfigOption and mark it with @Deprecated annotation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13967&quot;&gt;FLINK-13967&lt;/a&gt;] -         Generate full binary licensing via collect_license_files.sh
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13968&quot;&gt;FLINK-13968&lt;/a&gt;] -         Add travis check for the correctness of the binary licensing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13991&quot;&gt;FLINK-13991&lt;/a&gt;] -         Add git exclusion for 1.9+ features to 1.8
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14008&quot;&gt;FLINK-14008&lt;/a&gt;] -         Auto-generate binary licensing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14104&quot;&gt;FLINK-14104&lt;/a&gt;] -         Bump Jackson to 2.10.1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14123&quot;&gt;FLINK-14123&lt;/a&gt;] -         Lower the default value of taskmanager.memory.fraction
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14215&quot;&gt;FLINK-14215&lt;/a&gt;] -         Add Docs for TM and JM Environment Variable Setting
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14334&quot;&gt;FLINK-14334&lt;/a&gt;] -         ElasticSearch docs refer to non-existent ExceptionUtils.containsThrowable
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14639&quot;&gt;FLINK-14639&lt;/a&gt;] -         Fix the document of Metrics  that has an error for `User Scope` 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14646&quot;&gt;FLINK-14646&lt;/a&gt;] -         Check non-null for key in KeyGroupStreamPartitioner
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14995&quot;&gt;FLINK-14995&lt;/a&gt;] -         Kinesis NOTICE is incorrect
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Wed, 11 Dec 2019 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2019/12/11/release-1.8.3.html</link>
-<guid isPermaLink="true">/news/2019/12/11/release-1.8.3.html</guid>
-</item>
-
-<item>
-<title>Running Apache Flink on Kubernetes with KUDO</title>
-<description>&lt;p&gt;A common use case for Apache Flink is streaming data analytics together with Apache Kafka, which provides a pub/sub model and durability for data streams. To achieve elastic scalability, both are typically deployed in clustered environments, and increasingly on top of container orchestration platforms like Kubernetes. The &lt;a href=&quot;https://kubernetes.io/docs/concepts/extend-kubernetes/operator/&quot;&gt;Operator pattern&lt;/a&gt; provides an extension mechanism to Kubernetes that captures human operator knowledge about an application, like Flink, in software to automate its operation. &lt;a href=&quot;https://kudo.dev&quot;&gt;KUDO&lt;/a&gt; is an open source toolkit for building Operators using declarative YAML specs, with a focus on ease of use for cluster admins and developers.&lt;/p&gt;
-
-&lt;p&gt;In this blog post we demonstrate how to orchestrate a streaming data analytics application based on Flink and Kafka with KUDO. It consists of a Flink job that checks financial transactions for fraud, and two microservices that generate and display the transactions. You can find more details about this demo in the &lt;a href=&quot;https://github.com/kudobuilder/operators/tree/master/repository/flink/docs/demo/financial-fraud&quot;&gt;KUDO Operators repository&lt;/a&gt;, including instructions for installing the dependencies.&lt;/p&gt;
-
-&lt;p style=&quot;display: block; text-align: center; margin-top: 20px; margin-bottom: 20px&quot;&gt;
-	&lt;img src=&quot;/img/blog/2019-11-06-flink-kubernetes-kudo/flink-kudo-architecture.png&quot; width=&quot;600px&quot; alt=&quot;Application: My App&quot; /&gt;
-&lt;/p&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;p&gt;You can run this demo on your local machine using &lt;a href=&quot;https://github.com/kubernetes/minikube&quot;&gt;minikube&lt;/a&gt;. The instructions below were tested with minikube v1.5.1 and Kubernetes v1.16.2 but should work on any Kubernetes version above v1.15.0. First, start a minikube cluster with enough capacity:&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;minikube start --cpus=6 --memory=9216 --disk-size=10g&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;If you’re using a different way to provision Kubernetes, make sure you have at least 6 CPU Cores, 9 GB of RAM and 10 GB of disk space available.&lt;/p&gt;
-
-&lt;p&gt;Install the &lt;code&gt;kubectl&lt;/code&gt; CLI tool. The KUDO CLI is a plugin for the Kubernetes CLI. The official instructions for installing and setting up kubectl are &lt;a href=&quot;https://kubernetes.io/docs/tasks/tools/install-kubectl/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Next, let’s install the KUDO CLI. At the time of this writing, the latest KUDO version is v0.10.0. You can find the CLI binaries for download &lt;a href=&quot;https://github.com/kudobuilder/kudo/releases&quot;&gt;here&lt;/a&gt;. Download the &lt;code&gt;kubectl-kudo&lt;/code&gt; binary for your OS and architecture.&lt;/p&gt;
-
-&lt;p&gt;If you’re using Homebrew on MacOS, you can install the CLI via:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ brew tap kudobuilder/tap
-$ brew install kudo-cli
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now, let’s initialize KUDO on our Kubernetes cluster:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo init
-$KUDO_HOME has been configured at /Users/gerred/.kudo
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This will create several resources. First, it will create the &lt;a href=&quot;https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/&quot;&gt;Custom Resource Definitions&lt;/a&gt;, &lt;a href=&quot;https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/&quot;&gt;service account&lt;/a&gt;, and &lt;a href=&quot;https://kubernetes.io/docs/reference/access-authn-authz/rbac/&quot;&gt;role bindings&lt;/a&gt; necessary for KUDO to operate. It will also create an instance of the &lt;a href=&quot;https://kudo.dev/docs/architecture.html#components&quot;&gt;KUDO controller&lt;/a&gt; so that we can begin creating instances of applications.&lt;/p&gt;
-
-&lt;p&gt;The KUDO CLI leverages the kubectl plugin system, which gives you all its functionality under &lt;code&gt;kubectl kudo&lt;/code&gt;. This is a convenient way to install and deal with your KUDO Operators. For our demo, we use Kafka and Flink which depend on ZooKeeper. To make the ZooKeeper Operator available on the cluster, run:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo install zookeeper --version=0.3.0 --skip-instance
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The –skip-instance flag skips the creation of a ZooKeeper instance. The flink-demo Operator that we’re going to install below will create it as a dependency instead. Now let’s make the Kafka and Flink Operators available the same way:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo install kafka --version=1.2.0 --skip-instance
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo install flink --version=0.2.1 --skip-instance
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This installs all the Operator versions needed for our demo.&lt;/p&gt;
-
-&lt;h2 id=&quot;financial-fraud-demo&quot;&gt;Financial Fraud Demo&lt;/h2&gt;
-
-&lt;p&gt;In our financial fraud demo we have two microservices, called “generator” and “actor”. The generator produces transactions with random amounts and writes them into a Kafka topic. Occasionally, the value will be over 10,000 which is considered fraud for the purpose of this demo. The Flink job subscribes to the Kafka topic and detects fraudulent transactions. When it does, it submits them to another Kafka topic which the actor consumes. The actor simply displays each fraudulent transaction.&lt;/p&gt;
-
-&lt;p&gt;The KUDO CLI by default installs Operators from the &lt;a href=&quot;https://github.com/kudobuilder/operators/&quot;&gt;official repository&lt;/a&gt;, but it also supports installation from your local filesystem. This is useful if you want to develop your own Operator, or modify this demo for your own purposes.&lt;/p&gt;
-
-&lt;p&gt;First, clone the “kudobuilder/operators” repository via:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ git clone https://github.com/kudobuilder/operators.git
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Next, change into the “operators” directory and install the demo-operator from your local filesystem:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ cd operators
-$ kubectl kudo install repository/flink/docs/demo/financial-fraud/demo-operator --instance flink-demo
-instance.kudo.dev/v1beta1/flink-demo created
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This time we didn’t include the –skip-instance flag, so KUDO will actually deploy all the components, including Flink, Kafka, and ZooKeeper. KUDO orchestrates deployments and other lifecycle operations using &lt;a href=&quot;https://kudo.dev/docs/concepts.html#plan&quot;&gt;plans&lt;/a&gt; that were defined by the Operator developer. Plans are similar to &lt;a href=&quot;https://en.wikipedia.org/wiki/Runbook&quot;&gt;runbooks&lt;/a&gt; and encapsulate all the procedures required to operate the software. We can track the status of the deployment using this KUDO command:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo plan status --instance flink-demo
-Plan(s) for &quot;flink-demo&quot; in namespace &quot;default&quot;:
-.
-└── flink-demo (Operator-Version: &quot;flink-demo-0.1.4&quot; Active-Plan: &quot;deploy&quot;)
-	└── Plan deploy (serial strategy) [IN_PROGRESS]
-    	├── Phase dependencies [IN_PROGRESS]
-    	│   ├── Step zookeeper (COMPLETE)
-    	│   └── Step kafka (IN_PROGRESS)
-    	├── Phase flink-cluster [PENDING]
-    	│   └── Step flink (PENDING)
-    	├── Phase demo [PENDING]
-    	│   ├── Step gen (PENDING)
-    	│   └── Step act (PENDING)
-    	└── Phase flink-job [PENDING]
-        	└── Step submit (PENDING)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The output shows that the “deploy” plan is in progress and that it consists of 4 phases: “dependencies”, “flink-cluster”, “demo” and “flink-job”. The “dependencies” phase includes steps for “zookeeper” and “kafka”. This is where both dependencies get installed, before KUDO continues to install the Flink cluster and the demo itself. We also see that ZooKeeper installation completed, and that Kafka installation is currently in progress. We can view details about Kafka’s deployment plan via:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl kudo plan status --instance flink-demo-kafka
-Plan(s) for &quot;flink-demo-kafka&quot; in namespace &quot;default&quot;:
-.
-└── flink-demo-kafka (Operator-Version: &quot;kafka-1.2.0&quot; Active-Plan: &quot;deploy&quot;)
-	├── Plan deploy (serial strategy) [IN_PROGRESS]
-	│   └── Phase deploy-kafka [IN_PROGRESS]
-	│   	└── Step deploy (IN_PROGRESS)
-	└── Plan not-allowed (serial strategy) [NOT ACTIVE]
-    	└── Phase not-allowed (serial strategy) [NOT ACTIVE]
-        	└── Step not-allowed (serial strategy) [NOT ACTIVE]
-            	└── not-allowed [NOT ACTIVE]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;After Kafka was successfully installed the next phase “flink-cluster” will start and bring up, you guessed it, your flink-cluster. After this is done, the demo phase creates the generator and actor pods that generate and display transactions for this demo. Lastly, we have the flink-job phase in which we submit the actual FinancialFraudJob to the Flink cluster. Once the flink job is submitted, we will be able to see fraud logs in our actor pod shortly after.&lt;/p&gt;
-
-&lt;p&gt;After a while, the state of all plans, phases and steps will change to “COMPLETE”. Now we can view the Flink dashboard to verify that our job is running. To access it from outside the Kubernetes cluster, first start the client proxy, then open the URL below in your browser:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl proxy
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://127.0.0.1:8001/api/v1/namespaces/default/services/flink-demo-flink-jobmanager:ui/proxy/#/overview&quot;&gt;http://127.0.0.1:8001/api/v1/namespaces/default/services/flink-demo-flink-jobmanager:ui/proxy/#/overview&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;It should look similar to this, depending on your local machine and how many cores you have available:&lt;/p&gt;
-
-&lt;p style=&quot;display: block; text-align: center; margin-top: 20px; margin-bottom: 20px&quot;&gt;
-	&lt;img src=&quot;/img/blog/2019-11-06-flink-kubernetes-kudo/flink-dashboard-ui.png&quot; width=&quot;600px&quot; alt=&quot;Application: My App&quot; /&gt;
-&lt;/p&gt;
-
-&lt;p&gt;The job is up and running and we should now be able to see fraudulent transaction in the logs of the actor pod:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code&gt;$ kubectl logs $(kubectl get pod -l actor=flink-demo -o jsonpath=&quot;{.items[0].metadata.name}&quot;)
-Broker:   flink-demo-kafka-kafka-0.flink-demo-kafka-svc:9093
-Topic:   fraud
-
-Detected Fraud:   TransactionAggregate {startTimestamp=0, endTimestamp=1563395831000, totalAmount=19895:
-Transaction{timestamp=1563395778000, origin=1, target=&#39;3&#39;, amount=8341}
-Transaction{timestamp=1563395813000, origin=1, target=&#39;3&#39;, amount=8592}
-Transaction{timestamp=1563395817000, origin=1, target=&#39;3&#39;, amount=2802}
-Transaction{timestamp=1563395831000, origin=1, target=&#39;3&#39;, amount=160}}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If you add the “-f” flag to the previous command, you can follow along as more transactions are streaming in and are evaluated by our Flink job.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this blog post we demonstrated how to easily deploy an end-to-end streaming data application on Kubernetes using KUDO. We deployed a Flink job and two microservices, as well as all the required infrastructure - Flink, Kafka, and ZooKeeper using just a few kubectl commands. To find out more about KUDO, visit the &lt;a href=&quot;https://kudo.dev&quot;&gt;project website&lt;/a&gt; or join the community on &lt;a href=&quot;https://kubernetes.slack.com/messages/kudo/&quot;&gt;Slack&lt;/a&gt;.&lt;/p&gt;
-</description>
-<pubDate>Mon, 09 Dec 2019 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2019/12/09/flink-kubernetes-kudo.html</link>
-<guid isPermaLink="true">/news/2019/12/09/flink-kubernetes-kudo.html</guid>
 </item>
 
 </channel>
