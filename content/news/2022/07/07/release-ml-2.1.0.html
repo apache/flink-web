@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Apache Flink: Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1</title>
+    <title>Apache Flink: Apache Flink ML 2.1.0 Release Announcement</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
@@ -88,18 +88,6 @@
             <!-- What is Flink? -->
             <li><a href="/flink-architecture.html">What is Apache Flink?</a></li>
 
-            
-            <ul class="nav navbar-nav navbar-subnav">
-              <li >
-                  <a href="/flink-architecture.html">Architecture</a>
-              </li>
-              <li >
-                  <a href="/flink-applications.html">Applications</a>
-              </li>
-              <li >
-                  <a href="/flink-operations.html">Operations</a>
-              </li>
-            </ul>
             
 
             <!-- Stateful Functions? -->
@@ -244,100 +232,179 @@
       <div class="row-fluid">
   <div class="col-sm-12">
     <div class="row">
-      <h1>Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1</h1>
+      <h1>Apache Flink ML 2.1.0 Release Announcement</h1>
       <p><i></i></p>
 
       <article>
-        <p>15 Jun 2020 Jeff Zhang (<a href="https://twitter.com/zjffdu">@zjffdu</a>)</p>
+        <p>07 Jul 2022 Zhipeng Zhang  &amp; Dong Lin </p>
 
-<p>The latest release of <a href="https://zeppelin.apache.org/">Apache Zeppelin</a> comes with a redesigned interpreter for Apache Flink (version Flink 1.10+ is only supported moving forward) 
-that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, 
-and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
+<p>The Apache Flink community is excited to announce the release of Flink ML 2.1.0!
+This release focuses on improving Flink ML’s infrastructure, such as Python SDK,
+memory management, and benchmark framework, to facilitate the development of 
+performant, memory-safe, and easy-to-use algorithm libraries. We validated the 
+enhanced infrastructure by implementing, benchmarking, and optimizing 10 new 
+algorithms in Flink ML, and confirmed that Flink ML can meet or exceed the 
+performance of selected algorithms from alternative popular ML libraries.
+In addition, this release added example Python and Java programs for each 
+algorithm in the library to help users learn and use Flink ML.</p>
 
-<h1 id="the-flink-interpreter-in-zeppelin-09">The Flink Interpreter in Zeppelin 0.9</h1>
+<p>With the improvements and performance benchmarks made in this release, we 
+believe Flink ML’s infrastructure is ready for use by the interested developers 
+in the community to build performant pythonic machine learning libraries.</p>
 
-<p>The Flink interpreter can be accessed and configured from Zeppelin’s interpreter settings page. 
-The interpreter has been refactored so that Flink users can now take advantage of Zeppelin to write Flink applications in three languages, 
-namely Scala, Python (PyFlink) and SQL (for both batch &amp; streaming executions). 
-Zeppelin 0.9 now comes with the Flink interpreter group, consisting of the below five interpreters:</p>
+<p>We encourage you to <a href="https://flink.apache.org/downloads.html">download the release</a> 
+and share your feedback with the community through the Flink 
+<a href="https://flink.apache.org/community.html#mailing-lists">mailing lists</a> or
+<a href="https://issues.apache.org/jira/browse/flink">JIRA</a>! We hope you like the new
+release and we’d be eager to learn about your experience with it.</p>
 
-<ul>
-  <li>%flink     - Provides a Scala environment</li>
-  <li>%flink.pyflink   - Provides a python environment</li>
-  <li>%flink.ipyflink   - Provides an ipython environment</li>
-  <li>%flink.ssql     - Provides a stream sql environment</li>
-  <li>%flink.bsql     - Provides a batch sql environment</li>
+<div class="page-toc">
+<ul id="markdown-toc">
+  <li><a href="#notable-features" id="markdown-toc-notable-features">Notable Features</a>    <ul>
+      <li><a href="#api-and-infrastructure" id="markdown-toc-api-and-infrastructure">API and Infrastructure</a>        <ul>
+          <li><a href="#supporting-fine-grained-per-operator-memory-management" id="markdown-toc-supporting-fine-grained-per-operator-memory-management">Supporting fine-grained per-operator memory management</a></li>
+          <li><a href="#improved-infrastructure-for-developing-online-learning-algorithms" id="markdown-toc-improved-infrastructure-for-developing-online-learning-algorithms">Improved infrastructure for developing online learning algorithms</a></li>
+          <li><a href="#algorithm-benchmark-framework" id="markdown-toc-algorithm-benchmark-framework">Algorithm benchmark framework</a></li>
+        </ul>
+      </li>
+      <li><a href="#python-sdk" id="markdown-toc-python-sdk">Python SDK</a></li>
+      <li><a href="#algorithm-library" id="markdown-toc-algorithm-library">Algorithm Library</a></li>
+    </ul>
+  </li>
+  <li><a href="#upgrade-notes" id="markdown-toc-upgrade-notes">Upgrade Notes</a></li>
+  <li><a href="#release-notes-and-resources" id="markdown-toc-release-notes-and-resources">Release Notes and Resources</a></li>
+  <li><a href="#list-of-contributors" id="markdown-toc-list-of-contributors">List of Contributors</a></li>
 </ul>
 
-<p>Not only has the interpreter been extended to support writing Flink applications in three languages, but it has also extended the available execution modes for Flink that now include:</p>
+</div>
+
+<h1 id="notable-features">Notable Features</h1>
+
+<h2 id="api-and-infrastructure">API and Infrastructure</h2>
+
+<h3 id="supporting-fine-grained-per-operator-memory-management">Supporting fine-grained per-operator memory management</h3>
+
+<p>Before this release, algorithm operators with internal states (e.g. the training
+data to be replayed for each round of iteration) store state data using the 
+state-backend API (e.g. ListState). Such an operator either needs to store all 
+data in memory, which risks OOM, or it needs to always store data on disk. 
+In the latter case, it needs to read and de-serialize all data from disks 
+repeatedly in each round of iteration even if the data can fit in RAM, leading 
+to sub-optimal performance when the training data size is small. This makes it 
+hard for developers to write performant and memory-safe operators.</p>
+
+<p>This release enhances the Flink ML infrastructure with the mechanism to specify 
+the amount of managed memory that an operator can consume. This allows algorithm
+operators to write and read data from managed memory when the data size is below
+the quota, and automatically spill those data that exceeds the memory quota to 
+disks to avoid OOM. Algorithm developers can use this mechanism to achieve 
+optimal algorithm performance as input data size varies. Please feel free to 
+check out the implementation of the KMeans operator for example.</p>
+
+<h3 id="improved-infrastructure-for-developing-online-learning-algorithms">Improved infrastructure for developing online learning algorithms</h3>
+
+<p>A key objective of Flink ML is to facilitate the development of online learning 
+applications. In the last release, we enhanced the Flink ML API with 
+setModelData() and getModelData(), which allows users of online learning 
+algorithms to transmit and persist model data as unbounded data streams. 
+This release continues the effort by improving and validating the infrastructure
+needed to develop online learning algorithms.</p>
+
+<p>Specifically, this release added two online learning algorithm prototypes (i.e. 
+OnlineKMeans and OnlineLogisticRegression) with tests covering the entire 
+lifecycle of using these algorithms. These two algorithms introduce concepts 
+such as global batch size and model version, together with metrics and APIs to 
+set and get those values. While the online algorithm prototypes have not been 
+optimized for prediction accuracy yet, this line of work is an important step 
+toward setting up best practices for building online learning algorithms in 
+Flink ML. We hope more contributors from the community can join this effort.</p>
+
+<h3 id="algorithm-benchmark-framework">Algorithm benchmark framework</h3>
+
+<p>An easy-to-use benchmark framework is critical to developing and maintaining 
+performant algorithm libraries in Flink ML. This release added a benchmark 
+framework that provides APIs to write pluggable and reusable data generators, 
+takes benchmark configuration in JSON format, and outputs benchmark results in 
+JSON format to enable custom analysis. An off-the-shelf script is provided to 
+visualize benchmark results using Matplotlib. Feel free to check out this 
+<a href="https://github.com/apache/flink-ml/blob/release-2.1/flink-ml-benchmark/README.md">README</a>
+for instructions on how to use this benchmark framework.</p>
+
+<p>The benchmark framework currently supports evaluating algorithm throughput. 
+In the future release, we plan to support evaluating algorithm latency and 
+accuracy.</p>
+
+<h2 id="python-sdk">Python SDK</h2>
+
+<p>This release enhances the Python SDK so that operators in the Flink ML Python 
+library can invoke the corresponding operators in the Java library. The Python 
+operator is a thin-wrapper around the Java operator and delivers the same 
+performance as the Java operator during execution. This capability significantly
+improves developer velocity by allowing algorithm developers to maintain both 
+the Python and the Java libraries of algorithms without having to implement 
+those algorithms twice.</p>
+
+<h2 id="algorithm-library">Algorithm Library</h2>
+<p>This release continues to extend the algorithm library in Flink ML, with the 
+focus on validating the functionalities and the performance of Flink ML 
+infrastructure using representative algorithms in different categories.</p>
+
+<p>Below are the lists of algorithms newly supported in this release, grouped by 
+their categories:</p>
 
 <ul>
-  <li>Running Flink in Local Mode</li>
-  <li>Running Flink in Remote Mode</li>
-  <li>Running Flink in Yarn Mode</li>
+  <li>Feature engineering (MinMaxScaler, StringIndexer, VectorAssembler, 
+StandardScaler, Bucketizer)</li>
+  <li>Online learning (OnlineKmeans, OnlineLogisiticRegression)</li>
+  <li>Regression (LinearRegression)</li>
+  <li>Classification (LinearSVC)</li>
+  <li>Evaluation (BinaryClassificationEvaluator)</li>
 </ul>
 
-<p>You can find more information about how to get started with Zeppelin and all the execution modes for Flink applications in <a href="https://github.com/apache/zeppelin/tree/master/notebook/Flink%20Tutorial">Zeppelin notebooks</a> in this post.</p>
+<p>Example Python and Java programs for these algorithms are provided on the Apache
+Flink ML <a href="https://nightlies.apache.org/flink/flink-ml-docs-release-2.1/">website</a> to 
+help users learn and try out Flink ML. And we also provided example benchmark 
+<a href="https://github.com/apache/flink-ml/tree/release-2.1/flink-ml-benchmark/src/main/resources">configuration files</a>
+in the repo for users to validate Flink ML performance. Feel free to check out 
+this <a href="https://github.com/apache/flink-ml/blob/release-2.1/flink-ml-benchmark/README.md">README</a>
+for instructions on how to run those benchmarks.</p>
 
-<h1 id="flink-on-zeppelin-for-stream-processing">Flink on Zeppelin for Stream processing</h1>
+<h1 id="upgrade-notes">Upgrade Notes</h1>
 
-<p>Performing stream processing jobs with Apache Flink on Zeppelin allows you to run most major streaming cases, 
-such as streaming ETL and real time data analytics, with the use of Flink SQL and specific UDFs. 
-Below we showcase how you can execute streaming ETL using Flink on Zeppelin:</p>
+<p>Please review this note for a list of adjustments to make and issues to check
+if you plan to upgrade to Flink ML 2.1.0.</p>
 
-<p>You can use Flink SQL to perform streaming ETL by following the steps below 
-(for the full tutorial, please refer to the <a href="https://github.com/apache/zeppelin/blob/master/notebook/Flink%20Tutorial/4.%20Streaming%20ETL_2EYD56B9B.zpln">Flink Tutorial/Streaming ETL tutorial</a> of the Zeppelin distribution):</p>
+<p>This note discusses any critical information about incompatibilities and
+breaking changes, performance changes, and any other changes that might impact
+your production deployment of Flink ML.</p>
 
 <ul>
-  <li>Step 1. Create source table to represent the source data.</li>
+  <li>
+    <p><strong>Flink dependency is changed from 1.14 to 1.15</strong>.</p>
+
+    <p>This change introduces all the breaking changes listed in the Flink 1.15
+<a href="https://nightlies.apache.org/flink/flink-docs-release-1.15/release-notes/flink-1.15/">release notes</a>.</p>
+  </li>
 </ul>
 
-<center>
-<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table" />
-</center>
+<h1 id="release-notes-and-resources">Release Notes and Resources</h1>
 
-<ul>
-  <li>Step 2. Create a sink table to represent the processed data.</li>
-</ul>
+<p>Please take a look at the <a href="https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;version=12351141">release notes</a>
+for a detailed list of changes and new features.</p>
 
-<center>
-<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table" />
-</center>
+<p>The source artifacts is now available on the updated
+<a href="https://flink.apache.org/downloads.html">Downloads page</a> of the Flink website,
+and the most recent distribution of Flink ML Python package is available on
+<a href="https://pypi.org/project/apache-flink-ml">PyPI</a>.</p>
 
-<ul>
-  <li>Step 3. After creating the source and sink table, we can insert them to our statement to trigger the stream processing job as the following:</li>
-</ul>
+<h1 id="list-of-contributors">List of Contributors</h1>
 
-<center>
-<img src="/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL" />
-</center>
+<p>The Apache Flink community would like to thank each one of the contributors
+that have made this release possible:</p>
 
-<ul>
-  <li>Step 4. After initiating the streaming job, you can use another SQL statement to query the sink table to verify the results of your job. Here you can see the top 10 records which will be refreshed every 3 seconds.</li>
-</ul>
+<p>Yunfeng Zhou, Zhipeng Zhang, huangxingbo, weibo, Dong Lin, Yun Gao, Jingsong Li 
+and mumuhhh.</p>
 
-<center>
-<img src="/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview" />
-</center>
-
-<h1 id="summary">Summary</h1>
-
-<p>In this post, we explained how the redesigned Flink interpreter works in Zeppelin 0.9.0 and provided some examples for performing streaming ETL jobs with 
-Flink and Zeppelin. In the next post, I will talk about how to do streaming data visualization via Flink on Zeppelin.
-Besides that, you can find an additional <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">tutorial for batch processing with Flink on Zeppelin</a> as well as using Flink on Zeppelin for 
-more advance operations like resource isolation, job concurrency &amp; parallelism, multiple Hadoop &amp; Hive environments and more on our series of posts on Medium.
-And here’s a list of <a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a> for your reference.</p>
-
-<h1 id="references">References</h1>
-
-<ul>
-  <li><a href="http://zeppelin.apache.org">Apache Zeppelin official website</a></li>
-  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-1-get-started-2591aaa6aa47">Part 1</a></li>
-  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">Part 2</a></li>
-  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754">Part 3</a></li>
-  <li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-4-advanced-usage-998b74908cd9">Part 4</a></li>
-  <li><a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a></li>
-</ul>
 
       </article>
     </div>
