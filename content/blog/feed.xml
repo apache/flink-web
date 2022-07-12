@@ -7,6 +7,181 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Apache Flink ML 2.1.0 Release Announcement</title>
+<description>&lt;p&gt;The Apache Flink community is excited to announce the release of Flink ML 2.1.0!
+This release focuses on improving Flink ML’s infrastructure, such as Python SDK,
+memory management, and benchmark framework, to facilitate the development of 
+performant, memory-safe, and easy-to-use algorithm libraries. We validated the 
+enhanced infrastructure by implementing, benchmarking, and optimizing 10 new 
+algorithms in Flink ML, and confirmed that Flink ML can meet or exceed the 
+performance of selected algorithms from alternative popular ML libraries.
+In addition, this release added example Python and Java programs for each 
+algorithm in the library to help users learn and use Flink ML.&lt;/p&gt;
+
+&lt;p&gt;With the improvements and performance benchmarks made in this release, we 
+believe Flink ML’s infrastructure is ready for use by the interested developers 
+in the community to build performant pythonic machine learning libraries.&lt;/p&gt;
+
+&lt;p&gt;We encourage you to &lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;download the release&lt;/a&gt; 
+and share your feedback with the community through the Flink 
+&lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; or
+&lt;a href=&quot;https://issues.apache.org/jira/browse/flink&quot;&gt;JIRA&lt;/a&gt;! We hope you like the new
+release and we’d be eager to learn about your experience with it.&lt;/p&gt;
+
+&lt;div class=&quot;page-toc&quot;&gt;
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#notable-features&quot; id=&quot;markdown-toc-notable-features&quot;&gt;Notable Features&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#api-and-infrastructure&quot; id=&quot;markdown-toc-api-and-infrastructure&quot;&gt;API and Infrastructure&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#supporting-fine-grained-per-operator-memory-management&quot; id=&quot;markdown-toc-supporting-fine-grained-per-operator-memory-management&quot;&gt;Supporting fine-grained per-operator memory management&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#improved-infrastructure-for-developing-online-learning-algorithms&quot; id=&quot;markdown-toc-improved-infrastructure-for-developing-online-learning-algorithms&quot;&gt;Improved infrastructure for developing online learning algorithms&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#algorithm-benchmark-framework&quot; id=&quot;markdown-toc-algorithm-benchmark-framework&quot;&gt;Algorithm benchmark framework&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#python-sdk&quot; id=&quot;markdown-toc-python-sdk&quot;&gt;Python SDK&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#algorithm-library&quot; id=&quot;markdown-toc-algorithm-library&quot;&gt;Algorithm Library&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#upgrade-notes&quot; id=&quot;markdown-toc-upgrade-notes&quot;&gt;Upgrade Notes&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#release-notes-and-resources&quot; id=&quot;markdown-toc-release-notes-and-resources&quot;&gt;Release Notes and Resources&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#list-of-contributors&quot; id=&quot;markdown-toc-list-of-contributors&quot;&gt;List of Contributors&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/div&gt;
+
+&lt;h1 id=&quot;notable-features&quot;&gt;Notable Features&lt;/h1&gt;
+
+&lt;h2 id=&quot;api-and-infrastructure&quot;&gt;API and Infrastructure&lt;/h2&gt;
+
+&lt;h3 id=&quot;supporting-fine-grained-per-operator-memory-management&quot;&gt;Supporting fine-grained per-operator memory management&lt;/h3&gt;
+
+&lt;p&gt;Before this release, algorithm operators with internal states (e.g. the training
+data to be replayed for each round of iteration) store state data using the 
+state-backend API (e.g. ListState). Such an operator either needs to store all 
+data in memory, which risks OOM, or it needs to always store data on disk. 
+In the latter case, it needs to read and de-serialize all data from disks 
+repeatedly in each round of iteration even if the data can fit in RAM, leading 
+to sub-optimal performance when the training data size is small. This makes it 
+hard for developers to write performant and memory-safe operators.&lt;/p&gt;
+
+&lt;p&gt;This release enhances the Flink ML infrastructure with the mechanism to specify 
+the amount of managed memory that an operator can consume. This allows algorithm
+operators to write and read data from managed memory when the data size is below
+the quota, and automatically spill those data that exceeds the memory quota to 
+disks to avoid OOM. Algorithm developers can use this mechanism to achieve 
+optimal algorithm performance as input data size varies. Please feel free to 
+check out the implementation of the KMeans operator for example.&lt;/p&gt;
+
+&lt;h3 id=&quot;improved-infrastructure-for-developing-online-learning-algorithms&quot;&gt;Improved infrastructure for developing online learning algorithms&lt;/h3&gt;
+
+&lt;p&gt;A key objective of Flink ML is to facilitate the development of online learning 
+applications. In the last release, we enhanced the Flink ML API with 
+setModelData() and getModelData(), which allows users of online learning 
+algorithms to transmit and persist model data as unbounded data streams. 
+This release continues the effort by improving and validating the infrastructure
+needed to develop online learning algorithms.&lt;/p&gt;
+
+&lt;p&gt;Specifically, this release added two online learning algorithm prototypes (i.e. 
+OnlineKMeans and OnlineLogisticRegression) with tests covering the entire 
+lifecycle of using these algorithms. These two algorithms introduce concepts 
+such as global batch size and model version, together with metrics and APIs to 
+set and get those values. While the online algorithm prototypes have not been 
+optimized for prediction accuracy yet, this line of work is an important step 
+toward setting up best practices for building online learning algorithms in 
+Flink ML. We hope more contributors from the community can join this effort.&lt;/p&gt;
+
+&lt;h3 id=&quot;algorithm-benchmark-framework&quot;&gt;Algorithm benchmark framework&lt;/h3&gt;
+
+&lt;p&gt;An easy-to-use benchmark framework is critical to developing and maintaining 
+performant algorithm libraries in Flink ML. This release added a benchmark 
+framework that provides APIs to write pluggable and reusable data generators, 
+takes benchmark configuration in JSON format, and outputs benchmark results in 
+JSON format to enable custom analysis. An off-the-shelf script is provided to 
+visualize benchmark results using Matplotlib. Feel free to check out this 
+&lt;a href=&quot;https://github.com/apache/flink-ml/blob/release-2.1/flink-ml-benchmark/README.md&quot;&gt;README&lt;/a&gt;
+for instructions on how to use this benchmark framework.&lt;/p&gt;
+
+&lt;p&gt;The benchmark framework currently supports evaluating algorithm throughput. 
+In the future release, we plan to support evaluating algorithm latency and 
+accuracy.&lt;/p&gt;
+
+&lt;h2 id=&quot;python-sdk&quot;&gt;Python SDK&lt;/h2&gt;
+
+&lt;p&gt;This release enhances the Python SDK so that operators in the Flink ML Python 
+library can invoke the corresponding operators in the Java library. The Python 
+operator is a thin-wrapper around the Java operator and delivers the same 
+performance as the Java operator during execution. This capability significantly
+improves developer velocity by allowing algorithm developers to maintain both 
+the Python and the Java libraries of algorithms without having to implement 
+those algorithms twice.&lt;/p&gt;
+
+&lt;h2 id=&quot;algorithm-library&quot;&gt;Algorithm Library&lt;/h2&gt;
+&lt;p&gt;This release continues to extend the algorithm library in Flink ML, with the 
+focus on validating the functionalities and the performance of Flink ML 
+infrastructure using representative algorithms in different categories.&lt;/p&gt;
+
+&lt;p&gt;Below are the lists of algorithms newly supported in this release, grouped by 
+their categories:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Feature engineering (MinMaxScaler, StringIndexer, VectorAssembler, 
+StandardScaler, Bucketizer)&lt;/li&gt;
+  &lt;li&gt;Online learning (OnlineKmeans, OnlineLogisiticRegression)&lt;/li&gt;
+  &lt;li&gt;Regression (LinearRegression)&lt;/li&gt;
+  &lt;li&gt;Classification (LinearSVC)&lt;/li&gt;
+  &lt;li&gt;Evaluation (BinaryClassificationEvaluator)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Example Python and Java programs for these algorithms are provided on the Apache
+Flink ML &lt;a href=&quot;https://nightlies.apache.org/flink/flink-ml-docs-release-2.1/&quot;&gt;website&lt;/a&gt; to 
+help users learn and try out Flink ML. And we also provided example benchmark 
+&lt;a href=&quot;https://github.com/apache/flink-ml/tree/release-2.1/flink-ml-benchmark/src/main/resources&quot;&gt;configuration files&lt;/a&gt;
+in the repo for users to validate Flink ML performance. Feel free to check out 
+this &lt;a href=&quot;https://github.com/apache/flink-ml/blob/release-2.1/flink-ml-benchmark/README.md&quot;&gt;README&lt;/a&gt;
+for instructions on how to run those benchmarks.&lt;/p&gt;
+
+&lt;h1 id=&quot;upgrade-notes&quot;&gt;Upgrade Notes&lt;/h1&gt;
+
+&lt;p&gt;Please review this note for a list of adjustments to make and issues to check
+if you plan to upgrade to Flink ML 2.1.0.&lt;/p&gt;
+
+&lt;p&gt;This note discusses any critical information about incompatibilities and
+breaking changes, performance changes, and any other changes that might impact
+your production deployment of Flink ML.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Flink dependency is changed from 1.14 to 1.15&lt;/strong&gt;.&lt;/p&gt;
+
+    &lt;p&gt;This change introduces all the breaking changes listed in the Flink 1.15
+&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.15/release-notes/flink-1.15/&quot;&gt;release notes&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;release-notes-and-resources&quot;&gt;Release Notes and Resources&lt;/h1&gt;
+
+&lt;p&gt;Please take a look at the &lt;a href=&quot;https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&amp;amp;version=12351141&quot;&gt;release notes&lt;/a&gt;
+for a detailed list of changes and new features.&lt;/p&gt;
+
+&lt;p&gt;The source artifacts is now available on the updated
+&lt;a href=&quot;https://flink.apache.org/downloads.html&quot;&gt;Downloads page&lt;/a&gt; of the Flink website,
+and the most recent distribution of Flink ML Python package is available on
+&lt;a href=&quot;https://pypi.org/project/apache-flink-ml&quot;&gt;PyPI&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h1&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank each one of the contributors
+that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;Yunfeng Zhou, Zhipeng Zhang, huangxingbo, weibo, Dong Lin, Yun Gao, Jingsong Li 
+and mumuhhh.&lt;/p&gt;
+
+</description>
+<pubDate>Tue, 12 Jul 2022 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2022/07/12/release-ml-2.1.0.html</link>
+<guid isPermaLink="true">/news/2022/07/12/release-ml-2.1.0.html</guid>
+</item>
+
+<item>
 <title>FLIP-147: Support Checkpoints After Tasks Finished - Part Two</title>
 <description>&lt;p&gt;In the &lt;a href=&quot;/2022/07/11/final-checkpoint-part1.html&quot;&gt;first part&lt;/a&gt; of this blog,
 we have briefly introduced the work to support checkpoints after tasks get
@@ -20189,146 +20364,6 @@ To understand why this is the case, let us start with articulating a realistic s
 <pubDate>Wed, 15 Jan 2020 13:00:00 +0100</pubDate>
 <link>https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html</link>
 <guid isPermaLink="true">/news/2020/01/15/demo-fraud-detection.html</guid>
-</item>
-
-<item>
-<title>Apache Flink 1.8.3 Released</title>
-<description>&lt;p&gt;The Apache Flink community released the third bugfix version of the Apache Flink 1.8 series.&lt;/p&gt;
-
-&lt;p&gt;This release includes 45 fixes and minor improvements for Flink 1.8.2. The list below includes a detailed list of all fixes and improvements.&lt;/p&gt;
-
-&lt;p&gt;We highly recommend all users to upgrade to Flink 1.8.3.&lt;/p&gt;
-
-&lt;p&gt;Updated Maven dependencies:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-streaming-java_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.flink&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;flink-clients_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.8.3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find the binaries on the updated &lt;a href=&quot;/downloads.html&quot;&gt;Downloads page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;List of resolved issues:&lt;/p&gt;
-
-&lt;h2&gt;        Sub-task
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13723&quot;&gt;FLINK-13723&lt;/a&gt;] -         Use liquid-c for faster doc generation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13724&quot;&gt;FLINK-13724&lt;/a&gt;] -         Remove unnecessary whitespace from the docs&amp;#39; sidenav
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13725&quot;&gt;FLINK-13725&lt;/a&gt;] -         Use sassc for faster doc generation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13726&quot;&gt;FLINK-13726&lt;/a&gt;] -         Build docs with jekyll 4.0.0.pre.beta1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13791&quot;&gt;FLINK-13791&lt;/a&gt;] -         Speed up sidenav by using group_by
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Bug
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12342&quot;&gt;FLINK-12342&lt;/a&gt;] -         Yarn Resource Manager Acquires Too Many Containers
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13184&quot;&gt;FLINK-13184&lt;/a&gt;] -         Starting a TaskExecutor blocks the YarnResourceManager&amp;#39;s main thread
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13728&quot;&gt;FLINK-13728&lt;/a&gt;] -         Fix wrong closing tag order in sidenav
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13746&quot;&gt;FLINK-13746&lt;/a&gt;] -         Elasticsearch (v2.3.5) sink end-to-end test fails on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13749&quot;&gt;FLINK-13749&lt;/a&gt;] -         Make Flink client respect classloading policy
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13892&quot;&gt;FLINK-13892&lt;/a&gt;] -         HistoryServerTest failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13936&quot;&gt;FLINK-13936&lt;/a&gt;] -         NOTICE-binary is outdated
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13966&quot;&gt;FLINK-13966&lt;/a&gt;] -         Jar sorting in collect_license_files.sh is locale dependent
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13995&quot;&gt;FLINK-13995&lt;/a&gt;] -         Fix shading of the licence information of netty
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13999&quot;&gt;FLINK-13999&lt;/a&gt;] -         Correct the documentation of MATCH_RECOGNIZE
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14009&quot;&gt;FLINK-14009&lt;/a&gt;] -         Cron jobs broken due to verifying incorrect NOTICE-binary file
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14010&quot;&gt;FLINK-14010&lt;/a&gt;] -         Dispatcher &amp;amp; JobManagers don&amp;#39;t give up leadership when AM is shut down
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14043&quot;&gt;FLINK-14043&lt;/a&gt;] -         SavepointMigrationTestBase is super slow
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14107&quot;&gt;FLINK-14107&lt;/a&gt;] -         Kinesis consumer record emitter deadlock under event time alignment
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14175&quot;&gt;FLINK-14175&lt;/a&gt;] -         Upgrade KPL version in flink-connector-kinesis to fix application OOM
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14235&quot;&gt;FLINK-14235&lt;/a&gt;] -         Kafka010ProducerITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceCustomOperator fails on travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14315&quot;&gt;FLINK-14315&lt;/a&gt;] -         NPE with JobMaster.disconnectTaskManager
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14337&quot;&gt;FLINK-14337&lt;/a&gt;] -         HistoryServerTest.testHistoryServerIntegration failed on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14347&quot;&gt;FLINK-14347&lt;/a&gt;] -         YARNSessionFIFOITCase.checkForProhibitedLogContents found a log with prohibited string
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14370&quot;&gt;FLINK-14370&lt;/a&gt;] -         KafkaProducerAtLeastOnceITCase&amp;gt;KafkaProducerTestBase.testOneToOneAtLeastOnceRegularSink fails on Travis
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14398&quot;&gt;FLINK-14398&lt;/a&gt;] -         Further split input unboxing code into separate methods
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14413&quot;&gt;FLINK-14413&lt;/a&gt;] -         shade-plugin ApacheNoticeResourceTransformer uses platform-dependent encoding
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14434&quot;&gt;FLINK-14434&lt;/a&gt;] -         Dispatcher#createJobManagerRunner should not start JobManagerRunner
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14562&quot;&gt;FLINK-14562&lt;/a&gt;] -         RMQSource leaves idle consumer after closing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14589&quot;&gt;FLINK-14589&lt;/a&gt;] -         Redundant slot requests with the same AllocationID leads to inconsistent slot table
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-15036&quot;&gt;FLINK-15036&lt;/a&gt;] -         Container startup error will be handled out side of the YarnResourceManager&amp;#39;s main thread
-&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;        Improvement
-&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-12848&quot;&gt;FLINK-12848&lt;/a&gt;] -         Method equals() in RowTypeInfo should consider fieldsNames
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13729&quot;&gt;FLINK-13729&lt;/a&gt;] -         Update website generation dependencies
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13965&quot;&gt;FLINK-13965&lt;/a&gt;] -         Keep hasDeprecatedKeys and deprecatedKeys methods in ConfigOption and mark it with @Deprecated annotation
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13967&quot;&gt;FLINK-13967&lt;/a&gt;] -         Generate full binary licensing via collect_license_files.sh
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13968&quot;&gt;FLINK-13968&lt;/a&gt;] -         Add travis check for the correctness of the binary licensing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-13991&quot;&gt;FLINK-13991&lt;/a&gt;] -         Add git exclusion for 1.9+ features to 1.8
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14008&quot;&gt;FLINK-14008&lt;/a&gt;] -         Auto-generate binary licensing
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14104&quot;&gt;FLINK-14104&lt;/a&gt;] -         Bump Jackson to 2.10.1
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14123&quot;&gt;FLINK-14123&lt;/a&gt;] -         Lower the default value of taskmanager.memory.fraction
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14215&quot;&gt;FLINK-14215&lt;/a&gt;] -         Add Docs for TM and JM Environment Variable Setting
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14334&quot;&gt;FLINK-14334&lt;/a&gt;] -         ElasticSearch docs refer to non-existent ExceptionUtils.containsThrowable
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14639&quot;&gt;FLINK-14639&lt;/a&gt;] -         Fix the document of Metrics  that has an error for `User Scope` 
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14646&quot;&gt;FLINK-14646&lt;/a&gt;] -         Check non-null for key in KeyGroupStreamPartitioner
-&lt;/li&gt;
-&lt;li&gt;[&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-14995&quot;&gt;FLINK-14995&lt;/a&gt;] -         Kinesis NOTICE is incorrect
-&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-<pubDate>Wed, 11 Dec 2019 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2019/12/11/release-1.8.3.html</link>
-<guid isPermaLink="true">/news/2019/12/11/release-1.8.3.html</guid>
 </item>
 
 </channel>
