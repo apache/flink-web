@@ -15,7 +15,7 @@ authors:
 
 The community has continued to work hard on improving the Flink Kubernetes Operator capabilities since our [first production ready release](https://flink.apache.org/news/2022/06/05/release-kubernetes-operator-1.0.0.html) we launched about two months ago.
 
-With the release of Flink Kubernetes Operator 1.1.0 we are proud to announce a number of exciting new features that improves the overall experience of managing Flink resources and the operator itself in production environments.
+With the release of Flink Kubernetes Operator 1.1.0 we are proud to announce a number of exciting new features improving the overall experience of managing Flink resources and the operator itself in production environments.
 
 ## Release Highlights
 
@@ -24,10 +24,10 @@ A non-exhaustive list of some of the more exciting features added in the release
  * Kubernetes Events on application and job state changes
  * New operator metrics
  * Unified and more robust reconciliation flow
- * Periodic savepoint triggering
+ * Periodic savepoints
  * Custom Flink Resource Listeners
  * Dynamic watched namespaces
- * New built-in examples for submitting Flink SQL and Python jobs
+ * New built-in examples For Flink SQL and PyFlink
  * Experimental autoscaling support
 
 ### Kubernetes Events for Application and Job State Changes
@@ -49,22 +49,29 @@ The first version of the operator only came with basic system level metrics to m
 
 In 1.1.0 we have introduced a wide range of additional metrics related to lifecycle-management, Kubernetes API server access and the Java Operator SDK framework the operator itself is built on. These metrics allow operator administrators to get a comprehensive view of what’s happening in the environment.
 
-For details check https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/operations/metrics-logging/#metrics.
+For details check the list of [supported metrics](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/operations/metrics-logging/#metrics).
 
 ### Unified and more robust reconciliation flow
 
-We have spent a considerable effort refactoring and streamlining the core reconciliation flow responsible for executing and tracking resource upgrades, savepoints, rollbacks and other operations.
+We have refactored and streamlined the core reconciliation flow responsible for executing and tracking resource upgrades, savepoints, rollbacks and other operations.
 
-In the process we made a number of important improvements to tolerate operator failures and temporary kubernetes API outages more gracefully, which is critical in production environments.
+In the process we made a number of important improvements to tolerate operator failures and temporary Kubernetes API outages more gracefully, which is critical in production environments.
 
 ### Periodic Savepoints
 
-By popular demand we have introduced periodic savepointing for applications and session jobs using a the following simple configuration option:
+By popular demand we have introduced periodic savepoints for applications and session jobs using a the following simple configuration option:
 
 ```
 flinkConfiguration:
   ...
   kubernetes.operator.periodic.savepoint.interval: 6h
+```
+
+Old savepoints are cleaned up automatically according to the user configured policy:
+
+```
+kubernetes.operator.savepoint.history.max.count: 5
+kubernetes.operator.savepoint.history.max.age: 48h
 ```
 
 ### Custom Flink Resource Listeners
@@ -77,13 +84,13 @@ This feature enables tighter integration with the user's own data platform. By i
 
 To demonstrate the power of the operator for all Flink use-cases, we have added examples showcasing how to deploy Flink SQL and Python jobs.
 
-We have also added a nice little README for the examples to make it easier for you to find what you are looking for.
-
-https://github.com/apache/flink-kubernetes-operator/tree/main/examples
+We have also added a brief [README](https://github.com/apache/flink-kubernetes-operator/tree/main/examples) for the examples to make it easier for you to find what you are looking for.
 
 ### Dynamic watched namespaces
 
-The operator can watch and manage custom resources in an arbitrary list of namespaces. The watched namespaces can be defined through the property `kubernetes.operator.watched.namespaces: ns1,ns2`. The list of watched namespaces can be changed anytime in the corresponding config map, however the operator ignores the changes unless dynamic watched namespaces is enabled. This is controlled by the property `kubernetes.operator.dynamic.namespaces.enabled: true`
+The operator can watch and manage custom resources in an arbitrary list of namespaces. The watched namespaces can be defined through the property `kubernetes.operator.watched.namespaces: ns1,ns2`. The list of watched namespaces can be changed anytime in the corresponding config map, however the operator ignores the changes unless dynamic watched namespaces is enabled.
+
+This is controlled by the property `kubernetes.operator.dynamic.namespaces.enabled: true`.
 
 ### Experimental autoscaling support
 
@@ -91,19 +98,22 @@ In this version we have taken the first steps toward enabling Kubernetes native 
 
 This integration is still very much experimental but we are planning to build on top of this in the upcoming releases to provide a reliable scaling mechanism.
 
-https://github.com/apache/flink-kubernetes-operator/tree/main/examples#horizontal-pod-autoscaler
+You can find an example scaling policy [here](https://github.com/apache/flink-kubernetes-operator/tree/main/examples#horizontal-pod-autoscaler).
 
 ## What’s Next?
 
-We are continuing advancing on the Operator Maturity Model with an emphasis on more advanced scaling capabilities:
+In the next release, our focus will be on the following key areas:
 
  * Standalone deployment mode support
  * Hardening of rollback mechanism and stability conditions
  * Scaling improvements
+ * Support for older Flink versions
+
+These features will allow the operator and users to benefit more from the recent advancements in Flink's scheduling capabilities.
 
 ## Release Resources
 
-The source artifacts and helm chart are available on the Downloads page of the Flink website. You can easily try out the new features shipped in the official 1.1.0 release by following our [quickstart guide](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.1/docs/try-flink-kubernetes-operator/quick-start/)
+The source artifacts and helm chart are available on the Downloads page of the Flink website. You can easily try out the new features shipped in the official 1.1.0 release by following our [quickstart guide](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.1/docs/try-flink-kubernetes-operator/quick-start/).
 
 You can also find official Kubernetes Operator Docker images of the new version on [Dockerhub](https://hub.docker.com/r/apache/flink-kubernetes-operator).
 
@@ -111,4 +121,4 @@ For more details, check the [updated documentation](https://nightlies.apache.org
 
 ## List of Contributors
 
-Aitozi, Biao Geng, Chethan, ConradJam, Dora Marsal, Gyula Fora, Hao Xin, Hector Miuler Malpica Gallegos, Jaganathan Asokan, Jeesmon Jacob, Jim Busche, Maksim Aniskov, Marton Balassi, Matyas Orhidi, Márton Balassi, Nicholas Jiang, Peng Yuan, Peter Vary, Thomas Weise, Xin Hao, Yang Wang
+Aitozi, Biao Geng, Chethan, ConradJam, Dora Marsal, Gyula Fora, Hao Xin, Hector Miuler Malpica Gallegos, Jaganathan Asokan, Jeesmon Jacob, Jim Busche, Maksim Aniskov, Marton Balassi, Matyas Orhidi, Nicholas Jiang, Peng Yuan, Peter Vary, Thomas Weise, Xin Hao, Yang Wang
