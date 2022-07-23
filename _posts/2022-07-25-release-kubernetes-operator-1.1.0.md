@@ -102,7 +102,7 @@ You can find an example scaling policy [here](https://github.com/apache/flink-ku
 
 ## What’s Next?
 
-In the next release, our focus will be on the following key areas:
+In the coming months, our focus will be on the following key areas:
 
  * Standalone deployment mode support
  * Hardening of rollback mechanism and stability conditions
@@ -110,6 +110,14 @@ In the next release, our focus will be on the following key areas:
  * Support for older Flink versions
 
 These features will allow the operator and users to benefit more from the recent advancements in Flink's scheduling capabilities.
+
+## Upgrading to 1.1.0
+
+The new 1.1.0 release is backward compatible as long as you follow our [operator upgrade quide](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.1/docs/operations/upgrade/#normal-upgrade-process).
+
+Please ensure that [CRDs are updated](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-release-1.1/docs/operations/upgrade/#1-upgrading-the-crd) in order to enable some of the new features.
+
+The upgrade should not impact any currently deployed Flink resources.
 
 ## Release Resources
 
