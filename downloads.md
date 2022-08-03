@@ -174,7 +174,7 @@ Apache Flink® Table Store {{ site.FLINK_TABLE_STORE_VERSION_STABLE }} is the la
 </p>
 <p>
 <a href="{{ flink_table_store_release.binaries_release.url }}" id="{{ flink_table_store_release.binaries_release.id }}">{{ flink_table_store_release.binaries_release.name }} Binaries Release</a>
-(<a href="{{ flink_table_store_release.binaries_release.asc_url }}">asc</a>, <a href="{{ flink_table_store_release.binaries_release.sha1_url }}">sha1</a>)
+(<a href="{{ flink_table_store_release.binaries_release.asc_url }}">asc</a>, <a href="{{ flink_table_store_release.binaries_release.sha512_url }}">sha512</a>)
 </p>
 
 This version is compatible with Apache Flink version {{ flink_table_store_release.source_release.flink_version }}.
@@ -368,7 +368,7 @@ Flink Kubernetes Operator {{ flink_kubernetes_operator_release.version_long }} -
 {% for flink_table_store_release in flink_table_store_releases %}
 <li>
 Flink Table Store {{ flink_table_store_release.version_long }} - {{ flink_table_store_release.release_date }}
-(<a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/flink-table-store-{{ flink_table_store_release.version_long }}-src.tgz">Source</a>, <a href="https://repo.maven.apache.org/maven2/org/apache/flink/flink-table-store-dist/{{ flink_table_store_release.version_long }}/flink-table-store-dist-{{ flink_table_store_release.version_long }}.jar">Binaries</a>)
+(<a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/flink-table-store-{{ flink_table_store_release.version_long }}-src.tgz">Source</a>, <a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/">Binaries</a>)
 </li>
 {% endfor %}
 </ul>
