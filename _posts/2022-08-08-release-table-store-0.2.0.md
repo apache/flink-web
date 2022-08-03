@@ -9,10 +9,20 @@ authors:
   name: "Jingsong Lee"
 ---
 
+<!-- improve style of tables -->
+<style>
+  table { border: 0px solid black; table-layout: auto; width: 800px; }
+  th, td { border: 1px solid black; padding: 5px; padding-left: 10px; padding-right: 10px; }
+  th { text-align: center }
+  td { vertical-align: top }
+</style>
+
 The Apache Flink community is pleased to announce the release of the
 [Apache Flink Table Store](https://github.com/apache/flink-table-store) (0.2.0).
 
 Please check out the full [documentation]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.2/) for detailed information and user guides.
+
+<br/>
 
 ## What is Flink Table Store
 
@@ -28,6 +38,8 @@ As a new type of updatable data lake, Flink Table Store has the following featur
 * High performance query with primary key filters, as fast as 100ms.
 * Streaming reads are available on Lake Storage, lake storage can also be integrated
 with Kafka to provide second-level streaming reads.
+
+<br/>
 
 ## Notable Features
 
@@ -55,18 +67,20 @@ CREATE TABLE my_table ...
 
 In this release, we provide support for Flink 1.14 and provide read support for multiple compute engines.
 
-| Engine    | Version  | Feature                                              |    Read Pushdown   |
-|:----------|:---------|:-----------------------------------------------------|--------------------|
-| Flink     | 1.14     | read, write, create/drop table, create/drop database | Projection, Filter |
-| Flink     | 1.15     | read, write, create/drop table, create/drop database | Projection, Filter |
-| Hive      | 2.3      | read                                                 | Projection, Filter |
-| Spark     | 2.4      | read                                                 | Projection, Filter |
-| Spark     | 3.0      | read                                                 | Projection, Filter |
-| Spark     | 3.1      | read                                                 | Projection, Filter |
-| Spark     | 3.2      | read                                                 | Projection, Filter |
-| Spark     | 3.3      | read                                                 | Projection, Filter |
-| Trino     | 358      | read                                                 | Projection, Filter |
-| Trino     | 388      | read                                                 | Projection, Filter |
+ Engine    | Version  | Feature     |    Read Pushdown   |
+---------- | -------- | ----------- | ------------------ |
+ Flink     | 1.14     | read, write | Projection, Filter |
+ Flink     | 1.15     | read, write | Projection, Filter |
+ Hive      | 2.3      | read        | Projection, Filter |
+ Spark     | 2.4      | read        | Projection, Filter |
+ Spark     | 3.0      | read        | Projection, Filter |
+ Spark     | 3.1      | read        | Projection, Filter |
+ Spark     | 3.2      | read        | Projection, Filter |
+ Spark     | 3.3      | read        | Projection, Filter |
+ Trino     | 358      | read        | Projection, Filter |
+ Trino     | 388      | read        | Projection, Filter |
+
+<br/>
 
 ### Append-only
 
@@ -92,9 +106,13 @@ Since the number of total buckets dramatically influences the performance, Table
 users to tune bucket numbers by `ALTER TABLE` command and reorganize necessary partitions,
 the old partitions remain unchanged.
 
+<br/>
+
 ## Getting started
 
 Please refer to the [getting started guide]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.2/docs/try-table-store/quick-start/) for more details.
+
+<br/>
 
 ## What's Next?
 
@@ -110,6 +128,8 @@ Please give the preview release a try, share your feedback on the Flink mailing 
 
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Table%20Store%22).
+
+<br/>
 
 ## List of Contributors
 
