@@ -84,7 +84,7 @@ In this release, we provide support for Flink 1.14 and provide read support for 
 
 ### Append-only
 
-Append-only tables are a performance feature that only accepts INSERT_ONLY data to append to the storage
+The append-only table feature is a performance improvement and only accepts INSERT_ONLY data to append to the storage
 instead of updating or de-duplicating the existing data, and hence suitable for use cases that do not
 require updates (such as log data synchronization).
 
