@@ -2,7 +2,7 @@
 layout: post
 title:  "Apache Flink Table Store 0.2.0 Release Announcement"
 subtitle: "For building dynamic tables for both stream and batch processing in Flink, supporting high speed data ingestion and real-time data query."
-date: 2022-08-08T08:00:00.000Z
+date: 2022-08-28T08:00:00.000Z
 categories: news
 authors:
 - JingsongLi:
@@ -124,7 +124,7 @@ In the upcoming 0.3.0 release you can expect the following additional features:
 * Full Schema Evolution supports for drop column and rename column.
 * Lookup Supports for Flink Dim Join.
 
-Please give the preview release a try, share your feedback on the Flink mailing list and contribute to the project!
+Please give the release a try, share your feedback on the Flink mailing list and contribute to the project!
 
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Table%20Store%22).
