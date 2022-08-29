@@ -368,7 +368,7 @@ Flink Kubernetes Operator {{ flink_kubernetes_operator_release.version_long }} -
 {% for flink_table_store_release in flink_table_store_releases %}
 <li>
 Flink Table Store {{ flink_table_store_release.version_long }} - {{ flink_table_store_release.release_date }}
-(<a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/flink-table-store-{{ flink_table_store_release.version_long }}-src.tgz">Source</a>, <a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/">Binaries</a>)
+(<a href="https://archive.apache.org/dist/flink/flink-table-store-{{ flink_table_store_release.version_long }}/flink-table-store-{{ flink_table_store_release.version_long }}-src.tgz">Source</a>, <a href="https://repo.maven.apache.org/maven2/org/apache/flink/flink-table-store-dist/{{ flink_table_store_release.version_long }}/flink-table-store-dist-{{ flink_table_store_release.version_long }}.jar">Binaries</a>)
 </li>
 {% endfor %}
 </ul>
