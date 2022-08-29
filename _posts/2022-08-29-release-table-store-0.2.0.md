@@ -7,6 +7,9 @@ categories: news
 authors:
 - JingsongLi:
   name: "Jingsong Lee"
+
+excerpt: The Apache Flink Community is pleased to announce the release for Flink Table Store 0.2.0! This version complements the ecosystem and is an available version!
+
 ---
 
 <!-- improve style of tables -->
