@@ -207,7 +207,7 @@ Along with our releases, we also provide sha512 hashes in `*.sha512` files and c
 
 You can add the following dependencies to your `pom.xml` to include Apache Flink in your project. These dependencies include a local execution environment and thus support local testing.
 
-- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.11` and `flink-streaming-java_2.11` with `flink-streaming-scala_2.11`.
+- **Scala API**: To use the Scala API, replace the `flink-java` artifact id with `flink-scala_2.12` and `flink-streaming-java` with `flink-streaming-scala_2.12`.
 
 ```xml
 <dependency>
@@ -217,12 +217,12 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
+  <artifactId>flink-streaming-java</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
+  <artifactId>flink-clients</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
@@ -254,26 +254,26 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 ```xml
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-core_2.12</artifactId>
+  <artifactId>flink-ml-core</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-iteration_2.12</artifactId>
+  <artifactId>flink-ml-iteration</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-lib_2.12</artifactId>
+  <artifactId>flink-ml-lib</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 ```
 
 Advanced users could only import a minimal set of Flink ML dependencies for their target use-cases:
 
-- Use artifact `flink-ml-core_2.12` in order to develop custom ML algorithms.
-- Use artifacts `flink-ml-core_2.12` and `flink-ml-iteration_2.12` in order to develop custom ML algorithms which require iteration.
-- Use artifact `flink-ml-lib_2.12` in order to use the off-the-shelf ML algorithms from Flink ML.
+- Use artifact `flink-ml-core` in order to develop custom ML algorithms.
+- Use artifacts `flink-ml-core` and `flink-ml-iteration` in order to develop custom ML algorithms which require iteration.
+- Use artifact `flink-ml-lib` in order to use the off-the-shelf ML algorithms from Flink ML.
 
 ### Apache Flink Kubernetes Operator
 

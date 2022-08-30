@@ -204,7 +204,7 @@ Apache Flink® Table Store {{ site.FLINK_TABLE_STORE_VERSION_STABLE }} is the la
 
 你只要将以下依赖项添加到 `pom.xml` 中，就能在项目中引入 Apache Flink 。这些依赖项包含了本地执行环境，因此支持本地测试。
 
-- **Scala API**: 为了使用 Scala API，将 `flink-java` 的 artifact id 替换为 `flink-scala_2.11`，同时将 `flink-streaming-java_2.11` 替换为 `flink-streaming-scala_2.11`。
+- **Scala API**: 为了使用 Scala API，将 `flink-java` 的 artifact id 替换为 `flink-scala_2.12`，同时将 `flink-streaming-java` 替换为 `flink-streaming-scala_2.12`。
 
 ```xml
 <dependency>
@@ -214,12 +214,12 @@ Apache Flink® Table Store {{ site.FLINK_TABLE_STORE_VERSION_STABLE }} is the la
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
+  <artifactId>flink-streaming-java</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-clients_2.11</artifactId>
+  <artifactId>flink-clients</artifactId>
   <version>{{ site.FLINK_VERSION_STABLE }}</version>
 </dependency>
 ```
@@ -251,26 +251,26 @@ Apache Flink® Table Store {{ site.FLINK_TABLE_STORE_VERSION_STABLE }} is the la
 ```xml
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-core_2.12</artifactId>
+  <artifactId>flink-ml-core</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-iteration_2.12</artifactId>
+  <artifactId>flink-ml-iteration</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-ml-lib_2.12</artifactId>
+  <artifactId>flink-ml-lib</artifactId>
   <version>{{ site.FLINK_ML_VERSION_STABLE }}</version>
 </dependency>
 ```
 
 高级用户可以根据使用场景来只包含最小集合的依赖：
 
-- 依赖组件 `flink-ml-core_2.12` 来开发不使用迭代的自定义机器学习算法。
-- 依赖组件 `flink-ml-core_2.12` 与 `flink-ml-iteration_2.12` 来开发使用迭代的自定义机器学习算法。
-- 依赖组件 `flink-ml-lib_2.12` 来使用 Flink ML 提供的机器学习算法。
+- 依赖组件 `flink-ml-core` 来开发不使用迭代的自定义机器学习算法。
+- 依赖组件 `flink-ml-core` 与 `flink-ml-iteration` 来开发使用迭代的自定义机器学习算法。
+- 依赖组件 `flink-ml-lib` 来使用 Flink ML 提供的机器学习算法。
 
 ## 旧版本的更新策略
 截至2017年3月，Flink 社区[决定](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Time-based-releases-in-Flink-tp15386p15394.html)使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的  bugfix。
