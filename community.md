@@ -146,7 +146,7 @@ If you send us an email with a code snippet, make sure that:
 
 ## Slack
 
-You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1dxhc6ssw-7jfCf3E5EY2EVtN90_9CNQ)
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1f95r2do2-NTtEQW2yHv9m9~OBZTGLNA)
 After creating an account in Slack, don't forget to introduce yourself in #introductions.
 Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
 Any existing Slack member can also invite anyone else to join. 

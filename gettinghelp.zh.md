@@ -28,7 +28,7 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 
 ### Slack
 
-你可以通过[此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1dxhc6ssw-7jfCf3E5EY2EVtN90_9CNQ)加入 Apache Flink 社区专属的 Slack 工作空间。
+你可以通过[此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1f95r2do2-NTtEQW2yHv9m9~OBZTGLNA)加入 Apache Flink 社区专属的 Slack 工作空间。
 在成功加入后，不要忘记在 #introductions 频道介绍你自己。
 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。
 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
