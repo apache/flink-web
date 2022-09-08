@@ -47,15 +47,6 @@ Should a CVE be discovered after that it is unlikely to be fixed in Akka 2.6.
 
 We cannot provide a definitive answer as to how that case would be handled, as it depends on what the CVE is and/or whether a community fork already exists at the time.  
 
-# What is the projects view on the licensing change?
-
-We will not comment on the _licensing change_. It is ultimately up to Lightbend to license their project however they see fit.
-
-That said, we do find it questionable to put users, _overnight_, in a position where they either
-
-* a) have to use an officially unsupported version
-* b) buy a license for using a supported version (which at this time doesn't even exist).
-
 # How does Flink use Akka?
 
 Akka is used in the coordination layer of Flink to
