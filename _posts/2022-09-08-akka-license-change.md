@@ -13,7 +13,7 @@ On September 7th Lightbend announced a [license change](https://www.lightbend.co
 
 Within a few hours of the announcement several people reached out to the Flink project, worrying about the impact this has on Flink, as we use Akka internally.
 
-The purpose of the blogpost is to clarify our position on the matter.
+The purpose of this blogpost is to clarify our position on the matter.
 
 Please be aware that this topic is still quite fresh, and things are subject to change.  
 Should anything significant change we will amend this blogpost and inform you via the usual channels.
@@ -22,7 +22,7 @@ Should anything significant change we will amend this blogpost and inform you vi
 
 Flink is not in any immediate danger and we will ensure that users are not affected by this change.
 
-The licensing of Flink will not change.
+The licensing of Flink will not change; it will stay Apache-licensed and will only contain dependencies that are compatible with it.
 
 We will not use Akka versions with the new license.
 
@@ -60,9 +60,9 @@ That said, we do find it questionable to put users, _overnight_, in a position w
 
 Akka is used in the coordination layer of Flink to
 
-* exchange messages between processes/components (e.g., JobManager and TaskManager),
+* exchange status messages between processes/components (e.g., JobManager and TaskManager),
 * enforce certain guarantees w.r.t. multi-threading (i.e., only one thread can make changes to the internal state of a component)
 * observe components for unexpected crashes (i.e., notice and handle TaskManager thread crashes).
 
 What this means is that we are using very few functionalities of Akka.  
-Additionally, that we use Akka is an implementation detail that the vast majority of Flink isn't aware of, meaning that we can replace it with something else without having to change Flink significantly.
+Additionally, that we use Akka is an implementation detail that the vast majority of Flink code isn't aware of, meaning that we can replace it with something else without having to change Flink significantly.
