@@ -40,12 +40,17 @@ Should a community fork be created (which at this time seems possible) we will s
 
 ## What if a new security vulnerabilities is found in Akka 2.6?
 
-That is the big unknown.
+~~That is the big unknown.~~
 
-Even though we will be able to upgrade to 2.6.20 (the (apparently) last planned release for Akka 2.6) in Flink 1.17, the unfortunate reality is that [2.6 will no longer be supported](https://github.com/akka/akka/pull/31561#issuecomment-1239217602) from that point onwards.  
-Should a CVE be discovered after that it is unlikely to be fixed in Akka 2.6.
+~~Even though we will be able to upgrade to 2.6.20 (the (apparently) last planned release for Akka 2.6) in Flink 1.17, the unfortunate reality is that [2.6 will no longer be supported](https://github.com/akka/akka/pull/31561#issuecomment-1239217602) from that point onwards.  
+Should a CVE be discovered after that it is unlikely to be fixed in Akka 2.6.~~
 
-We cannot provide a definitive answer as to how that case would be handled, as it depends on what the CVE is and/or whether a community fork already exists at the time.  
+~~We cannot provide a definitive answer as to how that case would be handled, as it depends on what the CVE is and/or whether a community fork already exists at the time.~~  
+
+**Update - September 9th**: Akka 2.6 will continue to receive critical security updates and critical bug fixes under the current Apache 2 license until [September of 2023](https://www.lightbend.com/akka/license-faq).
+
+> **Will critical vulnerabilities and bugs be patched in 2.6.x?**  
+> Yes, critical security updates and critical bugs will be patched in Akka v2.6.x under the current Apache 2 license until September of 2023.
 
 # How does Flink use Akka?
 
