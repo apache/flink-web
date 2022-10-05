@@ -28,7 +28,7 @@ Please note that you won't receive a respose to your mail if you are not subscri
 
 ### Slack
 
-You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1gbmepw8j-MzHYaHEy~oRbffz1Aoi9_g)
+You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1hcpaa3ub-I_o2QprXwpmEH8H~_6wTyA)
 After creating an account in Slack, don't forget to introduce yourself in #introductions.
 Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
 Any existing Slack member can also invite anyone else to join.
