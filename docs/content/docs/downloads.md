@@ -1,3 +1,10 @@
+---
+title: Downloads
+icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
+bold: true
+bookCollapseSection: false
+weight: 8
+---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,10 +23,5 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<!--
-    Partial that renders at the top of the menu.
--->
-<a id="logo" href="{{.Site.BaseURL}}{{.Site.LanguagePrefix}}">
-    <img width="70%" src="{{.Site.BaseURL}}/flink-header-logo.svg">
-</a>
-<p style="text-align:right">&#8203</p>
+
+# Downloads
