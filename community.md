@@ -287,7 +287,7 @@ The list below could be outdated. Please find the most up-to-date list <a href="
   <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/4950503?s=50" class="committer-avatar"/></td>
     <td class="text-center">Danny Cranmer</td>
-    <td class="text-center">Committer</td>
+    <td class="text-center">PMC, Committer</td>
     <td class="text-center">dannycranmer</td>
   </tr>
   <tr>
