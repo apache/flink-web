@@ -17,4 +17,4 @@
 # limitations under the License.
 ################################################################################
 
-docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.6.0 bash -c "cd /srv/flink-web && gem install bundler && ./build.sh $@"
+docker run --platform linux/amd64 --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.6.0 bash -c "cd /srv/flink-web && gem install bundler && ./build.sh $@"
