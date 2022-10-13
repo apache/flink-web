@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Apache Flink Table Store 0.2.1 Release Announcement"
-date: 2022-09-30T22:00:00.000Z
+date: 2022-10-13T08:00:00.000Z
 categories: news
 authors:
 - JingsongLi:
@@ -13,7 +13,7 @@ excerpt: The Apache Flink Community is pleased to announce a bug fix release for
 
 The Apache Flink Community is pleased to announce the first bug fix release of the Flink Table Store 0.2 series.
 
-This release includes 14 bug fixes, vulnerability fixes, and minor improvements for Flink Table Store 0.2.
+This release includes 13 bug fixes, vulnerability fixes, and minor improvements for Flink Table Store 0.2.
 Below you will find a list of all bugfixes and improvements. For a complete list of all changes see:
 [JIRA](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12352257).
 
@@ -40,8 +40,6 @@ You can find the binaries on the updated [Downloads page]({{ site.baseurl }}/dow
 </li>
 <li>[<a href='https://issues.apache.org/jira/browse/FLINK-29295'>FLINK-29295</a>] -         Clear RecordWriter slower to avoid causing frequent compaction conflicts
 </li>
-<li>[<a href='https://issues.apache.org/jira/browse/FLINK-29345'>FLINK-29345</a>] -         Too many open files in table store orc writer
-</li>
 <li>[<a href='https://issues.apache.org/jira/browse/FLINK-29367'>FLINK-29367</a>] -         Avoid manifest corruption for incorrect checkpoint recovery
 </li>
 <li>[<a href='https://issues.apache.org/jira/browse/FLINK-29369'>FLINK-29369</a>] -         Commit delete file failure due to Checkpoint aborted
@@ -64,3 +62,4 @@ You can find the binaries on the updated [Downloads page]({{ site.baseurl }}/dow
 <li>[<a href='https://issues.apache.org/jira/browse/FLINK-29276'>FLINK-29276</a>] -         Flush all memory in SortBufferMemTable.clear
 </li>
 </ul>
+                                                                                                                                                                
