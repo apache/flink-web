@@ -36,7 +36,7 @@ More details and various smaller changes can be found in the
 The roadmap is continuously updated. New features and efforts should be added to the roadmap once
 there is consensus that they will happen and what they will roughly look like for the user.
 
-**Last Update:** 2022-04-19
+**Last Update:** 2022-11-14
 
 <hr />
 
@@ -176,7 +176,9 @@ trying to make it faster, more predictable, and to remove some confusions and in
 
 There is almost no use case in which Apache Flink is used on its own. It has established itself
 as part of many data related reference architectures. In fact you'll find the squirrel logo covering
-several aspects. The community has added a lot of connectors and formats. With the already mentionend
+several aspects. 
+
+The community has added a lot of connectors and formats. With the already mentionend
 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) and
 [FLIP-143](https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API)
 a new default for connectors has been established.
@@ -187,6 +189,8 @@ a new default for connectors has been established.
     (e.g. [Pinot](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=177045634))
   - Connectors will be hosted in an external repository going forward. See the 
     [ML thread](https://lists.apache.org/thread/8k1xonqt7hn0xldbky1cxfx3fzh6sj7h)
+
+The Flink community has removed Gelly, it's old graph-processing library.
 
 <hr />
 

@@ -67,7 +67,7 @@ Another aspect is a simpler application architecture. A batch analytics pipeline
 
 ### How does Flink support data analytics applications?
 
-Flink provides very good support for continuous streaming as well as batch analytics. Specifically, it features an ANSI-compliant SQL interface with unified semantics for batch and streaming queries. SQL queries compute the same result regardless whether they are run on a static data set of recorded events or on a real-time event stream. Rich support for user-defined functions ensures that custom code can be executed in SQL queries. If even more custom logic is required, Flink's DataStream API or DataSet API provide more low-level control. Moreover, Flink's Gelly library provides algorithms and building blocks for large-scale and high-performance graph analytics on batch data sets.
+Flink provides very good support for continuous streaming as well as batch analytics. Specifically, it features an ANSI-compliant SQL interface with unified semantics for batch and streaming queries. SQL queries compute the same result regardless whether they are run on a static data set of recorded events or on a real-time event stream. Rich support for user-defined functions ensures that custom code can be executed in SQL queries. If even more custom logic is required, Flink's DataStream API or DataSet API provide more low-level control. 
 
 ### What are typical data analytics applications?
 
