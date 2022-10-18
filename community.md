@@ -159,6 +159,8 @@ There are a couple of community rules:
 * Use **Slack threads** to keep parallel conversations from overwhelming a channel.
 * Please **do not direct message** people for troubleshooting, Jira assigning and PR review. These should be picked-up voluntarily.
 
+**Note**: All messages from public channels in our Slack are **permanently stored and published** in the [Apache Flink Slack archive on linen.dev](https://www.linen.dev/s/apache-flink). The purpose of this archive is to allow search engines to find past discussions in the Flink Slack.
+
 ## Stack Overflow
 
 Committers are watching [Stack Overflow](http://stackoverflow.com/questions/tagged/apache-flink) for the [apache-flink](http://stackoverflow.com/questions/tagged/apache-flink) tag.
