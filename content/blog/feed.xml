@@ -7,6 +7,442 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Announcing the Release of Apache Flink 1.16</title>
+<description>&lt;p&gt;Apache Flink continues to grow at a rapid pace and is one of the most active 
+communities in Apache. Flink 1.16 had over 230 contributors enthusiastically participating, 
+with 19 FLIPs and 900+ issues completed, bringing a lot of exciting features to the community.&lt;/p&gt;
+
+&lt;p&gt;Flink has become the leading role and factual standard of stream processing, 
+and the concept of the unification of stream and batch data processing is gradually gaining recognition 
+and is being successfully implemented in more and more companies. Previously, 
+the integrated stream and batch concept placed more emphasis on a unified API and 
+a unified computing framework. This year, based on this, Flink proposed 
+the next development direction of &lt;a href=&quot;https://www.alibabacloud.com/blog/more-than-computing-a-new-era-led-by-the-warehouse-architecture-of-apache-flink_598821&quot;&gt;Flink-Streaming Warehouse&lt;/a&gt; (Streamhouse), 
+which further upgraded the scope of stream-batch integration: it truly completes not only 
+the unified computation but also unified storage, thus realizing unified real-time analysis.&lt;/p&gt;
+
+&lt;p&gt;In 1.16, the Flink community has completed many improvements for both batch and stream processing:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;For batch processing, all-round improvements in ease of use, stability and performance 
+ have been completed. 1.16 is a milestone version of Flink batch processing and an important 
+ step towards maturity.
+    &lt;ul&gt;
+      &lt;li&gt;Ease of use:  with the introduction of SQL Gateway and full compatibility with Hive Server2, 
+users can submit Flink SQL jobs and Hive SQL jobs very easily, and it is also easy to 
+connect to the original Hive ecosystem.&lt;/li&gt;
+      &lt;li&gt;Functionality: Join hints let Flink SQL users manually specify join strategies
+to avoid unreasonable execution plans. The compatibility of Hive SQL has reached 94%,
+and users can migrate from Hive to Flink at a very low cost.&lt;/li&gt;
+      &lt;li&gt;Stability: Propose a speculative execution mechanism to reduce the long tail sub-tasks of
+a job and improve the stability. Improve HashJoin and introduce failure rollback mechanism
+to avoid join failure.&lt;/li&gt;
+      &lt;li&gt;Performance: Introduce dynamic partition pruning to reduce the Scan I/O and improve join 
+processing for the star-schema queries. There is 30% improvement in the TPC-DS benchmark. 
+We can use hybrid shuffle mode to improve resource usage and processing performance.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;For stream processing, there are a number of significant improvements:
+    &lt;ul&gt;
+      &lt;li&gt;Changelog State Backend provides users with second or even millisecond checkpoints to 
+dramatically improve the fault tolerance experience, while providing a smaller end-to-end 
+latency experience for transactional Sink jobs.&lt;/li&gt;
+      &lt;li&gt;Lookup join is widely used in stream processing. Slow lookup speed, low throughput and 
+delay update are resolved through common cache mechanism, asynchronous io and retriable lookup. 
+These features are very useful, solving the pain points that users often complain about, 
+and supporting richer scenarios.&lt;/li&gt;
+      &lt;li&gt;From the first day of the birth of Flink SQL, there were some non-deterministic operations 
+that could cause incorrect results or exceptions, which caused great distress to users. 
+In 1.16, we spent a lot of effort to solve most of the problems, and we will continue to 
+improve in the future.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With the further refinement of the integration of stream and batch, and the continuous iteration of 
+the Flink Table Store (&lt;a href=&quot;https://flink.apache.org/news/2022/08/29/release-table-store-0.2.0.html&quot;&gt;0.2 has been released&lt;/a&gt;), 
+the Flink community is pushing the Streaming warehouse from concept to reality and maturity step by step.&lt;/p&gt;
+
+&lt;h1 id=&quot;understanding-streaming-warehouses&quot;&gt;Understanding Streaming Warehouses&lt;/h1&gt;
+
+&lt;p&gt;To be precise, a streaming warehouse is to make data warehouse streaming, which allows the data 
+for each layer in the whole warehouse to flow in real-time. The goal is to realize 
+a Streaming Service with end-to-end real-time performance through a unified API and computing framework.
+Please refer to &lt;a href=&quot;https://www.alibabacloud.com/blog/more-than-computing-a-new-era-led-by-the-warehouse-architecture-of-apache-flink_598821&quot;&gt;the article&lt;/a&gt; 
+for more details.&lt;/p&gt;
+
+&lt;h1 id=&quot;batch-processing&quot;&gt;Batch processing&lt;/h1&gt;
+
+&lt;p&gt;Flink is a unified stream batch processing engine, stream processing has become the leading role 
+thanks to our long-term investment. We’re also putting more effort to improve batch processing 
+to make it an excellent computing engine. This makes the overall experience of stream batch 
+unification smoother.&lt;/p&gt;
+
+&lt;h2 id=&quot;sql-gateway&quot;&gt;SQL Gateway&lt;/h2&gt;
+
+&lt;p&gt;The feedback from various channels indicates that &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/sql-gateway/overview/&quot;&gt;SQL Gateway&lt;/a&gt; 
+is a highly anticipated feature for users, especially for batch users. This function finally 
+completed (see &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-91%3A+Support+SQL+Gateway&quot;&gt;FLIP-91&lt;/a&gt; for design) 
+in 1.16. SQL Gateway is an extension and enhancement to SQL Client, 
+supporting multi-tenancy and pluggable API protocols (Endpoints), solving the problem that SQL Client 
+can only serve a single user and cannot be integrated with external services or components. 
+Currently SQL Gateway has support for REST API and HiveServer2 Protocol and users can link to 
+SQL Gateway via cURL, Postman, HTTP clients in various programming languages to submit stream jobs,
+batch jobs and even OLAP jobs. For HiveServer2 Endpoint, please refer to the Hive Compatibility 
+for more details.&lt;/p&gt;
+
+&lt;h2 id=&quot;hive-compatibility&quot;&gt;Hive Compatibility&lt;/h2&gt;
+
+&lt;p&gt;To reduce the cost of migrating Hive to Flink, we introduce HiveServer2 Endpoint and 
+Hive Syntax Improvements in this version:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/hive-compatibility/hiveserver2/&quot;&gt;The HiveServer2 Endpoint&lt;/a&gt;
+allows users to interact with SQL Gateway with Hive JDBC/Beeline and migrate with Flink into
+the Hive ecosystem (DBeaver, Apache Superset, Apache DolphinScheduler, and Apache Zeppelin).
+When users connect to the HiveServer2 endpoint, the SQL Gateway registers the Hive Catalog, 
+switches to Hive Dialect, and uses batch execution mode to execute jobs. With these steps, 
+users can have the same experience as HiveServer2.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/hive-compatibility/hive-dialect/overview/&quot;&gt;Hive syntax&lt;/a&gt; 
+is already the factual standard for big data processing. Flink has improved compatibility 
+with Hive syntax and added support for several Hive syntaxes commonly used in production. 
+Hive syntax compatibility can help users migrate existing Hive SQL tasks to Flink, 
+and it is convenient for users who are familiar with Hive syntax to use Hive syntax to 
+write SQL to query tables registered in Flink. The compatibility is measured using 
+the Hive qtest suite which contains more than 12K SQL cases. Until now, for Hive 2.3, 
+the compatibility has reached 94.1% for whole hive queries, and has reached 97.3% 
+if ACID queries are excluded.&lt;/p&gt;
+
+&lt;h2 id=&quot;join-hints-for-flink-sql&quot;&gt;Join Hints for Flink SQL&lt;/h2&gt;
+
+&lt;p&gt;The join hint is a common solution in the industry to improve the shortcomings of the optimizer
+by manually modifying the execution plans. Join is the most widely used operator in batch jobs,
+and Flink supports a variety of join strategies. Missing statistics or a poor cost model of 
+the optimizer can lead to the wrong choice of a join strategy, which will cause slow execution 
+or even job failure. By specifying a &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/sql/queries/hints/#join-hints&quot;&gt;Join Hint&lt;/a&gt;, 
+the optimizer will choose the join strategy specified by the user whenever possible. 
+It could avoid various shortcomings of the optimizer and ensure the production availability of 
+the batch job.&lt;/p&gt;
+
+&lt;h2 id=&quot;adaptive-hash-join&quot;&gt;Adaptive Hash Join&lt;/h2&gt;
+
+&lt;p&gt;For batch jobs, the hash join operators may fail if the input data is severely skewed, 
+it’s a very bad experience for users. To solve this, we introduce adaptive Hash-Join
+which can automatically fall back to Sort-Merge-Join once the Hash-Join fails in runtime.
+This mechanism ensures that the Hash-Join is always successful and improves the stability
+by gracefully degrading from a Hash-Join to a more robust Sort-Merge-Join.&lt;/p&gt;
+
+&lt;h2 id=&quot;speculative-execution-for-batch-job&quot;&gt;Speculative Execution for Batch Job&lt;/h2&gt;
+
+&lt;p&gt;Speculative execution is introduced in Flink 1.16 to mitigate batch job slowness 
+which is caused by problematic nodes. A problematic node may have hardware problems, 
+accident I/O busy, or high CPU load. These problems may make the hosted tasks run 
+much slower than tasks on other nodes, and affect the overall execution time of a batch job.&lt;/p&gt;
+
+&lt;p&gt;When speculative execution is enabled, Flink will keep detecting slow tasks. 
+Once slow tasks are detected, the nodes that the slow tasks locate in will be identified 
+as problematic nodes and get blocked via the blocklist mechanism (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-224%3A+Blocklist+Mechanism&quot;&gt;FLIP-224&lt;/a&gt;). 
+The scheduler will create new attempts for the slow tasks and deploy them to nodes 
+that are not blocked, while the existing attempts will keep running. 
+The new attempts process the same input data and produce the same data as the original attempt. 
+Once any attempt finishes first, it will be admitted as the only finished attempt of the task, 
+and the remaining attempts of the task will be canceled.&lt;/p&gt;
+
+&lt;p&gt;Most existing sources can work with speculative execution (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-245%3A+Source+Supports+Speculative+Execution+For+Batch+Job&quot;&gt;FLIP-245&lt;/a&gt;). 
+Only if a source uses &lt;code&gt;SourceEvent&lt;/code&gt;, it must implement &lt;code&gt;SupportsHandleExecutionAttemptSourceEvent&lt;/code&gt; interface to support 
+speculative execution. Sinks do not support speculative execution yet so that 
+speculative execution will not happen on sinks at the moment.&lt;/p&gt;
+
+&lt;p&gt;The Web UI &amp;amp; REST API are also improved (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-249%3A+Flink+Web+UI+Enhancement+for+Speculative+Execution&quot;&gt;FLIP-249&lt;/a&gt;)
+to display multiple concurrent attempts of tasks and blocked task managers.&lt;/p&gt;
+
+&lt;h2 id=&quot;hybrid-shuffle-mode&quot;&gt;Hybrid Shuffle Mode&lt;/h2&gt;
+
+&lt;p&gt;We have introduced a new &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/ops/batch/batch_shuffle&quot;&gt;Hybrid Shuffle&lt;/a&gt; 
+Mode for batch executions. It combines the advantages of blocking shuffle and 
+pipelined shuffle (in streaming mode).
+ - Like blocking shuffle, it does not require upstream and downstream tasks to run simultaneously, 
+   which allows executing a job with little resources.
+ - Like pipelined shuffle, it does not require downstream tasks to be executed 
+   after upstream tasks finish, which reduces the overall execution time of the job when 
+   given sufficient resources.
+ - It adapts to custom preferences between persisting less data and restarting less tasks on failures, 
+   by providing different spilling strategies.&lt;/p&gt;
+
+&lt;p&gt;Note: This feature is experimental and by default not activated.&lt;/p&gt;
+
+&lt;h2 id=&quot;further-improvements-of-blocking-shuffle&quot;&gt;Further improvements of blocking shuffle&lt;/h2&gt;
+
+&lt;p&gt;We further improved the blocking shuffle usability and performance in this version, 
+including adaptive network buffer allocation, sequential IO optimization and result partition reuse 
+which allows multiple consumer vertices reusing the same physical result partition to reduce disk IO 
+and storage space. These optimizations can achieve an overall 7% performance gain for 
+the TPC-DS test with a scale of 10 TB. In addition, two more compression algorithms (LZO and ZSTD) 
+with higher compression ratio were introduced which can further reduce the storage space with 
+some CPU cost compared to the default LZ4 compression algorithm.&lt;/p&gt;
+
+&lt;h2 id=&quot;dynamic-partition-pruning&quot;&gt;Dynamic Partition Pruning&lt;/h2&gt;
+
+&lt;p&gt;For batch jobs, partitioned tables are more widely used than non-partitioned tables in 
+production environments. Currently Flink has support for static partition pruning, 
+where the optimizer pushes down the partition field related filter conditions in the WHERE clause 
+into the Source Connector during the optimization phase, thus reducing unnecessary partition scan IO. 
+The &lt;a href=&quot;https://en.wikipedia.org/wiki/Star_schema&quot;&gt;star-schema&lt;/a&gt; is the simplest of 
+the most commonly used data mart patterns. We have found that many user jobs cannot use 
+static partition pruning because partition pruning information can only be determined in execution, 
+which requires &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-248%3A+Introduce+dynamic+partition+pruning&quot;&gt;dynamic partition pruning techniques&lt;/a&gt;,
+where partition pruning information is collected at runtime based on data from other related tables, 
+thus reducing unnecessary partition scan IO for partitioned tables. The use of dynamic partition pruning 
+has been validated with the 10 TB dataset TPC-DS to improve performance by up to 30%.&lt;/p&gt;
+
+&lt;h1 id=&quot;stream-processing&quot;&gt;Stream Processing&lt;/h1&gt;
+
+&lt;p&gt;In 1.16, we have made improvements in Checkpoints, SQL, Connector and other fields, 
+so that stream computing can continue to lead.&lt;/p&gt;
+
+&lt;h2 id=&quot;generalized-incremental-checkpoint&quot;&gt;Generalized incremental checkpoint&lt;/h2&gt;
+
+&lt;p&gt;Changelog state backend aims at making checkpoint intervals shorter and more predictable, 
+this release is prod-ready and is dedicated to adapting changelog state backend to 
+the existing state backends and improving the usability of changelog state backend:
+ - Support state migration
+ - Support local recovery
+ - Introduce file cache to optimize restoring
+ - Support switch based on checkpoint
+ - Improve the monitoring experience of changelog state backend
+   - expose changelog’s metrics
+   - expose changelog’s configuration to webUI&lt;/p&gt;
+
+&lt;p&gt;Table 1: The comparison between Changelog Enabled / Changelog Disabled on value state 
+(see &lt;a href=&quot;https://flink.apache.org/2022/05/30/changelog-state-backend.html&quot;&gt;this blog&lt;/a&gt; for more details)&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Percentile&lt;/th&gt;
+      &lt;th&gt;End to End Duration&lt;/th&gt;
+      &lt;th&gt;Checkpointed Data Size&lt;sup&gt;*&lt;sup&gt;&lt;/sup&gt;&lt;/sup&gt;&lt;/th&gt;
+      &lt;th&gt;Full Checkpoint Data Size&lt;sup&gt;*&lt;sup&gt;&lt;/sup&gt;&lt;/sup&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;50%&lt;/td&gt;
+      &lt;td&gt;311ms / 5s&lt;/td&gt;
+      &lt;td&gt;14.8MB / 3.05GB&lt;/td&gt;
+      &lt;td&gt;24.2GB / 18.5GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;90%&lt;/td&gt;
+      &lt;td&gt;664ms / 6s&lt;/td&gt;
+      &lt;td&gt;23.5MB / 4.52GB&lt;/td&gt;
+      &lt;td&gt;25.2GB / 19.3GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;99%&lt;/td&gt;
+      &lt;td&gt;1s / 7s&lt;/td&gt;
+      &lt;td&gt;36.6MB / 5.19GB&lt;/td&gt;
+      &lt;td&gt;25.6GB / 19.6GB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;99.9%&lt;/td&gt;
+      &lt;td&gt;1s / 10s&lt;/td&gt;
+      &lt;td&gt;52.8MB / 6.49GB&lt;/td&gt;
+      &lt;td&gt;25.7GB / 19.8GB&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;rocksdb-rescaling-improvement--rescaling-benchmark&quot;&gt;RocksDB rescaling improvement &amp;amp; rescaling benchmark&lt;/h2&gt;
+
+&lt;p&gt;Rescaling is a frequent operation for cloud services built on Apache Flink, this release leverages 
+&lt;a href=&quot;https://rocksdb.org/blog/2018/11/21/delete-range.html&quot;&gt;deleteRange&lt;/a&gt; to optimize the rescaling of 
+Incremental RocksDB state backend. deleteRange is used to avoid massive scan-and-delete operations, 
+for upscaling with a large number of states that need to be deleted, 
+the speed of restoring can be almost &lt;a href=&quot;https://github.com/apache/flink/pull/19033#issuecomment-1072267658&quot;&gt;increased by 2~10 times&lt;/a&gt;.&lt;/p&gt;
+
+&lt;center&gt;
+&lt;img src=&quot;/img/rocksdb_rescaling_benchmark.png&quot; style=&quot;width:90%;margin:15px&quot; /&gt;
+&lt;/center&gt;
+
+&lt;h2 id=&quot;improve-monitoring-experience-and-usability-of-state-backend&quot;&gt;Improve monitoring experience and usability of state backend&lt;/h2&gt;
+
+&lt;p&gt;This release also improves the monitoring experience and usability of state backend.
+Previously, RocksDB’s log was located in its own DB folder, which made debugging RocksDB not so easy. 
+This release lets RocksDB’s log stay in Flink’s log directory by default. RocksDB statistics-based 
+metrics are introduced to help debug the performance at the database level, e.g. total block cache hit/miss
+count within the DB.&lt;/p&gt;
+
+&lt;h2 id=&quot;support-overdraft-buffer&quot;&gt;Support overdraft buffer&lt;/h2&gt;
+
+&lt;p&gt;A new concept of &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/deployment/memory/network_mem_tuning/#overdraft-buffers&quot;&gt;overdraft network buffer&lt;/a&gt; 
+is introduced to mitigate the effects of uninterruptible blocking a subtask thread during back pressure, 
+which can be turned on through the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/deployment/config/#taskmanager-network-memory-max-overdraft-buffers-per-gate&quot;&gt;taskmanager.network.memory.max-overdraft-buffers-per-gate&lt;/a&gt; 
+configuration parameter.&lt;br /&gt;
+Starting from 1.16.0, Flink subtask can request by default up to 5 extra (overdraft) buffers over 
+the regular configured amount.  This change can slightly increase memory consumption of 
+the Flink Job but vastly reduce the checkpoint duration of the unaligned checkpoint.
+If the subtask is back pressured by downstream subtasks and the subtask requires more than 
+a single network buffer to finish what it’s currently doing, overdraft buffer comes into play.
+Read more about this in &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/deployment/memory/network_mem_tuning/#overdraft-buffers&quot;&gt;the documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;timeout-aligned-to-unaligned-checkpoint-barrier-in-the-output-buffers-of-an-upstream-subtask&quot;&gt;Timeout aligned to unaligned checkpoint barrier in the output buffers of an upstream subtask&lt;/h2&gt;
+
+&lt;p&gt;This release updates the timing of switching from Aligned Checkpoint (AC) to Unaligned Checkpoint (UC).
+With UC enabled, if &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/ops/state/checkpointing_under_backpressure/#aligned-checkpoint-timeout&quot;&gt;execution.checkpointing.aligned-checkpoint-timeout&lt;/a&gt; 
+is configured, each checkpoint will still begin as an AC, but when the global checkpoint duration 
+exceeds the aligned-checkpoint-timeout, if the AC has not been completed, 
+then the checkpoint will be switched to unaligned.&lt;/p&gt;
+
+&lt;p&gt;Previously, the switch of one subtask needs to wait for all barriers from upstream. 
+If the back pressure is severe, the downstream subtask may not receive all barriers 
+within &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/deployment/config/#execution-checkpointing-timeout&quot;&gt;checkpointing-timeout&lt;/a&gt;, 
+causing the checkpoint to fail.&lt;/p&gt;
+
+&lt;p&gt;In this release, if the barrier cannot be sent from the output buffer to the downstream task 
+within the &lt;code&gt;execution.checkpointing.aligned-checkpoint-timeout&lt;/code&gt;, Flink lets upstream subtasks 
+switch to UC first to send barriers to downstream, thereby decreasing 
+the probability of checkpoint timeout during back pressure.
+More details can be found in &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/ops/state/checkpointing_under_backpressure/#aligned-checkpoint-timeout&quot;&gt;this documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;non-determinism-in-stream-processing&quot;&gt;Non-Determinism In Stream Processing&lt;/h2&gt;
+
+&lt;p&gt;Users often complain about the high cost of understanding stream processing.
+One of the pain points is the non-determinisim in stream processing (usually not intuitive)
+which may cause wrong results or errors. These pain points have been around since the
+early days of Flink SQL.&lt;/p&gt;
+
+&lt;p&gt;For complex streaming jobs, now it’s possible to detect and resolve potential correctness issues 
+before running. If the problems can’t be resolved completely, a detailed message could prompt users to 
+adjust the SQL so as to avoid introducing non-deterministic problems. More details can be found 
+in &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/concepts/determinism&quot;&gt;the documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;enhanced-lookup-join&quot;&gt;Enhanced Lookup Join&lt;/h2&gt;
+
+&lt;p&gt;Lookup join is widely used in stream processing, and we have introduced several improvements:
+- Adds a unified abstraction for lookup source cache and 
+  &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-221%3A+Abstraction+for+lookup+source+cache+and+metric&quot;&gt;related metrics&lt;/a&gt; 
+  to speed up lookup queries
+- Introduces the configurable asynchronous mode (ALLOW_UNORDERED) via 
+  &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/config/#table-exec-async-lookup-output-mode&quot;&gt;job configuration&lt;/a&gt; 
+  or &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/sql/queries/hints/#lookup&quot;&gt;lookup hint&lt;/a&gt; 
+  to significantly improve query throughput without compromising correctness.
+- &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/hints/#3-enable-delayed-retry-strategy-for-lookup&quot;&gt;Retryable lookup mechanism&lt;/a&gt; 
+  gives users more tools to solve the delayed updates issue in external systems.&lt;/p&gt;
+
+&lt;h2 id=&quot;retry-support-for-async-io&quot;&gt;Retry Support For Async I/O&lt;/h2&gt;
+
+&lt;p&gt;Introduces a built-in retry mechanism for &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/operators/asyncio/#retry-support&quot;&gt;asynchronous I/O&lt;/a&gt; 
+that is transparent to the user’s existing code, allowing flexibility to meet 
+the user’s retry and exception handling needs.&lt;/p&gt;
+
+&lt;h1 id=&quot;pyflink&quot;&gt;PyFlink&lt;/h1&gt;
+
+&lt;p&gt;In Flink 1.15, we have introduced a new execution mode ‘thread’ mode in 
+which the user-defined Python functions will be executed in the JVM via JNI instead of 
+in a separate Python process. However, it’s only supported for Python scalar functions in 
+the Table API &amp;amp; SQL in Flink 1.15. In this release, we have provided more comprehensive support for it. 
+It has also been supported in the Python DataStream API and also Python table functions 
+in the Table API &amp;amp; SQL.&lt;/p&gt;
+
+&lt;p&gt;We are also continuing to fill in the last few missing features in Python API. In this release, 
+we have provided more comprehensive support for Python DataStream API and supported features 
+such as side output, broadcast state, etc and have also finalized the windowing support. 
+We have also added support for more connectors and formats in the Python DataStream API, 
+e.g. added support for connectors elasticsearch, kinesis, pulsar, hybrid source, etc and 
+formats orc, parquet, etc. With all these features added, the Python API should have aligned 
+most notable features in the Java &amp;amp; Scala API and users should be able to develop most 
+kinds of Flink jobs using Python language smoothly.&lt;/p&gt;
+
+&lt;h1 id=&quot;others&quot;&gt;Others&lt;/h1&gt;
+
+&lt;h2 id=&quot;new-sql-syntax&quot;&gt;New SQL Syntax&lt;/h2&gt;
+
+&lt;p&gt;In 1.16, we extend more DDL syntaxes which could help users to better use SQL:
+- &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/sql/create/#create-function&quot;&gt;USING JAR&lt;/a&gt; 
+  supports dynamic loading of UDF jar to help platform developers to easily manage UDF.
+- &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/sql/create/#as-select_statement&quot;&gt;CREATE TABLE AS SELECT&lt;/a&gt; (CTAS) 
+  supports users to create new tables based on existing tables and queries.
+- &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/zh/docs/dev/table/sql/analyze&quot;&gt;ANALYZE TABLE&lt;/a&gt; 
+  supports users to manually generate table statistics so that the optimizer could 
+  generate better execution plans.&lt;/p&gt;
+
+&lt;h2 id=&quot;cache-in-datastream-for-interactive-programming&quot;&gt;Cache in DataStream for Interactive Programming&lt;/h2&gt;
+
+&lt;p&gt;Supports caching the result of a transformation via &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/operators/overview/#cache&quot;&gt;DataStream#cache&lt;/a&gt;. 
+The cached intermediate result is generated lazily at the first time the intermediate result is 
+computed so that the result can be reused by later jobs. If the cache is lost, 
+it will be recomputed using the original transformations. Currently only batch mode is supported. 
+This feature is very useful for ML and interactive programming in Python.&lt;/p&gt;
+
+&lt;h2 id=&quot;history-server--completed-jobs-information-enhancement&quot;&gt;History Server &amp;amp; Completed Jobs Information Enhancement&lt;/h2&gt;
+
+&lt;p&gt;We have enhanced the experiences of viewing completed jobs’ information in this release.
+- JobManager / HistoryServer WebUI now provides detailed execution time metrics, 
+  including duration tasks spent in each execution state and the accumulated 
+  busy / idle / back-pressured time during running.
+- JobManager / HistoryServer WebUI now provides aggregation of major SubTask metrics, 
+  grouped by Task or TaskManager.
+- JobManager / HistoryServer WebUI now provides more environmental information, 
+  including environment variables, JVM options and classpath.
+- HistoryServer now supports browsing logs[6] from external log archiving services.&lt;/p&gt;
+
+&lt;h2 id=&quot;protobuf-format&quot;&gt;Protobuf format&lt;/h2&gt;
+
+&lt;p&gt;Flink now supports the Protocol Buffers (Protobuf) format. This allows you to use this format directly 
+in your Table API or SQL applications.&lt;/p&gt;
+
+&lt;h2 id=&quot;introduce-configurable-ratelimitingstrategy-for-async-sink&quot;&gt;Introduce configurable RateLimitingStrategy for Async Sink&lt;/h2&gt;
+
+&lt;p&gt;The Async Sink was implemented in 1.15 to allow users to easily implement 
+their own custom asynchronous sinks. We have now extended it to support 
+a configurable RateLimitingStrategy. This means sink implementers can now customize 
+how their Async Sink behaves when requests fail, depending on the specific sink. 
+If no RateLimitingStrategy is specified, it will default to the current default of AIMDRateLimitingStrategy.&lt;/p&gt;
+
+&lt;h1 id=&quot;upgrade-notes&quot;&gt;Upgrade Notes&lt;/h1&gt;
+
+&lt;p&gt;We aim to make upgrades as smooth as possible, but some of the changes require users to 
+adjust some parts of the program when upgrading to Apache Flink 1.16. Please take a look at 
+the release notes for a list of adjustments to make and issues to check during upgrades.&lt;/p&gt;
+
+&lt;h1 id=&quot;list-of-contributors&quot;&gt;List of Contributors&lt;/h1&gt;
+
+&lt;p&gt;The Apache Flink community would like to thank each one of the contributors that have made this release possible:&lt;/p&gt;
+
+&lt;p&gt;1996fanrui, Ada Wang, Ada Wong, Ahmed Hamdy, Aitozi, Alexander Fedulov, Alexander Preuß, Alexander Trushev, 
+Andriy Redko, Anton Kalashnikov, Arvid Heise, Ben Augarten, Benchao Li, BiGsuw, Biao Geng, Bobby Richard, 
+Brayno, CPS794, Cheng Pan, Chengkai Yang, Chesnay Schepler, Danny Cranmer, David N Perkins, Dawid Wysakowicz, 
+Dian Fu, DingGeGe, EchoLee5, Etienne Chauchot, Fabian Paul, Ferenc Csaky, Francesco Guardiani, Gabor Somogyi, 
+Gen Luo, Gyula Fora, Haizhou Zhao, Hangxiang Yu, Hao Wang, Hong Liang Teoh, Hong Teoh, Hongbo Miao, HuangXingBo, 
+Ingo Bürk, Jacky Lau, Jane Chan, Jark Wu, Jay Li, Jia Liu, Jie Wang, Jin, Jing Ge, Jing Zhang, Jingsong Lee, 
+Jinhu Wu, Joe Moser, Joey Pereira, Jun He, JunRuiLee, Juntao Hu, JustDoDT, Kai Chen, Krzysztof Chmielewski, 
+Krzysztof Dziolak, Kyle Dong, LeoZhang, Levani Kokhreidze, Lihe Ma, Lijie Wang, Liu Jiangang, Luning Wang, 
+Marios Trivyzas, Martijn Visser, MartijnVisser, Mason Chen, Matthias Pohl, Metehan Yıldırım, Michael, Mingde Peng, 
+Mingliang Liu, Mulavar, Márton Balassi, Nie yingping, Niklas Semmler, Paul Lam, Paul Lin, Paul Zhang, PengYuan, 
+Piotr Nowojski, Qingsheng Ren, Qishang Zhong, Ran Tao, Robert Metzger, Roc Marshal, Roman Boyko, Roman Khachatryan, 
+Ron, Ron Cohen, Ruanshubin, Rudi Kershaw, Rufus Refactor, Ryan Skraba, Sebastian Mattheis, Sergey, Sergey Nuyanzin, 
+Shengkai, Shubham Bansal, SmirAlex, Smirnov Alexander, SteNicholas, Steven van Rossum, Suhan Mao, Tan Yuxin, 
+Tartarus0zm, TennyZhuang, Terry Wang, Thesharing, Thomas Weise, Timo Walther, Tom, Tony Wei, Weijie Guo, Wencong Liu, 
+WencongLiu, Xintong Song, Xuyang, Yangze Guo, Yi Tang, Yu Chen, Yuan Huang, Yubin Li, Yufan Sheng, Yufei Zhang, 
+Yun Gao, Yun Tang, Yuxin Tan, Zakelly, Zhanghao Chen, Zhu Zhu, Zichen Liu, Zili Sun, acquachen, bgeng777, billyrrr, 
+bzhao, caoyu, chenlei677, chenzihao, chenzihao5, coderap, cphe, davidliu, dependabot[bot], dkkb, dusukang, empcl, 
+eyys, fanrui, fengjiankun, fengli, fredia, gabor.g.somogyi, godfreyhe, gongzhongqiang, harker2015, hongli, 
+huangxingbo, huweihua, jayce, jaydonzhou, jiabao.sun, kevin.cyj, kurt, lidefu, lijiewang.wlj, liliwei, lincoln lee, 
+lincoln.lil, littleeleventhwolf, liufangqi, liujia10, liujiangang, liujingmao, liuyongvs, liuzhuang2017, longwang, 
+lovewin99, luoyuxia, mans2singh, maosuhan, mayue.fight, mayuehappy, nieyingping, pengmide, pengmingde, polaris6, 
+pvary, qinjunjerry, realdengziqi, root, shammon, shihong90, shuiqiangchen, slinkydeveloper, snailHumming, snuyanzin, 
+suxinglee, sxnan, tison, trushev, tsreaper, unknown, wangfeifan, wangyang0918, wangzhiwu, wenbingshen, xiangqiao123, 
+xuyang, yangjf2019, yangjunhan, yangsanity, yangxin, ylchou, yuchengxin, yunfengzhou-hub, yuxia Luo, yuzelin, 
+zhangchaoming, zhangjingcun, zhangmang, zhangzhengqi3, zhaoweinan, zhengyunhong.zyh, zhenyu xing, zhouli, 
+zhuanshenbsj1, zhuzhu.zz, zoucao, zp, 周磊, 饶紫轩,, 鲍健昕 愚鲤, 帝国阿三&lt;/p&gt;
+</description>
+<pubDate>Fri, 28 Oct 2022 10:00:00 +0200</pubDate>
+<link>https://flink.apache.org/news/2022/10/28/1.16-announcement.html</link>
+<guid isPermaLink="true">/news/2022/10/28/1.16-announcement.html</guid>
+</item>
+
+<item>
 <title>Apache Flink Table Store 0.2.1 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink Community is pleased to announce the first bug fix release of the Flink Table Store 0.2 series.&lt;/p&gt;
 
@@ -19458,201 +19894,6 @@ The upcoming release will focus on new features and integrations that broaden th
 <pubDate>Fri, 27 Mar 2020 03:30:00 +0100</pubDate>
 <link>https://flink.apache.org/features/2020/03/27/flink-for-data-warehouse.html</link>
 <guid isPermaLink="true">/features/2020/03/27/flink-for-data-warehouse.html</guid>
-</item>
-
-<item>
-<title>Advanced Flink Application Patterns Vol.2: Dynamic Updates of Application Logic</title>
-<description>&lt;p&gt;In the &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;first article&lt;/a&gt; of the series, we gave a high-level description of the objectives and required functionality of a Fraud Detection engine. We also described how to make data partitioning in Apache Flink customizable based on modifiable rules instead of using a hardcoded &lt;code&gt;KeysExtractor&lt;/code&gt; implementation.&lt;/p&gt;
-
-&lt;p&gt;We intentionally omitted details of how the applied rules are initialized and what possibilities exist for updating them at runtime. In this post, we will address exactly these details. You will learn how the approach to data partitioning described in &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;Part 1&lt;/a&gt; can be applied in combination with a dynamic configuration. These two patterns, when used together, can eliminate the need to recompile the code and redeploy your Flink job for a wide range of modifications of the business logic.&lt;/p&gt;
-
-&lt;h2 id=&quot;rules-broadcasting&quot;&gt;Rules Broadcasting&lt;/h2&gt;
-
-&lt;p&gt;Let’s first have a look at the &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning&quot;&gt;previously-defined&lt;/a&gt; data-processing pipeline:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Alert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alerts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;transactions&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicKeyFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicAlertFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;DynamicKeyFunction&lt;/code&gt; provides dynamic data partitioning while &lt;code&gt;DynamicAlertFunction&lt;/code&gt; is responsible for executing the main logic of processing transactions and sending alert messages according to defined rules.&lt;/p&gt;
-
-&lt;p&gt;Vol.1 of this series simplified the use case and assumed that the applied set of rules is pre-initialized and accessible via the &lt;code&gt;List&amp;lt;Rules&amp;gt;&lt;/code&gt; within &lt;code&gt;DynamicKeyFunction&lt;/code&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DynamicKeyFunction&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-  &lt;span class=&quot;cm&quot;&gt;/* Simplified */&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* Rules that are initialized somehow.*/&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Adding rules to this list is obviously possible directly inside the code of the Flink Job at the stage of its initialization (Create a &lt;code&gt;List&lt;/code&gt; object; use it’s &lt;code&gt;add&lt;/code&gt; method). A major drawback of doing so is that it will require recompilation of the job with each rule modification. In a real Fraud Detection system, rules are expected to change on a frequent basis, making this approach unacceptable from the point of view of business and operational requirements. A different approach is needed.&lt;/p&gt;
-
-&lt;p&gt;Next, let’s take a look at a sample rule definition that we introduced in the previous post of the series:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/patterns-blog-2/rule-dsl.png&quot; width=&quot;800px&quot; alt=&quot;Figure 1: Rule definition&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Figure 1: Rule definition&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;The previous post covered use of &lt;code&gt;groupingKeyNames&lt;/code&gt; by &lt;code&gt;DynamicKeyFunction&lt;/code&gt; to extract message keys. Parameters from the second part of this rule are used by &lt;code&gt;DynamicAlertFunction&lt;/code&gt;: they define the actual logic of the performed operations and their parameters (such as the alert-triggering limit). This means that the same rule must be present in both &lt;code&gt;DynamicKeyFunction&lt;/code&gt; and &lt;code&gt;DynamicAlertFunction&lt;/code&gt;. To achieve this result, we will use the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/stream/state/broadcast_state.html&quot;&gt;broadcast data distribution mechanism&lt;/a&gt; of Apache Flink.&lt;/p&gt;
-
-&lt;p&gt;Figure 2 presents the final job graph of the system that we are building:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/patterns-blog-2/job-graph.png&quot; width=&quot;800px&quot; alt=&quot;Figure 2: Job Graph of the Fraud Detection Flink Job&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Figure 2: Job Graph of the Fraud Detection Flink Job&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;The main blocks of the Transactions processing pipeline are:&lt;br /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Transaction Source&lt;/strong&gt; that consumes transaction messages from Kafka partitions in parallel. &lt;br /&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Dynamic Key Function&lt;/strong&gt; that performs data enrichment with a dynamic key. The subsequent &lt;code&gt;keyBy&lt;/code&gt; hashes this dynamic key and partitions the data accordingly among all parallel instances of the following operator.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;Dynamic Alert Function&lt;/strong&gt; that accumulates a data window and creates Alerts based on it.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;data-exchange-inside-apache-flink&quot;&gt;Data Exchange inside Apache Flink&lt;/h2&gt;
-
-&lt;p&gt;The job graph above also indicates various data exchange patterns between the operators. In order to understand how the broadcast pattern works, let’s take a short detour and discuss what methods of message propagation exist in Apache Flink’s distributed runtime.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The &lt;strong&gt;FORWARD&lt;/strong&gt; connection after the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent &lt;code&gt;DynamicKeyFunction&lt;/code&gt; operator. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions, and dotted rectangles depict parallel instances of the conjoined operators.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/patterns-blog-2/forward.png&quot; width=&quot;800px&quot; alt=&quot;Figure 3: FORWARD message passing across operator instances&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Figure 3: FORWARD message passing across operator instances&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The &lt;strong&gt;HASH&lt;/strong&gt; connection between &lt;code&gt;DynamicKeyFunction&lt;/code&gt; and &lt;code&gt;DynamicAlertFunction&lt;/code&gt; means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the next operator. Such a connection needs to be explicitly “requested” from Flink by using &lt;code&gt;keyBy&lt;/code&gt;.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/patterns-blog-2/hash.png&quot; width=&quot;800px&quot; alt=&quot;Figure 4: HASHED message passing across operator instances (via `keyBy`)&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Figure 4: HASHED message passing across operator instances (via `keyBy`)&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A &lt;strong&gt;REBALANCE&lt;/strong&gt; distribution is either caused by an explicit call to &lt;code&gt;rebalance()&lt;/code&gt; or by a change of parallelism (12 -&amp;gt; 1 in the case of the job graph from Figure 2). Calling &lt;code&gt;rebalance()&lt;/code&gt; causes data to be repartitioned in a round-robin fashion and can help to mitigate data skew in certain scenarios.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/patterns-blog-2/rebalance.png&quot; width=&quot;800px&quot; alt=&quot;Figure 5: REBALANCE message passing across operator instances&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Figure 5: REBALANCE message passing across operator instances&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;The Fraud Detection job graph in Figure 2 contains an additional data source: &lt;em&gt;Rules Source&lt;/em&gt;. It also consumes from Kafka. Rules are “mixed into” the main processing data flow through the &lt;strong&gt;BROADCAST&lt;/strong&gt; channel. Unlike other methods of transmitting data between operators, such as &lt;code&gt;forward&lt;/code&gt;, &lt;code&gt;hash&lt;/code&gt; or &lt;code&gt;rebalance&lt;/code&gt; that make each message available for processing in only one of the parallel instances of the receiving operator, &lt;code&gt;broadcast&lt;/code&gt; makes each message available at the input of all of the parallel instances of the operator to which the &lt;em&gt;broadcast stream&lt;/em&gt; is connected. This makes &lt;code&gt;broadcast&lt;/code&gt; applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.&lt;/p&gt;
-
-&lt;center&gt;
- &lt;img src=&quot;/img/blog/patterns-blog-2/broadcast.png&quot; width=&quot;800px&quot; alt=&quot;Figure 6: BROADCAST message passing across operator instances&quot; /&gt;
- &lt;br /&gt;
- &lt;i&gt;&lt;small&gt;Figure 6: BROADCAST message passing across operator instances&lt;/small&gt;&lt;/i&gt;
- &lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;div class=&quot;alert alert-info&quot;&gt;
-  &lt;p&gt;&lt;span class=&quot;label label-info&quot; style=&quot;display: inline-block&quot;&gt;&lt;span class=&quot;glyphicon glyphicon-info-sign&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; Note&lt;/span&gt;
-There are actually a few more specialized data partitioning schemes in Flink which we did not mention here. If you want to find out more, please refer to Flink’s documentation on &lt;strong&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-stable/dev/stream/operators/#physical-partitioning&quot;&gt;stream partitioning&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;broadcast-state-pattern&quot;&gt;Broadcast State Pattern&lt;/h2&gt;
-
-&lt;p&gt;In order to make use of the Rules Source, we need to “connect” it to the main data stream:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Streams setup&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;transactions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[...]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rulesUpdateStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[...]&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;BroadcastStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rulesStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rulesUpdateStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RULES_STATE_DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// Processing pipeline setup&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Alert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alerts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-     &lt;span class=&quot;n&quot;&gt;transactions&lt;/span&gt;
-         &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rulesStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-         &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicKeyFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-         &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-         &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rulesStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-         &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DynamicAlertFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see, the broadcast stream can be created from any regular stream by calling the &lt;code&gt;broadcast&lt;/code&gt; method and specifying a state descriptor. Flink assumes that broadcasted data needs to be stored and retrieved while processing events of the main data flow and, therefore, always automatically creates a corresponding &lt;em&gt;broadcast state&lt;/em&gt; from this state descriptor. This is different from any other Apache Flink state type in which you need to initialize it in the &lt;code&gt;open()&lt;/code&gt; method of the  processing function. Also note that broadcast state always has a key-value format (&lt;code&gt;MapState&lt;/code&gt;).&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RULES_STATE_DESCRIPTOR&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MapStateDescriptor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;rules&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Connecting to &lt;code&gt;rulesStream&lt;/code&gt; causes some changes in the signature of the processing functions. The previous article presented it in a slightly simplified way as a &lt;code&gt;ProcessFunction&lt;/code&gt;. However, &lt;code&gt;DynamicKeyFunction&lt;/code&gt; is actually a &lt;code&gt;BroadcastProcessFunction&lt;/code&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;BroadcastProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IN1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IN2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IN1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                        &lt;span class=&quot;n&quot;&gt;ReadOnlyContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                        &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processBroadcastElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IN2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                                 &lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                                 &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OUT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The difference is the addition of the &lt;code&gt;processBroadcastElement&lt;/code&gt; method through which messages of the rules stream will arrive. The following new version of &lt;code&gt;DynamicKeyFunction&lt;/code&gt; allows modifying the list of data-distribution keys at runtime through this stream:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DynamicKeyFunction&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BroadcastProcessFunction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-
-  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processBroadcastElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;BroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;broadcastState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RULES_STATE_DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;broadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRuleId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                           &lt;span class=&quot;n&quot;&gt;ReadOnlyContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-                           &lt;span class=&quot;n&quot;&gt;Collector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Transaction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ReadOnlyBroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rulesState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-                                  &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBroadcastState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RULES_STATE_DESCRIPTOR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;Entry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;entry&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rulesState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;immutableEntries&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Rule&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;entry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KeysExtractor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getGroupingKeyNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rule&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRuleId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()));&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the above code, &lt;code&gt;processElement()&lt;/code&gt; receives Transactions, and &lt;code&gt;processBroadcastElement()&lt;/code&gt; receives Rule updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using &lt;code&gt;processBroadcastState&lt;/code&gt;. We use a Rule’s ID as the key to store and reference individual rules. Instead of iterating over a hardcoded &lt;code&gt;List&amp;lt;Rules&amp;gt;&lt;/code&gt;, we iterate over entries in the dynamically-updated broadcast state.&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;DynamicAlertFunction&lt;/code&gt; follows the same logic with respect to storing the rules in the broadcast &lt;code&gt;MapState&lt;/code&gt;. As described in &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;Part 1&lt;/a&gt;, each message in the &lt;code&gt;processElement&lt;/code&gt; input is intended to be processed by one specific rule and comes “pre-marked” with a corresponding ID by  &lt;code&gt;DynamicKeyFunction&lt;/code&gt;. All we need to do is retrieve the definition of the corresponding rule from &lt;code&gt;BroadcastState&lt;/code&gt; by using the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how this is done in the &lt;a href=&quot;/news/2020/07/30/demo-fraud-detection-3.html&quot;&gt;final blog&lt;/a&gt; of the series about Fraud Detection.&lt;/p&gt;
-
-&lt;h1 id=&quot;summary&quot;&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this blog post, we continued our investigation of the use case of a Fraud Detection System built with Apache Flink. We looked into different ways in which data can be distributed between parallel operator instances and, most importantly, examined broadcast state. We demonstrated how dynamic partitioning — a pattern described in the &lt;a href=&quot;https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html&quot;&gt;first part&lt;/a&gt; of the series — can be combined and enhanced by the functionality provided by the broadcast state pattern. The ability to send dynamic updates at runtime is a powerful feature of Apache Flink that is applicable in a variety of other use cases, such as controlling state (cleanup/insert/fix), running A/B experiments or executing updates of ML model coefficients.&lt;/p&gt;
-</description>
-<pubDate>Tue, 24 Mar 2020 13:00:00 +0100</pubDate>
-<link>https://flink.apache.org/news/2020/03/24/demo-fraud-detection-2.html</link>
-<guid isPermaLink="true">/news/2020/03/24/demo-fraud-detection-2.html</guid>
 </item>
 
 </channel>
