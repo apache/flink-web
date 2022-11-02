@@ -107,6 +107,28 @@ Please have a look at the [Release Notes for Flink {{ flink_release.version_shor
 
 {% endfor %}
 
+## Flink connectors
+
+These connectors that are released separately from the main Flink releases.
+
+{% for release in site.connector_releases %}
+
+### {{ release.source_release.name }}
+
+<p>
+<a href="{{ release.source_release.url }}" id="{{ release.source_release.id }}">{{ release.source_release.name }} Source Release</a>
+(<a href="{{ release.source_release.asc_url }}">asc</a>, <a href="{{ release.source_release.sha512_url }}">sha512</a>)
+</p>
+ 
+This connector is compatible with these Apache Flink versions:
+{% for flink_version in release.source_release.flink_versions %}
+* {{ flink_version }}.x
+{% endfor %}
+
+{% endfor %}
+
+---
+
 Apache Flink® Stateful Functions {{ site.FLINK_STATEFUN_VERSION_STABLE }} is the latest stable release for the [Stateful Functions](https://flink.apache.org/stateful-functions.html) component.
 
 {% for flink_statefun_release in site.flink_statefun_releases %}
@@ -315,6 +337,19 @@ Flink {{ flink_release.version_long }} - {{ flink_release.release_date }}
 (<a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}/flink-{{ flink_release.version_long }}-src.tgz">Source</a>,
 <a href="https://archive.apache.org/dist/flink/flink-{{ flink_release.version_long }}">Binaries</a>)
 {% endif %}
+</li>
+{% endfor %}
+</ul>
+
+### Flink Connectors
+
+These connectors that are released separately from the main Flink releases.
+
+<ul>
+{% for release in site.release_archive.connectors %}
+<li>
+{{ release.name }} {{ release.version }} - {{ release.release_date }}
+(<a href="https://archive.apache.org/dist/flink/flink-connector-${{connector}}-{{ release.version }}/flink-connector-${{connector}}-{{ release.version }}-src.tgz">Source</a>)
 </li>
 {% endfor %}
 </ul>
