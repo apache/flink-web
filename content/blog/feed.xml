@@ -7,6 +7,200 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Optimising the throughput of async sinks using a custom RateLimitingStrategy</title>
+<description>&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;When designing a Flink data processing job, one of the key concerns is maximising job throughput. Sink throughput is a crucial factor because it can determine the entire job’s throughput. We generally want the highest possible write rate in the sink without overloading the destination. However, since the factors impacting a destination’s performance are variable over the job’s lifetime, the sink needs to adjust its write rate dynamically. Depending on the sink’s destination, it helps to tune the write rate using a different RateLimitingStrategy.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;This post explains how you can optimise sink throughput by configuring a custom RateLimitingStrategy on a connector that builds on the&lt;/strong&gt; &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-171%3A+Async+Sink&quot;&gt;&lt;strong&gt;AsyncSinkBase (FLIP-171)&lt;/strong&gt;&lt;/a&gt;&lt;strong&gt;.&lt;/strong&gt; In the sections below, we cover the design logic behind the AsyncSinkBase and the RateLimitingStrategy, then we take you through two example implementations of rate limiting strategies, specifically the CongestionControlRateLimitingStrategy and TokenBucketRateLimitingStrategy.&lt;/p&gt;
+
+&lt;h3 id=&quot;background-of-the-asyncsinkbase&quot;&gt;Background of the AsyncSinkBase&lt;/h3&gt;
+
+&lt;p&gt;When implementing the AsyncSinkBase, our goal was to simplify building new async sinks to custom destinations by providing common async sink functionality used with at least once processing. This has allowed users to more easily write sinks to custom destinations, such as Amazon Kinesis Data Streams and Amazon Kinesis Firehose. An additional async sink to Amazon DynamoDB (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-252%3A+Amazon+DynamoDB+Sink+Connector&quot;&gt;FLIP-252&lt;/a&gt;) is also being developed at the time of writing.&lt;/p&gt;
+
+&lt;p&gt;The AsyncSinkBase provides the core implementation which handles the mechanics of async requests and responses. This includes retrying failed messages, deciding when to flush records to the destination, and persisting un-flushed records to state during checkpointing. In order to increase throughput, the async sink also dynamically adjusts the request rate depending on the destination’s responses. Read more about this in our &lt;a href=&quot;https://flink.apache.org/2022/05/06/async-sink-base.html&quot;&gt;previous 1.15 release blog post&lt;/a&gt; or watch our &lt;a href=&quot;https://www.youtube.com/watch?v=z-hYuLgbHuo&quot;&gt;FlinkForward talk recording explaining the design of the Async Sink&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;configuring-the-asyncsinkbase&quot;&gt;Configuring the AsyncSinkBase&lt;/h3&gt;
+
+&lt;p&gt;When designing the AsyncSinkBase, we wanted users to be able to tune their custom connector implementations based on their use case and needs, without having to understand the low-level workings of the base sink itself.&lt;/p&gt;
+
+&lt;p&gt;So, as part of our initial implementation in Flink 1.15, we exposed configurations such as &lt;code&gt;maxBatchSize&lt;/code&gt;, &lt;code&gt;maxInFlightRequests&lt;/code&gt;, &lt;code&gt;maxBufferedRequests&lt;/code&gt;, &lt;code&gt;maxBatchSizeInBytes&lt;/code&gt;, &lt;code&gt;maxTimeInBufferMS&lt;/code&gt; and &lt;code&gt;maxRecordSizeInBytes&lt;/code&gt; so that users can adapt the flushing and writing behaviour of the sink.&lt;/p&gt;
+
+&lt;p&gt;In Flink 1.16, we have further extended this configurability to the RateLimitingStrategy used by the AsyncSinkBase (&lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-242%3A+Introduce+configurable+RateLimitingStrategy+for+Async+Sink&quot;&gt;FLIP-242&lt;/a&gt;). With this change, users can now customise how the AsyncSinkBase dynamically adjusts the request rate in real-time to optimise throughput whilst mitigating back pressure. Example customisations include changing the mathematical function used to scale the request rate, implementing a cool off period between rate adjustments, or implementing a token bucket RateLimitingStrategy.&lt;/p&gt;
+
+&lt;h2 id=&quot;rationale-behind-the-ratelimitingstrategy-interface&quot;&gt;Rationale behind the RateLimitingStrategy interface&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Information provided to the RateLimitingStrategy&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;registerInFlightRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;registerCompletedRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResultInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;// Controls offered to the RateLimitingStrategy&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;shouldBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getMaxBatchSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;There are 2 core ideas behind the RateLimitingStrategy interface:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Information methods:&lt;/strong&gt; We need methods to provide the RateLimitingStrategy with sufficient information to track the rate of requests or rate of sent messages (each request can comprise multiple messages)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Control methods:&lt;/strong&gt; We also need methods to allow the RateLimitingStrategy to control the sink’s request rate.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These are the type of methods that we see in the RateLimitingStrategy interface. With &lt;code&gt;registerInFlightRequest()&lt;/code&gt; and &lt;code&gt;registerCompletedRequest()&lt;/code&gt;, the RateLimitingStrategy has sufficient information to track the number in-flight requests and messages, as well as the rate of these requests.&lt;/p&gt;
+
+&lt;p&gt;With &lt;code&gt;shouldBlock()&lt;/code&gt;, the RateLimitingStrategy can decide to postpone new requests until a specified condition is met (e.g. current in-flight requests must not exceed a given number). This allows the RateLimitingStrategy to control the rate of requests to the destination. It can decide to increase throughput or to increase backpressure in the Flink job graph.&lt;/p&gt;
+
+&lt;p&gt;With &lt;code&gt;getMaxBatchSize()&lt;/code&gt;, the RateLimitingStrategy can dynamically adjust the number of messages packaged into a single request. This can be useful to optimise sink throughput if the request size affects the destination’s performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;implementing-a-custom-ratelimitingstrategy&quot;&gt;Implementing a custom RateLimitingStrategy&lt;/h2&gt;
+
+&lt;h3 id=&quot;example-1--congestioncontrolratelimitingstrategy&quot;&gt;[Example 1]  CongestionControlRateLimitingStrategy&lt;/h3&gt;
+
+&lt;p&gt;The AsyncSinkBase comes pre-packaged with the CongestionControlRateLimitingStrategy. In this section, we explore its implementation.&lt;/p&gt;
+
+&lt;p&gt;This strategy is modelled after &lt;a href=&quot;https://en.wikipedia.org/wiki/TCP_congestion_control&quot;&gt;TCP congestion control&lt;/a&gt;, and aims to discover a destination’s highest possible request rate. It achieves this by increasing the request rate until the sink is throttled by the destination, at which point it will reduce the request rate.&lt;/p&gt;
+
+&lt;p&gt;In this RateLimitingStrategy, we want to dynamically adjust the request rate by:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Setting a maximum number of in-flight requests at any time&lt;/li&gt;
+  &lt;li&gt;Setting a maximum number of in-flight messages at any time (each request can comprise multiple messages)&lt;/li&gt;
+  &lt;li&gt;Increasing the maximum number of in-flight messages after each successful request, to maximise the request rate&lt;/li&gt;
+  &lt;li&gt;Decreasing the maximum number of in-flight messages after an unsuccessful request, to prevent overloading the destination&lt;/li&gt;
+  &lt;li&gt;Independently keeping track of the maximum number of in-flight messages if there are multiple sink subtasks&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This strategy means we will start with a low request rate (slow start), but aggressively increase it until the destination throttles us, which allows us to discover the highest possible request rate. It will also adjust the request rate if the conditions of the destination changes (e.g. another client starts writing to the same destination). This strategy works well if destinations implement traffic shaping and throttles once the bandwidth limit is reached (e.g. Amazon Kinesis Data Streams, Amazon Kinesis Data Firehose).&lt;/p&gt;
+
+&lt;p&gt;First, we implement the information methods to keep track of the number of in-flight requests and in-flight messages.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CongestionControlRateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;registerInFlightRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;currentInFlightRequests&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;currentInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBatchSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;registerCompletedRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResultInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;currentInFlightRequests&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentInFlightRequests&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;currentInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBatchSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+        
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getFailedMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scalingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;scaleDown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scalingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;scaleUp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then we implement the control methods to dynamically adjust the request rate.&lt;/p&gt;
+
+&lt;p&gt;We keep a current value for maxInFlightMessages and maxInFlightRequests, and postpone all new requests if maxInFlightRequests or maxInFlightMessages have been reached.&lt;/p&gt;
+
+&lt;p&gt;Every time a request completes, the CongestionControlRateLimitingStrategy will check if there are any failed messages in the response. If there are, it will decrease maxInFlightMessages. If there are no failed messages, it will increase maxInFlightMessages. This gives us indirect control of the rate of messages being written to the destination.&lt;/p&gt;
+
+&lt;p&gt;Side note: The default CongestionControlRateLimitingStrategy uses an Additive Increase / Multiplicative Decrease (AIMD) scaling strategy. This is also used in TCP congestion control to avoid overloading the destination by increasing write rate slowly but backing off quickly if throttled.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CongestionControlRateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;registerCompletedRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResultInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resultInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getFailedMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scalingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;scaleDown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scalingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;scaleUp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;shouldBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentInFlightRequests&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxInFlightRequests&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentInFlightMessages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBatchSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxInFlightMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;example-2-tokenbucketratelimitingstrategy&quot;&gt;[Example 2] TokenBucketRateLimitingStrategy&lt;/h3&gt;
+
+&lt;p&gt;The CongestionControlRateLimitingStrategy is rather aggressive, and relies on a robust server-side rate limiting strategy. In the event we don’t have a robust server-side rate limiting strategy, we can implement a client-side rate limiting strategy.&lt;/p&gt;
+
+&lt;p&gt;As an example, we can look at the &lt;a href=&quot;https://en.wikipedia.org/wiki/Token_bucket&quot;&gt;token bucket rate limiting strategy&lt;/a&gt;. This strategy allows us to set the exact rate of the sink (e.g. requests per second, messages per second). If the limits are set correctly, we will avoid overloading the destination altogether.&lt;/p&gt;
+
+&lt;p&gt;In this strategy, we want to do the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Implement a TokenBucket that has a given initial number of tokens (e.g. 10). These tokens refill at a given rate (e.g. 1 token per second).&lt;/li&gt;
+  &lt;li&gt;When preparing an async request, we check if the token bucket has sufficient tokens. If not, we postpone the request.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Let’s look at an example implementation:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TokenBucketRateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RateLimitingStrategy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bucket&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bucket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TokenBucketRateLimitingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Refill&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;refill&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Refill&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;intervally&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ofSeconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Bandwidth&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;limit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bandwidth&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;classic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;refill&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;bucket&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bucket4j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addLimit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;limit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;// ... (information methods not needed)&lt;/span&gt;
+    
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;shouldBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestInfo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bucket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;tryConsume&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;requestInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getBatchSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above example, we use the &lt;a href=&quot;https://github.com/bucket4j/bucket4j&quot;&gt;Bucket4j&lt;/a&gt; library’s Token Bucket implementation. We also map 1 message to 1 token. Since our token bucket has a size of 10 tokens and a refill rate of 1 token per second, we can be sure that we will not exceed a burst of 10 messages, and will also not exceed a constant rate of 1 message per second.&lt;/p&gt;
+
+&lt;p&gt;This would be useful if we know that our destination will failover ungracefully if a rate of 1 message per second is exceeded, or if we intentionally want to limit our sink’s throughput to provide higher bandwidth for other clients writing to the same destination.&lt;/p&gt;
+
+&lt;h2 id=&quot;specifying-a-custom-ratelimitingstrategy&quot;&gt;Specifying a custom RateLimitingStrategy&lt;/h2&gt;
+
+&lt;p&gt;To specify a custom RateLimitingStrategy, we have to specify it in the AsyncSinkWriterConfiguration which is passed into the constructor of the AsyncSinkWriter. For example:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyCustomSinkWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InputT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AsyncSinkWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InputT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyCustomRequestEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;MyCustomSinkWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;ElementConverter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InputT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyCustomRequestEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;elementConverter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Sink&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;InitContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BufferedRequestState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyCustomRequestEntry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;states&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kd&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;elementConverter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;AsyncSinkWriterConfiguration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+                    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;setRateLimitingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TokenBucketRateLimitingStrategy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;states&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;From Apache Flink 1.16 we can customise the RateLimitingStrategy used to dynamically adjust the behaviour of the Async Sink at runtime. This allows users to tune their connector implementations based on specific use cases and needs, without having to understand the base sink’s low-level workings.&lt;/p&gt;
+
+&lt;p&gt;We hope this extension will be useful for you. If you have any feedback, feel free to reach out!&lt;/p&gt;
+
+</description>
+<pubDate>Fri, 25 Nov 2022 13:00:00 +0100</pubDate>
+<link>https://flink.apache.org/2022/11/25/async-sink-rate-limiting-strategy.html</link>
+<guid isPermaLink="true">/2022/11/25/async-sink-rate-limiting-strategy.html</guid>
+</item>
+
+<item>
 <title>Announcing the Release of Apache Flink 1.16</title>
 <description>&lt;p&gt;Apache Flink continues to grow at a rapid pace and is one of the most active 
 communities in Apache. Flink 1.16 had over 240 contributors enthusiastically participating, 
@@ -19787,132 +19981,6 @@ The upcoming release will focus on new features and integrations that broaden th
 <pubDate>Wed, 01 Apr 2020 10:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2020/04/01/community-update.html</link>
 <guid isPermaLink="true">/news/2020/04/01/community-update.html</guid>
-</item>
-
-<item>
-<title>Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration</title>
-<description>&lt;p&gt;In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.&lt;/p&gt;
-
-&lt;div class=&quot;page-toc&quot;&gt;
-&lt;ul id=&quot;markdown-toc&quot;&gt;
-  &lt;li&gt;&lt;a href=&quot;#introduction&quot; id=&quot;markdown-toc-introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#flink-and-its-integration-with-hive-comes-into-the-scene&quot; id=&quot;markdown-toc-flink-and-its-integration-with-hive-comes-into-the-scene&quot;&gt;Flink and Its Integration With Hive Comes into the Scene&lt;/a&gt;    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;#unified-metadata-management&quot; id=&quot;markdown-toc-unified-metadata-management&quot;&gt;Unified Metadata Management&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#stream-processing&quot; id=&quot;markdown-toc-stream-processing&quot;&gt;Stream Processing&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#compatible-with-more-hive-versions&quot; id=&quot;markdown-toc-compatible-with-more-hive-versions&quot;&gt;Compatible with More Hive Versions&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#reuse-hive-user-defined-functions-udfs&quot; id=&quot;markdown-toc-reuse-hive-user-defined-functions-udfs&quot;&gt;Reuse Hive User Defined Functions (UDFs)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#enhanced-read-and-write-on-hive-data&quot; id=&quot;markdown-toc-enhanced-read-and-write-on-hive-data&quot;&gt;Enhanced Read and Write on Hive Data&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#formats&quot; id=&quot;markdown-toc-formats&quot;&gt;Formats&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#more-data-types&quot; id=&quot;markdown-toc-more-data-types&quot;&gt;More Data Types&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href=&quot;#roadmap&quot; id=&quot;markdown-toc-roadmap&quot;&gt;Roadmap&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#summary&quot; id=&quot;markdown-toc-summary&quot;&gt;Summary&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;/div&gt;
-
-&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
-
-&lt;p&gt;What are some of the latest requirements for your data warehouse and data infrastructure in 2020?&lt;/p&gt;
-
-&lt;p&gt;We’ve came up with some for you.&lt;/p&gt;
-
-&lt;p&gt;Firstly, today’s business is shifting to a more real-time fashion, and thus demands abilities to process online streaming data with low latency for near-real-time or even real-time analytics. People become less and less tolerant of delays between when data is generated and when it arrives at their hands, ready to use. Hours or even days of delay is not acceptable anymore. Users are expecting minutes, or even seconds, of end-to-end latency for data in their warehouse, to get quicker-than-ever insights.&lt;/p&gt;
-
-&lt;p&gt;Secondly, the infrastructure should be able to handle both offline batch data for offline analytics and exploration, and online streaming data for more timely analytics. Both are indispensable as they both have very valid use cases. Apart from the real time processing mentioned above, batch processing would still exist as it’s good for ad hoc queries and explorations, and full-size calculations. Your modern infrastructure should not force users to choose between one or the other, it should offer users both options for a world-class data infrastructure.&lt;/p&gt;
-
-&lt;p&gt;Thirdly, the data players, including data engineers, data scientists, analysts, and operations, urge a more unified infrastructure than ever before for easier ramp-up and higher working efficiency. The big data landscape has been fragmented for years - companies may have one set of infrastructure for real time processing, one set for batch, one set for OLAP, etc. That, oftentimes, comes as a result of the legacy of lambda architecture, which was popular in the era when stream processors were not as mature as today and users had to periodically run batch processing as a way to correct streaming pipelines. Well, it’s a different era now! As stream processing becomes mainstream and dominant, end users no longer want to learn shattered pieces of skills and maintain many moving parts with all kinds of tools and pipelines. Instead, what they really need is a unified analytics platform that can be mastered easily, and simplify any operational complexity.&lt;/p&gt;
-
-&lt;p&gt;If any of these resonate with you, you just found the right post to read: we have never been this close to the vision by strengthening Flink’s integration with Hive to a production grade.&lt;/p&gt;
-
-&lt;h2 id=&quot;flink-and-its-integration-with-hive-comes-into-the-scene&quot;&gt;Flink and Its Integration With Hive Comes into the Scene&lt;/h2&gt;
-
-&lt;p&gt;Apache Flink has been a proven scalable system to handle extremely high workload of streaming data in super low latency in many giant tech companies.&lt;/p&gt;
-
-&lt;p&gt;Despite its huge success in the real time processing domain, at its deep root, Flink has been faithfully following its inborn philosophy of being &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;a unified data processing engine for both batch and streaming&lt;/a&gt;, and taking a streaming-first approach in its architecture to do batch processing. By making batch a special case for streaming, Flink really leverages its cutting edge streaming capabilities and applies them to batch scenarios to gain the best offline performance. Flink’s batch performance has been quite outstanding in the early days and has become even more impressive, as the community started merging Blink, Alibaba’s fork of Flink, back to Flink in 1.9 and finished it in 1.10.&lt;/p&gt;
-
-&lt;p&gt;On the other hand, Apache Hive has established itself as a focal point of the data warehousing ecosystem. It serves as not only a SQL engine for big data analytics and ETL, but also a data management platform, where data is discovered and defined. As business evolves, it puts new requirements on data warehouse.&lt;/p&gt;
-
-&lt;p&gt;Thus we started integrating Flink and Hive as a beta version in Flink 1.9. Over the past few months, we have been listening to users’ requests and feedback, extensively enhancing our product, and running rigorous benchmarks (which will be published soon separately). I’m glad to announce that the integration between Flink and Hive is at production grade in &lt;a href=&quot;https://flink.apache.org/news/2020/02/11/release-1.10.0.html&quot;&gt;Flink 1.10&lt;/a&gt; and we can’t wait to walk you through the details.&lt;/p&gt;
-
-&lt;h3 id=&quot;unified-metadata-management&quot;&gt;Unified Metadata Management&lt;/h3&gt;
-
-&lt;p&gt;Hive Metastore has evolved into the de facto metadata hub over the years in the Hadoop, or even the cloud, ecosystem. Many companies have a single Hive Metastore service instance in production to manage all of their schemas, either Hive or non-Hive metadata, as the single source of truth.&lt;/p&gt;
-
-&lt;p&gt;In 1.9 we introduced Flink’s &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html&quot;&gt;HiveCatalog&lt;/a&gt;, connecting Flink to users’ rich metadata pool. The meaning of &lt;code&gt;HiveCatalog&lt;/code&gt; is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.&lt;/p&gt;
-
-&lt;p&gt;In Flink 1.10, users can store Flink’s own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/table/hive/hive_catalog.html#example&quot;&gt;Here’s an end-to-end example&lt;/a&gt; of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.&lt;/p&gt;
-
-&lt;h3 id=&quot;stream-processing&quot;&gt;Stream Processing&lt;/h3&gt;
-
-&lt;p&gt;The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data and unlock stream processing use cases:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;join real-time streaming data in Flink with offline Hive data for more complex data processing&lt;/li&gt;
-  &lt;li&gt;backfill Hive data with Flink directly in a unified fashion&lt;/li&gt;
-  &lt;li&gt;leverage Flink to move real-time data into Hive more quickly, greatly shortening the end-to-end latency between when data is generated and when it arrives at your data warehouse for analytics, from hours — or even days — to minutes&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;compatible-with-more-hive-versions&quot;&gt;Compatible with More Hive Versions&lt;/h3&gt;
-
-&lt;p&gt;In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/table/hive/#supported-hive-versions&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;reuse-hive-user-defined-functions-udfs&quot;&gt;Reuse Hive User Defined Functions (UDFs)&lt;/h3&gt;
-
-&lt;p&gt;Users can &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/table/hive/hive_functions.html#hive-user-defined-functions&quot;&gt;reuse all kinds of Hive UDFs in Flink&lt;/a&gt; since Flink 1.9.&lt;/p&gt;
-
-&lt;p&gt;This is a great win for Flink users with past history with the Hive ecosystem, as they may have developed custom business logic in their Hive UDFs. Being able to run these functions without any rewrite saves users a lot of time and brings them a much smoother experience when they migrate to Flink.&lt;/p&gt;
-
-&lt;p&gt;To take it a step further, Flink 1.10 introduces &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/dev/table/hive/hive_functions.html#use-hive-built-in-functions-via-hivemodule&quot;&gt;compatibility of Hive built-in functions via HiveModule&lt;/a&gt;. Over the years, the Hive community has developed a few hundreds of built-in functions that are super handy for users. For those built-in functions that don’t exist in Flink yet, users are now able to leverage the existing Hive built-in functions that they are familiar with and complete their jobs seamlessly.&lt;/p&gt;
-
-&lt;h3 id=&quot;enhanced-read-and-write-on-hive-data&quot;&gt;Enhanced Read and Write on Hive Data&lt;/h3&gt;
-
-&lt;p&gt;Flink 1.10 extends its read and write capabilities on Hive data to all the common use cases with better performance.&lt;/p&gt;
-
-&lt;p&gt;On the reading side, Flink now can read Hive regular tables, partitioned tables, and views. Lots of optimization techniques are developed around reading, including partition pruning and projection pushdown to transport less data from file storage, limit pushdown for faster experiment and exploration, and vectorized reader for ORC files.&lt;/p&gt;
-
-&lt;p&gt;On the writing side, Flink 1.10 introduces “INSERT INTO” and “INSERT OVERWRITE” to its syntax, and can write to not only Hive’s regular tables, but also partitioned tables with either static or dynamic partitions.&lt;/p&gt;
-
-&lt;h3 id=&quot;formats&quot;&gt;Formats&lt;/h3&gt;
-
-&lt;p&gt;Your engine should be able to handle all common types of file formats to give you the freedom of choosing one over another in order to fit your business needs. It’s no exception for Flink. We have tested the following table storage formats: text, csv, SequenceFile, ORC, and Parquet.&lt;/p&gt;
-
-&lt;h3 id=&quot;more-data-types&quot;&gt;More Data Types&lt;/h3&gt;
-
-&lt;p&gt;In Flink 1.10, we added support for a few more frequently-used Hive data types that were not covered by Flink 1.9. Flink users now should have a full, smooth experience to query and manipulate Hive data from Flink.&lt;/p&gt;
-
-&lt;h3 id=&quot;roadmap&quot;&gt;Roadmap&lt;/h3&gt;
-
-&lt;p&gt;Integration between any two systems is a never-ending story.&lt;/p&gt;
-
-&lt;p&gt;We are constantly improving Flink itself and the Flink-Hive integration also gets improved by collecting user feedback and working with folks in this vibrant community.&lt;/p&gt;
-
-&lt;p&gt;After careful consideration and prioritization of the feedback we received, we have prioritize many of the below requests for the next Flink release of 1.11.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Hive streaming sink so that Flink can stream data into Hive tables, bringing a real streaming experience to Hive&lt;/li&gt;
-  &lt;li&gt;Native Parquet reader for better performance&lt;/li&gt;
-  &lt;li&gt;Additional interoperability - support creating Hive tables, views, functions in Flink&lt;/li&gt;
-  &lt;li&gt;Better out-of-box experience with built-in dependencies, including documentations&lt;/li&gt;
-  &lt;li&gt;JDBC driver so that users can reuse their existing toolings to run SQL jobs on Flink&lt;/li&gt;
-  &lt;li&gt;Hive syntax and semantic compatible mode&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;If you have more feature requests or discover bugs, please reach out to the community through mailing list and JIRAs.&lt;/p&gt;
-
-&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
-
-&lt;p&gt;Data warehousing is shifting to a more real-time fashion, and Apache Flink can make a difference for your organization in this space.&lt;/p&gt;
-
-&lt;p&gt;Flink 1.10 brings production-ready Hive integration and empowers users to achieve more in both metadata management and unified/batch data processing.&lt;/p&gt;
-
-&lt;p&gt;We encourage all our users to get their hands on Flink 1.10. You are very welcome to join the community in development, discussions, and all other kinds of collaborations in this topic.&lt;/p&gt;
-
-</description>
-<pubDate>Fri, 27 Mar 2020 03:30:00 +0100</pubDate>
-<link>https://flink.apache.org/features/2020/03/27/flink-for-data-warehouse.html</link>
-<guid isPermaLink="true">/features/2020/03/27/flink-for-data-warehouse.html</guid>
 </item>
 
 </channel>
