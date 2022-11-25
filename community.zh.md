@@ -174,9 +174,9 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 ### 我已经有了一个 ASF JIRA 账号，希望将账号添加为贡献者
 
 如果您已经拥有 ASF JIRA 账号，则无需注册新账号。
-请按照下述邮件模板向 [jira-requests@flink.apache.org]([jira-requests@flink.apache.org]) 地址发送电子邮件，以便我们将您的账号添加到 JIRA 中的贡献者列表：
+请按照下述邮件模板向 [jira-requests@flink.apache.org](jira-requests@flink.apache.org) 地址发送电子邮件，以便我们将您的账号添加到 JIRA 中的贡献者列表：
 
-[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Add%20me%20as%20a%20contributor%20to%20JIRA&amp;body=Hello,%0A%0APlease%20add%20me%20as%20a%20contributor%20to%20JIRA.%0AMy%20JIRA%20username%20is:%20%5BINSERT%20YOUR%20JIRA%20USERNAME%20HERE%5D%0A%0AThanks,%0A%5BINSERT%20YOUR%20NAME%20HERE%5D)
+[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Add%20me%20as%20a%20contributor%20to%20JIRA&body=Hello%2C%0A%0APlease%20add%20me%20as%20a%20contributor%20to%20JIRA.%0AMy%20JIRA%20username%20is%3A%20%5B%E4%BD%A0%E7%9A%84%20JIRA%20%E7%94%A8%E6%88%B7%E5%90%8D%5D%0A%0AThanks%2C%0A%5B%E4%BD%A0%E7%9A%84%E5%90%8D%E5%AD%97%5D)
 
 ```text
 主题: Add me as a contributor to JIRA
@@ -192,9 +192,9 @@ Thanks,
 
 ### 我没有 ASF JIRA 账号，想申请一个账号并将其添加为贡献者
 
-为了申请 ASF JIRA 账号，您需要按照下述邮件模板向 [jira-requests@flink.apache.org]([jira-requests@flink.apache.org]) 发送电子邮件：
+为了申请 ASF JIRA 账号，您需要按照下述邮件模板向 [jira-requests@flink.apache.org](jira-requests@flink.apache.org) 发送电子邮件：
 
-[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Request%20for%20JIRA%20Account&amp;body=Hello,%0A%0AI%20would%20like%20to%20request%20a%20JIRA%20account.%0AMy%20proposed%20JIRA%20username:%20%5BINSERT%20YOUR%20DESIRED%20JIRA%20USERNAME%20HERE%20(LOWERCASE%20LETTERS%20AND%20NUMBERS%20ONLY)%5D%0AMy%20full%20name:%20%5BINSERT%20YOUR%20FULL%20NAME%20HERE%5D%0AMy%20email%20address:%20%5BINSERT%20YOUR%20EMAIL%20ADDRESS%20HERE%5D%0A%0AThanks,%0A%5BINSERT%20YOUR%20NAME%20HERE%5D)
+[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Request%20for%20JIRA%20Account&body=Hello%2C%0A%0AI%20would%20like%20to%20request%20a%20JIRA%20account.%0AMy%20proposed%20JIRA%20username%3A%20%5B%20%E5%A1%AB%E5%86%99%E4%BD%A0%E6%9C%9F%E6%9C%9B%E7%9A%84%20JIRA%20%E7%94%A8%E6%88%B7%E5%90%8D%20(%E5%8F%AA%E8%83%BD%E5%8C%85%E5%90%AB%E5%B0%8F%E5%86%99%E5%AD%97%E6%AF%8D%E5%92%8C%E6%95%B0%E5%AD%97)%5D%0AMy%20full%20name%3A%20%5B%E5%A1%AB%E5%86%99%E4%BD%A0%E7%9A%84%E5%85%A8%E5%90%8D%5D%0AMy%20email%20address%3A%20%5B%E5%A1%AB%E5%86%99%E4%BD%A0%E7%9A%84%E9%82%AE%E4%BB%B6%E5%9C%B0%E5%9D%80%5D%0A%0AThanks%2C%0A%5B%E4%BD%A0%E7%9A%84%E5%90%8D%E5%AD%97%5D)
 
 ```text
 主题: Request for JIRA Account
