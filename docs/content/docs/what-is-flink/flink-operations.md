@@ -1,7 +1,7 @@
 ---
 title: Operations
 bookCollapseSection: false
-weight: 1
+weight: 3
 ---
 
 # What is Apache Flink? — Operations
