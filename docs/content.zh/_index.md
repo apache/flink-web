@@ -2,11 +2,6 @@
 title: Apache Flink Documentation 
 type: docs
 bookToc: false
-aliases:
-  - /zh/examples/index.html
-  - /zh/getting-started/examples/index.html
-  - /zh/dev/execution_plans.html
-  - /zh/docs/dev/execution/execution_plans/
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -27,4 +22,102 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Apache Flink 文档
+# Apache Flink® - 数据流上的有状态计算
+
+{{< img src="/img/flink-home-graphic.png" width="800px" >}}
+
+{{< columns >}} <!-- begin columns block -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-th"></span> <b>所有流式场景</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>事件驱动应用</li>
+            <li>流批分析</li>
+            <li>数据管道 & ETL</li>
+            </ul>
+        <a href={{< ref "docs/use-cases" >}}>了解更多</a>
+    </div>
+</div>
+
+<---> <!-- magic separator, between columns -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-ok"></span> <b>正确性保证</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>Exactly-once 状态一致性</li>
+            <li>事件时间处理</li>
+            <li>成熟的迟到数据处理</li>
+        </ul>
+    <a href="{{< ref "docs/what-is-flink/flink-applications" >}}#building-blocks-for-streaming-applications">了解更多</a>
+    </div>
+</div>
+
+<---> <!-- magic separator, between columns -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon glyphicon-sort-by-attributes"></span> <b>分层 API</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>SQL on Stream & Batch Data</li>
+            <li>DataStream API & DataSet API</li>
+            <li>ProcessFunction (Time & State)</li>
+        </ul>
+    <a href="{{< ref "docs/what-is-flink/flink-applications" >}}#layered-apis">了解更多</a>
+    </div>
+</div>
+{{< /columns >}}
+
+{{< columns >}} <!-- begin columns block -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-dashboard"></span> <b>聚焦运维</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>灵活部署</li>
+            <li>高可用</li>
+            <li>保存点</li>
+        </ul>
+    <a href="{{< ref "docs/what-is-flink/flink-operations" >}}">了解更多</a>
+    </div>
+</div>
+
+<---> <!-- magic separator, between columns -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-fullscreen"></span> <b>大规模计算</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>水平扩展架构</li>
+            <li>支持超大状态</li>
+            <li>增量检查点机制</li>
+        </ul>
+    <a href="{{< ref "docs/what-is-flink/flink-architecture" >}}#run-applications-at-any-scale">了解更多</a>
+    </div>
+</div>
+
+<---> <!-- magic separator, between columns -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-flash"></span> <b>性能卓越</b>
+    </div>
+    <div class="panel-body">
+        <ul style="font-size: small;">
+            <li>低延迟</li>
+            <li>高吞吐</li>
+            <li>内存计算</li>
+        </ul>
+    <a href="{{< ref "docs/what-is-flink/flink-architecture" >}}#leverage-in-memory-performance">了解更多</a>
+    </div>
+</div>
+{{< /columns >}}
+
+## 最新博客列表
+
+{{< recent_posts >}}
