@@ -140,3 +140,12 @@ Hadoop version of the cluster you want to connect to (HDFS / YARN).
 
 The easiest way to fix that is to pick a Hadoop-free Flink version and simply export the Hadoop path and
 classpath from the cluster.
+
+### I have an OutOfMemoryError
+
+In Fink 1.9.0 and prior version, the managed memory fraction of taskmanager is controlled by `taskmanager.memory.fraction`,
+and with 0.7 as the default value. This sometimes will cause OOMs due to the fact that the default value of
+JVM parameter `NewRatio` is 2, which means the old generation occupied only 2/3 (0.66) of the heap memory.
+
+If you run into this case, please try to manually change this value to a lower value.
+
