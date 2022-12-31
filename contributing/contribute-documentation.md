@@ -47,7 +47,7 @@ The Flink community is maintaining both English and Chinese documentation. If yo
 
 *NOTE: The Flink community is still in the process of translating Chinese documentations, some documents may not have been translated yet. If the document you are updating is not translated yet, you can just copy the English changes to the Chinese document.*
 
-The Chinese documents are located in the same folders as the corresponding English documents. The files for both languages have the same names except that the Chinese version have the `.zh.md` suffix. You can update or extend the `.zh.md` file according to the English documents changes. If the corresponding `.zh.md` file doesn't exited, just copy the existed English file and rename to `.zh.md` suffix. It will generate under `/zh` folder with same name as html file.
+The Chinese documents are located in the same folders as the corresponding English documents. The files for both languages have the same names except that the Chinese version have the `.zh.md` suffix. You can update or extend the `.zh.md` file according to the English documents changes. If the corresponding `.zh.md` file doesn't exist, just copy the existed English file and rename to `.zh.md` suffix. It will generate under `/zh` folder with same name as html file.
 
 ## Submit your contribution
 
