@@ -50,7 +50,7 @@ Please note that you won't receive a respose to your mail if you are not subscri
 
 You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-1llkzbgyt-K2nNGGg88rfsDGLkT09Qzg)
 After creating an account in Slack, don't forget to introduce yourself in #introductions.
-Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
+Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list]({{< ref "docs/community" >}}#mailing-lists).
 Any existing Slack member can also invite anyone else to join.
 
 ### Stack Overflow
@@ -61,7 +61,7 @@ Many members of the Flink community are active on [Stack Overflow](https://stack
 
 If you observe an unexpected behavior that might be caused by a bug, you can search for reported bugs or file a bug report in [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK).
 
-If you are unsure whether the unexpected behavior happend due to a bug or not, please post a question to the [user mailing list](#user-mailing-list).
+If you are unsure whether the unexpected behavior happend due to a bug or not, please post a question to the [user mailing list]({{< ref "docs/community" >}}#user-mailing-list).
 
 ## Got an Error Message?
 
