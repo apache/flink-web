@@ -277,4 +277,4 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
 
 ## 素材以及 Apache Flink Logo
 
-[素材页面]({{< ref "misc/material" >}}) 提供了不同尺寸以及不同颜色的 Apache Flink Logo。
+[素材页面]({{< ref "material" >}}) 提供了不同尺寸以及不同颜色的 Apache Flink Logo。

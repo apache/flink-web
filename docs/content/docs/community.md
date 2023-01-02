@@ -281,4 +281,4 @@ Please find the most up-to-date list <a href="https://projects.apache.org/commit
 
 ## Materials / Apache Flink Logos
 
-The [materials page]({{< ref "misc/material" >}}) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
+The [materials page]({{< ref "material" >}}) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
