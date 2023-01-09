@@ -24,6 +24,5 @@ then
 	exit 1
 fi
 git submodule update --init --recursive
-./setup_docs.sh
-hugo mod get -u
-hugo -b "" serve 
+
+hugo -b "" serve

@@ -1,19 +1,24 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide — Formatting"
+title: Code Style and Quality Guide — Formatting Guide
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.zh.md %}
+# Code Style and Quality Guide — Formatting Guide
 
-{% toc %}
-
-
+#### [Preamble]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
 
 ## Java Code Formatting Style
 
-We recommend to set up the IDE to automatically check the code style. Please follow the [IDE guide]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html) to set up
-[spotless]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#code-formatting) and
-[checkstyle]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java).
-
+We recommend to set up the IDE to automatically check the code style. Please follow the {{< docs_link file="flink-docs-stable/docs/flinkdev/ide_setup/" name="IDE Setup Guide">}} to set up
+{{< docs_link file="flink-docs-stable/docs/flinkdev/ide_setup/#code-formatting" name="spotless">}} and
+{{< docs_link file="flink-docs-stable/docs/flinkdev/ide_setup/#checkstyle-for-java" name="checkstyle">}}.
 
 ### License
 
@@ -38,7 +43,7 @@ We recommend to set up the IDE to automatically check the code style. Please fol
 ### Naming
 
 * **Package names must start with a letter, and must not contain upper-case letters or special characters.**
- **Non-private static final fields must be upper-case, with words being separated by underscores.**(`MY_STATIC_VARIABLE`)
+  **Non-private static final fields must be upper-case, with words being separated by underscores.**(`MY_STATIC_VARIABLE`)
 * **Non-static fields/methods must be in lower camel case.** (`myNonStaticField`)
 
 
@@ -128,5 +133,4 @@ values
 
 <hr>
 
-[^1]:
-     We are keeping such frameworks out of Flink, to make debugging easier and avoid dependency clashes.
+[^1]: We are keeping such frameworks out of Flink, to make debugging easier and avoid dependency clashes.

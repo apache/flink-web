@@ -1,13 +1,15 @@
 ---
-title: "How To Contribute"
+title: Overview
+bookCollapseSection: false
+weight: 16
 ---
 
-<hr />
+# How To Contribute
 
 Apache Flink is developed by an open and friendly community. Everybody is cordially welcome to join the community and contribute to Apache Flink. There are several ways to interact with the community and to contribute to Flink including asking questions, filing bug reports, proposing new features, joining discussions on the mailing lists, contributing code or documentation, improving the website, or testing release candidates.
 
 
-<h1>What do you want to do?</h1>
+## What do you want to do?
 <p>Contributing to Apache Flink goes beyond writing code for the project. Below, we list different opportunities to help the project:</p>
 
 
@@ -26,11 +28,11 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> Contribute Code</td>
-      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-code.html">Code Contribution Guide</a></td>
+      <td>Read the <a href="{{< ref "docs/how-to-contribute/contribute-code" >}}">Code Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Help With Code Reviews</td>
-      <td>Read the <a href="{{ site.baseurl }}/contributing/reviewing-prs.html">Code Review Guide</a></td>
+      <td>Read the <a href="{{< ref "docs/how-to-contribute/reviewing-prs" >}}">Code Review Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Help Preparing a Release</td>
@@ -46,35 +48,35 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Contribute Documentation</td>
-      <td>Read the <a href="{{ site.baseurl }}/contributing/contribute-documentation.html">Documentation Contribution Guide</a></td>
+      <td>Read the <a href="{{< ref "docs/how-to-contribute/contribute-documentation" >}}">Documentation Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Support Flink Users</td>
       <td>
         <ul class="contribute-card-list">
-          <li>Reply to questions on the <a href="https://flink.apache.org/community.html#mailing-lists">user mailing list</a></li>
+          <li>Reply to questions on the <a href="{{< ref "docs/community" >}}#mailing-lists">user mailing list</a></li>
           <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>, <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> or <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> tag</li>
-          <li>Check the latest issues in <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20created%20DESC%2C%20priority%20DESC%2C%20updated%20DESC">Jira</a> for tickets which are actually user questions</li>
+          <li>Check the latest issues in <a href="http://issues.apache.org/jira/browse/FLINK">Jira</a> for tickets which are actually user questions</li>
         </ul>
       </td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> Improve The Website</td>
-      <td>Read the <a href="{{ site.baseurl }}/contributing/improve-website.html">Website Contribution Guide</a></td>
+      <td>Read the <a href="{{< ref "docs/how-to-contribute/improve-website" >}}">Website Contribution Guide</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> Spread the Word About Flink</td>
       <td>
         <ul class="contribute-card-list">
         <li>Organize or attend a <a href="https://www.meetup.com/topics/apache-flink/">Flink Meetup</a></li>
-        <li>Contribute to the <a href="https://flink.apache.org/blog/">Flink blog</a></li>
-        <li>Share your conference, meetup or blog post on the <a href="https://flink.apache.org/community.html#mailing-lists">community@flink.apache.org mailing list</a>, or tweet about it, tagging the <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a> handle.</li>
+        <li>Contribute to the <a href="{{< ref "posts" >}}">Flink blog</a></li>
+        <li>Share your conference, meetup or blog post on the <a href="{{< ref "docs/community" >}}#mailing-lists">community@flink.apache.org mailing list</a>, or tweet about it, tagging the <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a> handle.</li>
       </ul>
       </td>
     </tr>
     <tr>
       <td colspan="2">
-        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Any other question? Reach out to the <a href="https://flink.apache.org/community.html#mailing-lists">dev@flink.apache.org mailing list</a> to get help!
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Any other question? Reach out to the <a href="{{< ref "docs/community" >}}#mailing-lists">dev@flink.apache.org mailing list</a> to get help!
       </td>
     </tr>
   </tbody>
@@ -105,11 +107,11 @@ Code/technology contributions include contributed pull requests (patches), desig
 
 While the prior points give ways to identify promising candidates, the following are "must haves" for any committer candidate:
 
-  - Being community minded: The candidate understands the meritocratic principles of community management. They do not always optimize for as much as possible personal contribution, but will help and empower others where it makes sense.
+- Being community minded: The candidate understands the meritocratic principles of community management. They do not always optimize for as much as possible personal contribution, but will help and empower others where it makes sense.
 
-  - We trust that a committer candidate will use their write access to the repositories responsibly, and if in doubt, conservatively. Flink is a big system, and it is important that committers are aware of what they know and what they don't know. In doubt, committers should ask for a second pair of eyes rather than commit to parts that they are not well familiar with. (Even the most seasoned committers follow this practice.)
-  
-  - They have shown to be respectful towards other community members and constructive in discussions.
+- We trust that a committer candidate will use their write access to the repositories responsibly, and if in doubt, conservatively. Flink is a big system, and it is important that committers are aware of what they know and what they don't know. In doubt, committers should ask for a second pair of eyes rather than commit to parts that they are not well familiar with. (Even the most seasoned committers follow this practice.)
+
+- They have shown to be respectful towards other community members and constructive in discussions.
 
 
 #### What are we looking for in PMC members
