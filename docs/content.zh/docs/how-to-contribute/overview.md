@@ -1,13 +1,15 @@
 ---
-title: "如何参与贡献"
+title: 如何参与贡献
+bookCollapseSection: false
+weight: 16
 ---
 
-<hr />
+# 如何参与贡献
 
 Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎每个人加入社区并为 Apache Flink 做出贡献。与社区交流和为 Flink 做贡献的方式包括：提问题、报告 bug、提议新特性、参与邮件列表的讨论、贡献代码或文档、改进网站和测试候选发布版本。
 
 
-<h1>你想做什么？</h1>
+## 你想做什么？
 <p>为 Apache Flink 做贡献不仅仅包括贡献代码。下面列出来不同的贡献形式：</p>
 
 
@@ -26,11 +28,11 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> 贡献代码</td>
-      <td>请阅读 <a href="{{ site.baseurl }}/zh/contributing/contribute-code.html">代码贡献指南</a></td>
+      <td>请阅读 <a href=""{{< ref "docs/how-to-contribute/contribute-code" >}}">代码贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> 帮助做代码审核</td>
-      <td>请阅读 <a href="{{ site.baseurl }}/zh/contributing/reviewing-prs.html">代码审核指南</a></td>
+      <td>请阅读 <a href="{{< ref "docs/how-to-contribute/reviewing-prs" >}}">代码审核指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> 帮助准备版本发布</td>
@@ -46,21 +48,21 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> 贡献文档</td>
-      <td>请阅读 <a href="{{ site.baseurl }}/zh/contributing/contribute-documentation.html">文档贡献指南</a></td>
+      <td>请阅读 <a href="{{< ref "docs/how-to-contribute/contribute-documentation" >}}">文档贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 支持 Flink 用户</td>
       <td>
         <ul class="contribute-card-list">
-          <li>回答 <a href="https://flink.apache.org/community.html#mailing-lists">用户邮件列表</a> 中的问题</li>
+          <li>回答 <a href="{{< ref "docs/community" >}}#mailing-lists">用户邮件列表</a> 中的问题</li>
           <li>回答 <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> 上带有 <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>、 <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> 或 <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> 标签的 Flink 相关问题</li>
-          <li>检查 <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20FLINK%20AND%20resolution%20%3D%20Unresolved%20ORDER%20BY%20created%20DESC%2C%20priority%20DESC%2C%20updated%20DESC">Jira</a> 上近期发布的 issue 中用户提出的问题</li>
+          <li>检查 <a href="http://issues.apache.org/jira/browse/FLINK">Jira</a> 上近期发布的 issue 中用户提出的问题</li>
         </ul>
       </td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> 改进网站</td>
-      <td>请阅读 <a href="{{ site.baseurl }}/zh/contributing/improve-website.html">网站贡献指南</a></td>
+      <td>请阅读 <a href="{{< ref "docs/how-to-contribute/improve-website" >}}">网站贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> 推广 Flink</td>
@@ -68,13 +70,13 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
         <ul class="contribute-card-list">
         <li>组织或出席 <a href="https://www.meetup.com/topics/apache-flink/">Flink Meetup</a></li>
         <li>贡献 <a href="https://flink.apache.org/blog/">Flink blog</a></li>
-        <li>在 <a href="https://flink.apache.org/community.html#mailing-lists">community@flink.apache.org 邮件列表</a>分享你的会议、聚会或博客文章，或发 tweet 并 <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a>。</li>
+        <li>在 <a href="{{< ref "docs/community" >}}#mailing-lists">community@flink.apache.org 邮件列表</a>分享你的会议、聚会或博客文章，或发 tweet 并 <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a>。</li>
       </ul>
       </td>
     </tr>
     <tr>
       <td colspan="2">
-        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> 如有其他问题请到 <a href="https://flink.apache.org/community.html#mailing-lists">dev@flink.apache.org 邮件列表</a> 寻求帮助！
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> 如有其他问题请到 <a href="{{< ref "docs/community" >}}#mailing-lists">dev@flink.apache.org 邮件列表</a> 寻求帮助！
       </td>
     </tr>
   </tbody>
@@ -108,11 +110,11 @@ Committer 是对项目仓库具有写入权限的社区成员，也就是说，�
 
 前面几点给出了有望成为候选人的方法，以下是 committer 候选人的“必备条件”：
 
-  - 具备社区意识： 候选人要理解社区管理的精英原则。他们并不总是尽可能地提升个人贡献，而是积极帮助和授权他人做出有意义的贡献。
+- 具备社区意识： 候选人要理解社区管理的精英原则。他们并不总是尽可能地提升个人贡献，而是积极帮助和授权他人做出有意义的贡献。
 
-  - 我们相信 committer 候选人会负责任地使用他们对代码仓库的写入访问权限，在没有把握的时候他们会保守地使用该权限。Flink 是一个庞大的系统，committer 必须清楚哪些是自己知道的哪些是自己不知道的。如果遇到疑问，committer 应该寻求帮助，而不是提交他们不太熟悉的部分。（即使是经验最丰富的 committer 也要遵循这个约定。）
+- 我们相信 committer 候选人会负责任地使用他们对代码仓库的写入访问权限，在没有把握的时候他们会保守地使用该权限。Flink 是一个庞大的系统，committer 必须清楚哪些是自己知道的哪些是自己不知道的。如果遇到疑问，committer 应该寻求帮助，而不是提交他们不太熟悉的部分。（即使是经验最丰富的 committer 也要遵循这个约定。）
 
-  - 他们表现出对其他社区成员的尊重并建设性地参与话题讨论。
+- 他们表现出对其他社区成员的尊重并建设性地参与话题讨论。
 
 
 #### 我们寻找什么样的 PMC 成员

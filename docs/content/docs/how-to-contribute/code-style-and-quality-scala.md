@@ -1,12 +1,18 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide  — Scala"
+title: Code Style and Quality Guide — Scala
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.md %}
+# Code Style and Quality Guide — Scala
 
-{% toc %}
-
-
+#### [Preamble]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
 
 ## Scala Language Features
 
@@ -47,14 +53,14 @@ Scala APIs should have a “completeness test”, like the following example fro
     * Scala’s implicits should only be used for user-facing API improvements such as the Table API expressions or type information extraction.
     * Don’t use them for internal “magic”.
 * **Add explicit types for class members.**
-    * Don’t rely on implicit type inference for class fields and methods return types: 
- 
-        **Don’t:**
+    * Don’t rely on implicit type inference for class fields and methods return types:
+
+      **Don’t:**
         ```
         var expressions = new java.util.ArrayList[String]()
         ```
 
-        **Do:**
+      **Do:**
         ```
         var expressions: java.util.List[String] = new java.util.ArrayList[]()
         ```
@@ -73,3 +79,4 @@ Scala APIs should have a “completeness test”, like the following example fro
 * Scala’s functional nature allows for long transformation chains (`x.map().map().foreach()`).
 * In order to force implementers to structure their code, the line length is therefore limited to 100 characters.
 * Use one line per transformation for better maintainability.
+

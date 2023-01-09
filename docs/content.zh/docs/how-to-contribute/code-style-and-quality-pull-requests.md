@@ -1,10 +1,20 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide — Pull Requests & Changes"
+title: Code Style and Quality Guide — Pull Requests & Changes
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.zh.md %}
+# Code Style and Quality Guide — Pull Requests & Changes
 
-{% toc %}
+#### [序言]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [常用编码指南]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java 语言指南]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala 语言指南]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [组件指南]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [格式指南]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
+
+<hr>
 
 **Rationale:** We ask contributors to put in a little bit of extra effort to bring pull requests into a state that they can be more easily and more thoroughly reviewed. This helps the community in many ways:
 
@@ -17,10 +27,10 @@ Please understand that contributions that do not follow this guide will take lon
 
 ## 1. JIRA issue and Naming
 
-Make sure that the pull request corresponds to a [JIRA issue]([https://issues.apache.org/jira/projects/FLINK/issues).
+Make sure that the pull request corresponds to a [JIRA issue](https://issues.apache.org/jira/projects/FLINK/issues).
 
 Exceptions are ****hotfixes****, like fixing typos in JavaDocs or documentation files.
-  
+
 
 Name the pull request in the form `[FLINK-XXXX][component] Title of the pull request`, where `FLINK-XXXX` should be replaced by the actual issue number. The components should be the same as used in the JIRA issue.
 
@@ -67,9 +77,9 @@ If a pull request does still contain big commits (e.g. a commit with more than 1
 
 ## 4. Commit Naming Conventions
 
-Commit messages should follow a similar pattern as the pull request as a whole: 
-`[FLINK-XXXX][component] Commit description`. 
- 
+Commit messages should follow a similar pattern as the pull request as a whole:
+`[FLINK-XXXX][component] Commit description`.
+
 In some cases, the issue might be a subtask here, and the component may be different from the Pull Request’s main component. For example, when the commit introduces an end-to-end test for a runtime change, the PR would be tagged as `[runtime]`, but the individual commit would be tagged as `[e2e]`.
 
 Examples for commit messages:

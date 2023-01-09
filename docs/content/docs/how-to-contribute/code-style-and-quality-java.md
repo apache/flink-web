@@ -1,11 +1,18 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide — Java"
+title: Code Style and Quality Guide — Java
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.zh.md %}
+# Code Style and Quality Guide — Java
 
-{% toc %}
-
+#### [Preamble]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
 
 ## Java Language Features and Libraries
 
@@ -68,18 +75,18 @@ title:  "Apache Flink Code Style and Quality Guide — Java"
 
 ### Java Optional
 
- * Use **@Nullable annotation where you do not use Optional** for the nullable values.
+* Use **@Nullable annotation where you do not use Optional** for the nullable values.
 * If you can prove that `Optional` usage would lead to a **performance degradation in critical code then fallback to @Nullable**.
 * Always use **Optional to return nullable values** in the API/public methods except the case of a proven performance concern.
 * **Do not use Optional as a function argument**, instead either overload the method or use the Builder pattern for the set of function arguments.
-     * Note: an Optional argument can be allowed in a private helper method if you believe that it simplifies the code
-     ([example](https://github.com/apache/flink/blob/master/flink-formats/flink-avro/src/main/java/org/apache/flink/formats/avro/typeutils/AvroFactory.java#L95)).
+    * Note: an Optional argument can be allowed in a private helper method if you believe that it simplifies the code
+      ([example](https://github.com/apache/flink/blob/master/flink-formats/flink-avro/src/main/java/org/apache/flink/formats/avro/typeutils/AvroFactory.java#L95)).
 * **Do not use Optional for class fields**.
 
 
 ### Lambdas
 
-* Prefer non-capturing lambdas (lambdas that do not contain references to the outer scope). Capturing lambdas need to create a new object instance for every call. Non-capturing lambdas can use the same instance for each invocation. 
+* Prefer non-capturing lambdas (lambdas that do not contain references to the outer scope). Capturing lambdas need to create a new object instance for every call. Non-capturing lambdas can use the same instance for each invocation.
 
   **don’t:**
   ```
@@ -97,7 +104,7 @@ title:  "Apache Flink Code Style and Quality Guide — Java"
   ```
   map.computeIfAbsent(key, k-> Loader.load(k));
   ```
- 
+
   **do:**
   ```
   map.computeIfAbsent(key, Loader::load);

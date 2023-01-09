@@ -1,13 +1,18 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide  — Components"
+title: Code Style and Quality Guide — Components Guide
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.md %}
+# Code Style and Quality Guide — Components Guide
 
-{% toc %}
-
-
-
+#### [Preamble]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
 
 ## Component Specific Guidelines
 
@@ -84,7 +89,7 @@ Examples should include parameter parsing, so that you can run an example (from 
 
 * Syntax, semantics, and features should be aligned with SQL!
 * We don’t need to reinvent the wheel. Most problems have already been discussed industry-wide and written down in the SQL standard.
-* We rely on the newest standard (SQL:2016 or ISO/IEC 9075:2016 when writing this document [[download]](https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip) ). Not every part is available online but a quick web search might help here.
+* We rely on the newest standard (SQL:2016 or ISO/IEC 9075:2016 when writing this document ([download](https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip)). Not every part is available online but a quick web search might help here.
 
 Discuss divergence from the standard or vendor-specific interpretations.
 
@@ -96,7 +101,7 @@ Discuss divergence from the standard or vendor-specific interpretations.
 Consider the Table API as a bridge between the SQL and Java/Scala programming world.
 
 * The Table API is an Embedded Domain Specific Language for analytical programs following the relational model.
-It is not required to strictly follow the SQL standard in regards of syntax and names, but can be closer to the way a programming language would do/name functions and features, if that helps make it feel more intuitive.
+  It is not required to strictly follow the SQL standard in regards of syntax and names, but can be closer to the way a programming language would do/name functions and features, if that helps make it feel more intuitive.
 * The Table API might have some non-SQL features (e.g. map(), flatMap(), etc.) but should nevertheless “feel like SQL”. Functions and operations should have equal semantics and naming if possible.
 
 
@@ -125,7 +130,7 @@ Avoid full integration tests
 
 #### Compatibility
 
-Don’t introduce physical plan changes in minor releases!
+Don’t introduce physical plan changes in patch releases!
 
 * Backwards compatibility for state in streaming SQL relies on the fact that the physical execution plan remains stable. Otherwise the generated Operator Names/IDs change and state cannot be matched and restored.
 * Every bug fix that leads to changes in the optimized physical plan of a streaming pipeline hences breaks compatibility.
@@ -140,4 +145,5 @@ Keep Java in mind when designing interfaces.
 * Use Java collections and Java Optional in interfaces for a smooth integration with Java code.
 * Don’t use features of case classes such as .copy() or apply() for construction if a class is subjected to be converted to Java.
 * Pure Scala user-facing APIs should use pure Scala collections/iterables/etc. for natural and idiomatic (“scalaesk”) integration with Scala.
+
 

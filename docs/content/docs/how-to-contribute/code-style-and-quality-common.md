@@ -1,10 +1,20 @@
 ---
-title:  "Apache Flink Code Style and Quality Guide  — Common Rules"
+title: Code Style and Quality Guide — Common Rules
+bookCollapseSection: false
+bookHidden: true
 ---
 
-{% include code-style-navbar.md %}
+# Code Style and Quality Guide — Common Rules
 
-{% toc %}
+#### [Preamble]({{< ref "docs/how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< ref "docs/how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< ref "docs/how-to-contribute/code-style-and-quality-formatting" >}})
+
+<hr>
 
 ## 1. Copyright
 
@@ -32,7 +42,7 @@ Each file must include the Apache license information as a header.
 
 ## 2. Tools
 
-We recommend to follow the [IDE Setup Guide]({{site.DOCS_BASE_URL}}flink-docs-master/flinkDev/ide_setup.html#checkstyle-for-java) to get IDE tooling configured.
+We recommend to follow the {{< docs_link file="flink-docs-stable/docs/flinkdev/ide_setup/" name="IDE Setup Guide">}} to get IDE tooling configured.
 
 
 <!---
@@ -70,7 +80,7 @@ The code alone should explain as much as possible the “<span style="text-decor
 
 * Use JavaDocs to describe the roles of classes and the contracts of methods, in cases where the contract is not obvious or intuitive from the method name (the “what”).
 * The flow of the code should give a good description of the “how”.
-Think of variable and method names as part of the code documenting itself.
+  Think of variable and method names as part of the code documenting itself.
 * It often makes reading the code easier if larger blocks that form a unit are moved into a private method with a descriptive name of what that block is doing
 
 In-code comments help explain the <span style="text-decoration:underline;">“why”</span>
@@ -156,14 +166,14 @@ For nullability, the Flink codebase aims to follow these conventions:
 
 * Fields, parameters, and return types are always non-null, unless indicated otherwise
 * All fields, parameters and method types that can be null should be annotated with `@javax.annotation.Nullable`.
-That way, you get warnings from IntelliJ about all sections where you have to reason about potential null values.
+  That way, you get warnings from IntelliJ about all sections where you have to reason about potential null values.
 * For all mutable (non-final) fields that are not annotated, the assumption is that while the field value changes, there always is a value.
     * This should be double check whether these can in fact not be null throughout the lifetime of the object.
 
 _Note: This means that `@Nonnull` annotations are usually not necessary, but can be used in certain cases to override a previous annotation, or to point non-nullability out in a context where one would expect a nullable value._
 
 `Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`.
-See also [usage of Java Optional](code-style-and-quality-java.html#java-optional).
+See also [usage of Java Optional]({{< ref "docs/how-to-contribute/code-style-and-quality-java" >}}#java-optional).
 
 
 ### Avoid Code Duplication
@@ -206,7 +216,7 @@ The component/class you want to test probably depends on another broad component
 In that case, segregate the interfaces (factor out the minimal required interface) and supply a test stub in that case.
 
 * For example, if testing a S3RecoverableMultiPartUploader requires actual S3 access
-then the S3 access should be factored out into an interface and test should replace it by a test stub
+  then the S3 access should be factored out into an interface and test should replace it by a test stub
 * This naturally requires to be able to inject dependencies (see above)
 
 ⇒ Please note that these steps often require more effort in implementing tests (factoring out interfaces, creating dedicated test stubs), but make the tests more resilient to changes in other components, i.e., you do not need to touch the tests when making unrelated changes.
@@ -238,7 +248,7 @@ That means still applying the general idea of the sections above, but possibly f
 **Most code paths should not require any concurrency.** The right internal abstractions should obviate the need for concurrency in almost all cases.
 
 * The Flink core and runtime use concurrency to provide these building blocks.
-Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or some predefined Source / Sink utilities.
+  Examples are in the RPC system, Network Stack, in the Task’s mailbox model, or some predefined Source / Sink utilities.
 * We are not fully there, but any new addition that introduces implements its own concurrency should be under scrutiny, unless it falls into the above category of core system building blocks.
 * Contributors should reach out to committers if they feel they need to implement concurrent code to see if there is an existing abstraction/building-block, or if one should be added.
 
@@ -325,23 +335,23 @@ assertThat(list)
 ### Write targeted tests
 
 * <span style="text-decoration:underline;">Test contracts not implementations</span>: Test that after a sequence of actions, the components are in a certain state, rather than testing that the components followed a sequence of internal state modifications.
-  * For example, a typical antipattern is to check whether one specific method was called as part of the test
+    * For example, a typical antipattern is to check whether one specific method was called as part of the test
 * A way to enforce this is to try to follow the _Arrange_, _Act_, _Assert_ test structure when writing a unit test ([https://xp123.com/articles/3a-arrange-act-assert/](https://xp123.com/articles/3a-arrange-act-assert/))
 
   This helps to communicate the intention of the test (what is the scenario under test) rather than the mechanics of the tests. The technical bits go to a static methods at the bottom of the test class.
 
   Example of tests in Flink that follow this pattern are:
 
-  * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
-  * [https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java](https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java)
+    * [https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java](https://github.com/apache/flink/blob/master/flink-core/src/test/java/org/apache/flink/util/LinkedOptionalMapTest.java)
+    * [https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java](https://github.com/apache/flink/blob/master/flink-filesystems/flink-s3-fs-base/src/test/java/org/apache/flink/fs/s3/common/writer/RecoverableMultiPartUploadImplTest.java)
 
 
 ### Avoid Mockito - Use reusable test implementations
 
 * Mockito-based tests tend to be costly to maintain in the long run by encouraging duplication of functionality and testing for implementation rather than effect
-  * More details: [https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8](https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8)
+    * More details: [https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8](https://docs.google.com/presentation/d/1fZlTjOJscwmzYadPGl23aui6zopl94Mn5smG-rB0qT8)
 * Instead, create reusable test implementations and utilities
-  * That way, when some class changes, we only have to update a few test utils or mocks
+    * That way, when some class changes, we only have to update a few test utils or mocks
 
 ### Avoid timeouts in JUnit tests
 
@@ -356,8 +366,4 @@ knob where you can tweak a build. If you change the test a bit, you also need to
 timeout. Hence, there have been quite a few commits that just increase timeouts.
 
 
-
-<hr>
-
-[^1]:
-     We are keeping such frameworks out of Flink, to make debugging easier and avoid dependency clashes.
+[^1]: We are keeping such frameworks out of Flink, to make debugging easier and avoid dependency clashes.
