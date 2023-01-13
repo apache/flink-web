@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Apache Flink: How to Review a Pull Request</title>
+    <title>Apache Flink: Apache Flink Table Store 0.3.0 Release Announcement</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
@@ -153,7 +153,7 @@
             <li><a href="/gettinghelp.html">Getting Help</a></li>
 
             <!-- Blog -->
-            <li><a href="/blog/"><b>Flink Blog</b></a></li>
+            <li class="active"><a href="/blog/"><b>Flink Blog</b></a></li>
 
 
             <!-- Flink-packages -->
@@ -173,27 +173,6 @@
             <!-- Contribute -->
             <li><a href="/contributing/how-to-contribute.html">How to Contribute</a></li>
             
-            <ul class="nav navbar-nav navbar-subnav">
-              <li >
-                  <a href="/contributing/contribute-code.html">Contribute Code</a>
-              </li>
-              <li  class="active">
-                  <a href="/contributing/reviewing-prs.html">Review Pull Requests</a>
-              </li>
-              <li >
-                  <a href="/contributing/code-style-and-quality-preamble.html">Code Style and Quality Guide</a>
-              </li>
-              <li >
-                  <a href="/contributing/contribute-documentation.html">Contribute Documentation</a>
-              </li>
-              <li >
-                  <a href="/contributing/docs-style.html">Documentation Style Guide</a>
-              </li>
-              <li >
-                  <a href="/contributing/improve-website.html">Contribute to the Website</a>
-              </li>
-            </ul>
-            
 
             <!-- GitHub -->
             <li>
@@ -206,7 +185,8 @@
             <li>
               
                 
-                  <a href="/zh/contributing/reviewing-prs.html">中文版</a>
+                  <!-- link to the Chinese home page when current is blog page -->
+                  <a href="/zh">中文版</a>
                 
               
             </li>
@@ -255,117 +235,266 @@
       <div class="col-sm-9">
       <div class="row-fluid">
   <div class="col-sm-12">
-    <h1>How to Review a Pull Request</h1>
+    <div class="row">
+      <h1>Apache Flink Table Store 0.3.0 Release Announcement</h1>
+      <p><i></i></p>
 
-	<hr />
+      <article>
+        <p>13 Jan 2023 Jingsong Lee </p>
 
-<p>This guide is for all committers and contributors that want to help with reviewing code contributions. Thank you for your effort - good reviews are one of the most important and crucial parts of an open source project. This guide should help the community to make reviews such that:</p>
+<p>The Apache Flink community is pleased to announce the release of the
+<a href="https://github.com/apache/flink-table-store">Apache Flink Table Store</a> (0.3.0).</p>
 
-<ul>
-  <li>Contributors have a good contribution experience.</li>
-  <li>Our reviews are structured and check all important aspects of a contribution.</li>
-  <li>We make sure to keep a high code quality in Flink.</li>
-  <li>We avoid situations where contributors and reviewers spend a lot of time refining a contribution that gets rejected later.</li>
-</ul>
+<p>We highly recommend all users upgrade to Flink Table Store 0.3.0. 0.3.0 completed 150+ issues, which were completed by nearly 30 contributors.</p>
 
-<hr />
+<p>Please check out the full <a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/">documentation</a> for detailed information and user guides.</p>
 
-<div class="page-toc">
-<ul id="markdown-toc">
-  <li><a href="#review-checklist" id="markdown-toc-review-checklist">Review Checklist</a>    <ul>
-      <li><a href="#is-the-contribution-well-described" id="markdown-toc-is-the-contribution-well-described">1. Is the Contribution Well-Described?</a></li>
-      <li><a href="#is-there-consensus-that-the-change-or-feature-should-go-into-flink" id="markdown-toc-is-there-consensus-that-the-change-or-feature-should-go-into-flink">2. Is There Consensus that the Change or Feature Should Go into Flink?</a></li>
-      <li><a href="#does-the-contribution-need-attention-from-some-specific-committers-and-is-there-time-commitment-from-these-committers" id="markdown-toc-does-the-contribution-need-attention-from-some-specific-committers-and-is-there-time-commitment-from-these-committers">3. Does the Contribution Need Attention from some Specific Committers and Is There Time Commitment from These Committers?</a></li>
-      <li><a href="#does-the-implementation-follow-the-agreed-upon-overall-approacharchitecture" id="markdown-toc-does-the-implementation-follow-the-agreed-upon-overall-approacharchitecture">4. Does the Implementation Follow the Agreed Upon Overall Approach/Architecture?</a></li>
-      <li><a href="#is-the-overall-code-quality-good-meeting-standard-we-want-to-maintain-in-flink" id="markdown-toc-is-the-overall-code-quality-good-meeting-standard-we-want-to-maintain-in-flink">5. Is the Overall Code Quality Good, Meeting Standard we Want to Maintain in Flink?</a></li>
-      <li><a href="#are-the-english-and-chinese-documentation-updated" id="markdown-toc-are-the-english-and-chinese-documentation-updated">6. Are the English and Chinese documentation updated?</a></li>
-    </ul>
-  </li>
-</ul>
+<p><br /></p>
 
-</div>
+<p>Flink Table Store 0.3 completes many exciting features, enhances its ability as a data lake storage and greatly
+improves the availability of its stream pipeline. Some important features are described below.</p>
 
-<h2 id="review-checklist">Review Checklist</h2>
+<h2 id="changelog-producer-full-compaction">Changelog Producer: Full-Compaction</h2>
 
-<p>Every review needs to check the following six aspects. <strong>We encourage to check these aspects in order, to avoid spending time on detailed code quality reviews when formal requirements are not met or there is no consensus in the community to accept the change.</strong></p>
+<p>If:
+- You are using <code>partial-update</code> or <code>aggregation</code> table, at the time of writing, table store can’t know what the
+  result is after merging, so table store can’t generate the corresponding changelog.
+- Your input can’t produce a complete changelog but you still want to get rid of the costly normalized operator,</p>
 
-<h3 id="is-the-contribution-well-described">1. Is the Contribution Well-Described?</h3>
+<p>You may consider using the <a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/features/table-types/#full-compaction">Full compaction changelog producer</a>.</p>
 
-<p>Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly <a href="/contributing/contribute-code.html#consensus">according to a prior discussion on Jira or the development mainling list</a>, only a short reference to that discussion is needed.
-If the implementation is different from the agreed approach in the consensus discussion, a detailed description of the implementation is required for any further review of the contribution.</p>
+<p>By specifying <code>'changelog-producer' = 'full-compaction'</code>, Table Store will compare the results between full compactions
+and produce the differences as changelog. The latency of changelog is affected by the frequency of full compactions.
+By specifying <code>changelog-producer.compaction-interval</code> table property (default value 30min), users can define the
+maximum interval between two full compactions to ensure latency.</p>
 
-<p>Any pull request that changes functionality or behavior needs to describe the big picture of these changes, so that reviews know what to look for (and don’t have to dig through the code to hopefully understand what the change does).</p>
+<center>
+<img src="/img/blog/table-store/changelog-producer-full-compaction.png" width="100%" />
+</center>
 
-<p><strong>A contribution is well-described if the following questions 2, 3, and 4 can be answered without looking at the code.</strong></p>
+<p><br /></p>
 
-<hr />
+<h2 id="dedicated-compaction-job--multiple-writers">Dedicated Compaction Job &amp;&amp; Multiple Writers</h2>
 
-<h3 id="is-there-consensus-that-the-change-or-feature-should-go-into-flink">2. Is There Consensus that the Change or Feature Should Go into Flink?</h3>
-
-<p>This question can be directly answered from the linked Jira issue. For pull requests that are created without prior consensus, a <a href="/contributing/contribute-code.html#consensus">discussion in Jira to seek consensus</a> will be needed.</p>
-
-<p>For <code>[hotfix]</code> pull requests, consensus needs to be checked in the pull request.</p>
-
-<hr />
-
-<h3 id="does-the-contribution-need-attention-from-some-specific-committers-and-is-there-time-commitment-from-these-committers">3. Does the Contribution Need Attention from some Specific Committers and Is There Time Commitment from These Committers?</h3>
-
-<p>Some changes require attention and approval from specific committers. For example, changes in parts that are either very performance sensitive, or have a critical impact on distributed coordination and fault tolerance need input by a committer that is deeply familiar with the component.</p>
-
-<p>As a rule of thumb, special attention is required when the Pull Request description answers one of the questions in the template section “Does this pull request potentially affect one of the following parts” with ‘yes’.</p>
-
-<p>This question can be answered with</p>
+<p>By default, Table Store writers will perform compaction as needed when writing records. This is sufficient for most use cases, but there are two downsides:</p>
 
 <ul>
-  <li><em>Does not need specific attention</em></li>
-  <li><em>Needs specific attention for X (X can be for example checkpointing, jobmanager, etc.).</em></li>
-  <li><em>Has specific attention for X by @committerA, @contributorB</em></li>
+  <li>This may result in unstable write throughput because throughput might temporarily drop when performing a compaction.</li>
+  <li>Compaction will mark some data files as “deleted”. If multiple writers mark the same file a conflict will occur when
+committing the changes. Table Store will automatically resolve the conflict, but this may result in job restarts.</li>
 </ul>
 
-<p><strong>If the pull request needs specific attention, one of the tagged committers/contributors should give the final approval.</strong></p>
+<p>To avoid these downsides, users can also choose to skip compactions in writers, and run a
+<a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/maintenance/write-performance/#dedicated-compaction-job">dedicated job only for compaction</a>.
+As compactions are performed only by the dedicated job, writers can continuously write records without pausing and no conflicts will ever occur.</p>
 
-<hr />
+<p>To skip compactions in writers, set <code>write-only</code> to <code>true</code>.</p>
 
-<h3 id="does-the-implementation-follow-the-agreed-upon-overall-approacharchitecture">4. Does the Implementation Follow the Agreed Upon Overall Approach/Architecture?</h3>
+<p>To run a dedicated job for compaction, follow these instructions.</p>
 
-<p>In this step, we check if a contribution folllows the agreed upon approach from the previous discussion in Jira or the mailing lists.</p>
+<p>Flink SQL currently does not support statements related to compactions, so we have to submit the compaction job through <code>flink run</code>.</p>
 
-<p>This question should be answerable from the Pull Request description (or the linked Jira) as much as possible.</p>
+<p>Run the following command to submit a compaction job for the table.</p>
 
-<p>We recommend to check this before diving into the details of commenting on individual parts of the change.</p>
+<div class="highlight"><pre><code class="language-bash">&lt;FLINK_HOME&gt;/bin/flink run <span class="se">\</span>
+    -c org.apache.flink.table.store.connector.action.FlinkActions <span class="se">\</span>
+    /path/to/flink-table-store-dist-.jar <span class="se">\</span>
+    compact <span class="se">\</span>
+    --warehouse &lt;warehouse-path&gt; <span class="se">\</span>
+    --database &lt;database-name&gt; <span class="se">\</span>
+    --table &lt;table-name&gt;</code></pre></div>
 
-<hr />
+<h2 id="aggregation-table">Aggregation Table</h2>
 
-<h3 id="is-the-overall-code-quality-good-meeting-standard-we-want-to-maintain-in-flink">5. Is the Overall Code Quality Good, Meeting Standard we Want to Maintain in Flink?</h3>
+<p>Sometimes users only care about aggregated results. The
+<a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/features/table-types/#aggregation">aggregation merge engine</a>
+aggregates each value field with the latest data one by one under the same primary key according to the aggregate function.</p>
 
-<p>This is the detailed code review of the actual changes, covering:</p>
+<p>Each field that is not part of the primary keys must be given an aggregate function, specified by the
+<code>fields.&lt;field-name&gt;.aggregate-function</code> table property.</p>
+
+<p>For example:</p>
+
+<div class="highlight"><pre><code>CREATE TABLE MyTable (
+    product_id BIGINT,
+    price DOUBLE,
+    sales BIGINT,
+    PRIMARY KEY (product_id) NOT ENFORCED
+) WITH (
+    'merge-engine' = 'aggregation',
+    'fields.price.aggregate-function' = 'max',
+    'fields.sales.aggregate-function' = 'sum'
+);
+</code></pre></div>
+
+<h2 id="schema-evolution">Schema Evolution</h2>
+
+<p>In version 0.2, the research and development of Schema Evolution has begun. In version 0.3, some of the capabilities
+of Schema Evolution have been completed. You can use below operations in Spark-SQL (Flink SQL completes the following syntax in 1.17):</p>
 
 <ul>
-  <li>Are the changes doing what is described in the Jira ticket or design document?</li>
-  <li>Does the code follow the right software engineering practices? Is the code correct, robust, maintainable, testable?</li>
-  <li>Are the changes performance aware, when changing a performance sensitive part?</li>
-  <li>Are the changes sufficiently covered by tests?</li>
-  <li>Are the tests executing fast, i.e., are heavy-weight integration tests only used when necessary?</li>
-  <li>Does the code format follow Flink’s checkstyle pattern?</li>
-  <li>Does the code avoid to introduce additional compiler warnings?</li>
-  <li>If dependencies have been changed, were the NOTICE files updated?</li>
+  <li>Adding New Columns</li>
+  <li>Renaming Column Name</li>
+  <li>Dropping Columns</li>
 </ul>
 
-<p>Code guidelines can be found in the <a href="/contributing/code-style-and-quality-preamble.html">Flink Code Style and Quality Guide</a>.</p>
+<p>Flink Table Store ensures that the above operations are safe, and the old data will automatically adapt to
+the new schema when it is read.</p>
 
-<hr />
+<p>For example:</p>
 
-<h3 id="are-the-english-and-chinese-documentation-updated">6. Are the English and Chinese documentation updated?</h3>
+<div class="highlight"><pre><code>CREATE TABLE T (i INT, j INT);
 
-<p>If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both an English and a Chinese documentation. So both documentations should be updated. If you are not familiar with the Chinese language, please open a Jira assigned to the <code>chinese-translation</code> component for Chinese documentation translation and link it with current Jira issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.</p>
+INSERT INTO T (1, 1);
 
-<p>See more about how to <a href="/contributing/contribute-documentation.html">contribute documentation</a>.</p>
+ALTER TABLE T ADD COLUMN k INT;
 
+ALTER TABLE T RENAME COLUMN i to a;
 
+INSERT INTO T (2, 2, 2);
 
+SELECT * FROM T;
+-- outputs (1, 1, NULL) and (2, 2, 2)
+</code></pre></div>
+
+<h2 id="flink-lookup-join">Flink Lookup Join</h2>
+
+<p><a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/features/lookup-joins/">Lookup Joins</a> are a type of join
+in streaming queries. It is used to enrich a table with data that is queried from Table Store. The join requires one
+table to have a processing time attribute and the other table to be backed by a lookup source connector.</p>
+
+<p>Table Store supports lookup joins on unpartitioned tables with primary keys in Flink.</p>
+
+<p>The lookup join operator will maintain a RocksDB cache locally and pull the latest updates of the table in real time.
+Lookup join operator will only pull the necessary data, so your filter conditions are very important for performance.</p>
+
+<p>This feature is only suitable for tables containing at most tens of millions of records to avoid excessive use of local disks.</p>
+
+<h2 id="time-traveling">Time Traveling</h2>
+
+<p>You can use <a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/how-to/querying-tables/#snapshots-table">Snapshots Table</a>
+and <a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/how-to/querying-tables/#scan-mode">Scan Mode</a> to time traveling.</p>
+
+<ul>
+  <li>You can view all current snapshots by reading snapshots table.</li>
+  <li>You can travel time through <code>from-timestamp</code> and <code>from-snapshot</code>.</li>
+</ul>
+
+<p>For example:</p>
+
+<div class="highlight"><pre><code>SELECT * FROM T$options;
+
+/*
++--------------+------------+--------------+-------------------------+
+|  snapshot_id |  schema_id |  commit_kind |             commit_time |
++--------------+------------+--------------+-------------------------+
+|            2 |          0 |       APPEND | 2022-10-26 11:44:15.600 |
+|            1 |          0 |       APPEND | 2022-10-26 11:44:15.148 |
++--------------+------------+--------------+-------------------------+
+2 rows in set
+*/
+
+SELECT * FROM T /*+ OPTIONS('from-snapshot'='1') */;
+</code></pre></div>
+
+<h2 id="audit-log-table">Audit Log Table</h2>
+
+<p>If you need to audit the changelog of the table, you can use the
+<a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/how-to/querying-tables/#audit-log-table">audit_log</a>
+system table. Through audit_log table, you can get the <code>rowkind</code> column when you get the incremental data of the table.
+You can use this column for filtering and other operations to complete the audit.</p>
+
+<p>There are four values for <code>rowkind</code>:</p>
+
+<ul>
+  <li>+I: Insertion operation.</li>
+  <li>-U: Update operation with the previous content of the updated row.</li>
+  <li>+U: Update operation with new content of the updated row.</li>
+  <li>-D: Deletion operation.</li>
+</ul>
+
+<p>For example:</p>
+
+<div class="highlight"><pre><code>SELECT * FROM MyTable$audit_log;
+
+/*
++------------------+-----------------+-----------------+
+|     rowkind      |     column_0    |     column_1    |
++------------------+-----------------+-----------------+
+|        +I        |      ...        |      ...        |
++------------------+-----------------+-----------------+
+|        -U        |      ...        |      ...        |
++------------------+-----------------+-----------------+
+|        +U        |      ...        |      ...        |
++------------------+-----------------+-----------------+
+3 rows in set
+*/
+</code></pre></div>
+
+<h2 id="ecosystem">Ecosystem</h2>
+
+<p>Flink Table Store continues to strengthen its ecosystem and gradually gets through the reading and writing
+of all engines. Each engine below 0.3 has been enhanced.</p>
+
+<ul>
+  <li>Spark write has been supported. But <code>INSERT OVERWRITE</code> and stream write are still unsupported.</li>
+  <li><a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/filesystems/s3/">S3</a> and
+<a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/filesystems/oss/">OSS</a>
+are supported by all computing engines.</li>
+  <li>Hive 3.1 is supported.</li>
+  <li>Trino the latest version (JDK 1s.17) is supported.</li>
+</ul>
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>Please refer to the <a href="https://nightlies.apache.org/flink/flink-table-store-docs-release-0.3/docs/try-table-store/quick-start/">getting started guide</a> for more details.</p>
+
+<p><br /></p>
+
+<h2 id="whats-next">What’s Next?</h2>
+
+<p>In the upcoming 0.4.0 release you can expect the following additional features:</p>
+
+<ul>
+  <li>Provides Flink decoupled independent Java APIs</li>
+  <li>Spark: enhance batch write, provide streaming write and streaming read</li>
+  <li>Flink: complete DDL &amp; DML, providing more management operations</li>
+  <li>Changelog producer: Lookup, the delay of stream reading each scenario is less than one minute</li>
+  <li>Provide multi table consistent materialized views in real-time</li>
+  <li>Data Integration: Schema Evolution integration, whole database integration.</li>
+</ul>
+
+<p>Please give the release a try, share your feedback on the Flink mailing list and contribute to the project!</p>
+
+<p><br /></p>
+
+<h2 id="list-of-contributors">List of Contributors</h2>
+
+<p>The Apache Flink community would like to thank every one of the contributors that have made this release possible:</p>
+
+<p>Feng Wang, Hannankan, Jane Chan, Jia Liu, Jingsong Lee, Jonathan Leitschuh, JunZhang, Kirill Listopad, Liwei Li,
+MOBIN-F, Nicholas Jiang, Wang Luning, WencongLiu, Yubin Li, gongzhongqiang, houhang1005, liuzhuang2017, openinx,
+tsreaper, wuyouwuyoulian, zhuangchong, zjureel (shammon), 吴祥平</p>
+
+      </article>
+    </div>
+
+    <div class="row">
+      <div id="disqus_thread"></div>
+      <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'stratosphere-eu'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+             (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+    </div>
   </div>
 </div>
-
       </div>
     </div>
 
