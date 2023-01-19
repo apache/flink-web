@@ -41,7 +41,7 @@ function mkPackage() {
 defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
-defaultFlinkVersion="${1:-1.16.0}"
+defaultFlinkVersion="${1:-1.16.1}"
 # flink-docs-master/docs/dev/datastream/project-configuration/#gradle
 # passes the scala version prefixed with a _, e.g.: _2.12
 scalaBinaryVersionFromCmdArg="${2/_/}"
@@ -116,7 +116,7 @@ ext {
     scalaBinaryVersion = '${scalaBinaryVersion}'
     slf4jVersion = '1.7.32'
     log4jVersion = '2.17.1'
-    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.15"
+    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.16"
 }
 
 // artifact properties
