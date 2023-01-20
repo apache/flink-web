@@ -7,6 +7,110 @@
 <atom:link href="https://flink.apache.org/blog/feed.xml" rel="self" type="application/rss+xml" />
 
 <item>
+<title>Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically</title>
+<description>&lt;p&gt;The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes 
+the Delegation Token Framework proposed in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-272%3A+Generalized+delegation+token+support&quot;&gt;FLIP-272&lt;/a&gt;.
+This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication
+tokens to the TaskManagers.&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or 
+writing to an external system needed to authenticate on their own. In such a case several things can go wrong, including but not limited to:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Too many authentication requests (potentially resulting in rejected requests)&lt;/li&gt;
+  &lt;li&gt;Large number of retries on authentication failures&lt;/li&gt;
+  &lt;li&gt;Re-occurring propagation/update of temporary credentials in a timely manner&lt;/li&gt;
+  &lt;li&gt;Dependency issues when external system libraries are having the same dependency with different versions&lt;/li&gt;
+  &lt;li&gt;Each authentication/temporary credentials are different making standardization challenging&lt;/li&gt;
+  &lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The aim of Delegation Token Framework is to solve the above challenges. The framework is authentication protocol agnostic and pluggable.
+The primary design concept is that authentication happens only at a single location (JobManager), the obtained temporary
+credentials propagated automatically to all the task managers where they can be used. The token re-obtain process is also handled
+in the JobManager.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/img/blog/2023-01-20-delegation-token-framework/delegation_token_framework.svg&quot; width=&quot;70%&quot; height=&quot;70%&quot; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;New authentication providers can be added with small amount of code which is going to be loaded by Flink automatically.
+At the moment the following external systems are supported:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Hadoop filesystems&lt;/li&gt;
+  &lt;li&gt;HBase&lt;/li&gt;
+  &lt;li&gt;S3&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Planned, but not yet implemented/contributed:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Kafka&lt;/li&gt;
+  &lt;li&gt;Hive&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The design and implementation approach has already been proven in &lt;a href=&quot;https://spark.apache.org/docs/latest/security.html#kerberos&quot;&gt;Apache Spark&lt;/a&gt;.
+Gabor is a Spark committer, he championed this feature in the Spark community. The most notable improvement we achieved compared to the
+current state in Spark is that the framework in Flink is already authentication protocol agnostic (and not bound to Kerberos).&lt;/p&gt;
+
+&lt;h2 id=&quot;documentation&quot;&gt;Documentation&lt;/h2&gt;
+
+&lt;p&gt;For more details please refer to the following documentation:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/security/security-delegation-token/&quot;&gt;Delegation Tokens In General&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/security/security-kerberos/#using-delegation-tokens&quot;&gt;How to use Kerberos delegation tokens&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;development-details&quot;&gt;Development details&lt;/h2&gt;
+
+&lt;p&gt;Major tickets where the framework has been added:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-21232&quot;&gt;FLINK-21232&lt;/a&gt; Kerberos delegation token framework&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-29918&quot;&gt;FLINK-29918&lt;/a&gt; Generalized delegation token support&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/FLINK-30704&quot;&gt;FLINK-30704&lt;/a&gt; Add S3 delegation token support&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;example-implementation&quot;&gt;Example implementation&lt;/h2&gt;
+
+&lt;p&gt;Adding a new authentication protocol is relatively straight-forward:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Check out the &lt;a href=&quot;https://github.com/gaborgsomogyi/flink-test-java-delegation-token-provider&quot;&gt;example implementation&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Change &lt;code&gt;FlinkTestJavaDelegationTokenProvider.obtainDelegationTokens&lt;/code&gt; to obtain a custom token from any external service&lt;/li&gt;
+  &lt;li&gt;Change &lt;code&gt;FlinkTestJavaDelegationTokenReceiver.onNewTokensObtained&lt;/code&gt; to receive the previously obtained tokens on all task managers&lt;/li&gt;
+  &lt;li&gt;Use the tokens for external service authentication&lt;/li&gt;
+  &lt;li&gt;Compile the project and put it into the classpath (adding it inside a plugin also supported)&lt;/li&gt;
+  &lt;li&gt;Enjoy that Flink does all the heavy lifting behind the scenes :-)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;example-implementation-testing&quot;&gt;Example implementation testing&lt;/h2&gt;
+
+&lt;p&gt;The existing providers are tested with the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/&quot;&gt;Flink Kubernetes Operator&lt;/a&gt;
+but one can use any other supported deployment model, because the framework is not bound to any of them.
+We choose the Kubernetes Operator so that we could provide a completely containerized and easily reproducible test environment.&lt;/p&gt;
+
+&lt;p&gt;An example tutorial can be found &lt;a href=&quot;https://gist.github.com/gaborgsomogyi/ac4f71ead8494da2f5c35265bcb1e885&quot;&gt;here&lt;/a&gt; on
+external system authentication.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;The Delegation Token Framework is feature complete on the master branch and is becoming generally available on the release of 
+Flink 1.17. The framework obtains authentication tokens at a central location and propagates them to all workers on a re-occurring basis.&lt;/p&gt;
+
+&lt;p&gt;Any connector to an external system which supports authentication can be a potential user of this framework. 
+To support authentication in your connector we encourage you to implement your own &lt;code&gt;DelegationTokenProvider/DelegationTokenReceiver&lt;/code&gt; pair.&lt;/p&gt;
+</description>
+<pubDate>Fri, 20 Jan 2023 09:00:00 +0100</pubDate>
+<link>https://flink.apache.org/news/2023/01/20/delegation-token-framework.html</link>
+<guid isPermaLink="true">/news/2023/01/20/delegation-token-framework.html</guid>
+</item>
+
+<item>
 <title>Apache Flink Table Store 0.3.0 Release Announcement</title>
 <description>&lt;p&gt;The Apache Flink community is pleased to announce the release of the
 &lt;a href=&quot;https://github.com/apache/flink-table-store&quot;&gt;Apache Flink Table Store&lt;/a&gt; (0.3.0).&lt;/p&gt;
@@ -19523,103 +19627,6 @@ FLINK-16683 Flink no longer supports starting clusters with .bat scripts. Users 
 <pubDate>Fri, 24 Apr 2020 14:00:00 +0200</pubDate>
 <link>https://flink.apache.org/news/2020/04/24/release-1.9.3.html</link>
 <guid isPermaLink="true">/news/2020/04/24/release-1.9.3.html</guid>
-</item>
-
-<item>
-<title>Memory Management Improvements with Apache Flink 1.10</title>
-<description>&lt;p&gt;Apache Flink 1.10 comes with significant changes to the memory model of the Task Managers and configuration options for your Flink applications. These recently-introduced changes make Flink more adaptable to all kinds of deployment environments (e.g. Kubernetes, Yarn, Mesos), providing strict control over its memory consumption. In this post, we describe Flink’s memory model, as it stands in Flink 1.10, how to set up and manage memory consumption of your Flink applications and the recent changes the community implemented in the latest Apache Flink release.&lt;/p&gt;
-
-&lt;h2 id=&quot;introduction-to-flinks-memory-model&quot;&gt;Introduction to Flink’s memory model&lt;/h2&gt;
-
-&lt;p&gt;Having a clear understanding of Apache Flink’s memory model allows you to manage resources for the various workloads more efficiently. The following diagram illustrates the main memory components in Flink:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2020-04-21-memory-management-improvements-flink-1.10/total-process-memory.svg&quot; width=&quot;400px&quot; alt=&quot;Flink: Total Process Memory&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Flink: Total Process Memory&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;The Task Manager process is a JVM process. On a high level, its memory consists of the &lt;em&gt;JVM Heap&lt;/em&gt; and &lt;em&gt;Off-Heap&lt;/em&gt; memory. These types of memory are consumed by Flink directly or by JVM for its specific purposes (i.e. metaspace etc.). There are two major memory consumers within Flink: the user code of job operator tasks and the framework itself consuming memory for internal data structures, network buffers, etc.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Please note that&lt;/strong&gt; the user code has direct access to all memory types: &lt;em&gt;JVM Heap, Direct&lt;/em&gt; and &lt;em&gt;Native memory&lt;/em&gt;. Therefore, Flink cannot really control its allocation and usage. There are however two types of Off-Heap memory which are consumed by tasks and controlled explicitly by Flink:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;em&gt;Managed Memory&lt;/em&gt; (Off-Heap)&lt;/li&gt;
-  &lt;li&gt;&lt;em&gt;Network Buffers&lt;/em&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The latter is part of the &lt;em&gt;JVM Direct Memory&lt;/em&gt;, allocated for user record data exchange between operator tasks.&lt;/p&gt;
-
-&lt;h2 id=&quot;how-to-set-up-flink-memory&quot;&gt;How to set up Flink memory&lt;/h2&gt;
-
-&lt;p&gt;With the latest release of Flink 1.10 and in order to provide better user experience, the framework comes with both high-level and fine-grained tuning of memory components. There are essentially three alternatives to setting up memory in Task Managers.&lt;/p&gt;
-
-&lt;p&gt;The first two — and simplest — alternatives are configuring one of the two following options for total memory available for the JVM process of the Task Manager:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;em&gt;Total Process Memory&lt;/em&gt;: total memory consumed by the Flink Java application (including user code) and by the JVM to run the whole process.&lt;/li&gt;
-  &lt;li&gt;&lt;em&gt;Total Flink Memory&lt;/em&gt;: only memory consumed by the Flink Java application, including user code but excluding memory allocated by JVM to run it&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;It is advisable to configure the &lt;em&gt;Total Flink Memory&lt;/em&gt; for standalone deployments where explicitly declaring how much memory is given to Flink is a common practice, while the outer &lt;em&gt;JVM overhead&lt;/em&gt; is of little interest. For the cases of deploying Flink in containerized environments (such as &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/deployment/kubernetes.html&quot;&gt;Kubernetes&lt;/a&gt;, &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/deployment/yarn_setup.html&quot;&gt;Yarn&lt;/a&gt; or &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/deployment/mesos.html&quot;&gt;Mesos&lt;/a&gt;), the &lt;em&gt;Total Process Memory&lt;/em&gt; option is recommended instead, because it becomes the size for the total memory of the requested container. Containerized environments usually strictly enforce this memory limit.&lt;/p&gt;
-
-&lt;p&gt;If you want more fine-grained control over the size of &lt;em&gt;JVM Heap&lt;/em&gt; and &lt;em&gt;Managed Memory&lt;/em&gt; (Off-Heap), there is also a second alternative to configure both &lt;em&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_setup.html#task-operator-heap-memory&quot;&gt;Task Heap&lt;/a&gt;&lt;/em&gt; and &lt;em&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_setup.html#managed-memory&quot;&gt;Managed Memory&lt;/a&gt;&lt;/em&gt;. This alternative gives a clear separation between the heap memory and any other memory types.&lt;/p&gt;
-
-&lt;p&gt;In line with the community’s efforts to &lt;a href=&quot;https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html&quot;&gt;unify batch and stream processing&lt;/a&gt;, this model works universally for both scenarios. It allows sharing the &lt;em&gt;JVM Heap&lt;/em&gt; memory between the user code of operator tasks in any workload and the heap state backend in stream processing scenarios. In a similar way, the &lt;em&gt;Managed Memory&lt;/em&gt; can be used for batch spilling and for the RocksDB state backend in streaming.&lt;/p&gt;
-
-&lt;p&gt;The remaining memory components are automatically adjusted either based on their default values or additionally configured parameters. Flink also checks the overall consistency. You can find more information about the different memory components in the corresponding &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html&quot;&gt;documentation&lt;/a&gt;. Additionally, you can try different configuration options with the &lt;a href=&quot;https://docs.google.com/spreadsheets/d/1mJaMkMPfDJJ-w6nMXALYmTc4XxiV30P5U7DzgwLkSoE/edit#gid=0&quot;&gt;configuration spreadsheet&lt;/a&gt; of &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP-49%3A+Unified+Memory+Configuration+for+TaskExecutors&quot;&gt;FLIP-49&lt;/a&gt; and check the corresponding results for your individual case.&lt;/p&gt;
-
-&lt;p&gt;If you are migrating from a Flink version older than 1.10, we suggest following the steps in the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_migration.html&quot;&gt;migration guide&lt;/a&gt; of the Flink documentation.&lt;/p&gt;
-
-&lt;h2 id=&quot;other-components&quot;&gt;Other components&lt;/h2&gt;
-
-&lt;p&gt;While configuring Flink’s memory, the size of different memory components can either be fixed with the value of the respective option or tuned using multiple options. Below we provide some more insight about the memory setup.&lt;/p&gt;
-
-&lt;h3 id=&quot;fractions-of-the-total-flink-memory&quot;&gt;Fractions of the Total Flink Memory&lt;/h3&gt;
-
-&lt;p&gt;This method allows a proportional breakdown of the &lt;em&gt;Total Flink Memory&lt;/em&gt; where the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_setup.html#managed-memory&quot;&gt;Managed Memory&lt;/a&gt; (if not set explicitly) and &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#capped-fractionated-components&quot;&gt;Network Buffers&lt;/a&gt; can take certain fractions of it. The remaining memory is then assigned to the &lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_setup.html#task-operator-heap-memory&quot;&gt;Task Heap&lt;/a&gt; (if not set explicitly) and other fixed &lt;em&gt;JVM Heap&lt;/em&gt; and &lt;em&gt;Off-Heap components&lt;/em&gt;. The following picture represents an example of such a setup:&lt;/p&gt;
-
-&lt;center&gt;
-&lt;img src=&quot;/img/blog/2020-04-21-memory-management-improvements-flink-1.10/flink-memory-setup.svg&quot; width=&quot;800px&quot; alt=&quot;Flink: Example of Memory Setup&quot; /&gt;
-&lt;br /&gt;
-&lt;i&gt;&lt;small&gt;Flink: Example of Memory Setup&lt;/small&gt;&lt;/i&gt;
-&lt;/center&gt;
-&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Please note that&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Flink will verify that the size of the derived &lt;em&gt;Network Memory&lt;/em&gt; is between its minimum and maximum value, otherwise Flink’s startup will fail. The maximum and minimum limits have default values which can be overwritten by the respective configuration options.&lt;/li&gt;
-  &lt;li&gt;In general, the configured fractions are treated by Flink as hints. Under certain scenarios, the derived value might not match the fraction. For example, if the &lt;em&gt;Total Flink Memory&lt;/em&gt; and the &lt;em&gt;Task Heap&lt;/em&gt; are configured to fixed values, the &lt;em&gt;Managed Memory&lt;/em&gt; will get a certain fraction and the &lt;em&gt;Network Memory&lt;/em&gt; will get the remaining memory which might not exactly match its fraction.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;more-hints-to-control-the-container-memory-limit&quot;&gt;More hints to control the container memory limit&lt;/h3&gt;
-
-&lt;p&gt;The heap and direct memory usage are managed by the JVM. There are also many other possible sources of native memory consumption in Apache Flink or its user applications which are not managed by Flink or the JVM. Controlling their limits is often difficult which complicates debugging of potential memory leaks. If Flink’s process allocates too much memory in an unmanaged way, it can often result in killing Task Manager containers in containerized environments. In this case, it may be hard to understand which type of memory consumption has exceeded its limit. Flink 1.10 introduces some specific tuning options to clearly represent such components. Although Flink cannot always enforce strict limits and borders among them, the idea here is to explicitly plan the memory usage. Below we provide some examples of how memory setup can prevent containers exceeding their memory limit:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_tuning.html#rocksdb-state-backend&quot;&gt;RocksDB state cannot grow too big&lt;/a&gt;. The memory consumption of RocksDB state backend is accounted for in the &lt;em&gt;Managed Memory&lt;/em&gt;. RocksDB respects its limit by default (only since Flink 1.10). You can increase the &lt;em&gt;Managed Memory&lt;/em&gt; size to improve RocksDB’s performance or decrease it to save resources.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_setup.html#configure-off-heap-memory-direct-or-native&quot;&gt;User code or its dependencies consume significant off-heap memory&lt;/a&gt;. Tuning the &lt;em&gt;Task Off-Heap&lt;/em&gt; option can assign additional direct or native memory to the user code or any of its dependencies. Flink cannot control native allocations but it sets the limit for &lt;em&gt;JVM Direct&lt;/em&gt; memory allocations. The &lt;em&gt;Direct&lt;/em&gt; memory limit is enforced by the JVM.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#jvm-parameters&quot;&gt;JVM metaspace requires additional memory&lt;/a&gt;. If you encounter &lt;code&gt;OutOfMemoryError: Metaspace&lt;/code&gt;, Flink provides an option to increase its limit and the JVM will ensure that it is not exceeded.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://nightlies.apache.org/flink/flink-docs-release-1.10/ops/memory/mem_detail.html#capped-fractionated-components&quot;&gt;JVM requires more internal memory&lt;/a&gt;. There is no direct control over certain types of JVM process allocations but Flink provides &lt;em&gt;JVM Overhead&lt;/em&gt; options. The options allow declaring an additional amount of memory, anticipated for those allocations and not covered by other options.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;The latest Flink release (Flink 1.10) introduces some significant changes to Flink’s memory configuration, making it possible to manage your application memory and debug Flink significantly better than before. Future developments in this area also include adopting a similar memory model for the job manager process in &lt;a href=&quot;https://cwiki.apache.org/confluence/display/FLINK/FLIP+116%3A+Unified+Memory+Configuration+for+Job+Managers&quot;&gt;FLIP-116&lt;/a&gt;, so stay tuned for more additions and features in upcoming releases. If you have any suggestions or questions for the community, we encourage you to sign up to the Apache Flink &lt;a href=&quot;https://flink.apache.org/community.html#mailing-lists&quot;&gt;mailing lists&lt;/a&gt; and become part of the discussion there.&lt;/p&gt;
-</description>
-<pubDate>Tue, 21 Apr 2020 14:00:00 +0200</pubDate>
-<link>https://flink.apache.org/news/2020/04/21/memory-management-improvements-flink-1.10.html</link>
-<guid isPermaLink="true">/news/2020/04/21/memory-management-improvements-flink-1.10.html</guid>
 </item>
 
 </channel>
