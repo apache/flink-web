@@ -1,6 +1,5 @@
 ---
 title: 应用场景
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookCollapseSection: false
 weight: 6

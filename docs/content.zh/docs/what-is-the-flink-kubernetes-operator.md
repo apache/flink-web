@@ -1,6 +1,5 @@
 ---
 title: What is the Flink Kubernetes Operator?
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookCollapseSection: false
 weight: 4

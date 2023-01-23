@@ -1,6 +1,5 @@
 ---
 title: Downloads
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookCollapseSection: false
 weight: 8
