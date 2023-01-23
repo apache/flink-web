@@ -1,8 +1,7 @@
 ---
-title: Getting Started
-bold: true
-bookCollapseSection: false
-weight: 9
+weight: 6
+title: Training Course
+bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -23,4 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Getting Started
+# Training Course
+
+{{< external_link name="Read all about the Flink Training Course here.">}}
