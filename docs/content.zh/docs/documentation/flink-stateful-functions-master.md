@@ -1,9 +1,8 @@
 ---
-title: Downloads
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
-bold: true
-bookCollapseSection: false
-weight: 8
+weight: 4
+title: Flink Stateful Functions (Latest snapshot)
+type: FlinkStateFunMasterDocumentation
+bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-master"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -24,6 +23,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Downloads
+# Flink Stateful Functions documentation (latest snapshot)
 
-Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
+{{< external_link name="You can find the Flink Stateful Functions documentation for the latest snapshot here.">}}
