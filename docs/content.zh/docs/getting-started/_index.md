@@ -1,7 +1,7 @@
 ---
-title: Getting Started
+title: 教程
 bold: true
-bookCollapseSection: false
+bookCollapseSection: true
 weight: 9
 ---
 <!--
@@ -23,4 +23,4 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Getting Started
+# Documentation
