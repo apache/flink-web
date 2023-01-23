@@ -1,6 +1,5 @@
 ---
 title: What is Apache Flink?
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookCollapseSection: true
 weight: 1

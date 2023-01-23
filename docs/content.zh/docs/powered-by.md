@@ -1,6 +1,5 @@
 ---
 title: Flink 用户
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookToc: false
 bookCollapseSection: false

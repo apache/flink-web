@@ -1,6 +1,5 @@
 ---
 title: 社区 & 项目信息
-icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
 bookCollapseSection: false
 weight: 14
