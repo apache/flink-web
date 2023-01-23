@@ -1,9 +1,9 @@
 ---
-title: Downloads
+title: Documentation
 icon: <i class="fa fa-cogs title maindish" aria-hidden="true"></i>
 bold: true
-bookCollapseSection: false
-weight: 8
+bookCollapseSection: true
+weight: 10
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -24,6 +24,4 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Downloads
-
-Apache Flink® {{ site.FLINK_VERSION_STABLE }} is our latest stable release.
+# Documentation
