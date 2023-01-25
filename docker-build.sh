@@ -17,4 +17,10 @@
 # limitations under the License.
 ################################################################################
 
-docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.6.0 bash -c "cd /srv/flink-web && gem install bundler && ./build.sh $@"
+hugo -v --source docs --destination target
+if [ $? -ne 0 ]; then
+	echo "Error building the docs"
+	exit 1
+fi
+mv docs/target content
+cp -r _include/. content
