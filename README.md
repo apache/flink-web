@@ -15,5 +15,5 @@ The website needs to be rebuilt before being merged into the `asf-site` branch. 
 You can execute the following command to rebuild non-incrementally:
 
 ```bash
-docker-build.sh
+./docker-build.sh
 ```
