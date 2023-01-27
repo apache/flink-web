@@ -3,6 +3,7 @@ title: What is Apache Flink?
 bold: true
 bookCollapseSection: true
 weight: 1
+group: top
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

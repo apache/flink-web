@@ -3,6 +3,7 @@ title: Getting Help
 bold: true
 bookCollapseSection: false
 weight: 11
+group: mid
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

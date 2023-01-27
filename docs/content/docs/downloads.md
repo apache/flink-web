@@ -3,6 +3,7 @@ title: Downloads
 bold: true
 bookCollapseSection: false
 weight: 8
+group: mid
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

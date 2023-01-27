@@ -3,6 +3,7 @@ title: Documentation
 bold: true
 bookCollapseSection: true
 weight: 10
+group: mid
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

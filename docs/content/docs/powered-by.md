@@ -4,6 +4,7 @@ bold: true
 bookToc: false
 bookCollapseSection: false
 weight: 7
+group: top
 
 tables:
     powered-by:

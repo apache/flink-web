@@ -3,6 +3,7 @@ title: Community & Project Info
 bold: true
 bookCollapseSection: false
 weight: 14
+group: bot
 
 tables:
     mailing-lists:
