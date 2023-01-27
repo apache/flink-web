@@ -340,11 +340,9 @@ overwriting.
 
 * **Links to other pages of the Flink documentation.**
 
-  {% raw %}
   ```liquid 
   [Link Text]({% link path/to/link-page.md %})
   ```
-  {% endraw %}
 
 * **Links to external pages**
 
@@ -366,14 +364,8 @@ can be referenced in documentation pages using a syntax similar to that of
 links:
 
 ```liquid 
-![Picture Text]({{ "{{ site.baseurl " }}}}/fig/image_name.png){:height="200px" width="200px"}
+{{< img src="/fig/image_name.png" alt="Picture Text" width="200px" >}}
 ```
-
-Or using plain HTML:
-
-{% highlight html %}
-<img src="{{ site.baseurl }}/fig/image_name.png" class="center" height="200px" width="200px"/>
-{% endhighlight %}
 
 <div class="alert alert-warning">
   <h3>Best Practice</h3>
@@ -396,15 +388,6 @@ and that the overall resolution is adequate.
   highlighting](https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers).
   One way of achieving this with markup is:
 
-
-  ```liquid 
-  {{ "{% highlight java"}}%} 
-     // Java Code
-  {{"{% endhighlight"}}%} 
-  ```
-
-which is equivalent to using triple backticks ( **\`\`\`** ):
-
   ````liquid
   ```java 
      // Java Code
@@ -418,17 +401,17 @@ When specifying multiple programming languages, each code block should be styled
 
 	  <div data-lang="java" markdown="1"> 
 
-	  {{ "{% highlight java"}}%} 
+	  ```java
 	   // Java Code
-	  {{"{% endhighlight"}}%}
+	  ```
 
 	  </div>
 
 	  <div data-lang="scala" markdown="1">
 
-	  {{ "{% highlight scala"}}%} 
+	  ```scala
 	   // Scala Code
-	  {{"{% endhighlight"}}%}
+	  ```
 
 	  </div> 
 
