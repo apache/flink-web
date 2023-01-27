@@ -133,7 +133,7 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 `taskmanager.network.memory.fraction`, `taskmanager.network.memory.min` 和
 `taskmanager.network.memory.max` 参数调整这些值。
 
-详情请参考 [配置参考]({{ site.docs-snapshot }}/ops/config.html#configuring-the-network-buffers)。
+详情请参考 [配置参考](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/)。
 
 ### 我的 Job 因为 HDFS/Hadoop 代码的各种异常失败了，我该怎么办？
 
