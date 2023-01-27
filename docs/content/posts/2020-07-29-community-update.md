@@ -69,7 +69,7 @@ The Flink 1.12 release cycle has been kicked-off last week and a discussion abou
       <td><a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-132+Temporal+Table+DDL">FLIP-132</a></td>
         <td><ul>
         <li><b>Temporal Table DDL</b></li>
-        <p>Flink SQL users can't currently create temporal tables using SQL DDL, which forces them to change context frequently for use cases that require them. FLIP-132 proposes to extend the DDL syntax to support temporal tables, which in turn will allow to also bring <a href="{{site.DOCS_BASE_URL}}flink-docs-stable/dev/table/streaming/joins.html#join-with-a-temporal-table">temporal joins</a> with changelog sources to Flink SQL.</p>
+        <p>Flink SQL users can't currently create temporal tables using SQL DDL, which forces them to change context frequently for use cases that require them. FLIP-132 proposes to extend the DDL syntax to support temporal tables, which in turn will allow to also bring <a href="{{< param DocsBaseUrl >}}flink-docs-stable/dev/table/streaming/joins.html#join-with-a-temporal-table">temporal joins</a> with changelog sources to Flink SQL.</p>
       </ul>
       </td>
     </tr>

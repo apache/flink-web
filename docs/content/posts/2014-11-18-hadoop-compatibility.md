@@ -80,10 +80,10 @@ Hadoop functions can be used at any position within a Flink program and of cours
 
 ## What comes next?
 
-While the Hadoop compatibility package is already very useful, we are currently working on a dedicated Hadoop Job operation to embed and execute Hadoop jobs as a whole in Flink programs, including their custom partitioning, sorting, and grouping code. With this feature, you will be able to chain multiple Hadoop jobs, mix them with Flink functions, and other operations such as [Spargel]({{site.DOCS_BASE_URL}}flink-docs-release-0.7/spargel_guide.html) operations (Pregel/Giraph-style jobs).
+While the Hadoop compatibility package is already very useful, we are currently working on a dedicated Hadoop Job operation to embed and execute Hadoop jobs as a whole in Flink programs, including their custom partitioning, sorting, and grouping code. With this feature, you will be able to chain multiple Hadoop jobs, mix them with Flink functions, and other operations such as [Spargel]({{< param DocsBaseUrl >}}flink-docs-release-0.7/spargel_guide.html) operations (Pregel/Giraph-style jobs).
 
 ## Summary
 
 Flink lets you reuse a lot of the code you wrote for Hadoop MapReduce, including all data types, all Input- and OutputFormats, and Mapper and Reducers of the mapred-API. Hadoop functions can be used within Flink programs and mixed with all other Flink functions. Due to Flink’s pipelined execution, Hadoop functions can arbitrarily be assembled without data exchange via HDFS. Moreover, the Flink community is currently working on a dedicated Hadoop Job operation to supporting the execution of Hadoop jobs as a whole.
 
-If you want to use Flink’s Hadoop compatibility package checkout our [documentation]({{site.DOCS_BASE_URL}}flink-docs-master/apis/batch/hadoop_compatibility.html).
+If you want to use Flink’s Hadoop compatibility package checkout our [documentation]({{< param DocsBaseUrl >}}flink-docs-master/apis/batch/hadoop_compatibility.html).

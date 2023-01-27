@@ -44,9 +44,9 @@ Thus we started integrating Flink and Hive as a beta version in Flink 1.9. Over 
 
 Hive Metastore has evolved into the de facto metadata hub over the years in the Hadoop, or even the cloud, ecosystem. Many companies have a single Hive Metastore service instance in production to manage all of their schemas, either Hive or non-Hive metadata, as the single source of truth.
 
-In 1.9 we introduced Flink’s [HiveCatalog]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/hive/hive_catalog.html), connecting Flink to users’ rich metadata pool. The meaning of `HiveCatalog` is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.
+In 1.9 we introduced Flink’s [HiveCatalog]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/hive/hive_catalog.html), connecting Flink to users’ rich metadata pool. The meaning of `HiveCatalog` is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.
 
-In Flink 1.10, users can store Flink's own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. [Here’s an end-to-end example]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/hive/hive_catalog.html#example) of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.
+In Flink 1.10, users can store Flink's own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. [Here’s an end-to-end example]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/hive/hive_catalog.html#example) of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.
 
 
 ### Stream Processing
@@ -60,16 +60,16 @@ The Hive integration feature in Flink 1.10 empowers users to re-imagine what the
 
 ### Compatible with More Hive Versions
 
-In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look [here]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/hive/#supported-hive-versions).
+In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look [here]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/hive/#supported-hive-versions).
 
 
 ### Reuse Hive User Defined Functions (UDFs)
 
-Users can [reuse all kinds of Hive UDFs in Flink]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/hive/hive_functions.html#hive-user-defined-functions) since Flink 1.9.
+Users can [reuse all kinds of Hive UDFs in Flink]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/hive/hive_functions.html#hive-user-defined-functions) since Flink 1.9.
 
 This is a great win for Flink users with past history with the Hive ecosystem, as they may have developed custom business logic in their Hive UDFs. Being able to run these functions without any rewrite saves users a lot of time and brings them a much smoother experience when they migrate to Flink.
 
-To take it a step further, Flink 1.10 introduces [compatibility of Hive built-in functions via HiveModule]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/hive/hive_functions.html#use-hive-built-in-functions-via-hivemodule). Over the years, the Hive community has developed a few hundreds of built-in functions that are super handy for users. For those built-in functions that don't exist in Flink yet, users are now able to leverage the existing Hive built-in functions that they are familiar with and complete their jobs seamlessly.
+To take it a step further, Flink 1.10 introduces [compatibility of Hive built-in functions via HiveModule]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/hive/hive_functions.html#use-hive-built-in-functions-via-hivemodule). Over the years, the Hive community has developed a few hundreds of built-in functions that are super handy for users. For those built-in functions that don't exist in Flink yet, users are now able to leverage the existing Hive built-in functions that they are familiar with and complete their jobs seamlessly.
 
 
 ### Enhanced Read and Write on Hive Data

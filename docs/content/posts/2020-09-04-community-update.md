@@ -11,7 +11,7 @@ excerpt: Ah, so much for a quiet August month. This time around, we bring you so
 title: Flink Community Update - August'20
 ---
 
-Ah, so much for a quiet August month. This time around, we bring you some new Flink Improvement Proposals (FLIPs), a preview of the upcoming [Flink Stateful Functions]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/) 2.2 release and a look into how far Flink has come in comparison to 2019.
+Ah, so much for a quiet August month. This time around, we bring you some new Flink Improvement Proposals (FLIPs), a preview of the upcoming [Flink Stateful Functions]({{< param DocsBaseUrl >}}flink-statefun-docs-master/) 2.2 release and a look into how far Flink has come in comparison to 2019.
 
 {% toc %}
 
@@ -21,9 +21,9 @@ Ah, so much for a quiet August month. This time around, we bring you some new Fl
 
 ### Getting Ready for Flink Stateful Functions 2.2
 
-The details of the next release of [Stateful Functions]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/) are under discussion in [this @dev mailing list thread](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/Next-Stateful-Functions-Release-td44063.html), and the feature freeze is set for **September 10th** — so, you can expect Stateful Functions 2.2 to be released soon after! Some of the most relevant features in the upcoming release are:
+The details of the next release of [Stateful Functions]({{< param DocsBaseUrl >}}flink-statefun-docs-master/) are under discussion in [this @dev mailing list thread](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/Next-Stateful-Functions-Release-td44063.html), and the feature freeze is set for **September 10th** — so, you can expect Stateful Functions 2.2 to be released soon after! Some of the most relevant features in the upcoming release are:
 
-* **DataStream API interoperability**, allowing users to embed Stateful Functions pipelines in regular [DataStream API]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/datastream_api.html) programs with `DataStream` ingress/egress.
+* **DataStream API interoperability**, allowing users to embed Stateful Functions pipelines in regular [DataStream API]({{< param DocsBaseUrl >}}flink-docs-stable/dev/datastream_api.html) programs with `DataStream` ingress/egress.
 
 * **Fine-grained control over state** for remote functions, including the ability to configure different state expiration modes for each individual function.
 

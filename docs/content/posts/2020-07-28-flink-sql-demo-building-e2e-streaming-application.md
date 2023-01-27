@@ -115,8 +115,8 @@ CREATE TABLE user_behavior (
 
 The above snippet declares five fields based on the data format. In addition, it uses the computed column syntax and built-in `PROCTIME()` function to declare a virtual column that generates the processing-time attribute. It also uses the `WATERMARK` syntax to declare the watermark strategy on the `ts` field (tolerate 5-seconds out-of-order). Therefore, the `ts` field becomes an event-time attribute. For more information about time attributes and DDL syntax, see the following official documents:
 
-- [Time attributes in Flink’s Table API & SQL]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/table/streaming/time_attributes.html)
-- [DDL Syntax in Flink SQL]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/table/sql/create.html#create-table)
+- [Time attributes in Flink’s Table API & SQL]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/table/streaming/time_attributes.html)
+- [DDL Syntax in Flink SQL]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/table/sql/create.html#create-table)
 
 After creating the `user_behavior` table in the SQL CLI, run `SHOW TABLES;` and `DESCRIBE user_behavior;` to see registered tables and table details. Also, run the command `SELECT * FROM user_behavior;` directly in the SQL CLI to preview the data (press `q` to exit).
 
@@ -153,7 +153,7 @@ WHERE behavior = 'buy'
 GROUP BY TUMBLE(ts, INTERVAL '1' HOUR);
 ```
 
-Here, we use the built-in `HOUR` function to extract the value for each hour in the day from a `TIMESTAMP` column. Use `INSERT INTO` to start a Flink SQL job that continuously writes results into the Elasticsearch `buy_cnt_per_hour` index. The Elasticearch result table can be seen as a materialized view of the query. You can find more information about Flink’s window aggregation in the [Apache Flink documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/table/sql/queries.html#group-windows).
+Here, we use the built-in `HOUR` function to extract the value for each hour in the day from a `TIMESTAMP` column. Use `INSERT INTO` to start a Flink SQL job that continuously writes results into the Elasticsearch `buy_cnt_per_hour` index. The Elasticearch result table can be seen as a materialized view of the query. You can find more information about Flink’s window aggregation in the [Apache Flink documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/table/sql/queries.html#group-windows).
 
 After running the previous query in the Flink SQL CLI, we can observe the submitted task on the [Flink Web UI](http://localhost:8081). This task is a streaming task and therefore runs continuously.
 
@@ -268,7 +268,7 @@ CREATE TABLE top_category (
 );
 ```
 
-In order to enrich the category names, we use Flink SQL’s temporal table joins to join a dimension table. You can access more information about [temporal joins]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/table/streaming/joins.html#join-with-a-temporal-table) in the Flink documentation.
+In order to enrich the category names, we use Flink SQL’s temporal table joins to join a dimension table. You can access more information about [temporal joins]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/table/streaming/joins.html#join-with-a-temporal-table) in the Flink documentation.
 
 Additionally, we use the `CREATE VIEW` syntax to register the query as a logical view, allowing us to easily reference this query in subsequent queries and simplify nested queries. Please note that creating a logical view does not trigger the execution of the job and the view results are not persisted. Therefore, this statement is lightweight and does not have additional overhead.
 

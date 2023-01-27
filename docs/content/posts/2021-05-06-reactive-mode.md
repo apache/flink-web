@@ -27,7 +27,7 @@ A simple way of quantifying the mismatch between the required resources and the 
 
 The problem with this approach is that you have to orchestrate a rescale operation with custom tools by yourself, including error handling and similar tasks.
 
-[Reactive Mode]({{site.DOCS_BASE_URL}}flink-docs-master/docs/deployment/elastic_scaling/) introduces a new option in Flink 1.13: You monitor your Flink cluster and add or remove resources depending on some metrics, Flink will do the rest. Reactive Mode is a mode where JobManager will try to use all TaskManager resources available.
+[Reactive Mode]({{< param DocsBaseUrl >}}flink-docs-master/docs/deployment/elastic_scaling/) introduces a new option in Flink 1.13: You monitor your Flink cluster and add or remove resources depending on some metrics, Flink will do the rest. Reactive Mode is a mode where JobManager will try to use all TaskManager resources available.
 
 The big benefit of Reactive Mode is that you don't need any specific knowledge to scale Flink anymore. Flink basically behaves like a fleet of servers (e.g. webservers, caches, batch processing) that you can expand or shrink as you wish. Since this is such a common pattern, there is a lot of infrastructure available for handling such cases: all major cloud providers offer utilities to monitor specific metrics and automatically scale a set of machines accordingly. For example, this would be provided through [Auto Scaling groups](https://docs.aws.amazon.com/autoscaling/ec2/userguide/AutoScalingGroup.html) in AWS, and [Managed Instance groups](https://cloud.google.com/compute/docs/instance-groups) in Google Cloud.
 Similarly, Kubernetes provides [Horizontal Pod Autoscalers](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
@@ -63,7 +63,7 @@ To scale down, remove a TaskManager instance:
 ./bin/taskmanager.sh stop
 ```
 
-Reactive Mode also works when deploying [Flink on Docker]({{site.DOCS_BASE_URL}}flink-docs-master/docs/deployment/resource-providers/standalone/docker/) or using the [standalone Kubernetes deployment]({{site.DOCS_BASE_URL}}flink-docs-master/docs/deployment/resource-providers/standalone/kubernetes/) (both only as application clusters).
+Reactive Mode also works when deploying [Flink on Docker]({{< param DocsBaseUrl >}}flink-docs-master/docs/deployment/resource-providers/standalone/docker/) or using the [standalone Kubernetes deployment]({{< param DocsBaseUrl >}}flink-docs-master/docs/deployment/resource-providers/standalone/kubernetes/) (both only as application clusters).
 
 ## Demo on Kubernetes
 
@@ -144,7 +144,7 @@ To mitigate this issue, we have reduced the `heartbeat.timeout` in our experimen
 
 In this blog post, we've introduced Reactive Mode, a big step forward in Flink's ability to dynamically adjust to changing workloads, reducing resource utilization and overall costs. The blog post demonstrated Reactive Mode on Kubernetes, including some lessons learned.
 
-Reactive Mode is new feature in Flink 1.13 and is currently in the [MVP (Minimal Viable Product) phase](https://flink.apache.org/roadmap.html#feature-stages) of product development. Before experimenting with it, or using it in production, please check the [documentation]({{site.DOCS_BASE_URL}}flink-docs-master/docs/deployment/elastic_scaling), in particular the current [limitations]({{site.DOCS_BASE_URL}}flink-docs-master/docs/deployment/elastic_scaling/#limitations) section. In this phase, the biggest limitation is that only standalone application mode deployments are supported (i.e. no active resource managers or session clusters).
+Reactive Mode is new feature in Flink 1.13 and is currently in the [MVP (Minimal Viable Product) phase](https://flink.apache.org/roadmap.html#feature-stages) of product development. Before experimenting with it, or using it in production, please check the [documentation]({{< param DocsBaseUrl >}}flink-docs-master/docs/deployment/elastic_scaling), in particular the current [limitations]({{< param DocsBaseUrl >}}flink-docs-master/docs/deployment/elastic_scaling/#limitations) section. In this phase, the biggest limitation is that only standalone application mode deployments are supported (i.e. no active resource managers or session clusters).
 
 The community is actively looking for feedback on this feature, to continue improving Flink's resource elasticity. If you have any feedback, please reach out to the [dev@ mailing list](https://flink.apache.org/community.html#mailing-lists) or to me personally on [Twitter](https://twitter.com/rmetzger_).
 

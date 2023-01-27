@@ -18,8 +18,8 @@ Since then, Storm has been growing in popularity, is used in production at many 
 In 2013, Storm entered the Apache incubator program, followed by its graduation to top-level in 2014.
 
 Apache Flink is a stream processing engine that improves upon older technologies like Storm in several dimensions,
-including [strong consistency guarantees]({{site.DOCS_BASE_URL}}flink-docs-master/internals/stream_checkpointing.html) ("exactly once"),
-a higher level [DataStream API]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming_guide.html),
+including [strong consistency guarantees]({{< param DocsBaseUrl >}}flink-docs-master/internals/stream_checkpointing.html) ("exactly once"),
+a higher level [DataStream API]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming_guide.html),
 support for [event time and a rich windowing system](http://flink.apache.org/news/2015/12/04/Introducing-windows.html),
 as well as [superior throughput with competitive low latency](https://data-artisans.com/high-throughput-low-latency-and-exactly-once-stream-processing-with-apache-flink/).
 
@@ -151,7 +151,7 @@ Flink's compatibility package for Storm allows using unmodified Spouts and Bolts
 This enables you to even embed third-party Spouts and Bolts where the source code is not available.
 While you can embed Spouts/Bolts in a Flink program and mix-and-match them with Flink operators, running whole topologies is the easiest way to get started and can be achieved with almost no code changes.
 
-If you want to try out Flink's Storm compatibility package checkout our [Documentation]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/storm_compatibility.html).
+If you want to try out Flink's Storm compatibility package checkout our [Documentation]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/storm_compatibility.html).
 
 <hr />
 

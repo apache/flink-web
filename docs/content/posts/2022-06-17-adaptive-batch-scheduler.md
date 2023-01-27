@@ -39,9 +39,9 @@ To automatically decide parallelism of operators, you need to:
 To use adaptive batch scheduler, you need to set configurations as below:
 
 - Set `jobmanager.scheduler: AdaptiveBatch`.
-- Leave the [execution.batch-shuffle-mode]({{site.DOCS_BASE_URL}}flink-docs-release-1.15/docs/deployment/config/#execution-batch-shuffle-mode) unset or explicitly set it to `ALL-EXCHANGES-BLOCKING` (default value). Currently, the adaptive batch scheduler only supports batch jobs whose shuffle mode is `ALL-EXCHANGES-BLOCKING`.
+- Leave the [execution.batch-shuffle-mode]({{< param DocsBaseUrl >}}flink-docs-release-1.15/docs/deployment/config/#execution-batch-shuffle-mode) unset or explicitly set it to `ALL-EXCHANGES-BLOCKING` (default value). Currently, the adaptive batch scheduler only supports batch jobs whose shuffle mode is `ALL-EXCHANGES-BLOCKING`.
 
-In addition, there are several related configuration options to control the upper bounds and lower bounds of tuned parallelisms, to specify expected data volume to process by each operator, and to specify the default parallelism of sources. More details can be found in the [feature documentation page]({{site.DOCS_BASE_URL}}flink-docs-release-1.15/docs/deployment/elastic_scaling/#configure-to-use-adaptive-batch-scheduler).
+In addition, there are several related configuration options to control the upper bounds and lower bounds of tuned parallelisms, to specify expected data volume to process by each operator, and to specify the default parallelism of sources. More details can be found in the [feature documentation page]({{< param DocsBaseUrl >}}flink-docs-release-1.15/docs/deployment/elastic_scaling/#configure-to-use-adaptive-batch-scheduler).
 
 ## Set the parallelism of operators to -1
 

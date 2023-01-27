@@ -28,7 +28,7 @@ In this blog post, we cut through Apache Flink’s layered architecture and take
 
 ### How do I join with Flink?
 
-Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce [[1]](http://research.google.com/archive/mapreduce.html) but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations [[2]]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/dataset_transformations.html). 
+Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce [[1]](http://research.google.com/archive/mapreduce.html) but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations [[2]]({{< param DocsBaseUrl >}}flink-docs-release-0.8/dataset_transformations.html). 
 
 Joining two Scala case class data sets is very easy as the following example shows:
 
@@ -56,7 +56,7 @@ Flink’s APIs also allow to:
 * select fields of pairs of joined Tuple elements (projection), and
 * define composite join keys such as `.where(“orderDate”, “zipCode”).equalTo(“date”, “zip”)`.
 
-See the documentation for more details on Flink’s join features [[3]]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/dataset_transformations.html#join).
+See the documentation for more details on Flink’s join features [[3]]({{< param DocsBaseUrl >}}flink-docs-release-0.8/dataset_transformations.html#join).
 
 
 ### How does Flink join my data?
@@ -126,7 +126,7 @@ The Hybrid-Hash-Join distinguishes its inputs as build-side and probe-side input
 
 Ship and local strategies do not depend on each other and can be independently chosen. Therefore, Flink can execute a join of two data sets R and S in nine different ways by combining any of the three ship strategies (RR, BF with R being broadcasted, BF with S being broadcasted) with any of the three local strategies (SM, HH with R being build-side, HH with S being build-side). Each of these strategy combinations results in different execution performance depending on the data sizes and the available amount of working memory. In case of a small data set R and a much larger data set S, broadcasting R and using it as build-side input of a Hybrid-Hash-Join is usually a good choice because the much larger data set S is not shipped and not materialized (given that the hash table completely fits into memory). If both data sets are rather large or the join is performed on many parallel instances, repartitioning both inputs is a robust choice.
 
-Flink features a cost-based optimizer which automatically chooses the execution strategies for all operators including joins. Without going into the details of cost-based optimization, this is done by computing cost estimates for execution plans with different strategies and picking the plan with the least estimated costs. Thereby, the optimizer estimates the amount of data which is shipped over the the network and written to disk. If no reliable size estimates for the input data can be obtained, the optimizer falls back to robust default choices. A key feature of the optimizer is to reason about existing data properties. For example, if the data of one input is already partitioned in a suitable way, the generated candidate plans will not repartition this input. Hence, the choice of a RR ship strategy becomes more likely. The same applies for previously sorted data and the Sort-Merge-Join strategy. Flink programs can help the optimizer to reason about existing data properties by providing semantic information about  user-defined functions [[4]]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/apis/batch/index.html#semantic-annotations). While the optimizer is a killer feature of Flink, it can happen that a user knows better than the optimizer how to execute a specific join. Similar to relational database systems, Flink offers optimizer hints to tell the optimizer which join strategies to pick [[5]]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints).
+Flink features a cost-based optimizer which automatically chooses the execution strategies for all operators including joins. Without going into the details of cost-based optimization, this is done by computing cost estimates for execution plans with different strategies and picking the plan with the least estimated costs. Thereby, the optimizer estimates the amount of data which is shipped over the the network and written to disk. If no reliable size estimates for the input data can be obtained, the optimizer falls back to robust default choices. A key feature of the optimizer is to reason about existing data properties. For example, if the data of one input is already partitioned in a suitable way, the generated candidate plans will not repartition this input. Hence, the choice of a RR ship strategy becomes more likely. The same applies for previously sorted data and the Sort-Merge-Join strategy. Flink programs can help the optimizer to reason about existing data properties by providing semantic information about  user-defined functions [[4]]({{< param DocsBaseUrl >}}flink-docs-release-1.0/apis/batch/index.html#semantic-annotations). While the optimizer is a killer feature of Flink, it can happen that a user knows better than the optimizer how to execute a specific join. Similar to relational database systems, Flink offers optimizer hints to tell the optimizer which join strategies to pick [[5]]({{< param DocsBaseUrl >}}flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints).
 
 ### How is Flink’s join performance?
 
@@ -175,7 +175,7 @@ We have seen that off-the-shelf distributed joins work really well in Flink. But
 #### References
 
 [1] [“MapReduce: Simplified data processing on large clusters”](), Dean, Ghemawat, 2004 <br>
-[2] [Flink 0.8.1 documentation: Data Transformations]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/dataset_transformations.html) <br>
-[3] [Flink 0.8.1 documentation: Joins]({{site.DOCS_BASE_URL}}flink-docs-release-0.8/dataset_transformations.html#join) <br>
-[4] [Flink 1.0 documentation: Semantic annotations]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/apis/batch/index.html#semantic-annotations) <br>
-[5] [Flink 1.0 documentation: Optimizer join hints]({{site.DOCS_BASE_URL}}flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints) <br>
+[2] [Flink 0.8.1 documentation: Data Transformations]({{< param DocsBaseUrl >}}flink-docs-release-0.8/dataset_transformations.html) <br>
+[3] [Flink 0.8.1 documentation: Joins]({{< param DocsBaseUrl >}}flink-docs-release-0.8/dataset_transformations.html#join) <br>
+[4] [Flink 1.0 documentation: Semantic annotations]({{< param DocsBaseUrl >}}flink-docs-release-1.0/apis/batch/index.html#semantic-annotations) <br>
+[5] [Flink 1.0 documentation: Optimizer join hints]({{< param DocsBaseUrl >}}flink-docs-release-1.0/apis/batch/dataset_transformations.html#join-algorithm-hints) <br>

@@ -25,7 +25,7 @@ This post will outline the journey of improving snapshotting in past releases an
 
 # Past improvements to the snapshotting process 
 
-Flink 1.13 was the first release where we announced [unaligned checkpoints]({{site.DOCS_BASE_URL}}flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) to be production-ready. We
+Flink 1.13 was the first release where we announced [unaligned checkpoints]({{< param DocsBaseUrl >}}flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) to be production-ready. We
 encouraged people to use them if their jobs are backpressured to a point where it causes issues for
 checkpoints.  We also [unified the binary format of savepoints](/news/2021/05/03/release-1.13.0.html#switching-state-backend-with-savepoints) across all
 different state backends, which enables stateful switching of savepoints.

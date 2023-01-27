@@ -25,7 +25,7 @@ In this blog post, we are going to give an overview over these changes, and we w
 
 ## **How does fine-grained recovery work?** {#how-does-fine-grained-recovery-work}
 
-For streaming jobs (and in [pipelined mode]({{site.DOCS_BASE_URL}}flink-docs-master/api/java/org/apache/flink/api/common/ExecutionMode.html) for batch jobs), Flink is using a coarse-grained restart-strategy: upon failure, the entire job is restarted (but streaming jobs have an entirely different fault-tolerance model, using [checkpointing]({{site.DOCS_BASE_URL}}flink-docs-release-1.12/concepts/stateful-stream-processing.html#checkpointing))
+For streaming jobs (and in [pipelined mode]({{< param DocsBaseUrl >}}flink-docs-master/api/java/org/apache/flink/api/common/ExecutionMode.html) for batch jobs), Flink is using a coarse-grained restart-strategy: upon failure, the entire job is restarted (but streaming jobs have an entirely different fault-tolerance model, using [checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.12/concepts/stateful-stream-processing.html#checkpointing))
 
 For batch jobs, we can use a more sophisticated recovery strategy, by using cached intermediate results, thus only restarting parts of the pipeline. 
 
@@ -84,7 +84,7 @@ Failures are artificially triggered based on a configured mean failure frequency
 
 We were running the job with two parameters which we varied in the benchmark:
 
-  * [Execution Mode]({{site.DOCS_BASE_URL}}flink-docs-release-1.12/dev/execution_configuration.html): [BATCH or PIPELINED]({{site.DOCS_BASE_URL}}flink-docs-release-1.12/api/java/org/apache/flink/api/common/ExecutionMode.html).
+  * [Execution Mode]({{< param DocsBaseUrl >}}flink-docs-release-1.12/dev/execution_configuration.html): [BATCH or PIPELINED]({{< param DocsBaseUrl >}}flink-docs-release-1.12/api/java/org/apache/flink/api/common/ExecutionMode.html).
 
     In PIPELINED mode, except for data exchanges susceptible for deadlocks all exchanges are pipelined (e.g. upstream operators are streaming their result downstream). A failure means that we have to restart the entire job, and start the processing from scratch.
     

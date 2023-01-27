@@ -24,7 +24,7 @@ page of the Flink website, and the most recent Java SDK, Python SDK, and GoLang 
 You can also find official StateFun Docker images of the new version on [Dockerhub](https://hub.docker.com/r/apache/flink-statefun).
 
 For more details, check the complete [release changelog](https://issues.apache.org/jira/secure/ReleaseNote.jspa?version=12350038&projectId=12315522) 
-and the [updated documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-3.0/).
+and the [updated documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-3.0/).
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/browse/)!
 
@@ -213,7 +213,7 @@ For a detailed SDK tutorial, we would like to encourage you to visit:
 
   - [GoLang SDK Showcase](https://github.com/apache/flink-statefun-playground/tree/release-3.1/go/showcase)
   - [GoLang Greeter](https://github.com/apache/flink-statefun-playground/tree/release-3.1/go/greeter)
-  - [GoLang SDK Documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-3.1/docs/sdk/golang/)
+  - [GoLang SDK Documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-3.1/docs/sdk/golang/)
 
 ## Release Notes
 

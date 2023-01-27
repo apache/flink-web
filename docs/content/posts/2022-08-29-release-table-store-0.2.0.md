@@ -22,7 +22,7 @@ title: Apache Flink Table Store 0.2.0 Release Announcement
 The Apache Flink community is pleased to announce the release of the
 [Apache Flink Table Store](https://github.com/apache/flink-table-store) (0.2.0).
 
-Please check out the full [documentation]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.2/) for detailed information and user guides.
+Please check out the full [documentation]({{< param DocsBaseUrl >}}flink-table-store-docs-release-0.2/) for detailed information and user guides.
 
 <br/>
 
@@ -112,7 +112,7 @@ the old partitions remain unchanged.
 
 ## Getting started
 
-Please refer to the [getting started guide]({{site.DOCS_BASE_URL}}flink-table-store-docs-release-0.2/docs/try-table-store/quick-start/) for more details.
+Please refer to the [getting started guide]({{< param DocsBaseUrl >}}flink-table-store-docs-release-0.2/docs/try-table-store/quick-start/) for more details.
 
 <br/>
 

@@ -18,7 +18,7 @@ Since serialization is so crucial to your Flink job, we would like to highlight 
 
 # Recap: Flink Serialization
 
-Flink handles [data types and serialization]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/types_serialization.html) with its own type descriptors, generic type extraction, and type serialization framework. We recommend reading through the [documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/types_serialization.html) first in order to be able to follow the arguments we present below. In essence, Flink tries to infer information about your job’s data types for wire and state serialization, and to be able to use grouping, joining, and aggregation operations by referring to individual field names, e.g. 
+Flink handles [data types and serialization]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html) with its own type descriptors, generic type extraction, and type serialization framework. We recommend reading through the [documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html) first in order to be able to follow the arguments we present below. In essence, Flink tries to infer information about your job’s data types for wire and state serialization, and to be able to use grouping, joining, and aggregation operations by referring to individual field names, e.g. 
 `stream.keyBy(“ruleId”)` or 
 `dataSet.join(another).where("name").equalTo("personName")`. It also allows optimizations in the serialization format as well as reducing unnecessary de/serializations (mainly in certain Batch operations as well as in the SQL/Table APIs).
 
@@ -29,16 +29,16 @@ Apache Flink's out-of-the-box serialization can be roughly divided into the foll
 
 - **Flink-provided special serializers** for basic types (Java primitives and their boxed form), arrays, composite types (tuples, Scala case classes, Rows), and a few auxiliary types (Option, Either, Lists, Maps, …),
 
-- **POJOs**; a public, standalone class with a public no-argument constructor and all non-static, non-transient fields in the class hierarchy either public or with a public getter- and a setter-method; see [POJO Rules]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types),
+- **POJOs**; a public, standalone class with a public no-argument constructor and all non-static, non-transient fields in the class hierarchy either public or with a public getter- and a setter-method; see [POJO Rules]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types),
 
 - **Generic types**; user-defined data types that are not recognized as a POJO and then serialized via [Kryo](https://github.com/EsotericSoftware/kryo).
 
-Alternatively, you can also register [custom serializers]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/custom_serializers.html) for user-defined data types. This includes writing your own serializers or integrating other serialization systems like [Google Protobuf](https://developers.google.com/protocol-buffers/) or [Apache Thrift](https://thrift.apache.org/) via [Kryo](https://github.com/EsotericSoftware/kryo). Overall, this gives quite a number of different options of serializing user-defined data types and we will elaborate seven of them in the sections below.
+Alternatively, you can also register [custom serializers]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/custom_serializers.html) for user-defined data types. This includes writing your own serializers or integrating other serialization systems like [Google Protobuf](https://developers.google.com/protocol-buffers/) or [Apache Thrift](https://thrift.apache.org/) via [Kryo](https://github.com/EsotericSoftware/kryo). Overall, this gives quite a number of different options of serializing user-defined data types and we will elaborate seven of them in the sections below.
 
 
 ## PojoSerializer
 
-As outlined above, if your data type is not covered by a specialized serializer but follows the [POJO Rules]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types), it will be serialized with the [PojoSerializer](https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/PojoSerializer.java) which uses Java reflection to access an object’s fields. It is fast, generic, Flink-specific, and supports [state schema evolution]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/stream/state/schema_evolution.html) out of the box. If a composite data type cannot be serialized as a POJO, you will find the following message (or similar) in your cluster logs:
+As outlined above, if your data type is not covered by a specialized serializer but follows the [POJO Rules]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html#rules-for-pojo-types), it will be serialized with the [PojoSerializer](https://github.com/apache/flink/blob/release-1.10.0/flink-core/src/main/java/org/apache/flink/api/java/typeutils/runtime/PojoSerializer.java) which uses Java reflection to access an object’s fields. It is fast, generic, Flink-specific, and supports [state schema evolution]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/stream/state/schema_evolution.html) out of the box. If a composite data type cannot be serialized as a POJO, you will find the following message (or similar) in your cluster logs:
 
 > 15:45:51,460 INFO  org.apache.flink.api.java.typeutils.TypeExtractor             - Class … cannot be used as a POJO type because not all fields are valid POJO fields, and must be processed as GenericType. Please read the Flink documentation on "Data Types & Serialization" for details of the effect on performance.
 
@@ -175,7 +175,7 @@ If you cannot immediately see from the type where it is being used, this log mes
 
 ## Apache Thrift (via Kryo)
 
-In addition to the variants above, Flink also allows you to [register other type serialization frameworks]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) with Kryo. After adding the appropriate dependencies from the [documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) (`com.twitter:chill-thrift` and `org.apache.thrift:libthrift`), you can use [Apache Thrift](https://thrift.apache.org/) like the following:
+In addition to the variants above, Flink also allows you to [register other type serialization frameworks]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) with Kryo. After adding the appropriate dependencies from the [documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) (`com.twitter:chill-thrift` and `org.apache.thrift:libthrift`), you can use [Apache Thrift](https://thrift.apache.org/) like the following:
 
 ```java
 env.getConfig().addDefaultKryoSerializer(MyCustomType.class, TBaseSerializer.class);
@@ -192,7 +192,7 @@ Please note that `TBaseSerializer` can be registered as a default Kryo serialize
 
 ## Protobuf (via Kryo)
 
-In a way similar to Apache Thrift, [Google Protobuf](https://developers.google.com/protocol-buffers/) may be [registered as a custom serializer]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) after adding the right dependencies (`com.twitter:chill-protobuf` and `com.google.protobuf:protobuf-java`):
+In a way similar to Apache Thrift, [Google Protobuf](https://developers.google.com/protocol-buffers/) may be [registered as a custom serializer]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/custom_serializers.html#register-a-custom-serializer-for-your-flink-program) after adding the right dependencies (`com.twitter:chill-protobuf` and `com.google.protobuf:protobuf-java`):
 
 ```java
 env.getConfig().registerTypeWithKryoSerializer(MyCustomType.class, ProtobufSerializer.class);
@@ -208,7 +208,7 @@ Please note that `ProtobufSerializer` can be registered as a default Kryo serial
 
 # State Schema Evolution
 
-Before taking a closer look at the performance of each of the serializers described above, we would like to emphasize that performance is not everything that counts inside a real-world Flink job. Types for storing state, for example, should be able to evolve their schema (add/remove/change fields) throughout the lifetime of the job without losing previous state. This is what Flink calls [State Schema Evolution]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/stream/state/schema_evolution.html). Currently, as of Flink 1.10, there are only two serializers that support out-of-the-box schema evolution: POJO and Avro. For anything else, if you want to change the state schema, you will have to either implement your own [custom serializers]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/stream/state/custom_serialization.html) or use the [State Processor API]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/libs/state_processor_api.html) to modify your state for the new code.
+Before taking a closer look at the performance of each of the serializers described above, we would like to emphasize that performance is not everything that counts inside a real-world Flink job. Types for storing state, for example, should be able to evolve their schema (add/remove/change fields) throughout the lifetime of the job without losing previous state. This is what Flink calls [State Schema Evolution]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/state/schema_evolution.html). Currently, as of Flink 1.10, there are only two serializers that support out-of-the-box schema evolution: POJO and Avro. For anything else, if you want to change the state schema, you will have to either implement your own [custom serializers]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/stream/state/custom_serialization.html) or use the [State Processor API]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/libs/state_processor_api.html) to modify your state for the new code.
 
 # Performance Comparison
 

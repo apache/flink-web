@@ -31,7 +31,7 @@ As the number of Chinese-speaking Flink users rapidly grows, the community is wo
 
 * A new user mailing list (user-zh@f.a.o) dedicated to Chinese-speakers.
 <p></p>
-* A Chinese translation of the Apache Flink [website](https://flink.apache.org/zh/) and [documentation]({{site.DOCS_BASE_URL}}flink-docs-master/zh/).
+* A Chinese translation of the Apache Flink [website](https://flink.apache.org/zh/) and [documentation]({{< param DocsBaseUrl >}}flink-docs-master/zh/).
 <p></p>
 * Multiple meetups organized all over China, with the biggest one reaching a whopping number of 500+ participants. Some of these meetups were also organized in collaboration with communities from other projects, like Apache Pulsar and Apache Kafka.
 
@@ -51,7 +51,7 @@ Besides the translation effort, the community has also been working quite hard o
  <p></p>
  * Improve the _getting-started_ material and make the content more accessible to different levels of Flink experience. 
 
-Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary]({{site.DOCS_BASE_URL}}flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
+Given that there has been some confusion in the past regarding unclear definition of core Flink concepts, one of the first completed efforts was to introduce a [Glossary]({{< param DocsBaseUrl >}}flink-docs-release-1.9/concepts/glossary.html#glossary) in the docs. To get up to speed with the roadmap for the remainder efforts, you can refer to [FLIP-42](https://cwiki.apache.org/confluence/display/FLINK/FLIP-42%3A+Rework+Flink+Documentation) and the corresponding [umbrella Jira ticket](https://issues.apache.org/jira/browse/FLINK-12639).
 
 ## Adjusting the Contribution Process and Experience
 

@@ -34,9 +34,9 @@ what they've learnt to deploy their StateFun applications on other public cloud 
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
 You can find the full code [here](https://github.com/tzulitai/statefun-aws-demo/blob/master/app/shopping_cart.py), which
-uses StateFun's [Python SDK]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/sdk/python.html). Alternatively, if you are
+uses StateFun's [Python SDK]({{< param DocsBaseUrl >}}flink-statefun-docs-master/sdk/python.html). Alternatively, if you are
 unfamiliar with StateFun's API, you can check out this [earlier blog](https://flink.apache.org/2020/08/19/statefun.html)
-on modeling applications and stateful entities using [StateFun's programming constructs]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/concepts/application-building-blocks.html).
+on modeling applications and stateful entities using [StateFun's programming constructs]({{< param DocsBaseUrl >}}flink-statefun-docs-master/concepts/application-building-blocks.html).
 </div>
 
 Let’s first take a look at a high-level overview of the motivating demo for this blog post: a shopping cart application.
@@ -112,7 +112,7 @@ services.
 </center>
 <br>
 
-Under the hood, StateFun SDKs like the Python SDK and other [3rd party SDKs for other languages]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/sdk/external.html)
+Under the hood, StateFun SDKs like the Python SDK and other [3rd party SDKs for other languages]({{< param DocsBaseUrl >}}flink-statefun-docs-master/sdk/external.html)
 all implement this protocol. From the user's perspective, they are programming with state local to their function deployment,
 whereas in reality, state is maintained in StateFun and supplied through this protocol. It is easy to add more language SDKs,
 as long as the language can handle HTTP requests and responses.
@@ -129,7 +129,7 @@ request and response, <i><b>function invocations are effectively idempotent</b><
 violating consistency in case any function service hiccups occur.
 
 For fault tolerance, all function state managed in the StateFun cluster is periodically and asynchronously checkpointed
-to a blob storage (e.g. HDFS, S3, GCS) using Flink’s [original distributed snapshot mechanism]({{site.DOCS_BASE_URL}}flink-docs-master/concepts/stateful-stream-processing.html#checkpointing).
+to a blob storage (e.g. HDFS, S3, GCS) using Flink’s [original distributed snapshot mechanism]({{< param DocsBaseUrl >}}flink-docs-master/concepts/stateful-stream-processing.html#checkpointing).
 These checkpoints contain <i><b>a globally consistent view of state across all functions of the application</b></i>,
 including the offset positions in ingresses and the ongoing transaction state in egresses. In the case of an abrupt failure,
 the system may restore from the latest available checkpoint: all function states will be restored and all events between
@@ -210,4 +210,4 @@ StateFun cluster, and an AWS S3 bucket to store the periodic checkpoints. You ca
 
 ---
 
-If you’d like to learn more about Stateful Functions, head over to the [official documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-master/), where you can also find more hands-on tutorials to try out yourself!
+If you’d like to learn more about Stateful Functions, head over to the [official documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-master/), where you can also find more hands-on tutorials to try out yourself!

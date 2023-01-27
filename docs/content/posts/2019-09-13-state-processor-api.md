@@ -17,7 +17,7 @@ title: 'The State Processor API: How to Read, write and modify the state of Flin
   applications'
 ---
 
-Whether you are running Apache Flink<sup>Ⓡ</sup> in production or evaluated Flink as a computation framework in the past, you've probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! [Apache Flink 1.9.0](https://flink.apache.org/news/2019/08/22/release-1.9.0.html) introduces the [State Processor API]({{site.DOCS_BASE_URL}}flink-docs-release-1.9/dev/libs/state_processor_api.html), a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink's savepoints and checkpoints. 
+Whether you are running Apache Flink<sup>Ⓡ</sup> in production or evaluated Flink as a computation framework in the past, you've probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! [Apache Flink 1.9.0](https://flink.apache.org/news/2019/08/22/release-1.9.0.html) introduces the [State Processor API]({{< param DocsBaseUrl >}}flink-docs-release-1.9/dev/libs/state_processor_api.html), a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink's savepoints and checkpoints. 
  
 In this post, we explain why this feature is a big step for Flink, what you can use it for, and how to use it. Finally, we will discuss the future of the State Processor API and how it aligns with our plans to evolve Flink into a system for [unified batch and stream processing](https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html).
 
@@ -31,7 +31,7 @@ Despite all those convincing reasons to expose application state externally, you
 
 ## Reading and Writing Application State with the State Processor API
 
-The State Processor API that comes with Flink 1.9 is a true game-changer in how you can work with application state! In a nutshell, it extends the DataSet API with Input and OutputFormats to read and write savepoint or checkpoint data. Due to the [interoperability of DataSet and Table API]({{site.DOCS_BASE_URL}}flink-docs-master/dev/table/common.html#integration-with-datastream-and-dataset-api), you can even use relational Table API or SQL queries to analyze and process state data.
+The State Processor API that comes with Flink 1.9 is a true game-changer in how you can work with application state! In a nutshell, it extends the DataSet API with Input and OutputFormats to read and write savepoint or checkpoint data. Due to the [interoperability of DataSet and Table API]({{< param DocsBaseUrl >}}flink-docs-master/dev/table/common.html#integration-with-datastream-and-dataset-api), you can even use relational Table API or SQL queries to analyze and process state data.
 
 For example, you can take a savepoint of a running stream processing application and analyze it with a DataSet batch program to verify that the application behaves correctly. Or you can read a batch of data from any store, preprocess it, and write the result to a savepoint that you use to bootstrap the state of a streaming application. It's also possible to fix inconsistent state entries now. Finally, the State Processor API opens up many ways to evolve a stateful application that were previously blocked by parameter and design choices that could not be changed without losing all the state of the application after it was started. For example, you can now arbitrarily modify the data types of states, adjust the maximum parallelism of operators, split or merge operator state, re-assign operator UIDs, and so on.
 
@@ -55,7 +55,7 @@ A savepoint or checkpoint of MyApp consists of the data of all states, organized
 
 The figure shows how the values of Src's operator state are mapped to a table with one column and five rows, one row for all list entries across all parallel tasks of Src. Operator state os2 of the operator “Proc” is similarly mapped to an individual table. The keyed states ks1 and ks2 are combined to a single table with three columns, one for the key, one for ks1 and one for ks2. The keyed table holds one row for each distinct key of both keyed states. Since the operator “Snk” does not have any state, its namespace is empty.
 
-The State Processor API now offers methods to create, load, and write a savepoint. You can read a DataSet from a loaded savepoint or convert a DataSet into a state and add it to a savepoint. DataSets can be processed with the full feature set of the DataSet API. With these building blocks, all of the before-mentioned use cases (and more) can be addressed. Please have a look at the [documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.9/dev/libs/state_processor_api.html) if you'd like to learn how to use the State Processor API in detail.
+The State Processor API now offers methods to create, load, and write a savepoint. You can read a DataSet from a loaded savepoint or convert a DataSet into a state and add it to a savepoint. DataSets can be processed with the full feature set of the DataSet API. With these building blocks, all of the before-mentioned use cases (and more) can be addressed. Please have a look at the [documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.9/dev/libs/state_processor_api.html) if you'd like to learn how to use the State Processor API in detail.
 
 ## Why DataSet API?
 

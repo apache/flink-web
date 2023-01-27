@@ -15,7 +15,7 @@ title: 'Managing Large State in Apache Flink: An Intro to Incremental Checkpoint
 
 Apache Flink was purpose-built for _stateful_ stream processing. However, what is state in a stream processing application? I defined state and stateful stream processing in a [previous blog post](http://flink.apache.org/features/2017/07/04/flink-rescalable-state.html), and in case you need a refresher, _state is defined as memory in an application's operators that stores information about previously-seen events that you can use to influence the processing of future events_.
 
-State is a fundamental, enabling concept in stream processing required for a majority of complex use cases. Some examples highlighted in the [Flink documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/dev/stream/state.html):
+State is a fundamental, enabling concept in stream processing required for a majority of complex use cases. Some examples highlighted in the [Flink documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.3/dev/stream/state.html):
 
 -   When an application searches for certain event patterns, the state stores the sequence of events encountered so far.
 -   When aggregating events per minute, the state holds the pending aggregates.
@@ -25,7 +25,7 @@ However, stateful stream processing is only useful in production environments if
 
 Flink's fault tolerance has always been a powerful and popular feature, minimizing the impact of software or machine failure on your business and making it possible to guarantee exactly-once results from a Flink application.
 
-Core to this is [checkpointing]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/dev/stream/checkpointing.html), which is the mechanism Flink uses to make application state fault tolerant. A checkpoint in Flink is a global, asynchronous snapshot of application state that's taken on a regular interval and sent to durable storage (usually, a distributed file system). In the event of a failure, Flink restarts an application using the most recently completed checkpoint as a starting point. Some Apache Flink users run applications with gigabytes or even terabytes of application state. These users reported that with such large state, creating a checkpoint was often a slow and resource intensive operation, which is why in Flink 1.3 we introduced 'incremental checkpointing.'
+Core to this is [checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.3/dev/stream/checkpointing.html), which is the mechanism Flink uses to make application state fault tolerant. A checkpoint in Flink is a global, asynchronous snapshot of application state that's taken on a regular interval and sent to durable storage (usually, a distributed file system). In the event of a failure, Flink restarts an application using the most recently completed checkpoint as a starting point. Some Apache Flink users run applications with gigabytes or even terabytes of application state. These users reported that with such large state, creating a checkpoint was often a slow and resource intensive operation, which is why in Flink 1.3 we introduced 'incremental checkpointing.'
 
 Before incremental checkpointing, every single Flink checkpoint consisted of the full state of an application. We created the incremental checkpointing feature after we noticed that writing the full state for every checkpoint was often unnecessary, as the state changes from one checkpoint to the next were rarely that large. Incremental checkpointing instead maintains the differences (or 'delta') between each checkpoint and stores only the differences between the last checkpoint and the current state.
 
@@ -35,7 +35,7 @@ Incremental checkpoints can provide a significant performance improvement for jo
 
 Currently, you can only use incremental checkpointing with a RocksDB state back-end, and Flink uses RocksDB's internal backup mechanism to consolidate checkpoint data over time. As a result, the incremental checkpoint history in Flink does not grow indefinitely, and Flink eventually consumes and prunes old checkpoints automatically.
 
-To enable incremental checkpointing in your application, I recommend you read the [the Apache Flink documentation on checkpointing]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/ops/state/large_state_tuning.html#tuning-rocksdb) for full details, but in summary, you enable checkpointing as normal, but enable incremental checkpointing in the constructor by setting the second parameter to `true`.
+To enable incremental checkpointing in your application, I recommend you read the [the Apache Flink documentation on checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.4/ops/state/large_state_tuning.html#tuning-rocksdb) for full details, but in summary, you enable checkpointing as normal, but enable incremental checkpointing in the constructor by setting the second parameter to `true`.
 
 #### Java Example
 
@@ -51,7 +51,7 @@ val env = StreamExecutionEnvironment.getExecutionEnvironment()
 env.setStateBackend(new RocksDBStateBackend(filebackend, true))
 ```
 
-By default, Flink retains 1 completed checkpoint, so if you need a higher number, [you can configure it with the following flag]({{site.DOCS_BASE_URL}}flink-docs-master/dev/stream/state/checkpointing.html#related-config-options):
+By default, Flink retains 1 completed checkpoint, so if you need a higher number, [you can configure it with the following flag]({{< param DocsBaseUrl >}}flink-docs-master/dev/stream/state/checkpointing.html#related-config-options):
 
 ```java
 state.checkpoints.num-retained
@@ -94,7 +94,7 @@ If you enable incremental checkpointing, there are no further configuration step
 
 Though the feature can lead to a substantial improvement in checkpoint time for users with a large state, there are trade-offs to consider with incremental checkpointing. Overall, the process reduces the checkpointing time during normal operations but can lead to a longer recovery time depending on the size of your state. If the cluster failure is particularly severe and the Flink `TaskManager`s have to read from multiple checkpoints, recovery can be a slower operation than when using non-incremental checkpointing. You can also no longer delete old checkpoints as newer checkpoints need them, and the history of differences between checkpoints can grow indefinitely over time. You need to plan for larger distributed storage to maintain the checkpoints and the network overhead to read from it.
 
-There are some strategies for improving the convenience/performance trade-off, and I recommend you read [the Flink documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/ops/state/checkpoints.html#basics-of-incremental-checkpoints) for more details.
+There are some strategies for improving the convenience/performance trade-off, and I recommend you read [the Flink documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.4/ops/state/checkpoints.html#basics-of-incremental-checkpoints) for more details.
 
 _This post <a href="https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview" target="_blank"> originally appeared on the data Artisans blog </a>and was contributed to the Flink blog by Stefan Richter and Chris Ward._
 <link rel="canonical" href="https://data-artisans.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview">

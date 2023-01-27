@@ -52,7 +52,7 @@ Next, let's take a look at a sample rule definition that we introduced in the pr
 </center>
 <br/>
 
-The previous post covered use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert-triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink.
+The previous post covered use of `groupingKeyNames` by `DynamicKeyFunction` to extract message keys. Parameters from the second part of this rule are used by `DynamicAlertFunction`: they define the actual logic of the performed operations and their parameters (such as the alert-triggering limit). This means that the same rule must be present in both `DynamicKeyFunction` and `DynamicAlertFunction`. To achieve this result, we will use the [broadcast data distribution mechanism]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/stream/state/broadcast_state.html) of Apache Flink.
 
 Figure 2 presents the final job graph of the system that we are building:
 
@@ -113,7 +113,7 @@ The Fraud Detection job graph in Figure 2 contains an additional data source: _R
 
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
-There are actually a few more specialized data partitioning schemes in Flink which we did not mention here. If you want to find out more, please refer to Flink's documentation on __[stream partitioning]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/stream/operators/#physical-partitioning)__.
+There are actually a few more specialized data partitioning schemes in Flink which we did not mention here. If you want to find out more, please refer to Flink's documentation on __[stream partitioning]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/operators/#physical-partitioning)__.
 </div>
 
 ## Broadcast State Pattern

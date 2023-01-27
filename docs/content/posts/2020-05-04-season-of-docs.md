@@ -72,7 +72,7 @@ Some areas of the documentation have insufficient detail or are not [accessible]
 
 * FLIP-60: [https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=127405685](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=127405685)
 
-* Table API & SQL Documentation: [{{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/dev/table/)
+* Table API & SQL Documentation: [{{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/table/)
 
 * How to Contribute Documentation: [https://flink.apache.org/contributing/contribute-documentation.html](https://flink.apache.org/contributing/contribute-documentation.html)
 

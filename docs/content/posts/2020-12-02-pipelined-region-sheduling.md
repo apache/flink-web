@@ -204,7 +204,7 @@ As mentioned before, only certain regions are running at the same time. Others h
 The results are stored locally in _TaskManagers_ where the corresponding _subtasks_ run.
 If a currently running region fails, it gets restarted to consume its inputs again.
 If some input results got lost (e.g. the hosting _TaskManager_ failed as well), Flink will rerun their producing regions.
-You can read more about this effort in the [user documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/task_failure_recovery.html#failover-strategies)
+You can read more about this effort in the [user documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/task_failure_recovery.html#failover-strategies)
 and the original [FLIP-1 proposal](https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures).
 
 ## Benefits
@@ -215,7 +215,7 @@ The _subtasks_ of a _pipelined region_ are deployed only when all necessary cond
 inputs are ready and all needed resources are allocated. Hence, the _batch_ job never gets stuck without notifying the user.
 The job either eventually finishes or fails after a timeout.
 
-Depending on how the _subtasks_ are allowed to [share slots]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/#task-chaining-and-resource-groups),
+Depending on how the _subtasks_ are allowed to [share slots]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/#task-chaining-and-resource-groups),
 it is often the case that the whole _pipelined region_ can run within one _slot_,
 making it generally possible to run the whole _batch_ job with only a single _slot_.
 At the same time, if the cluster provides more resources, Flink will run as many regions as possible in parallel to improve the overall job performance.
@@ -250,11 +250,11 @@ we encourage you to sign up to the Apache Flink [mailing lists](https://flink.ap
 ### ExecutionGraph
 
 A Flink _job_ is a pipeline of connected _operators_ to process data.
-Together, the operators form a _[JobGraph]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
+Together, the operators form a _[JobGraph]({{< param DocsBaseUrl >}}flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
 Each _operator_ has a certain number of _subtasks_ executed in parallel. The _subtask_ is the actual execution unit in Flink.
 Each subtask can consume user records from other subtasks (inputs), process them and produce records for further consumption by other _subtasks_ (outputs) down the stream.
 There are _source subtasks_ without inputs and _sink subtasks_ without outputs. Hence, the _subtasks_ form the nodes of the
-_[ExecutionGraph]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
+_[ExecutionGraph]({{< param DocsBaseUrl >}}flink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures)_.
 
 
 ### Intermediate results
@@ -270,14 +270,14 @@ and the consumer of the _blocking_ result can run only when the producer has fin
 
 ### Slots and resources
 
-A _[TaskManager]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster)_
-instance has a certain number of virtual _[slots]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/concepts/flink-architecture.html#task-slots-and-resources)_.
+A _[TaskManager]({{< param DocsBaseUrl >}}flink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster)_
+instance has a certain number of virtual _[slots]({{< param DocsBaseUrl >}}flink-docs-release-1.11/concepts/flink-architecture.html#task-slots-and-resources)_.
 Each _slot_ represents a certain part of the _TaskManager’s physical resources_ to run the operator _subtasks_, and each _subtask_ is deployed into a _slot_ of the _TaskManager_.
-A _slot_ can run multiple _[subtasks]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_ from different _operators_ at the same time, usually [chained]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains) together.
+A _slot_ can run multiple _[subtasks]({{< param DocsBaseUrl >}}flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_ from different _operators_ at the same time, usually [chained]({{< param DocsBaseUrl >}}flink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains) together.
 
 ### Scheduling strategy
 
-_[Scheduling]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_
+_[Scheduling]({{< param DocsBaseUrl >}}flink-docs-release-1.11/internals/job_scheduling.html#scheduling)_
 in Flink is a process of searching for and allocating appropriate resources (_slots_) from the _TaskManagers_ to run the _subtasks_ and produce results.
 The _scheduling strategy_ reacts on scheduling events (like start job, _subtask_ failed or finished etc) to decide which _subtask_ to deploy next.
 
