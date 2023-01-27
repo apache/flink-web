@@ -29,9 +29,9 @@ Apache Flink 功能强大，支持开发和运行多种不同种类的应用程�
 
 接下来我们将介绍 Flink 常见的几类应用并给出相关实例链接。
 
-* <a href="#eventDrivenApps">事件驱动型应用</a>
-* <a href="#analytics">数据分析应用</a>
-* <a href="#pipelines">数据管道应用</a>
+* <a href="#事件驱动型应用-a-nameeventdrivenappsa">事件驱动型应用</a>
+* <a href="#数据分析应用a-nameanalyticsa">数据分析应用</a>
+* <a href="#数据管道应用-a-namepipelinesa">数据管道应用</a>
 
 ## 事件驱动型应用 <a name="eventDrivenApps"></a>
 

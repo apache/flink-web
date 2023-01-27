@@ -29,9 +29,9 @@ Apache Flink is an excellent choice to develop and run many different types of a
 
 Below, we explore the most common types of applications that are powered by Flink and give pointers to real-world examples.
 
-* <a href="#eventDrivenApps">Event-driven Applications</a>
-* <a href="#analytics">Data Analytics Applications</a>
-* <a href="#pipelines">Data Pipeline Applications</a>
+* <a href="#event-driven-applications-a-nameeventdrivenappsa">Event-driven Applications</a>
+* <a href="#data-analytics-applicationsa-nameanalyticsa">Data Analytics Applications</a>
+* <a href="#data-pipeline-applications-a-namepipelinesa">Data Pipeline Applications</a>
 
 ## Event-driven Applications <a name="eventDrivenApps"></a>
 
