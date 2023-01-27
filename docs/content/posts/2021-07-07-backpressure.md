@@ -49,7 +49,7 @@ there are two questions worth asking.
 Backpressure is an indicator that your machines or operators are overloaded. The buildup of backpressure
 directly affects the end-to-end latency of the system, as records are waiting longer in the queues before
 being processed. Secondly, aligned checkpointing takes longer with backpressure, while unaligned checkpoints
-will be larger (you can read more about aligned and unaligned checkpoints [in the documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.13/docs/concepts/stateful-stream-processing/#checkpointing).
+will be larger (you can read more about aligned and unaligned checkpoints [in the documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/concepts/stateful-stream-processing/#checkpointing).
 If you are struggling with checkpoint barriers propagation times, taking care of backpressure would most
 likely help to solve the problem. Lastly, you might just want to optimize your job in order to reduce
 the costs of running the job.
@@ -65,7 +65,7 @@ is especially true for batch processing.
 
 ## How to detect and track down the source of backpressure?
 
-One way to detect backpressure is to use [metrics]({{site.DOCS_BASE_URL}}flink-docs-release-1.13/docs/ops/metrics/#system-metrics),
+One way to detect backpressure is to use [metrics]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/ops/metrics/#system-metrics),
 however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases, it should be enough to just
 look at the job graph in the Web UI.
 
@@ -96,7 +96,7 @@ happening with your Job :) However, there are a couple of more details worth exp
 ### What are those numbers?
 
 If you are curious how it works underneath, we can go a little deeper. At the base of this new mechanism
-we have three [new metrics]({{site.DOCS_BASE_URL}}flink-docs-release-1.13/docs/ops/metrics/#io)
+we have three [new metrics]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/ops/metrics/#io)
 that are exposed and calculated by each subtask:
 
 - `idleTimeMsPerSecond`
@@ -121,7 +121,7 @@ Fortunately, this is only relevant for two cases:
 - Custom threads that you manually spawn in your operators (a discouraged practice).
 - Old-style sources that implement the deprecated `SourceFunction` interface. Such sources will report `NaN`/`N/A`
 as the value for busyTimeMsPerSecond. For more information on the topic of Data Sources please
-[take a look here]({{site.DOCS_BASE_URL}}flink-docs-release-1.13/docs/dev/datastream/sources/).
+[take a look here]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/dev/datastream/sources/).
 
 <div class="row front-graphic">
   <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/source-task-busy.png" alt="Old-style sources do not report busy time"/>
@@ -177,7 +177,7 @@ what is causing backpressure by:
 
 Backpressure monitoring improvements and metrics can help you with the first two points. To tackle the
 last one, profiling the code can be the way to go. To help with profiling, also starting from Flink 1.13,
-[Flame Graphs](http://www.brendangregg.com/flamegraphs.html) are [integrated into Flink's web UI]({{site.DOCS_BASE_URL}}flink-docs-release-1.13/docs/ops/debugging/flame_graphs/).
+[Flame Graphs](http://www.brendangregg.com/flamegraphs.html) are [integrated into Flink's web UI]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/ops/debugging/flame_graphs/).
 Flame Graphs is a well known profiling tool and visualization technique and I encourage you to give it a try. 
 
 But keep in mind that after locating where the bottleneck is, you can analyze it the same way you would

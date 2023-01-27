@@ -3,7 +3,7 @@ author: Till Rohrmann
 author-twitter: stsffap
 categories: news
 date: "2016-04-06T10:00:00Z"
-excerpt: In this blog post, we introduce Flink's new <a href="{{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/libs/cep.html">CEP
+excerpt: In this blog post, we introduce Flink's new <a href="{{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/libs/cep.html">CEP
   library</a> that allows you to do pattern matching on event streams. Through the
   example of monitoring a data center and generating alerts, we showcase the library's
   ease of use and its intuitive Pattern API.
@@ -29,7 +29,7 @@ Moreover, it is used in RFID-based tracking and monitoring, for example, to dete
 CEP can also be used to detect network intrusion by specifying patterns of suspicious user behaviour.
 
 Apache Flink with its true streaming nature and its capabilities for low latency as well as high throughput stream processing is a natural fit for CEP workloads. 
-Consequently, the Flink community has introduced the first version of a new [CEP library]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/libs/cep.html) with [Flink 1.0](http://flink.apache.org/news/2016/03/08/release-1.0.0.html). 
+Consequently, the Flink community has introduced the first version of a new [CEP library]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/libs/cep.html) with [Flink 1.0](http://flink.apache.org/news/2016/03/08/release-1.0.0.html). 
 In the remainder of this blog post, we introduce Flink’s CEP library and we illustrate its ease of use through the example of monitoring a data center.
 
 ## Monitoring and alert generation for data centers
@@ -77,7 +77,7 @@ public class PowerEvent extends MonitoringEvent {
 Now we can ingest the monitoring event stream using one of Flink’s connectors (e.g. Kafka, RabbitMQ, etc.). 
 This will give us a `DataStream<MonitoringEvent> inputEventStream` which we will use as the input for Flink’s CEP operator. 
 But first, we have to define the event pattern to detect temperature warnings. 
-The CEP library offers an intuitive [Pattern API]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/libs/cep.html#the-pattern-api) to easily define these complex patterns.
+The CEP library offers an intuitive [Pattern API]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/libs/cep.html#the-pattern-api) to easily define these complex patterns.
 
 Every pattern consists of a sequence of events which can have optional filter conditions assigned. 
 A pattern always starts with a first event to which we will assign the name `“First Event”`.

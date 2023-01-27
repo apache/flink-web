@@ -30,7 +30,7 @@ The community is now discussing the [release of Flink 1.10.1](http://apache-flin
 
 Last January, the first version of Stateful Functions ([statefun.io](https://statefun.io/)) code was pushed to the [Flink repository](https://github.com/apache/flink-statefun). Stateful Functions started out as an API to build general purpose event-driven applications on Flink, taking advantage of its advanced state management mechanism to cut the “middleman” that usually handles state coordination in such applications (e.g. a database).
 
-In a [recent update](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Update-on-Flink-Stateful-Functions-what-are-the-next-steps-tp38646.html), some new features were announced, like multi-language support (including a Python SDK), function unit testing and Stateful Functions’ own flavor of the [State Processor API]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/libs/state_processor_api.html). The release cycle will be independent from core Flink releases and the Release Candidate (RC) has been created — so, **you can expect Stateful Functions 2.0 to be released very soon!**
+In a [recent update](http://apache-flink-mailing-list-archive.1008284.n3.nabble.com/DISCUSS-Update-on-Flink-Stateful-Functions-what-are-the-next-steps-tp38646.html), some new features were announced, like multi-language support (including a Python SDK), function unit testing and Stateful Functions’ own flavor of the [State Processor API]({{< param DocsBaseUrl >}}flink-docs-stable/dev/libs/state_processor_api.html). The release cycle will be independent from core Flink releases and the Release Candidate (RC) has been created — so, **you can expect Stateful Functions 2.0 to be released very soon!**
 
 ## Building up to Flink 1.11
 

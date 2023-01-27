@@ -6,7 +6,7 @@ title: Announcing Apache Flink 0.9.0
 
 The Apache Flink community is pleased to announce the availability of the 0.9.0 release. The release is the result of many months of hard work within the Flink community. It contains many new features and improvements which were previewed in the 0.9.0-milestone1 release and have been polished since then. This is the largest Flink release so far.
 
-[Download the release](http://flink.apache.org/downloads.html) and check out [the documentation]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/). Feedback through the Flink[ mailing lists](http://flink.apache.org/community.html#mailing-lists) is, as always, very welcome!
+[Download the release](http://flink.apache.org/downloads.html) and check out [the documentation]({{< param DocsBaseUrl >}}flink-docs-release-0.9/). Feedback through the Flink[ mailing lists](http://flink.apache.org/community.html#mailing-lists) is, as always, very welcome!
 
 ## New Features
 
@@ -16,9 +16,9 @@ This release introduces a new fault tolerance mechanism for streaming dataflows.
 
 The checkpointing algorithm is lightweight and driven by barriers that are periodically injected into the data streams at the sources. As such, it has an extremely low coordination overhead and is able to sustain very high throughput rates. User-defined state can be automatically backed up to configurable storage by the fault tolerance mechanism.
 
-Please refer to [the documentation on stateful computation]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/apis/streaming_guide.html#stateful-computation) for details in how to use fault tolerant data streams with Flink.
+Please refer to [the documentation on stateful computation]({{< param DocsBaseUrl >}}flink-docs-release-0.9/apis/streaming_guide.html#stateful-computation) for details in how to use fault tolerant data streams with Flink.
 
-The fault tolerance mechanism requires data sources that can replay recent parts of the stream, such as [Apache Kafka](http://kafka.apache.org). Read more [about how to use the persistent Kafka source]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/apis/streaming_guide.html#apache-kafka).
+The fault tolerance mechanism requires data sources that can replay recent parts of the stream, such as [Apache Kafka](http://kafka.apache.org). Read more [about how to use the persistent Kafka source]({{< param DocsBaseUrl >}}flink-docs-release-0.9/apis/streaming_guide.html#apache-kafka).
 
 ### Table API
 
@@ -34,19 +34,19 @@ val activeUsers = users.join(clickCounts)
 
 Tables consist of logical attributes that can be selected by name rather than physical Java and Scala data types. This alleviates a lot of boilerplate code for common ETL tasks and raises the abstraction for Flink programs. Tables are available for both static and streaming data sources (DataSet and DataStream APIs).
 
-[Check out the Table guide for Java and Scala]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/libs/table.html).
+[Check out the Table guide for Java and Scala]({{< param DocsBaseUrl >}}flink-docs-release-0.9/libs/table.html).
 
 ### Gelly Graph Processing API
 
 Gelly is a Java Graph API for Flink. It contains a set of utilities for graph analysis, support for iterative graph processing and a library of graph algorithms. Gelly exposes a Graph data structure that wraps DataSets for vertices and edges, as well as methods for creating graphs from DataSets, graph transformations and utilities (e.g., in- and out- degrees of vertices), neighborhood aggregations, iterative vertex-centric graph processing, as well as a library of common graph algorithms, including PageRank, SSSP, label propagation, and community detection.
 
-Gelly internally builds on top of Flink’s[ delta iterations]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/apis/iterations.html). Iterative graph algorithms are executed leveraging mutable state, achieving similar performance with specialized graph processing systems.
+Gelly internally builds on top of Flink’s[ delta iterations]({{< param DocsBaseUrl >}}flink-docs-release-0.9/apis/iterations.html). Iterative graph algorithms are executed leveraging mutable state, achieving similar performance with specialized graph processing systems.
 
 Gelly will eventually subsume Spargel, Flink’s Pregel-like API.
 
 Note: The Gelly library is still in beta status and subject to improvements and heavy performance tuning.
 
-[Check out the Gelly guide]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/libs/gelly_guide.html).
+[Check out the Gelly guide]({{< param DocsBaseUrl >}}flink-docs-release-0.9/libs/gelly_guide.html).
 
 ### Flink Machine Learning Library
 
@@ -58,7 +58,7 @@ Currently, the machine learning library contains transformers and predictors to 
 
 Note: The ML library is still in beta status and subject to improvements and heavy performance tuning.
 
-[Check out FlinkML]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/libs/ml/)
+[Check out FlinkML]({{< param DocsBaseUrl >}}flink-docs-release-0.9/libs/ml/)
 
 ### Flink on YARN leveraging Apache Tez
 
@@ -66,7 +66,7 @@ We are introducing a new execution mode for Flink to be able to run restricted F
 
 By using Flink on Tez, users have an additional choice for an execution platform for Flink programs. While Flink’s distributed runtime favors low latency, streaming shuffles, and iterative algorithms, Tez focuses on scalability and elastic resource usage in shared YARN clusters.
 
-[Get started with Flink on Tez]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/setup/flink_on_tez.html).
+[Get started with Flink on Tez]({{< param DocsBaseUrl >}}flink-docs-release-0.9/setup/flink_on_tez.html).
 
 ### Reworked Distributed Runtime on Akka
 
@@ -76,11 +76,11 @@ Flink’s RPC system has been replaced by the widely adopted[ Akka](http://akka.
 
 Flink’s YARN client contains several improvements, such as a detached mode for starting a YARN session in the background, the ability to submit a single Flink job to a YARN cluster without starting a session, including a "fire and forget" mode. Flink is now also able to reallocate failed YARN containers to maintain the size of the requested cluster. This feature allows to implement fault-tolerant setups on top of YARN. There is also an internal Java API to deploy and control a running YARN cluster. This is being used by system integrators to easily control Flink on YARN within their Hadoop 2 cluster.
 
-[See the YARN docs]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/setup/yarn_setup.html).
+[See the YARN docs]({{< param DocsBaseUrl >}}flink-docs-release-0.9/setup/yarn_setup.html).
 
 ### Static Code Analysis for the Flink Optimizer: Opening the UDF blackboxes
 
-This release introduces a first version of a static code analyzer that pre-interprets functions written by the user to get information about the function’s internal dataflow. The code analyzer can provide useful information about [forwarded fields]({{site.DOCS_BASE_URL}}flink-docs-release-0.9/apis/programming_guide.html#semantic-annotations) to Flink's optimizer and thus speedup job executions. It also informs if the code contains obvious mistakes. For stability reasons, the code analyzer is initially disabled by default. It can be activated through
+This release introduces a first version of a static code analyzer that pre-interprets functions written by the user to get information about the function’s internal dataflow. The code analyzer can provide useful information about [forwarded fields]({{< param DocsBaseUrl >}}flink-docs-release-0.9/apis/programming_guide.html#semantic-annotations) to Flink's optimizer and thus speedup job executions. It also informs if the code contains obvious mistakes. For stability reasons, the code analyzer is initially disabled by default. It can be activated through
 
 ExecutionEnvironment.getExecutionConfig().setCodeAnalysisMode(...)
 

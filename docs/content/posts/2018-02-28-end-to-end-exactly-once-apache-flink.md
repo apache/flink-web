@@ -18,7 +18,7 @@ title: An Overview of End-to-End Exactly-Once Processing in Apache Flink (with A
 
 Apache Flink 1.4.0, released in December 2017, introduced a significant milestone for stream processing with Flink: a new feature called `TwoPhaseCommitSinkFunction` ([relevant Jira here](https://issues.apache.org/jira/browse/FLINK-7210)) that extracts the common logic of the two-phase commit protocol and makes it possible to build end-to-end exactly-once applications with Flink and a selection of data sources and sinks, including Apache Kafka versions 0.11 and beyond. It provides a layer of abstraction and requires a user to implement only a handful of methods to achieve end-to-end exactly-once semantics. 
 
-If that's all you need to hear, let us point you [to the relevant place in the Flink documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/api/java/org/apache/flink/streaming/api/functions/sink/TwoPhaseCommitSinkFunction.html), where you can read about how to put `TwoPhaseCommitSinkFunction` to use. 
+If that's all you need to hear, let us point you [to the relevant place in the Flink documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.4/api/java/org/apache/flink/streaming/api/functions/sink/TwoPhaseCommitSinkFunction.html), where you can read about how to put `TwoPhaseCommitSinkFunction` to use. 
 
 But if you'd like to learn more, in this post, we'll share an in-depth overview of the new feature and what is happening behind the scenes in Flink. 
 
@@ -32,7 +32,7 @@ Throughout the rest of this post, we'll:
 
 When we say "exactly-once semantics", what we mean is that each incoming event affects the final results exactly once. Even in case of a machine or software failure, there's no duplicate data and no data that goes unprocessed. 
 
-Flink has long provided exactly-once semantics _within_ a Flink application. Over the past few years, we've [written in depth about Flink's checkpointing](https://data-artisans.com/blog/high-throughput-low-latency-and-exactly-once-stream-processing-with-apache-flink), which is at the core of Flink's ability to provide exactly-once semantics. The Flink documentation also [provides a thorough overview of the feature]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/ops/state/checkpoints.html).
+Flink has long provided exactly-once semantics _within_ a Flink application. Over the past few years, we've [written in depth about Flink's checkpointing](https://data-artisans.com/blog/high-throughput-low-latency-and-exactly-once-stream-processing-with-apache-flink), which is at the core of Flink's ability to provide exactly-once semantics. The Flink documentation also [provides a thorough overview of the feature]({{< param DocsBaseUrl >}}flink-docs-release-1.4/ops/state/checkpoints.html).
 
 Before we continue, here's a quick summary of the checkpointing algorithm because understanding checkpoints is necessary for understanding this broader topic. 
 
@@ -55,7 +55,7 @@ One common approach for coordinating commits and rollbacks in a distributed syst
 
 ## End-to-end Exactly Once Applications with Apache Flink
 
-We'll walk through the two-phase commit protocol and how it enables end-to-end exactly-once semantics in a sample Flink application that reads from and writes to Kafka. Kafka is a popular messaging system to use along with Flink, and Kafka recently added support for transactions with its 0.11 release. [This means that Flink now has the necessary mechanism to provide end-to-end exactly-once semantics]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-011) in applications when receiving data from and writing data to Kafka. 
+We'll walk through the two-phase commit protocol and how it enables end-to-end exactly-once semantics in a sample Flink application that reads from and writes to Kafka. Kafka is a popular messaging system to use along with Flink, and Kafka recently added support for transactions with its 0.11 release. [This means that Flink now has the necessary mechanism to provide end-to-end exactly-once semantics]({{< param DocsBaseUrl >}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-011) in applications when receiving data from and writing data to Kafka. 
 
 Flink's support for end-to-end exactly-once semantics is not limited to Kafka and you can use it with any source / sink that provides the necessary coordination mechanism. For example, [Pravega](http://pravega.io/), an open-source streaming storage system from Dell/EMC, also supports end-to-end exactly-once semantics with Flink via the `TwoPhaseCommitSinkFunction`.
 
@@ -65,9 +65,9 @@ Flink's support for end-to-end exactly-once semantics is not limited to Kafka an
 
 In the sample Flink application that we'll discuss today, we have: 
 
-* A data source that reads from Kafka (in Flink, a [KafkaConsumer]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-consumer))
+* A data source that reads from Kafka (in Flink, a [KafkaConsumer]({{< param DocsBaseUrl >}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-consumer))
 * A windowed aggregation 
-* A data sink that writes data back to Kafka (in Flink, a [KafkaProducer]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-producer))
+* A data sink that writes data back to Kafka (in Flink, a [KafkaProducer]({{< param DocsBaseUrl >}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-producer))
 
 For the data sink to provide exactly-once guarantees, it must write all data to Kafka within the scope of a transaction. A commit bundles all writes between two checkpoints. 
 
@@ -132,7 +132,7 @@ We must save enough information about pre-committed transactions in checkpointed
 
 The `TwoPhaseCommitSinkFunction` takes this scenario into account, and it always issues a preemptive commit when restoring state from a checkpoint. It is our responsibility to implement a commit in an idempotent way. Generally, this shouldn't be an issue. In our example, we can recognize such a situation: the temporary file is not in the temporary directory, but has already been moved to the target directory.
 
-There are a handful of other edge cases that `TwoPhaseCommitSinkFunction` takes into account, too. [Learn more in the Flink documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/api/java/org/apache/flink/streaming/api/functions/sink/TwoPhaseCommitSinkFunction.html). 
+There are a handful of other edge cases that `TwoPhaseCommitSinkFunction` takes into account, too. [Learn more in the Flink documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.4/api/java/org/apache/flink/streaming/api/functions/sink/TwoPhaseCommitSinkFunction.html). 
 
 ## Wrapping Up
 
@@ -142,7 +142,7 @@ If you've made it this far, thanks for staying with us through a detailed post. 
 *   An advantage of this approach is that Flink does not materialize data in transit the way that some other systems do--there's no need to write every stage of the computation to disk as is the case is most batch processing. 
 *   Flink's new `TwoPhaseCommitSinkFunction` extracts the common logic of the two-phase commit protocol and makes it possible to build end-to-end exactly-once applications with Flink and external systems that support transactions
 *   Starting with [Flink 1.4.0](https://data-artisans.com/blog/announcing-the-apache-flink-1-4-0-release), both the Pravega and Kafka 0.11 producers provide exactly-once semantics; Kafka introduced transactions for the first time in Kafka 0.11, which is what made the Kafka exactly-once producer possible in Flink. 
-*   The [Kafka 0.11 producer]({{site.DOCS_BASE_URL}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-011) is implemented on top of the `TwoPhaseCommitSinkFunction`, and it offers very low overhead compared to the at-least-once Kafka producer. 
+*   The [Kafka 0.11 producer]({{< param DocsBaseUrl >}}flink-docs-release-1.4/dev/connectors/kafka.html#kafka-011) is implemented on top of the `TwoPhaseCommitSinkFunction`, and it offers very low overhead compared to the at-least-once Kafka producer. 
 
 We're very excited about what this new feature enables, and we look forward to being able to support additional producers with the `TwoPhaseCommitSinkFunction` in the future. 
 

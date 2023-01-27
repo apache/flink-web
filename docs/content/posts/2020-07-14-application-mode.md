@@ -25,7 +25,7 @@ Deployer can be a heavy resource consumer that is difficult to provision for. Pr
 for average load can lead to the Deployer service being overwhelmed with deployment 
 requests (in the worst case, for all production applications in a short period of time), 
 while planning based on top load leads to unnecessary costs. Building on this observation, 
-Flink 1.11 introduces the [Application Mode]({{site.DOCS_BASE_URL}}flink-docs-stable/ops/deployment/#application-mode) 
+Flink 1.11 introduces the [Application Mode]({{< param DocsBaseUrl >}}flink-docs-stable/ops/deployment/#application-mode) 
 as a deployment option, which allows for a lightweight, more scalable application 
 submission process that manages to spread more evenly the application deployment load 
 across the nodes in the cluster.
@@ -41,7 +41,7 @@ The execution of an application in Flink mainly involves three entities: the *Cl
 the *JobManager* and the *TaskManagers*. The Client is responsible for submitting the application to the 
 cluster, the JobManager is responsible for the necessary bookkeeping during execution, 
 and the TaskManagers are the ones doing the actual computation. For more details please 
-refer to [Flink's Architecture]({{site.DOCS_BASE_URL}}flink-docs-stable/concepts/flink-architecture.html)
+refer to [Flink's Architecture]({{< param DocsBaseUrl >}}flink-docs-stable/concepts/flink-architecture.html)
 documentation page. 
 
 ## Current Deployment Modes
@@ -217,8 +217,8 @@ Both optimizations are available to all deployment modes on YARN, and not only t
 
 For a full description, please refer to the official Flink documentation and more 
 specifically to the page that refers to your cluster management framework, *e.g.* 
-[YARN]({{site.DOCS_BASE_URL}}flink-docs-stable/ops/deployment/yarn_setup.html#run-an-application-in-application-mode) 
-or [Kubernetes]({{site.DOCS_BASE_URL}}flink-docs-stable/ops/deployment/native_kubernetes.html#flink-kubernetes-application).
+[YARN]({{< param DocsBaseUrl >}}flink-docs-stable/ops/deployment/yarn_setup.html#run-an-application-in-application-mode) 
+or [Kubernetes]({{< param DocsBaseUrl >}}flink-docs-stable/ops/deployment/native_kubernetes.html#flink-kubernetes-application).
 Here we will give some examples around YARN, where all the above features are available. 
 
 To launch an application in Application Mode, you can use:
@@ -229,7 +229,7 @@ With this command, all configuration parameters, such as the path to a savepoint
 be used to bootstrap the application’s state or the required JobManager/TaskManager 
 memory sizes, can be specified by their configuration option, prefixed by `-D`. For 
 a catalog of the available configuration options, please refer to Flink’s 
-[configuration page]({{site.DOCS_BASE_URL}}flink-docs-stable/ops/config.html).
+[configuration page]({{< param DocsBaseUrl >}}flink-docs-stable/ops/config.html).
 
 As an example, the command to specify the memory sizes of the JobManager and the 
 TaskManager would look like:

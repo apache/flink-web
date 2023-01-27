@@ -24,7 +24,7 @@ in this announcement.
 The binary distribution and source artifacts are now available on the updated [Downloads](https://flink.apache.org/downloads.html)
 page of the Flink website, and the most recent Python SDK distribution is available on [PyPI](https://pypi.org/project/apache-flink-statefun/).
 For more details, check the complete [release changelog](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12348350)
-and the [updated documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/).
+and the [updated documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/).
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/browse/)!
 {% toc %}
@@ -34,7 +34,7 @@ or [JIRA](https://issues.apache.org/jira/browse/)!
 ### Asynchronous functions in Python SDK
 
 This release enables registering asynchronous Python functions as stateful functions by introducing a new handler
-in the [Python SDK]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/sdk/python.html): ``AsyncRequestReplyHandler``.
+in the [Python SDK]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/sdk/python.html): ``AsyncRequestReplyHandler``.
 This allows serving StateFun functions with Python web frameworks that support asynchronous IO natively (for example,
 [aiohttp](https://pypi.org/project/aiohttp/)):
 
@@ -53,7 +53,7 @@ async def greeter(context, message):
 handler = AsyncRequestReplyHandler(functions)
 ```
 
-For more details, please see the docs on [exposing Python functions]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/sdk/python.html#exposing-functions).
+For more details, please see the docs on [exposing Python functions]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/sdk/python.html#exposing-functions).
 
 ### Flink DataStream Integration SDK
 
@@ -130,13 +130,13 @@ dispatchers. This includes the following:
 * Per function type backlog size
 * Per JVM (StateFun worker) and per function type number of in-flight invocations
 
-The full list of metrics and their descriptions can be found [here]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/deployment-and-operations/metrics.html).
+The full list of metrics and their descriptions can be found [here]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/deployment-and-operations/metrics.html).
 
 ### Fine-grained control over remote connection lifecycle
 
 With this release, it's possible to set individual timeouts for overall duration and individual read and write IO operations
 of HTTP requests with remote functions. You can find the corresponding field names in a function spec that defines
-these timeout values [here]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/sdk/index.html#defining-functions).
+these timeout values [here]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/sdk/index.html#defining-functions).
 
 ## 3rd Party SDKs
 
@@ -146,7 +146,7 @@ endorsed or maintained by the Apache Flink PMC and currently not part of the cur
 new additions that demonstrate the extensibility of the framework.
 
 For that reason, we've added
-a new [page in the documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.2/sdk/external.html)
+a new [page in the documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.2/sdk/external.html)
 to list the 3rd party SDKs that the community is aware of. If you've also worked on a new language SDK for StateFun that
 is stable and you plan to continue maintaining, please consider letting the community know of your work by
 submitting a pull request to add your project to the list!

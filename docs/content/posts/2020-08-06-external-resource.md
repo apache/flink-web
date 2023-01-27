@@ -9,10 +9,10 @@ excerpt: This post introduces the new External Resource Framework in Flink 1.11 
 title: Accelerating your workload with GPU and other external resources
 ---
 
-Apache Flink 1.11 introduces a new [External Resource Framework]({{site.DOCS_BASE_URL}}flink-docs-master/ops/external_resources.html),
+Apache Flink 1.11 introduces a new [External Resource Framework]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html),
 which allows you to request external resources from the underlying resource management systems (e.g., Kubernetes) and accelerate your workload with
 those resources. As Flink provides a first-party GPU plugin at the moment, we will take GPU as an example and show how it affects Flink applications
-in the AI field. Other external resources (e.g. RDMA and SSD) can also be supported [in a pluggable manner]({{site.DOCS_BASE_URL}}flink-docs-master/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type).
+in the AI field. Other external resources (e.g. RDMA and SSD) can also be supported [in a pluggable manner]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type).
 
 # End-to-end real-time AI with GPU
 
@@ -40,14 +40,14 @@ In many cases, the training and inference workload can benefit a lot by leveragi
 shows that CPU cluster is outperformed by GPU cluster, which is of similar cost, by about 400 percent. As training datasets
 are getting bigger and models more complex, supporting GPUs has become mandatory for running AI workloads.
 
-With the [External Resource Framework]({{site.DOCS_BASE_URL}}flink-docs-master/ops/external_resources.html)
-and its [GPU plugin]({{site.DOCS_BASE_URL}}flink-docs-master/ops/external_resources.html#plugin-for-gpu-resources), Flink
+With the [External Resource Framework]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html)
+and its [GPU plugin]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html#plugin-for-gpu-resources), Flink
 can now request GPU resources from the external resource management system and expose GPU information to operators. With this
 feature, users can now easily build end-to-end training and real-time inference pipelines with GPU support on Flink.
 
 ## Example: MNIST Inference with Flink
 
-We take the MNIST inference task as an example to show how to use the [External Resource Framework]({{site.DOCS_BASE_URL}}flink-docs-master/ops/external_resources.html)
+We take the MNIST inference task as an example to show how to use the [External Resource Framework]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html)
 and how to leverage GPUs in Flink. MNIST is a database of handwritten digits, which is usually viewed as the HelloWorld of AI.
 The goal is to recognize a 28px*28px picture of a number from 0 to 9.
 
@@ -69,7 +69,7 @@ external-resource.gpu.yarn.config-key: yarn.io/gpu
 external-resource.gpu.kubernetes.config-key: nvidia.com/gpu
 ```
 
-For more details of the configuration, please refer to the [official documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/ops/external_resources.html#configurations-1).
+For more details of the configuration, please refer to the [official documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.11/ops/external_resources.html#configurations-1).
 
 In the MNIST inference task, we first need to read the images and do data preprocessing. You can download [training](http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz)
 or [testing](http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz) data from [this site](http://yann.lecun.com/exdb/mnist/).
@@ -125,7 +125,7 @@ E.g. FPGA, for AI workloads, is supported by both Yarn and Kubernetes. Some low-
 provide their device plugin for Kubernetes. Currently, Yarn supports GPUs and FPGAs, while the list of Kubernetes’ device plugins can be found [here](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/#examples).
 
 With the external resource framework, you only need to implement a plugin that enables the operator to get the information
-for these external resources; see [Custom Plugin]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type)
+for these external resources; see [Custom Plugin]({{< param DocsBaseUrl >}}flink-docs-release-1.11/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type)
 for more details. If you just want to ensure that an external resource exists in the TaskManager, then you only need to find the
 configuration key of that resource in the underlying resource management system and configure the external resource framework accordingly.
 

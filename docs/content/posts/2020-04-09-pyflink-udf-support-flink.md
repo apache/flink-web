@@ -149,7 +149,7 @@ Next, you can run this example on the command line,
 
 `$ python python_udf_sum.py`
 
-The command builds and runs the Python Table API program in a local mini-cluster. You can also submit the Python Table API program to a remote cluster using different command lines, (see more details [here]({{site.DOCS_BASE_URL}}flink-docs-release-1.10/ops/cli.html#job-submission-examples)).
+The command builds and runs the Python Table API program in a local mini-cluster. You can also submit the Python Table API program to a remote cluster using different command lines, (see more details [here]({{< param DocsBaseUrl >}}flink-docs-release-1.10/ops/cli.html#job-submission-examples)).
 
 Finally, you can see the execution result on the command line:
 

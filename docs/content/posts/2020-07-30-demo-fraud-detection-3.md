@@ -30,7 +30,7 @@ among the relevant operators. 
 
 Following up directly where we left the discussion of the end-to-end
 solution last time, in this article we will describe how you can use the
-\"Swiss knife\" of Flink - the [*Process Function*]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/process_function.html) to create an
+\"Swiss knife\" of Flink - the [*Process Function*]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/process_function.html) to create an
 implementation that is tailor-made to match your streaming business
 logic requirements. Our discussion will continue in the context of the
 [Fraud Detection engine]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html#fraud-detection-demo). We will also demonstrate how you can
@@ -88,7 +88,7 @@ transaction event into a fraud detection system until an alert has to
 become available to downstream systems. 
 
 As you might know, Flink provides a powerful [Window
-API]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/windows.html)
+API]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/windows.html)
 that is applicable for a wide range of use cases. However, if you go
 over all of the available types of supported windows, you will realize
 that none of them exactly match our main requirement for this use case -
@@ -96,7 +96,7 @@ the low-latency evaluation of *each* incoming transaction. There is
 no type of window in Flink that can express the *"x minutes/hours/days
 back from the <u>current event</u>"* semantic. In the Window API, events
 fall into windows (as defined by the window
-[assigners]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/windows.html#window-assigners)),
+[assigners]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/windows.html#window-assigners)),
 but they cannot themselves individually control the creation and
 evaluation of windows\*. As described above, our goal for the fraud
 detection engine is to achieve immediate evaluation of the previous
@@ -104,7 +104,7 @@ relevant data points as soon as the new event is received. This raises
 the question of feasibility of applying the Window API in this case. The Window API offers some options for defining custom triggers, evictors, and window assigners, which may get to the required result. However, it is usually difficult to get this right (and easy to break). Moreover, this approach does not provide access to broadcast state, which is required for implementing dynamic reconfiguration of business rules.
 
 \*) apart from the session windows, but they are limited to assignments
-based on the session [gaps]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/windows.html#session-windows)
+based on the session [gaps]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/windows.html#session-windows)
 
 <center>
 <img src="{{ site.baseurl }}/img/blog/patterns-blog-3/evaluation-delays.png" width="600px" alt="Figure 2: Evaluation Delays"/>
@@ -114,7 +114,7 @@ based on the session [gaps]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/st
 <br/>
 
 Let's take an example of using a [sliding
-window]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/windows.html#sliding-windows)
+window]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/windows.html#sliding-windows)
 from Flink's Window API. Using sliding windows with the slide of *S*
 translates into an expected value of evaluation delay equal to *S/2.*
 This means that you would need to define a window slide of 600-1000 ms
@@ -143,14 +143,14 @@ public class SomeProcessFunction extends KeyedProcessFunction<KeyType, InputType
     each input by producing one or more output events to the next
     operator by calling `out.collect(someOutput)`. You can also pass data
     to a [side
-    output]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/side_output.html)
+    output]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/side_output.html)
     or ignore a particular input altogether.
 
 -   `onTimer()` is called by Flink when a previously-registered timer
     fires. Both event time and processing time timers are supported.
 
 -   `open()` is equivalent to a constructor. It is called inside of the
-    [TaskManager's]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/concepts/glossary.html#flink-taskmanager)
+    [TaskManager's]({{< param DocsBaseUrl >}}flink-docs-release-1.11/concepts/glossary.html#flink-taskmanager)
     JVM, and is used for initialization, such as registering
     Flink-managed state. It is also the right place to initialize fields
     that are not serializable and cannot be transferred from the
@@ -187,7 +187,7 @@ other words, cleaned up from state).
 
 
 We will
-[use]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/state/state.html#using-keyed-state)
+[use]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/state/state.html#using-keyed-state)
 `MapState` to store the individual events of the window. In order to allow
 efficient clean-up of the out-of-scope events, we will utilize event
 timestamps as the `MapState` keys.
@@ -397,7 +397,7 @@ which enables a reasonable trade-off between the precision with which
 the timers will be triggered, and the number of timers being used.
 Timers are stored in Flink's fault-tolerant state, and managing them
 with millisecond-level precision can be wasteful. In our case, with this
-rounding, we will create at most one timer per key in any given second. Flink documentation provides some additional [<u>details</u>]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/operators/process_function.html#timer-coalescing).
+rounding, we will create at most one timer per key in any given second. Flink documentation provides some additional [<u>details</u>]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/process_function.html#timer-coalescing).
 </div>
 
 7) The `onTimer` method will trigger the clean-up of the window state.
@@ -451,7 +451,7 @@ private void evictOutOfScopeElementsFromWindow(Long threshold) {
 You might be wondering why we did not use `ListState` , as we are always
 iterating over all of the values of the window state? This is actually
 an optimization for the case when `RocksDBStateBackend`
-[is used]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/ops/state/state_backends.html#the-rocksdbstatebackend). Iterating over a `ListState` would cause all of the `Transaction`
+[is used]({{< param DocsBaseUrl >}}flink-docs-release-1.11/ops/state/state_backends.html#the-rocksdbstatebackend). Iterating over a `ListState` would cause all of the `Transaction`
 objects to be deserialized. Using `MapState`\'s keys iterator only causes
 deserialization of the keys (type `long`), and therefore reduces the
 computational overhead.
@@ -564,13 +564,13 @@ a choice, however, might have a more significant effect on performance
 than might be anticipated. The reason is that Flink does not currently
 provide a native `Set` serializer and will enforce a fallback to the less
 efficient [Kryo
-serializer]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/types_serialization.html#general-class-types)
+serializer]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/types_serialization.html#general-class-types)
 instead
 ([FLINK-16729](https://issues.apache.org/jira/browse/FLINK-16729)). A
 meaningful alternative strategy is to assume that, in a normal scenario,
 no two discrepant events can have exactly the same timestamp and to turn
 the window state into a `MapState<Long, Transaction>` type. You can use
-[side-outputs]({{site.DOCS_BASE_URL}}flink-docs-release-1.11/dev/stream/side_output.html)
+[side-outputs]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/side_output.html)
 to collect and monitor any unexpected occurrences which contradict your
 assumption. During performance optimizations, I generally recommend you
 to [disable the fallback to

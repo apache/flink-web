@@ -15,7 +15,7 @@ Flink has supported resource management systems like YARN and Mesos since the ea
 For these reasons, more and more users are using Kubernetes to automate the deployment, scaling and management of their Flink applications.
 
 From release to release, the Flink community has made significant progress in **integrating natively with Kubernetes**, from active resource management to “Zookeeperless” High Availability (HA).
-In this blogpost, we'll recap the technical details of deploying Flink applications natively on Kubernetes, diving deeper into Flink’s Kubernetes HA architecture. We'll then walk you through a [**hands-on example**](#example-application-cluster-with-ha) of running a Flink [application cluster]({{site.DOCS_BASE_URL}}flink-docs-stable/deployment/#application-mode) on Kubernetes with HA enabled.
+In this blogpost, we'll recap the technical details of deploying Flink applications natively on Kubernetes, diving deeper into Flink’s Kubernetes HA architecture. We'll then walk you through a [**hands-on example**](#example-application-cluster-with-ha) of running a Flink [application cluster]({{< param DocsBaseUrl >}}flink-docs-stable/deployment/#application-mode) on Kubernetes with HA enabled.
 We’ll end with a conclusion covering the advantages of running Flink natively on Kubernetes, and an outlook into future work.
 
 # Native Flink on Kubernetes Integration
@@ -150,7 +150,7 @@ When the job is cancelled, all the Kubernetes resources created by Flink (e.g. J
 The native Kubernetes integration was first introduced in Flink 1.10, abstracting a lot of the complexities of hosting, configuring, managing and operating Flink clusters in cloud-native environments.
 After three major releases, the community has made great progress in supporting multiple deployment modes (i.e. session and application) and an alternative HA setup that doesn’t depend on Zookeeper.
 
-Compared with [standalone]({{site.DOCS_BASE_URL}}flink-docs-master/deployment/resource-providers/standalone/kubernetes.html) Kubernetes deployments, the native integration is more **user-friendly** and requires less upfront knowledge about Kubernetes.
+Compared with [standalone]({{< param DocsBaseUrl >}}flink-docs-master/deployment/resource-providers/standalone/kubernetes.html) Kubernetes deployments, the native integration is more **user-friendly** and requires less upfront knowledge about Kubernetes.
 Given that Flink is now aware of the underlying Kubernetes cluster, it also can benefit from dynamic resource allocation and make **more efficient use of Kubernetes cluster resources**.
 The next building block to deepen Flink’s native integration with Kubernetes is the pod template ([FLINK-15656](https://issues.apache.org/jira/browse/FLINK-15656)), which will greatly enhance the flexibility of using advanced Kubernetes features (_e.g._ volumes, init container, sidecar container).
 This work is already in progress and will be added in the upcoming 1.13 release!

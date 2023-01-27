@@ -35,9 +35,9 @@ It's also possible to have a _bounded_ Stream Processing Application that is exe
 
 ## Which API and execution mode should I use?
 
-Before going into the choice of execution mode, try looking at your use case from a different angle: do you need to process structured data? Does your data have a schema of some sort? The Table API/SQL will most likely be the right choice. In fact, the majority of _batch_ use cases should be expressed with the [Table API/SQL]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/table/)! Finite, bounded data can most often be organized, described with a schema and put into a catalog. This is where the SQL API shines, giving you a rich set of functions and operators out-of-the box with low-level optimizations and broad connector support, all supported by standard SQL. And it works for _streaming_ use cases, as well!
+Before going into the choice of execution mode, try looking at your use case from a different angle: do you need to process structured data? Does your data have a schema of some sort? The Table API/SQL will most likely be the right choice. In fact, the majority of _batch_ use cases should be expressed with the [Table API/SQL]({{< param DocsBaseUrl >}}flink-docs-stable/dev/table/)! Finite, bounded data can most often be organized, described with a schema and put into a catalog. This is where the SQL API shines, giving you a rich set of functions and operators out-of-the box with low-level optimizations and broad connector support, all supported by standard SQL. And it works for _streaming_ use cases, as well!
 
-However, if you need explicit control over the execution graph, you want to manually control the state of your operations, or you need to be able to upgrade Flink (which applies to _unbounded_ applications), the [DataStream API]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/datastream_api.html) is the right choice.
+However, if you need explicit control over the execution graph, you want to manually control the state of your operations, or you need to be able to upgrade Flink (which applies to _unbounded_ applications), the [DataStream API]({{< param DocsBaseUrl >}}flink-docs-stable/dev/datastream_api.html) is the right choice.
 If the DataStream API sounds like the best fit for your use cases, the next decision is what execution mode to run your program in.
 
 **When should you use the _batch_ mode, then?**
@@ -73,7 +73,7 @@ We recommend passing the execution mode when submitting the job, in order to kee
 ### Hello _batch_ mode
 
 Now that you know how to set the execution mode, let's try to write a simple word count program and see how it behaves depending on the chosen mode. The program is a variation of a standard word count, where we count number of orders placed
-in a given currency. We derive the number in 1-day windows. We read the input data from a new [unified file source]({{site.DOCS_BASE_URL}}flink-docs-release-1.12/api/java/org/apache/flink/connector/file/src/FileSource.html) and then apply a [window aggregation]({{site.DOCS_BASE_URL}}flink-docs-release-1.12/dev/stream/operators/windows.html#windows). Notice that we will be checking the side output for late arriving data, which can illustrate how watermarks behave differently in the two execution modes.
+in a given currency. We derive the number in 1-day windows. We read the input data from a new [unified file source]({{< param DocsBaseUrl >}}flink-docs-release-1.12/api/java/org/apache/flink/connector/file/src/FileSource.html) and then apply a [window aggregation]({{< param DocsBaseUrl >}}flink-docs-release-1.12/dev/stream/operators/windows.html#windows). Notice that we will be checking the side output for late arriving data, which can illustrate how watermarks behave differently in the two execution modes.
 
 ```java
 public class WindowWordCount {

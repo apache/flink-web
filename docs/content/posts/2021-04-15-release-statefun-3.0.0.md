@@ -181,7 +181,7 @@ The binary distribution and source artifacts are now available on the updated [D
 page of the Flink website, and the most recent Python SDK distribution is available on [PyPI](https://pypi.org/project/apache-flink-statefun/).
 You can also find official StateFun Docker images of the new version on [Dockerhub](https://hub.docker.com/r/apache/flink-statefun).
 
-For more details, check the [updated documentation]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-3.0/) and the
+For more details, check the [updated documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-3.0/) and the
 [release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12348822)
 for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 3.0.0.
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)

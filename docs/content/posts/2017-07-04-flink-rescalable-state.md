@@ -35,7 +35,7 @@ For the sake of data locality, all state data in Flink is always bound to the ta
 
 Through this design, all state data for a task is local, and no network communication between tasks is required for state access. Avoiding this kind of traffic is crucial for the scalability of a massively parallel distributed system like Flink.
 
-For Flink’s stateful stream processing, we differentiate between two different types of state: operator state and keyed state. Operator state is scoped per parallel instance of an operator (sub-task), and keyed state can be thought of as [“operator state that has been partitioned, or sharded, with exactly one state-partition per key”]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/dev/stream/state.html#keyed-state). We could have easily implemented our previous example as operator state: all events that are routed through the operator instance can influence its value.
+For Flink’s stateful stream processing, we differentiate between two different types of state: operator state and keyed state. Operator state is scoped per parallel instance of an operator (sub-task), and keyed state can be thought of as [“operator state that has been partitioned, or sharded, with exactly one state-partition per key”]({{< param DocsBaseUrl >}}flink-docs-release-1.3/dev/stream/state.html#keyed-state). We could have easily implemented our previous example as operator state: all events that are routed through the operator instance can influence its value.
 
 ## Rescaling Stateful Stream Processing Jobs
 
@@ -45,7 +45,7 @@ On the other hand, changing the parallelism of stateful operators is much more i
 
 However, there is already one mechanism in Flink that allows the exchange of operator state between tasks, in a consistent way, with exactly-once guarantees — Flink’s checkpointing!
 
-You can see detail about Flink’s checkpoints in [the documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/internals/stream_checkpointing.html). In a nutshell, a checkpoint is triggered when a checkpoint coordinator injects a special event (a so-called checkpoint barrier) into a stream.
+You can see detail about Flink’s checkpoints in [the documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.3/internals/stream_checkpointing.html). In a nutshell, a checkpoint is triggered when a checkpoint coordinator injects a special event (a so-called checkpoint barrier) into a stream.
 
 Checkpoint barriers flow downstream with the event stream from sources to sinks, and whenever an operator instance receives a barrier, the operator instance immediately snapshots its current state to a distributed storage system, e.g. HDFS.
 
@@ -167,6 +167,6 @@ Flink 1.3.0, which was released earlier this month, adds more tooling for state 
 
 …for Flink 1.4.0 and beyond.
 
-If you’d like to learn more, we recommend starting with the Apache Flink [documentation]({{site.DOCS_BASE_URL}}flink-docs-release-1.3/dev/stream/state.html).
+If you’d like to learn more, we recommend starting with the Apache Flink [documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.3/dev/stream/state.html).
 
 _This is an excerpt from a post that originally appeared on the data Artisans blog. If you'd like to read the original post in its entirety, you can find it <a href="https://data-artisans.com/blog/apache-flink-at-mediamath-rescaling-stateful-applications" target="_blank">here</a> (external link)._

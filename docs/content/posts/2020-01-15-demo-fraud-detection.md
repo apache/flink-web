@@ -23,7 +23,7 @@ These patterns expand the possibilities of what is achievable with statically de
 <br>
 **Dynamic data partitioning** provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.  
 <br>
-**Custom window management** demonstrates how you can utilize the low level [process function API]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/stream/operators/process_function.html), when the native [window API]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/stream/operators/windows.html) is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.    
+**Custom window management** demonstrates how you can utilize the low level [process function API]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/operators/process_function.html), when the native [window API]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/operators/windows.html) is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.    
 
 These patterns build on top of core Flink functionality, however, they might not be immediately apparent from the framework's documentation as explaining and presenting the motivation behind them is not always trivial without a concrete use case. That is why we will showcase these patterns with a practical example that offers a real-world usage scenario for Apache Flink — a _Fraud Detection_ engine.
 We hope that this series will place these powerful approaches into your tool belt and enable you to take on new and exciting tasks.
@@ -42,7 +42,7 @@ The full source code for our fraud detection demo is open source and available o
 You will see the demo is a self-contained application - it only requires `docker` and `docker-compose` to be built from sources and includes the following components:
 
  - Apache Kafka (message broker) with ZooKeeper
- - Apache Flink ([application cluster]({{site.DOCS_BASE_URL}}flink-docs-stable/concepts/glossary.html#flink-application-cluster))
+ - Apache Flink ([application cluster]({{< param DocsBaseUrl >}}flink-docs-stable/concepts/glossary.html#flink-application-cluster))
  - Fraud Detection Web App
 
 The high-level goal of the Fraud Detection engine is to consume a stream of financial transactions and evaluate them against a set of rules. These rules are subject to frequent changes and tweaks. In a real production system, it is important to be able to add and remove them at runtime, without incurring an expensive penalty of stopping and restarting the job.
@@ -125,7 +125,7 @@ Accordingly, we will use the following simple JSON format to define the aforemen
 
 At this point, it is important to understand that **`groupingKeyNames`** determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. _payer #25 -> beneficiary #12_) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink's API is realised by a `keyBy()` function.
 
-Most examples in Flink's `keyBy()`[documentation]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions) use a hard-coded `KeySelector`, which extracts specific fixed events' fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.
+Most examples in Flink's `keyBy()`[documentation]({{< param DocsBaseUrl >}}flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions) use a hard-coded `KeySelector`, which extracts specific fixed events' fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.
 
 On a high level, our main processing pipeline looks like this:
 
@@ -192,7 +192,7 @@ public class Keyed<IN, KEY, ID> {
 
 Fields of this POJO carry the following information: `wrapped` is the original transaction event, `key` is the result of using `KeysExtractor` and `id` is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).
 
-Events of this type will be the input to the `keyBy()` function in the main processing pipeline and allow the use of a simple lambda-expression as a [`KeySelector`]({{site.DOCS_BASE_URL}}flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions) for the final step of implementing dynamic data shuffle.
+Events of this type will be the input to the `keyBy()` function in the main processing pipeline and allow the use of a simple lambda-expression as a [`KeySelector`]({{< param DocsBaseUrl >}}flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions) for the final step of implementing dynamic data shuffle.
 
 ```java
 DataStream<Alert> alerts =

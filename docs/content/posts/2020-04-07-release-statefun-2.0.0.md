@@ -215,18 +215,18 @@ When building a new stateful application, you usually don’t start from a compl
 
 The equivalent step for Flink would be to write a [savepoint]({{ site.docs-stable }}/ops/state/savepoints.html) that contains the initial state. Savepoints are snapshots of the state of the distributed stream processing application and can be passed to Flink to start processing from that state. Think of them as a database dump, but of a distributed streaming database. In the case of StateFun, the savepoint would contain the state of the functions.
 
-To create a savepoint for a Stateful Functions program, check out the [State Bootstrapping API]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.0/deployment-and-operations/state-bootstrap.html) that is part of StateFun 2.0. The State Bootstrapping API uses Flink’s [DataSet API]({{ site.docs-stable }}/dev/batch/), but we plan to expand this to use SQL in the next versions.
+To create a savepoint for a Stateful Functions program, check out the [State Bootstrapping API]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.0/deployment-and-operations/state-bootstrap.html) that is part of StateFun 2.0. The State Bootstrapping API uses Flink’s [DataSet API]({{ site.docs-stable }}/dev/batch/), but we plan to expand this to use SQL in the next versions.
 
 ## Try it out and get involved!
 
-We hope that we could convey some of the excitement we feel about Stateful Functions. If we managed to pique your curiosity, try it out — for example, starting with [this walkthrough]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.0/getting-started/python_walkthrough.html).
+We hope that we could convey some of the excitement we feel about Stateful Functions. If we managed to pique your curiosity, try it out — for example, starting with [this walkthrough]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.0/getting-started/python_walkthrough.html).
 
 The project is still in a comparatively early stage, so if you want to get involved, there is lots to work on: SDKs for other languages (e.g. Go, JavaScript, Rust), ingresses/egresses and tools for testing, among others.
 
 To follow the project and learn more, please check out these resources:
 
 * Code: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
-* Docs: [{{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.0/]({{site.DOCS_BASE_URL}}flink-statefun-docs-release-2.0/)
+* Docs: [{{< param DocsBaseUrl >}}flink-statefun-docs-release-2.0/]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.0/)
 * Apache Flink project site: [https://flink.apache.org/](https://flink.apache.org/)
 * Apache Flink on Twitter: [@ApacheFlink](https://twitter.com/apacheflink)
 * Stateful Functions Webpage: [https://statefun.io](https://statefun.io)

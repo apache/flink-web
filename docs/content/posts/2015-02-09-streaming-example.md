@@ -14,7 +14,7 @@ In this post, we go through an example that uses the Flink Streaming
 API to compute statistics on stock market data that arrive
 continuously and combine the stock market data with Twitter streams.
 See the [Streaming Programming
-Guide]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/index.html) for a
+Guide]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/index.html) for a
 detailed presentation of the Streaming API.
 
 First, we read a bunch of stock price streams and combine them into
@@ -114,11 +114,11 @@ public static void main(String[] args) throws Exception {
 </div>
 
 See
-[here]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/index.html#data-sources)
+[here]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/index.html#data-sources)
 on how you can create streaming sources for Flink Streaming
 programs. Flink, of course, has support for reading in streams from
 [external
-sources]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/connectors/index.html)
+sources]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/connectors/index.html)
 such as Apache Kafka, Apache Flume, RabbitMQ, and others. For the sake
 of this example, the data streams are simply generated using the
 `generateStock` method:
@@ -229,7 +229,7 @@ Window aggregations
 ---------------
 
 We first compute aggregations on time-based windows of the
-data. Flink provides [flexible windowing semantics]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/windows.html) where windows can
+data. Flink provides [flexible windowing semantics]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/windows.html) where windows can
 also be defined based on count of records or any custom user defined
 logic.
 
@@ -431,7 +431,7 @@ Combining with a Twitter stream
 
 Next, we will read a Twitter stream and correlate it with our stock
 price stream. Flink has support for connecting to [Twitter's
-API]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/connectors/twitter.html)
+API]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/connectors/twitter.html)
 but for the sake of this example we generate dummy tweet data.
 
 <img alt="Social media analytics" src="{{ site.baseurl }}/img/blog/blog_social_media.png" width="100%" class="img-responsive center-block">
@@ -665,7 +665,7 @@ public static final class WindowCorrelation
 Other things to try
 ---------------
 
-For a full feature overview please check the [Streaming Guide]({{site.DOCS_BASE_URL}}flink-docs-master/apis/streaming/index.html), which describes all the available API features.
+For a full feature overview please check the [Streaming Guide]({{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/index.html), which describes all the available API features.
 You are very welcome to try out our features for different use-cases we are looking forward to your experiences. Feel free to [contact us](http://flink.apache.org/community.html#mailing-lists).
 
 Upcoming for streaming
