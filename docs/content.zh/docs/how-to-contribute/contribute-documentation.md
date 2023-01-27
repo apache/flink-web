@@ -67,4 +67,4 @@ Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink) 的 [Pull Re
 
 3. 打开你的 fork 仓库网页 (`https://github.com/<your-user-name>/flink`) 并使用 “Create Pull Request” 按钮开始创建 pull request。确保 base fork 是 `apache/flink master`，并且 head fork 是包含更改的分支。再为 pull request 添加一个有意义的描述并创建它。
 
-也可以将补丁（patch）附加到 [Jira]({{site.FLINK_ISSUES_URL}}) issue 上。
+也可以将补丁（patch）附加到 [Jira]({{< param FlinkIssuesUrl >}}) issue 上。

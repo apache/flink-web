@@ -67,4 +67,4 @@ To prepare and submit a pull request follow these steps.
 
 3. Go to the website of your repository fork (`https://github.com/<your-user-name>/flink`) and use the "Create Pull Request" button to start creating a pull request. Make sure that the base fork is `apache/flink master` and the head fork selects the branch with your changes. Give the pull request a meaningful description and submit it.
 
-It is also possible to attach a patch to a [Jira]({{site.FLINK_ISSUES_URL}}) issue.
+It is also possible to attach a patch to a [Jira]({{< param FlinkIssuesUrl >}}) issue.
