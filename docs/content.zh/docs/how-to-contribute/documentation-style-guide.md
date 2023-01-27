@@ -302,14 +302,8 @@ under the License.
 图形和其他可视化内容放置在根目录的 _fig_ 目录下，可以使用类似于链接的语法在文档页面中引用：
 
 ```liquid 
-![Picture Text]({{ "{{ site.baseurl " }}}}/fig/image_name.png){:height="200px" width="200px"}
+{{< img src="/fig/image_name.png" alt="Picture Text" width="200px" >}}
 ```
-
-或者使用纯 HTML：
-
-{% highlight html %}
-<img src="{{ site.baseurl }}/fig/image_name.png" class="center" height="200px" width="200px"/>
-{% endhighlight %}
 
 <div class="alert alert-warning">
   <h3>最佳实践</h3>
@@ -324,14 +318,6 @@ under the License.
 * **代码块。** 表示自包含示例、功能演练、最佳实践演示或其他有用场景的代码，应使用带有适当 [语法高亮]((https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers))显示的围栏代码块（fenced code block）进行包装。其中一种代码块实现方式如下：
 
 
-  ```liquid 
-  {{ "{% highlight java"}}%} 
-     // Java Code
-  {{"{% endhighlight"}}%} 
-  ```
-
-这相当于使用三个反引号 ( **\`\`\`** ):
-
   ````liquid
   ```java 
      // Java Code
@@ -345,17 +331,17 @@ under the License.
 
 	  <div data-lang="java" markdown="1"> 
 
-	  {{ "{% highlight java"}}%} 
+	  ```java
 	   // Java Code
-	  {{"{% endhighlight"}}%}
+	  ```
 
 	  </div>
 
 	  <div data-lang="scala" markdown="1">
 
-	  {{ "{% highlight scala"}}%} 
+	  ```scala
 	   // Scala Code
-	  {{"{% endhighlight"}}%}
+	  ```
 
 	  </div> 
 
