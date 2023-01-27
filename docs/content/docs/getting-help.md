@@ -150,7 +150,7 @@ By default, Flink takes 10% of the JVM heap size for network buffers, with a min
 You can adjust all these values via `taskmanager.network.memory.fraction`, `taskmanager.network.memory.min`, and
 `taskmanager.network.memory.max`.
 
-Please refer to the [Configuration Reference]({{ site.docs-snapshot }}/ops/config.html#configuring-the-network-buffers) for details.
+Please refer to the [Configuration Reference](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/) for details.
 
 ### My job fails with various exceptions from the HDFS/Hadoop code. What can I do?
 
