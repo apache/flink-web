@@ -264,7 +264,7 @@ The complete list of repositories of Apache Flink can be found under https://git
 
 ## 项目 Wiki
 
-Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">项目 wiki</a> 包含了大量的 Flink 用户相关的资源。不过 wiki 上的资料可能会过时，如果有任何疑问，请查阅 <a href="{{ site.docs-stable }}" target="_blank">Flink 文档</a>。
+Apache Flink 的 <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">项目 wiki</a> 包含了大量的 Flink 用户相关的资源。不过 wiki 上的资料可能会过时，如果有任何疑问，请查阅 [Flink 文档](https://nightlies.apache.org/flink/flink-docs-stable/)。
 
 ## Flink Forward
 
