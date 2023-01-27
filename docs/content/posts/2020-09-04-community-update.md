@@ -125,7 +125,7 @@ Perhaps the most impressive result this time around is the surge in activity in 
 For what it's worth, the Flink GitHub repository is now headed to **15k stars**, after reaching the 10k milestone last year. If you consider some other numbers we gathered previously on [repository activity](https://flink.apache.org/news/2020/04/01/community-update.html#a-look-into-the-flink-repository) and [releases over time](https://flink.apache.org/news/2020/07/27/community-update.html#a-look-into-the-evolution-of-flink-releases), 2020 is looking like one for the books in the Flink community.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-09-04-community-update/2020-09-04-community-update_1.png" width="1000px" alt=""/>
+<img src="{{< siteurl >}}/img/blog/2020-09-04-community-update/2020-09-04-community-update_1.png" width="1000px" alt=""/>
 </center>
 
 <sup>1. Excluding messages from "jira@apache.org".</sup>

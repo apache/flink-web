@@ -30,7 +30,7 @@ When Stateful Functions joined Apache Flink at the beginning of this year, the p
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image2.png" width="600px" alt="Statefun 1"/>
+	<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image2.png" width="600px" alt="Statefun 1"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.1:</b> A ride-sharing app as a Stateful Functions example.</i></figcaption>
 	</figure>
@@ -47,7 +47,7 @@ By supplying state access as part of the function invocation, the functions them
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image5.png" width="600px" alt="Statefun 2"/>
+	<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image5.png" width="600px" alt="Statefun 2"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.2:</b> In Stateful Functions 2.0, functions are stateless and state access is part of the function invocation.</i></figcaption>
 	</figure>
@@ -67,7 +67,7 @@ The functions can be implemented in any programming language that can handle HTT
   <div class="col-lg-6">
     <div class="text-center">
       <figure>
-		<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image3.png" width="600px" alt="Statefun 3"/>
+		<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image3.png" width="600px" alt="Statefun 3"/>
 		<br/><br/>
 		<figcaption><i><b>Fig.3:</b> A module declaring a remote endpoint and a function type.</i></figcaption>
 	  </figure>
@@ -79,7 +79,7 @@ The functions can be implemented in any programming language that can handle HTT
       	<div style="line-height:540%;">
     		<br>
 		</div>
-		<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image10.png" width="600px" alt="Statefun 4"/>
+		<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image10.png" width="600px" alt="Statefun 4"/>
 		<br/><br/>
 		<figcaption><i><b>Fig.4:</b> A Python implementation of a simple classifier function.</i></figcaption>
 	  </figure>
@@ -107,7 +107,7 @@ In the case of a traditional database or key/value store (let’s call them requ
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image7.png" width="600px" alt="Statefun 5"/>
+	<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image7.png" width="600px" alt="Statefun 5"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.5:</b> Stateful Functions 2.0 inverts the relationship between database and application.</i></figcaption>
 	</figure>
@@ -135,7 +135,7 @@ In the scenario where the event-driven database takes care of state and messagin
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image8.png" width="600px" alt="Statefun 6"/>
+	<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image8.png" width="600px" alt="Statefun 6"/>
 	<br/><br/>
 	<figcaption><i><b>Fig.6:</b> The event-driven database integrates state access and messaging, guaranteeing consistency.</i></figcaption>
 	</figure>
@@ -162,7 +162,7 @@ _Remote Functions_ are the mechanism described so far, where functions are deplo
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image6.png" width="600px" alt="Statefun 7"/>
+<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image6.png" width="600px" alt="Statefun 7"/>
 </center>
 
 <div style="line-height:150%;">
@@ -182,7 +182,7 @@ This mode supports different languages while avoiding to route invocations throu
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image9.png" width="600px" alt="Statefun 8"/>
+<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image9.png" width="600px" alt="Statefun 8"/>
 </center>
 
 <div style="line-height:150%;">
@@ -200,7 +200,7 @@ _Embedded Functions_ are the mode of Stateful Functions 1.0 and Flink’s Java/S
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-04-07-release-statefun-2.0.0/image11.png" width="600px" alt="Statefun 9"/>
+<img src="{{< siteurl >}}/img/blog/2020-04-07-release-statefun-2.0.0/image11.png" width="600px" alt="Statefun 9"/>
 </center>
 
 <div style="line-height:150%;">

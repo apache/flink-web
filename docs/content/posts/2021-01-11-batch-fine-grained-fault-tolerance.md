@@ -34,13 +34,13 @@ Let’s look at the topology below: Some connections are pipelined (between A1 a
 However the output of B1 and B2 is cached on disk (indicated by the grey box). We call such connections blocking. If there’s a failure in the steps succeeding B1 and B2 and the results of B1 and B2 have already been produced, we don’t need to reprocess this part of the pipeline -- we can reuse the cached result.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/batch-fine-grained-fault-tolerance/example.png" width="320px"/>
+  <img src="{{< siteurl >}}/img/blog/batch-fine-grained-fault-tolerance/example.png" width="320px"/>
 </div>
 
 Looking at the case of a failure (here of D2), we see that we do not need to restart the entire job. Restarting C2 and all dependent tasks is sufficient. This is possible because we can read the cached results of B1 and B2. We call this recovery mechanism “fine-grained”, as we only restart parts of the topology to recover from a failure -- reducing the recovery time, resource consumption and overall job runtime.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/batch-fine-grained-fault-tolerance/recov.png" width="640px"/>
+  <img src="{{< siteurl >}}/img/blog/batch-fine-grained-fault-tolerance/recov.png" width="640px"/>
 </div>
 
 
@@ -58,7 +58,7 @@ To validate the implementation, we’ve conducted a small experiment. The follow
 This is the topology of the query:
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/batch-fine-grained-fault-tolerance/job.png" width="640px"/>
+  <img src="{{< siteurl >}}/img/blog/batch-fine-grained-fault-tolerance/job.png" width="640px"/>
 </div>
 
 It has many blocking data exchanges where we cache intermediate results, if executed in batch mode.
@@ -99,7 +99,7 @@ Each configuration combination was executed at least 3 times. We report the aver
 The chart below shows the execution time in seconds for each batch and pipelined execution with different failure frequencies.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/batch-fine-grained-fault-tolerance/result.png" width="640px"/>
+  <img src="{{< siteurl >}}/img/blog/batch-fine-grained-fault-tolerance/result.png" width="640px"/>
 </div>
 
 We will now discuss some findings:

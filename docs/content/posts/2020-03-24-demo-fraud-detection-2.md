@@ -46,7 +46,7 @@ Adding rules to this list is obviously possible directly inside the code of the 
 Next, let's take a look at a sample rule definition that we introduced in the previous post of the series:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rule-dsl.png" width="800px" alt="Figure 1: Rule definition"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-2/rule-dsl.png" width="800px" alt="Figure 1: Rule definition"/>
 <br/>
 <i><small>Figure 1: Rule definition</small></i>
 </center>
@@ -57,7 +57,7 @@ The previous post covered use of `groupingKeyNames` by `DynamicKeyFunction` to e
 Figure 2 presents the final job graph of the system that we are building:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph of the Fraud Detection Flink Job"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-2/job-graph.png" width="800px" alt="Figure 2: Job Graph of the Fraud Detection Flink Job"/>
 <br/>
 <i><small>Figure 2: Job Graph of the Fraud Detection Flink Job</small></i>
 </center>
@@ -78,7 +78,7 @@ The job graph above also indicates various data exchange patterns between the op
 * The __FORWARD__ connection after the Transaction Source means that all data consumed by one of the parallel instances of the Transaction Source operator is transferred to exactly one instance of the subsequent `DynamicKeyFunction` operator. It also indicates the same level of parallelism of the two connected operators (12 in the above case). This communication pattern is illustrated in Figure 3. Orange circles represent transactions, and dotted rectangles depict parallel instances of the conjoined operators.  
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: FORWARD message passing across operator instances"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-2/forward.png" width="800px" alt="Figure 3: FORWARD message passing across operator instances"/>
 <br/>
 <i><small>Figure 3: FORWARD message passing across operator instances</small></i>
 </center>
@@ -87,7 +87,7 @@ The job graph above also indicates various data exchange patterns between the op
 * The __HASH__ connection between `DynamicKeyFunction` and `DynamicAlertFunction` means that for each message a hash code is calculated and messages are evenly distributed among available parallel instances of the next operator. Such a connection needs to be explicitly "requested" from Flink by using `keyBy`.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 4: HASHED message passing across operator instances (via `keyBy`)"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-2/hash.png" width="800px" alt="Figure 4: HASHED message passing across operator instances (via `keyBy`)"/>
 <br/>
 <i><small>Figure 4: HASHED message passing across operator instances (via `keyBy`)</small></i>
 </center>
@@ -96,7 +96,7 @@ The job graph above also indicates various data exchange patterns between the op
 * A __REBALANCE__ distribution is either caused by an explicit call to `rebalance()` or by a change of parallelism (12 -> 1 in the case of the job graph from Figure 2). Calling `rebalance()` causes data to be repartitioned in a round-robin fashion and can help to mitigate data skew in certain scenarios.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 5: REBALANCE message passing across operator instances"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-2/rebalance.png" width="800px" alt="Figure 5: REBALANCE message passing across operator instances"/>
 <br/>
 <i><small>Figure 5: REBALANCE message passing across operator instances</small></i>
 </center>
@@ -105,7 +105,7 @@ The job graph above also indicates various data exchange patterns between the op
 The Fraud Detection job graph in Figure 2 contains an additional data source: _Rules Source_. It also consumes from Kafka. Rules are "mixed into" the main processing data flow through the __BROADCAST__ channel. Unlike other methods of transmitting data between operators, such as `forward`, `hash` or `rebalance` that make each message available for processing in only one of the parallel instances of the receiving operator, `broadcast` makes each message available at the input of all of the parallel instances of the operator to which the _broadcast stream_ is connected. This makes `broadcast` applicable to a wide range of tasks that need to affect the processing of all messages, regardless of their key or source partition.
 
 <center>
- <img src="{{ site.baseurl }}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: BROADCAST message passing across operator instances"/>
+ <img src="{{< siteurl >}}/img/blog/patterns-blog-2/broadcast.png" width="800px" alt="Figure 6: BROADCAST message passing across operator instances"/>
  <br/>
  <i><small>Figure 6: BROADCAST message passing across operator instances</small></i>
  </center>
@@ -193,7 +193,7 @@ public class DynamicKeyFunction
 
 In the above code, `processElement()` receives Transactions, and `processBroadcastElement()` receives Rule updates. When a new rule is created, it is distributed as depicted in Figure 6 and saved in all parallel instances of the operator using `processBroadcastState`. We use a Rule's ID as the key to store and reference individual rules. Instead of iterating over a hardcoded `List<Rules>`, we iterate over entries in the dynamically-updated broadcast state.
 
-`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast `MapState`. As described in [Part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by using the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how this is done in the [final blog]({{ site.baseurl }}/news/2020/07/30/demo-fraud-detection-3.html) of the series about Fraud Detection.
+`DynamicAlertFunction` follows the same logic with respect to storing the rules in the broadcast `MapState`. As described in [Part 1](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html), each message in the `processElement` input is intended to be processed by one specific rule and comes "pre-marked" with a corresponding ID by  `DynamicKeyFunction`. All we need to do is retrieve the definition of the corresponding rule from `BroadcastState` by using the provided ID and process it according to the logic required by that rule. At this stage, we will also add messages to the internal function state in order to perform calculations on the required time window of data. We will consider how this is done in the [final blog]({{< siteurl >}}/news/2020/07/30/demo-fraud-detection-3.html) of the series about Fraud Detection.
 
 # Summary
 

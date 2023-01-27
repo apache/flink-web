@@ -18,7 +18,7 @@ title: 'PyFlink: The integration of Pandas into PyFlink'
 Python has evolved into one of the most important programming languages for many fields of data processing. So big has been Python’s popularity, that it has pretty much become the default data processing language for data scientists. On top of that, there is a plethora of Python-based data processing tools such as NumPy, Pandas, and Scikit-learn that have gained additional popularity due to their flexibility or powerful functionalities. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-08-04-pyflink-pandas/python-scientific-stack.png" width="450px" alt="Python Scientific Stack"/>
+<img src="{{< siteurl >}}/img/blog/2020-08-04-pyflink-pandas/python-scientific-stack.png" width="450px" alt="Python Scientific Stack"/>
 </center>
 <center>
   <a href="https://speakerdeck.com/jakevdp/the-unexpected-effectiveness-of-python-in-science?slide=52">Pic source: VanderPlas 2017, slide 52.</a>
@@ -53,7 +53,7 @@ While providing support for Python UDFs in PyFlink greatly improved the user exp
 The introduction of Pandas UDF is used to address these drawbacks. For Pandas UDF, a batch of rows is transferred between the JVM and PVM in a columnar format ([Arrow memory format](https://arrow.apache.org/docs/format/Columnar.html)). The batch of rows will be converted into a collection of Pandas Series and will be transferred to the Pandas UDF to then leverage popular Python libraries (such as Pandas, or NumPy) for the Python UDF implementation.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-08-04-pyflink-pandas/vm-communication.png" width="550px" alt="VM Communication"/>
+<img src="{{< siteurl >}}/img/blog/2020-08-04-pyflink-pandas/vm-communication.png" width="550px" alt="VM Communication"/>
 </center>
 
 
@@ -237,5 +237,5 @@ In this article, we introduce the integration of Pandas in Flink 1.11, including
 Future work by the community will focus on adding more features and bringing additional optimizations with follow up releases.  Such optimizations and additions include a Python DataStream API and more integration with the Python ecosystem, such as support for distributed Pandas in Flink. Stay tuned for more information and updates with the upcoming releases!
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-08-04-pyflink-pandas/mission-of-pyFlink.gif" width="600px" alt="Mission of PyFlink"/>
+<img src="{{< siteurl >}}/img/blog/2020-08-04-pyflink-pandas/mission-of-pyFlink.gif" width="600px" alt="Mission of PyFlink"/>
 </center>

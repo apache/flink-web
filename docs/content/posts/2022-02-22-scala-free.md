@@ -13,7 +13,7 @@ Flink 1.15 is right around the corner, and among the many improvements is a Scal
 Users can now leverage the Java API from any Scala version, including Scala 3!
 
 <figure style="margin-left:auto;margin-right:auto;display:block;padding-top: 20px;padding-bottom:20px;width:75%;">
-  <img src="{{ site.baseurl }}/img/blog/2022-02-22-scala-free/flink-scala-3.jpeg">
+  <img src="{{< siteurl >}}/img/blog/2022-02-22-scala-free/flink-scala-3.jpeg">
   <figcaption style="padding-top: 10px;text-align:center"><b>Fig.1</b> Flink 1.15 Scala 3 Example</figcaption>
 </figure>
 

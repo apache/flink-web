@@ -25,7 +25,7 @@ However, this approach has a few notable drawbacks. First of all it is not trivi
 Apache Flink has its roots at a research project which aimed to combine the best technologies of MapReduce-based systems and parallel database systems. Coming from this background, Flink has always had its own way of processing data in-memory. Instead of putting lots of objects on the heap, Flink serializes objects into a fixed number of pre-allocated memory segments. Its DBMS-style sort and join algorithms operate as much as possible on this binary data to keep the de/serialization overhead at a minimum. If more data needs to be processed than can be kept in memory, Flink’s operators partially spill data to disk. In fact, a lot of Flink’s internal implementations look more like C/C++ rather than common Java. The following figure gives a high-level overview of how Flink stores data serialized in memory segments and spills to disk if necessary.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/memory-mgmt.png" style="width:90%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/memory-mgmt.png" style="width:90%;margin:15px">
 </center>
 
 Flink’s style of active memory management and operating on binary data has several benefits: 
@@ -49,7 +49,7 @@ The MemoryManager takes care of allocating, accounting, and distributing MemoryS
 MemorySegments are allocated once at TaskManager start-up time and are destroyed when the TaskManager is shut down. Hence, they are reused and not garbage-collected over the whole lifetime of a TaskManager. After all internal data structures of a TaskManager have been initialized and all core services have been started, the MemoryManager starts creating MemorySegments. By default 70% of the JVM heap that is available after service initialization is allocated by the MemoryManager. It is also possible to configure an absolute amount of managed memory. The remaining JVM heap is used for objects that are instantiated during task processing, including objects created by user-defined functions. The following figure shows the memory distribution in the TaskManager JVM after startup.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/memory-alloc.png" style="width:60%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/memory-alloc.png" style="width:60%;margin:15px">
 </center>
 
 ## How does Flink serialize objects?
@@ -78,7 +78,7 @@ public class Person {
 ```
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/data-serialization.png" style="width:80%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/data-serialization.png" style="width:80%;margin:15px">
 </center>
 
 Flink’s type system can be easily extended by providing custom TypeInformations, Serializers, and Comparators to improve the performance of serializing and comparing custom data types. 
@@ -90,20 +90,20 @@ Similar to many other data processing APIs (including SQL), Flink’s APIs provi
 Flink assigns a memory budget to its data processing operators. Upon initialization, a sort algorithm requests its memory budget from the MemoryManager and receives a corresponding set of MemorySegments. The set of MemorySegments becomes the memory pool of a so-called sort buffer which collects the data that is be sorted. The following figure illustrates how data objects are serialized into the sort buffer. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/sorting-binary-data-1.png" style="width:90%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/sorting-binary-data-1.png" style="width:90%;margin:15px">
 </center>
 
 The sort buffer is internally organized into two memory regions. The first region holds the full binary data of all objects. The second region contains pointers to the full binary object data and - depending on the key data type - fixed-length sort keys. When an object is added to the sort buffer, its binary data is appended to the first region, and a pointer (and possibly a key) is appended to the second region. The separation of actual data and pointers plus fixed-length keys is done for two purposes. It enables efficient swapping of fix-length entries (key+pointer) and also reduces the data that needs to be moved when sorting. If the sort key is a variable length data type such as a String, the fixed-length sort key must be a prefix key such as the first n characters of a String. Note, not all data types provide a fixed-length (prefix) sort key. When serializing objects into the sort buffer, both memory regions are extended with MemorySegments from the memory pool. Once the memory pool is empty and no more objects can be added, the sort buffer is completely filled and can be sorted. Flink’s sort buffer provides methods to compare and swap elements. This makes the actual sort algorithm pluggable. By default, Flink uses a Quicksort implementation which can fall back to HeapSort. 
 The following figure shows how two objects are compared.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/sorting-binary-data-2.png" style="width:80%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/sorting-binary-data-2.png" style="width:80%;margin:15px">
 </center>
 
 The sort buffer compares two elements by comparing their binary fix-length sort keys. The comparison is successful if either done on a full key (not a prefix key) or if the binary prefix keys are not equal. If the prefix keys are equal (or the sort key data type does not provide a binary prefix key), the sort buffer follows the pointers to the actual object data, deserializes both objects and compares the objects. Depending on the result of the comparison, the sort algorithm decides whether to swap the compared elements or not. The sort buffer swaps two elements by moving their fix-length keys and pointers. The actual data is not moved. Once the sort algorithm finishes, the pointers in the sort buffer are correctly ordered. The following figure shows how the sorted data is returned from the sort buffer. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/sorting-binary-data-3.png" style="width:80%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/sorting-binary-data-3.png" style="width:80%;margin:15px">
 </center>
 
 The sorted data is returned by sequentially reading the pointer region of the sort buffer, skipping the sort keys and following the sorted pointers to the actual data. This data is either deserialized and returned as objects or the binary representation is copied and written to disk in case of an external merge-sort (see this [blog post on joins in Flink](http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html)).
@@ -119,7 +119,7 @@ So, what does operating on binary data mean for performance? We’ll run a bench
 All sort methods are implemented using a single thread. The reported times are averaged over ten runs. After each run, we call `System.gc()` to request a garbage collection run which does not go into measured execution time. The following figure shows the time to store the input data in memory, sort it, and read it back as objects. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/sort-benchmark.png" style="width:90%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/sort-benchmark.png" style="width:90%;margin:15px">
 </center>
 
 We see that Flink’s sort on binary data using its own serializers significantly outperforms the other two methods. Comparing to the object-on-heap method, we see that loading the data into memory is much faster. Since we actually collect the objects, there is no opportunity to reuse the object instances, but have to re-create every tuple. This is less efficient than Flink’s serializers (or Kryo serialization). On the other hand, reading objects from the heap comes for free compared to deserialization. In our benchmark, object cloning was more expensive than serialization and deserialization combined. Looking at the sorting time, we see that also sorting on the binary representation is faster than Java’s collection sort. Sorting data that was serialized using Kryo without binary sort key, is much slower than both other methods. This is due to the heavy deserialization overhead. Sorting the tuples on their String field is faster than sorting on the Integer field due to the long-tailed value distribution which significantly reduces the number of pair-wise comparisons. To get a better feeling of what is happening during sorting we monitored the executing JVM using VisualVM. The following screenshots show heap memory usage, garbage collection activity and CPU usage over the execution of 10 runs.
@@ -132,18 +132,18 @@ We see that Flink’s sort on binary data using its own serializers significantl
   </tr>
   <tr>
     <td><b>Object-on-Heap (int)</b></td>
-    <td><img src="{{ site.baseurl }}/img/blog/objHeap-int-gc.png" style="width:80%"></td>
-    <td><img src="{{ site.baseurl }}/img/blog/objHeap-int-mem.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/objHeap-int-gc.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/objHeap-int-mem.png" style="width:80%"></td>
   </tr>
   <tr>
     <td><b>Flink-Serialized (int)</b></td>
-    <td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-gc.png" style="width:80%"></td>
-    <td><img src="{{ site.baseurl }}/img/blog/flinkSer-int-mem.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/flinkSer-int-gc.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/flinkSer-int-mem.png" style="width:80%"></td>
   </tr>
   <tr>
     <td><b>Kryo-Serialized (int)</b></td>
-    <td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-gc.png" style="width:80%"></td>
-    <td><img src="{{ site.baseurl }}/img/blog/kryoSer-int-mem.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/kryoSer-int-gc.png" style="width:80%"></td>
+    <td><img src="{{< siteurl >}}/img/blog/kryoSer-int-mem.png" style="width:80%"></td>
   </tr>
 </table>
 

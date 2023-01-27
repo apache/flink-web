@@ -112,7 +112,7 @@ It’s [been a while](https://flink.apache.org/news/2020/04/01/community-update.
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-29-community-update/2020-07-29_releases.png" width="600px" alt="Flink Releases"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-29-community-update/2020-07-29_releases.png" width="600px" alt="Flink Releases"/>
 </center>
 
 <div style="line-height:60%;">

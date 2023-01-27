@@ -13,7 +13,7 @@ title: How to identify the source of backpressure?
 {% toc %}
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/animated.png" alt="Backpressure monitoring in the web UI"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/animated.png" alt="Backpressure monitoring in the web UI"/>
 	<p class="align-center">Backpressure monitoring in the web UI</p>
 </div>
 
@@ -70,7 +70,7 @@ however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases,
 look at the job graph in the Web UI.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/simple-example.png"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/simple-example.png"/>
 </div>
 
 The first thing to note in the example above is that different tasks have different colors. Those colors
@@ -85,7 +85,7 @@ the problem and check what is the busy/backpressured/idle status of every subtas
 this is especially handy if there is a data skew and not all subtasks are equally utilized.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/subtasks.png" alt="Backpressure among subtasks"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/subtasks.png" alt="Backpressure among subtasks"/>
 	<p class="align-center">Backpressure among subtasks</p>
 </div>
 
@@ -124,7 +124,7 @@ as the value for busyTimeMsPerSecond. For more information on the topic of Data 
 [take a look here]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/dev/datastream/sources/).
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/source-task-busy.png" alt="Old-style sources do not report busy time"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/source-task-busy.png" alt="Old-style sources do not report busy time"/>
 	<p class="align-center">Old-style sources do not report busy time</p>
 </div>
 
@@ -146,12 +146,12 @@ Furthermore, varying load and especially firing windows can move the bottleneck 
 the job graph:
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/bottleneck-zoom.png" alt="Bottleneck alternating between two tasks"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/bottleneck-zoom.png" alt="Bottleneck alternating between two tasks"/>
 	<p class="align-center">Bottleneck alternating between two tasks</p>
 </div>
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-07-07-backpressure/sliding-window.png" alt="SlidingWindowOperator"/>
+  <img src="{{< siteurl >}}/img/blog/2021-07-07-backpressure/sliding-window.png" alt="SlidingWindowOperator"/>
 	<p class="align-center">SlidingWindowOperator</p>
 </div>
 

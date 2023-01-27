@@ -84,7 +84,7 @@ cd flink-1.11.1
 The main steps of the tutorial are also recorded in this short screencast:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/flink-docker/flink-docker.gif" width="882px" height="730px" alt="Demo video"/>
+<img src="{{< siteurl >}}/img/blog/flink-docker/flink-docker.gif" width="882px" height="730px" alt="Demo video"/>
 </center>
 
 

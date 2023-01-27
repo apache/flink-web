@@ -15,7 +15,7 @@ A common use case for Apache Flink is streaming data analytics together with Apa
 In this blog post we demonstrate how to orchestrate a streaming data analytics application based on Flink and Kafka with KUDO. It consists of a Flink job that checks financial transactions for fraud, and two microservices that generate and display the transactions. You can find more details about this demo in the [KUDO Operators repository](https://github.com/kudobuilder/operators/tree/master/repository/flink/docs/demo/financial-fraud), including instructions for installing the dependencies.
 
 <p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
-	<img src="{{ site.baseurl }}/img/blog/2019-11-06-flink-kubernetes-kudo/flink-kudo-architecture.png" width="600px" alt="Application: My App"/>
+	<img src="{{< siteurl >}}/img/blog/2019-11-06-flink-kubernetes-kudo/flink-kudo-architecture.png" width="600px" alt="Application: My App"/>
 </p>
 
 ## Prerequisites
@@ -133,7 +133,7 @@ $ kubectl proxy
 It should look similar to this, depending on your local machine and how many cores you have available:
 
 <p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
-	<img src="{{ site.baseurl }}/img/blog/2019-11-06-flink-kubernetes-kudo/flink-dashboard-ui.png" width="600px" alt="Application: My App"/>
+	<img src="{{< siteurl >}}/img/blog/2019-11-06-flink-kubernetes-kudo/flink-dashboard-ui.png" width="600px" alt="Application: My App"/>
 </p>
 
 The job is up and running and we should now be able to see fraudulent transaction in the logs of the actor pod:

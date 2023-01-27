@@ -47,7 +47,7 @@ storage by themselves. More specifically, Table Store offers the following core 
   problem of combining different stores by themselves.
 
 <center>
-<img src="{{site.baseurl}}/img/blog/table-store/table-store-architecture.png" width="100%"/>
+<img src="{{< siteurl >}}/img/blog/table-store/table-store-architecture.png" width="100%"/>
 </center>
 
 In this preview version, as shown in the architecture above:

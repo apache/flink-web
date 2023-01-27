@@ -32,7 +32,7 @@ To set the tone for the remaining of the post, let us first try to explain the v
 To better understand how Flink manages state, one can think of Flink like a three-layered state abstraction, as illustrated in the diagram below. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-visual-1.png" width="600px" alt="State in Apache Flink"/>
+<img src="{{< siteurl >}}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-visual-1.png" width="600px" alt="State in Apache Flink"/>
 </center>
 <br>
 
@@ -41,7 +41,7 @@ On the top layer, sits the Flink user code, for example, a `KeyedProcessFunction
 A savepoint is a snapshot of the distributed, global state of an application at a logical point-in-time and is stored in an external distributed file system or blob storage such as HDFS, or S3. Upon upgrading an application or implementing a code change  — such as adding a new operator or changing a field — the Flink job can restart by re-loading the application state from the savepoint into the state backend, making it local and available for the computation and continue processing as if nothing had ever happened.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-visual-2.png" width="600px" alt="State in Apache Flink"/>
+<img src="{{< siteurl >}}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-visual-2.png" width="600px" alt="State in Apache Flink"/>
 </center>
 <br>
 
@@ -232,12 +232,12 @@ In a [previous blog post](https://flink.apache.org/feature/2019/09/13/state-proc
 Stay tuned for more details and guidance around this feature of Flink.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-state-processor-api-visual-1.png" width="600px" alt="State Processor API in Apache Flink"/>
+<img src="{{< siteurl >}}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-state-processor-api-visual-1.png" width="600px" alt="State Processor API in Apache Flink"/>
 </center>
 <br>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-state-processor-api-visual-2.png" width="600px" alt="State Processor API in Apache Flink"/>
+<img src="{{< siteurl >}}/img/blog/2020-01-29-state-unlocked-interacting-with-state-in-apache-flink/managing-state-in-flink-state-processor-api-visual-2.png" width="600px" alt="State Processor API in Apache Flink"/>
 </center>
 <br>
 

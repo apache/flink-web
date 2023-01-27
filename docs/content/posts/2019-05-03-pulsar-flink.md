@@ -21,39 +21,39 @@ The first differentiating factor stems from the fact that although Pulsar provid
 Pulsar’s architecture follows a similar pattern to other pub-sub systems as the framework is organized in topics as the main data entity, with producers sending data to, and consumers receiving data from a topic as shown in the diagram below.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/pulsar-flink/image-1.png" width="400px" alt="Pulsar producers and consumers"/>
+<img src="{{< siteurl >}}/img/blog/pulsar-flink/image-1.png" width="400px" alt="Pulsar producers and consumers"/>
 </center>
 <br>
 
 The second differentiator of Pulsar is that the framework is built from the get-go with [multi-tenancy](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/) in mind. What that means is that each Pulsar topic has a hierarchical management structure making the allocation of resources as well as the resource management and coordination between teams efficient and easy. With Pulsar’s multi-tenancy structure, data platform maintainers can onboard new teams with no friction as Pulsar provides resource isolation at the property (tenant), namespace or topic level, while at the same time data can be shared across the cluster for easy collaboration and coordination.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/pulsar-flink/image-2.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+<img src="{{< siteurl >}}/img/blog/pulsar-flink/image-2.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
 </center>
 <br>
 
 Finally, Pulsar’s flexible messaging framework unifies the streaming and queuing data consumption models and provides greater flexibility. As shown in the below diagram, Pulsar holds the data in the topic while multiple teams can consume the data independently depending on their workloads and data consumption patterns.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/pulsar-flink/image-3.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+<img src="{{< siteurl >}}/img/blog/pulsar-flink/image-3.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
 </center>
 <br>
 
 ## Pulsar’s view on data: Segmented data streams
 
-Apache Flink is a streaming-first computation framework that perceives [batch processing as a special case of streaming]({{ site.baseurl }}/news/2019/02/13/unified-batch-streaming-blink.html). Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.
+Apache Flink is a streaming-first computation framework that perceives [batch processing as a special case of streaming]({{< siteurl >}}/news/2019/02/13/unified-batch-streaming-blink.html). Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.
 
 Apache Pulsar has a similar perspective to that of Apache Flink with regards to the data layer. The framework also uses streams as a unified view on all data, while its layered architecture allows traditional pub-sub messaging for streaming workloads and continuous data processing or usage of *Segmented Streams* and bounded data stream for batch and static workloads. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/pulsar-flink/image-4.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+<img src="{{< siteurl >}}/img/blog/pulsar-flink/image-4.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
 </center>
 <br>
 
 With Pulsar, once a producer sends data to a topic, it is partitioned depending on the data traffic and then further segmented under those partitions — using Apache Bookkeeper as segment store —  to allow for parallel data processing as illustrated in the diagram below. This allows a combination of traditional pub-sub messaging and distributed parallel computations in one framework.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/pulsar-flink/image-5.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+<img src="{{< siteurl >}}/img/blog/pulsar-flink/image-5.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
 </center>
 <br>
 
@@ -155,4 +155,4 @@ wc.output(pulsarOutputFormat);
 
 ## Conclusion
 
-Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be *“streaming-first”* with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the [Apache Flink]({{ site.baseurl }}/community.html#mailing-lists) and [Apache Pulsar](https://lists.apache.org/list.html?dev@pulsar.apache.org) mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.
+Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be *“streaming-first”* with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the [Apache Flink]({{< siteurl >}}/community.html#mailing-lists) and [Apache Pulsar](https://lists.apache.org/list.html?dev@pulsar.apache.org) mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.

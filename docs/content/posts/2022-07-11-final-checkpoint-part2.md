@@ -12,7 +12,7 @@ excerpt: This post presents more details on the changes on the checkpoint proced
 title: 'FLIP-147: Support Checkpoints After Tasks Finished - Part Two'
 ---
 
-In the [first part]({{site.baseurl}}/2022/07/11/final-checkpoint-part1.html) of this blog,
+In the [first part]({{< siteurl >}}/2022/07/11/final-checkpoint-part1.html) of this blog,
 we have briefly introduced the work to support checkpoints after tasks get
 finished and revised the process of finishing. In this part we will present more details on the implementation,
 including how we support checkpoints with finished tasks and the revised protocol of the finish process.
@@ -37,7 +37,7 @@ decides to trigger one task and starts emitting the RPC, it is possible that the
 reporting the FINISHED status to JobManager. In this case, the RPC message would fail and the checkpoint would be aborted.
 
 <center>
-<img vspace="20" style="width:50%" src="{{site.baseurl}}/img/blog/2022-07-11-final-checkpoint/checkpoint_trigger.png" />
+<img vspace="20" style="width:50%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/checkpoint_trigger.png" />
 <p style="font-size: 0.6em">
   Figure 1. The tasks chosen as the new sources when taking checkpoint with finished tasks. The principle is to
   choose the running tasks whose precedent tasks are all finished. 
@@ -62,7 +62,7 @@ running instances, which represents the remaining workload for this operator.
 3. No finished instances: In this case, the state of the operator is the same as the one taken when no tasks are finished.
 
 <center>
-<img vspace="20" style="width:50%" src="{{site.baseurl}}/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png" />
+<img vspace="20" style="width:50%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png" />
 <p style="font-size: 0.6em">
   Figure 2. An illustration of the extended checkpoint format.
 </p>
@@ -213,7 +213,7 @@ The revised process of finishing is shown as follows:
 ```
 
 <center>
-<img vspace="20" style="width:60%" src="{{site.baseurl}}/img/blog/2022-07-11-final-checkpoint/example_job_finish.png" />
+<img vspace="20" style="width:60%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/example_job_finish.png" />
 <p style="font-size: 0.6em">
   Figure 3. An example job of the revised process of finishing.
 </p>

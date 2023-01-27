@@ -32,7 +32,7 @@ February 2015 to 544 in December 2015, and the number of stars of the
 repository almost tripled from 289 to 813.
 
 <center>
-<img src="{{site.baseurl}}/img/blog/community-growth.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/community-growth.png" style="height:400px;margin:15px">
 </center>
 
 Although Flink started out geographically in Berlin, Germany, the
@@ -42,7 +42,7 @@ meetup.com for groups that mention Flink as a focus area reveals [16
 meetups around the globe](http://apache-flink.meetup.com/):
 
 <center>
-<img src="{{site.baseurl}}/img/blog/meetup-map.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/meetup-map.png" style="height:400px;margin:15px">
 </center>
 
 # Flink Forward 2015
@@ -60,7 +60,7 @@ check out the [slides](http://2015.flink-forward.org/?post_type=day) and
 from Flink Forward.
 
 <center>
-<img src="{{site.baseurl}}/img/blog/ff-speakers.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/ff-speakers.png" style="height:400px;margin:15px">
 </center>
 
 # Media coverage
@@ -83,7 +83,7 @@ and
 [HadoopSphere](http://www.hadoopsphere.com/2015/02/distributed-data-processing-with-apache.html).
 
 <center>
-<img src="{{site.baseurl}}/img/blog/appeared-in.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/appeared-in.png" style="height:400px;margin:15px">
 </center>
 
 It is interesting to see that Hadoop Summit EMEA 2016 had a whopping
@@ -91,7 +91,7 @@ number of 17 (!) talks submitted that are mentioning Flink in their
 title and abstract:
 
 <center>
-<img src="{{site.baseurl}}/img/blog/hadoop-summit.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/hadoop-summit.png" style="height:400px;margin:15px">
 </center>
 
 # Fun with stats: when do committers commit?
@@ -141,7 +141,7 @@ initial Apache incubator project. During 2015, the codebase almost
 **doubled** from 500,000 LOC to 900,000 LOC.
 
 <center>
-<img src="{{site.baseurl}}/img/blog/code-growth.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/code-growth.png" style="height:400px;margin:15px">
 </center>
 
 It is interesting to see when committers commit. For Flink, Monday
@@ -149,7 +149,7 @@ afternoons are by far the most popular times to commit to the
 repository:
 
 <center>
-<img src="{{site.baseurl}}/img/blog/commit-stats.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/commit-stats.png" style="height:400px;margin:15px">
 </center>
 
 # Feature timeline
@@ -158,7 +158,7 @@ So, what were the major features added to Flink and the Flink
 ecosystem during 2015? Here is a (non-exhaustive) chronological list:
 
 <center>
-<img src="{{site.baseurl}}/img/blog/feature-timeline.png" style="height:400px;margin:15px">
+<img src="{{< siteurl >}}/img/blog/feature-timeline.png" style="height:400px;margin:15px">
 </center>
 
 # Roadmap for 2016

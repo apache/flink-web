@@ -88,7 +88,7 @@ restored one. Therefore, subsequent checkpoints depend on the restored checkpoin
 ownership is not well defined in this mode.
 
 <div style="text-align: center">
-  <img src="{{ site.baseurl }}/img/blog/2022-05-06-restore-modes/restore-mode-legacy.svg" alt="LEGACY restore mode" width="70%">
+  <img src="{{< siteurl >}}/img/blog/2022-05-06-restore-modes/restore-mode-legacy.svg" alt="LEGACY restore mode" width="70%">
 </div>
 
 
@@ -110,7 +110,7 @@ snapshot. You can not do this earlier, because without any completed checkpoints
 failure - try to recover from the initial snapshot.
 
 <div style="text-align: center">
-  <img src="{{ site.baseurl }}/img/blog/2022-05-06-restore-modes/restore-mode-no_claim.svg" alt="NO_CLAIM restore mode" width="70%" >
+  <img src="{{< siteurl >}}/img/blog/2022-05-06-restore-modes/restore-mode-no_claim.svg" alt="NO_CLAIM restore mode" width="70%" >
 </div>
 
 ### CLAIM mode
@@ -122,7 +122,7 @@ not needed for recovery anymore. Hence, it is not safe to manually delete the sn
 two jobs from the same snapshot. Flink keeps around a configured number of checkpoints.
 
 <div style="text-align: center">
-  <img src="{{ site.baseurl }}/img/blog/2022-05-06-restore-modes/restore-mode-claim.svg" alt="CLAIM restore mode" width="70%">
+  <img src="{{< siteurl >}}/img/blog/2022-05-06-restore-modes/restore-mode-claim.svg" alt="CLAIM restore mode" width="70%">
 </div>
 
 ## Savepoint format

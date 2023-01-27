@@ -45,7 +45,7 @@ avgTempCTable.toDataSet[Row].print()
 Although the example shows Scala code, there is also an equivalent Java version of the Table API. The following picture depicts the original architecture of the Table API.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/stream-sql/old-table-api.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/stream-sql/old-table-api.png" style="width:75%;margin:15px">
 </center>
 
 A Table is created from a DataSet or DataStream and transformed into a new Table by applying relational transformations such as `filter`, `join`, or `select` on them. Internally, a logical table operator tree is constructed from the applied Table transformations. When a Table is translated back into a DataSet or DataStream, the respective translator translates the logical operator tree into DataSet or DataStream operators. Expressions like `'location.like("room%")` are compiled into Flink functions via code generation.
@@ -61,7 +61,7 @@ However, with the growing popularity of stream processing and the increasing ado
 Calcite is central in the new design as the following architecture sketch shows:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/stream-sql/new-table-api.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/stream-sql/new-table-api.png" style="width:75%;margin:15px">
 </center>
 
 The new architecture features two integrated APIs to specify relational queries, the Table API and SQL. Queries of both APIs are validated against a catalog of registered tables and converted into Calcite's representation for logical plans. In this representation, stream and batch queries look exactly the same. Next, Calcite's cost-based optimizer applies transformation rules and optimizes the logical plans. Depending on the nature of the sources (streaming or static) we use different rule sets. Finally, the optimized plan is translated into a regular Flink DataStream or DataSet program. This step involves again code generation to compile relational expressions into Flink functions.
