@@ -105,14 +105,14 @@ Metric | Scope | Description |
 **Example Dashboard Panels**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-1.png" width="800px" alt="Uptime (35 minutes), Restarting Time (3 milliseconds) and Number of Full Restarts (7)"/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-1.png" width="800px" alt="Uptime (35 minutes), Restarting Time (3 milliseconds) and Number of Full Restarts (7)"/>
 <br/>
 <i><small>Uptime (35 minutes), Restarting Time (3 milliseconds) and Number of Full Restarts (7)</small></i>
 </center>
 <br/>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-2.png" width="800px" alt="Completed Checkpoints (18336), Failed (14)"/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-2.png" width="800px" alt="Completed Checkpoints (18336), Failed (14)"/>
 <br/>
 <i><small>Completed Checkpoints (18336), Failed (14)</small></i>
 </center>
@@ -151,7 +151,7 @@ Metric | Scope | Description |
 **Example Dashboard Panels**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-3.png" width="800px" alt="Mean Records Out per Second per Operator"/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-3.png" width="800px" alt="Mean Records Out per Second per Operator"/>
 <br/>
 <i><small>Mean Records Out per Second per Operator</small></i>
 </center>
@@ -200,7 +200,7 @@ Metric | Scope | Description |
 **Example Dashboard Panels**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-4.png" width="800px" alt="Event Time Lag per Subtask of a single operator in the topology. In this case, the watermark is lagging a few seconds behind for each subtask."/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-4.png" width="800px" alt="Event Time Lag per Subtask of a single operator in the topology. In this case, the watermark is lagging a few seconds behind for each subtask."/>
 <br/>
 <i><small>Event Time Lag per Subtask of a single operator in the topology. In this case, the watermark is lagging a few seconds behind for each subtask.</small></i>
 </center>
@@ -286,7 +286,7 @@ Metric | Scope | Description |
 **Example Dashboard Panel**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-5.png" width="800px" alt="Latency distribution between a source and a single sink subtask."/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-5.png" width="800px" alt="Latency distribution between a source and a single sink subtask."/>
 <br/>
 <i><small>Latency distribution between a source and a single sink subtask.</small></i>
 </center>
@@ -354,14 +354,14 @@ Metric | Scope | Description |
 **Example Dashboard Panel**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-6.png" width="800px" alt="TaskManager memory consumption and garbage collection times."/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-6.png" width="800px" alt="TaskManager memory consumption and garbage collection times."/>
 <br/>
 <i><small>TaskManager memory consumption and garbage collection times.</small></i>
 </center>
 <br/>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-7.png" width="800px" alt="JobManager memory consumption and garbage collection times."/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-7.png" width="800px" alt="JobManager memory consumption and garbage collection times."/>
 <br/>
 <i><small>JobManager memory consumption and garbage collection times.</small></i>
 </center>
@@ -403,7 +403,7 @@ Metric | Scope | Description |
 **Example Dashboard Panel**
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-02-21-monitoring-best-practices/fig-8.png" width="800px" alt="TaskManager & JobManager CPU load."/>
+<img src="{{< siteurl >}}/img/blog/2019-02-21-monitoring-best-practices/fig-8.png" width="800px" alt="TaskManager & JobManager CPU load."/>
 <br/>
 <i><small>TaskManager & JobManager CPU load.</small></i>
 </center>

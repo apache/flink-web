@@ -16,7 +16,7 @@ Apache Flink 1.11 has released many exciting new features, including many develo
 In the following sections, we describe how to integrate Kafka, MySQL, Elasticsearch, and Kibana with Flink SQL to analyze e-commerce user behavior in real-time. All exercises in this blogpost are performed in the Flink SQL CLI, and the entire process uses standard SQL syntax, without a single line of Java/Scala code or IDE installation. The final result of this demo is shown in the following figure:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image1.gif" width="650px" alt="Demo Overview"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image1.gif" width="650px" alt="Demo Overview"/>
 </center>
 <br>
 
@@ -75,7 +75,7 @@ The command starts the SQL CLI client in the container.
 You should see the welcome screen of the CLI client.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image3.png" width="500px" alt="Flink SQL CLI welcome page"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image3.png" width="500px" alt="Flink SQL CLI welcome page"/>
 </center>
 <br>
 
@@ -158,7 +158,7 @@ Here, we use the built-in `HOUR` function to extract the value for each hour in 
 After running the previous query in the Flink SQL CLI, we can observe the submitted task on the [Flink Web UI](http://localhost:8081). This task is a streaming task and therefore runs continuously.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image4.jpg" width="800px" alt="Flink Dashboard"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image4.jpg" width="800px" alt="Flink Dashboard"/>
 </center>
 <br>
 
@@ -174,14 +174,14 @@ Since we are using the TUMBLE window of one hour here, it might take about four 
 Click "Discover" in the left-side toolbar. Kibana lists the content of the created index.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image5.jpg" width="800px" alt="Kibana Discover"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image5.jpg" width="800px" alt="Kibana Discover"/>
 </center>
 <br>
 
 Next, create a dashboard to display various views. Click "Dashboard" on the left side of the page to create a dashboard named "User Behavior Analysis". Then, click "Create New" to create a new view. Select "Area" (area graph), then select the `buy_cnt_per_hour` index, and draw the trading volume area chart as illustrated in the configuration on the left side of the following diagram. Apply the changes by clicking the “▶” play button. Then, save it as "Hourly Trading Volume".
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image6.jpg" width="800px" alt="Hourly Trading Volume"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image6.jpg" width="800px" alt="Hourly Trading Volume"/>
 </center>
 <br>
 
@@ -228,7 +228,7 @@ GROUP BY date_str;
 After submitting this query, we create a `cumulative_uv` index pattern in Kibana. We then create a "Line" (line graph) on the dashboard, by selecting the `cumulative_uv` index, and drawing the cumulative UV curve according to the configuration on the left side of the following figure before finally saving the curve.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image7.jpg" width="800px" alt="Cumulative Unique Visitors every 10-min"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image7.jpg" width="800px" alt="Cumulative Unique Visitors every 10-min"/>
 </center>
 <br>
 
@@ -292,7 +292,7 @@ GROUP BY category_name;
 After submitting the query, we create a `top_category` index pattern in Kibana. We then  create a "Horizontal Bar" (bar graph) on the dashboard, by selecting the `top_category` index and drawing the category ranking according to the configuration on the left side of the following diagram before finally saving the list.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-07-28-flink-sql-demo/image8.jpg" width="800px" alt="Top Categories"/>
+<img src="{{< siteurl >}}/img/blog/2020-07-28-flink-sql-demo/image8.jpg" width="800px" alt="Top Categories"/>
 </center>
 <br>
 

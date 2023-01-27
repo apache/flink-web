@@ -44,13 +44,13 @@ But let's first have a look at what a stateful Flink job looks like. A Flink job
 The following figure shows the application “MyApp” which consists of three operators called “Src”, “Proc”, and “Snk”. Src has one operator state (os1), Proc has one operator state (os2) and two keyed states (ks1, ks2) and Snk is stateless.
 
 <p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
-	<img src="{{ site.baseurl }}/img/blog/2019-09-13-state-processor-api-blog/application-my-app-state-processor-api.png" width="600px" alt="Application: My App"/>
+	<img src="{{< siteurl >}}/img/blog/2019-09-13-state-processor-api-blog/application-my-app-state-processor-api.png" width="600px" alt="Application: My App"/>
 </p>
 
 A savepoint or checkpoint of MyApp consists of the data of all states, organized in a way that the states of each task can be restored. When processing the data of a savepoint (or checkpoint) with a batch job, we need a mental model that maps the data of the individual tasks' states into data sets or tables. In fact, we can think of a savepoint as a database. Every operator (identified by its UID) represents a namespace. Each operator state of an operator is mapped to a dedicated table in the namespace with a single column that holds the state's data of all tasks. All keyed states of an operator are mapped to a single table consisting of a column for the key, and one column for each keyed state. The following figure shows how a savepoint of MyApp is mapped to a database.
 
 <p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
-	<img src="{{ site.baseurl }}/img/blog/2019-09-13-state-processor-api-blog/database-my-app-state-processor-api.png" width="600px" alt="Database: My App"/>
+	<img src="{{< siteurl >}}/img/blog/2019-09-13-state-processor-api-blog/database-my-app-state-processor-api.png" width="600px" alt="Database: My App"/>
 </p>
 
 The figure shows how the values of Src's operator state are mapped to a table with one column and five rows, one row for all list entries across all parallel tasks of Src. Operator state os2 of the operator “Proc” is similarly mapped to an individual table. The keyed states ks1 and ks2 are combined to a single table with three columns, one for the key, one for ks1 and one for ks2. The keyed table holds one row for each distinct key of both keyed states. Since the operator “Snk” does not have any state, its namespace is empty.

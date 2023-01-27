@@ -18,31 +18,31 @@ In this blog post, we discuss the concept of windows for stream processing, pres
 Consider the example of a traffic sensor that counts every 15 seconds the number of vehicles passing a certain location. The resulting stream could look like:
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/window-stream.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/window-stream.png" style="width:75%;margin:15px">
 </center>
 
 If you would like to know, how many vehicles passed that location, you would simply sum the individual counts. However, the nature of a sensor stream is that it continuously produces data. Such a stream never ends and it is not possible to compute a final sum that can be returned. Instead, it is possible to compute rolling sums, i.e., return for each input event an updated sum record. This would yield a new stream of partial sums.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/window-rolling-sum.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/window-rolling-sum.png" style="width:75%;margin:15px">
 </center>
 
 However, a stream of partial sums might not be what we are looking for, because it constantly updates the count and even more important, some information such as variation over time is lost. Hence, we might want to rephrase our question and ask for the number of cars that pass the location every minute. This requires us to group the elements of the stream into finite sets, each set corresponding to sixty seconds. This operation is called a *tumbling windows* operation.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/window-tumbling-window.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/window-tumbling-window.png" style="width:75%;margin:15px">
 </center>
 
 Tumbling windows discretize a stream into non-overlapping windows. For certain applications it is important that windows are not disjunct because an application might require smoothed aggregates. For example, we can compute every thirty seconds the number of cars passed in the last minute. Such windows are called *sliding windows*.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/window-sliding-window.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/window-sliding-window.png" style="width:75%;margin:15px">
 </center>
 
 Defining windows on a data stream as discussed before is a non-parallel operation. This is because each element of a stream must be processed by the same window operator that decides which windows the element should be added to. Windows on a full stream are called *AllWindows* in Flink. For many applications, a data stream needs to be grouped into multiple logical streams on each of which a window operator can be applied. Think for example about a stream of vehicle counts from multiple traffic sensors (instead of only one sensor as in our previous example), where each sensor monitors a different location. By grouping the stream by sensor id, we can compute windowed traffic statistics for each location in parallel. In Flink, we call such partitioned windows simply *Windows*, as they are the common case for distributed streams. The following figure shows tumbling windows that collect two elements over a stream of `(sensorId, count)` pair elements.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/windows-keyed.png" style="width:75%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/windows-keyed.png" style="width:75%;margin:15px">
 </center>
 
 Generally speaking, a window defines a finite set of elements on an unbounded stream. This set can be based on time (as in our previous examples), element counts, a combination of counts and time, or some custom logic to assign elements to windows. Flink's DataStream API provides concise operators for the most common window operations as well as a generic windowing mechanism that allows users to define very custom windowing logic. In the following we present Flink's time and count windows before discussing its windowing mechanism in detail.
@@ -114,7 +114,7 @@ Flink's built-in time and count windows cover a wide range of common window use 
 The following figure depicts Flink's windowing mechanism and introduces the components being involved.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/window-intro/window-mechanics.png" style="width:90%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/window-intro/window-mechanics.png" style="width:90%;margin:15px">
 </center>
 
 Elements that arrive at a window operator are handed to a `WindowAssigner`. The WindowAssigner assigns elements to one or more windows, possibly creating new windows. A `Window` itself is just an identifier for a list of elements and may provide some optional meta information, such as begin and end time in case of a `TimeWindow`. Note that an element can be added to multiple windows, which also means that multiple windows can exist at the same time.

@@ -16,11 +16,11 @@ In this blog post, we will look at how Flink exploits off-heap memory. The featu
 
 ## Recap: Memory Management in Flink
 
-To understand Flink’s approach to off-heap memory, we need to recap Flink’s approach to custom managed memory. We have written an [earlier blog post about how Flink manages JVM memory itself]({{ site.baseurl }}/news/2015/05/11/Juggling-with-Bits-and-Bytes.html)
+To understand Flink’s approach to off-heap memory, we need to recap Flink’s approach to custom managed memory. We have written an [earlier blog post about how Flink manages JVM memory itself]({{< siteurl >}}/news/2015/05/11/Juggling-with-Bits-and-Bytes.html)
 
 As a summary, the core part is that Flink implements its algorithms not against Java objects, arrays, or lists, but actually against a data structure similar to `java.nio.ByteBuffer`. Flink uses its own specialized version, called [`MemorySegment`](https://github.com/apache/flink/blob/release-0.9.1-rc1/flink-core/src/main/java/org/apache/flink/core/memory/MemorySegment.java) on which algorithms put and get at specific positions ints, longs, byte arrays, etc, and compare and copy memory. The memory segments are held and distributed by a central component (called `MemoryManager`) from which algorithms request segments according to their calculated memory budgets.
 
-Don't believe that this can be fast? Have a look at the [benchmarks in the earlier blogpost]({{ site.baseurl }}/news/2015/05/11/Juggling-with-Bits-and-Bytes.html), which show that it is actually often much faster than working on objects, due to better control over data layout (cache efficiency, data size), and reducing the pressure on Java's Garbage Collector.
+Don't believe that this can be fast? Have a look at the [benchmarks in the earlier blogpost]({{< siteurl >}}/news/2015/05/11/Juggling-with-Bits-and-Bytes.html), which show that it is actually often much faster than working on objects, due to better control over data layout (cache efficiency, data size), and reducing the pressure on Java's Garbage Collector.
 
 This form of memory management has been in Flink for a long time. Anecdotally, the first public demo of Flink's predecessor project *Stratosphere*, at the VLDB conference in 2010, was running its programs with custom managed memory (although I believe few attendees were aware of that).
 

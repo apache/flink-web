@@ -24,7 +24,7 @@ Imagine an e-commerce website that captures the interactions of all users as a s
 The website implements a streaming application that detects a pattern on the stream of user events. However, the company wants to avoid modifying and redeploying the application every time the pattern changes. Instead, the application ingests a second stream of patterns and updates its active pattern when it receives a new pattern from the pattern stream. In the following, we discuss this application step-by-step and show how it leverages the broadcast state feature in Apache Flink.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig1.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig1.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 
@@ -43,14 +43,14 @@ On the right-hand side, the figure shows three parallel tasks of an operator tha
 We will describe how the pattern matching application processes the user action and pattern streams.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig2.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig2.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 
 First a pattern is sent to the operator. The pattern is broadcasted to all three parallel tasks of the operator. The tasks store the pattern in their broadcast state. Since the broadcast state should only be updated using broadcasted data, the state of all tasks is always expected to be the same.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig3.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig3.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 
@@ -59,21 +59,21 @@ Next, the first user actions are partitioned on the user id and shipped to the o
 When a task receives a new user action, it evaluates the currently active pattern by looking at the user’s latest and previous actions. For each user, the operator stores the previous action in the keyed state. Since the tasks in the figure above only received a single action for each user so far (we just started the application), the pattern does not need to be evaluated. Finally, the previous action in the user’s keyed state is updated to the latest action, to be able to look it up when the next action of the same user arrives. 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig4.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig4.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 
 After the first three actions are processed, the next event, the logout action of User 1001, is shipped to the task that processes the events of User 1001. When the task receives the actions, it looks up the current pattern from the broadcast state and the previous action of User 1001. Since the pattern matches both actions, the task emits a pattern match event. Finally, the task updates its keyed state by overriding the previous event with the latest action.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig5.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig5.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 
 When a new pattern arrives in the pattern stream, it is broadcasted to all tasks and each task updates its broadcast state by replacing the current pattern with the new one.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/broadcastState/fig6.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="{{< siteurl >}}/img/blog/broadcastState/fig6.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 

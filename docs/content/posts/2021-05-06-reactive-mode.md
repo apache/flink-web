@@ -20,7 +20,7 @@ Streaming jobs which run for several days or longer usually experience variation
 A simple way of quantifying the mismatch between the required resources and the available resources is to measure the space between the actual load and the number of available workers. As pictured below, in the case of static resource allocation, you can see that there's a big gap between the actual load and the available workers — hence, we are wasting resources. For elastic resource allocation, the gap between the red and black line is consistently small.
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-04-reactive-mode/intro.svg" width="640px" alt="Reactive Mode Intro"/>
+  <img src="{{< siteurl >}}/img/blog/2021-04-reactive-mode/intro.svg" width="640px" alt="Reactive Mode Intro"/>
 </div>
 
 **Manually rescaling** a Flink job has been possible since Flink 1.2 introduced [rescalable state](https://flink.apache.org/features/2017/07/04/flink-rescalable-state.html), which allows you to stop-and-restore a job with a different parallelism. For example, if your job is running with a parallelism of p=100 and your load increases, you can restart it with p=200 to cope with the additional data. 
@@ -76,7 +76,7 @@ The central idea of this demo is to use a Kubernetes [Horizontal Pod Autoscaler]
 The whole setup is presented here:
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-04-reactive-mode/arch.png" width="640px" alt="Reactive Mode Demo Architecture"/>
+  <img src="{{< siteurl >}}/img/blog/2021-04-reactive-mode/arch.png" width="640px" alt="Reactive Mode Demo Architecture"/>
 </div>
 
 Let's discuss the components:
@@ -99,7 +99,7 @@ The entire setup is [available on GitHub](https://github.com/rmetzger/flink-reac
 We've deployed all the above components on a hosted Kubernetes cluster, running it for several days. The results are best examined based on the following Grafana dashboard:
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-04-reactive-mode/result.png" alt="Reactive Mode Demo Result"/>
+  <img src="{{< siteurl >}}/img/blog/2021-04-reactive-mode/result.png" alt="Reactive Mode Demo Result"/>
   <p class="align-center">Reactive Mode Experiment Results</p>
 </div>
 
@@ -121,7 +121,7 @@ Let's take a closer look at the dashboard:
 When we initially started with the experiment, we noticed some anomalies in the behavior of Flink, depicted in this chart:
 
 <div class="row front-graphic">
-  <img src="{{ site.baseurl }}/img/blog/2021-04-reactive-mode/high-timeout.png" alt="Reactive Mode Demo Lessons Learned"/>
+  <img src="{{< siteurl >}}/img/blog/2021-04-reactive-mode/high-timeout.png" alt="Reactive Mode Demo Lessons Learned"/>
 	<p class="align-center">Reactive Mode not scaling down properly</p>
 </div>
 

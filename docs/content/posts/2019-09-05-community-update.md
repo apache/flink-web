@@ -36,7 +36,7 @@ As the number of Chinese-speaking Flink users rapidly grows, the community is wo
 * Multiple meetups organized all over China, with the biggest one reaching a whopping number of 500+ participants. Some of these meetups were also organized in collaboration with communities from other projects, like Apache Pulsar and Apache Kafka.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_3.png" width="800px" alt="China Meetup"/>
+<img src="{{< siteurl >}}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_3.png" width="800px" alt="China Meetup"/>
 </center>
 
 In case you're interested in knowing more about this work in progress, Robert Metzger and Fabian Hueske will be diving into "Inviting Apache Flink's Chinese User Community" at the upcoming ApacheCon Europe 2019 (see [Upcoming Flink Community Events](#upcoming-flink-community-events)).
@@ -80,12 +80,12 @@ Flink continues to push the boundaries of (stream) data processing, and the comm
 In the timeframe of three releases, the project jumped from **112 to 190 contributors**, also doubling down on the number of requested changes and improvements. To top it off, the Flink GitHub repository recently reached the milestone of **10k stars**, all the way up from the incubation days in 2014.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_1.png" width="1000px" alt="GitHub"/>
+<img src="{{< siteurl >}}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_1.png" width="1000px" alt="GitHub"/>
 </center>
 
 The activity across the user@ and dev@<sup>1</sup> mailing lists shows a healthy heartbeat, and the gradual ramp up of user-zh@ suggests that this was a well-received community effort. Looking at the numbers for the same period in 2018, the dev@ mailing list has seen the biggest surge in activity, with an average growth of **2.5x in the number of messages and distinct users** — a great reflection of the hyperactive pace of development of the Flink codebase.
 
-<img style="float: right;" src="{{ site.baseurl }}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_2.png" width="420px" alt="Mailing Lists"/>
+<img style="float: right;" src="{{< siteurl >}}/img/blog/2019-09-05-flink-community-update/2019-09-05-flink-community-update_2.png" width="420px" alt="Mailing Lists"/>
 
 In support of these observations, the report for the financial year of 2019 from the Apache Software Foundation (ASF) features Flink as one of the most thriving open source projects, with mentions for: 
 

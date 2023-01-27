@@ -45,7 +45,7 @@ that flow between them. We’ll be referencing this example throughout the blog 
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-10-13-stateful-serverless-internals/shopping-cart-overview.png" width="600px" alt="Shopping cart application"/>
+	<img src="{{< siteurl >}}/img/blog/2020-10-13-stateful-serverless-internals/shopping-cart-overview.png" width="600px" alt="Shopping cart application"/>
 	<figcaption><i><b>Fig.1:</b> An overly simplified shopping cart application.</i></figcaption>
 	</figure>
 </center>
@@ -72,7 +72,7 @@ Now that we understand the business logic of the shopping cart application, let'
 of the functions and messages sent between them consistent and fault-tolerant: the StateFun cluster.
 
 <figure style="float:right;padding-left:1px;padding-top: 0px">
-  <img src="{{ site.baseurl }}/img/blog/2020-10-13-stateful-serverless-internals/abstract-deployment.png" width="400px">
+  <img src="{{< siteurl >}}/img/blog/2020-10-13-stateful-serverless-internals/abstract-deployment.png" width="400px">
   <figcaption style="padding-top: 10px;text-align:center"><i><b>Fig.2:</b> Simplified view of a StateFun app deployment.</i></figcaption>
 </figure>
 
@@ -106,7 +106,7 @@ services.
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-10-13-stateful-serverless-internals/request-reply-protocol.png" width="750px"/>
+	<img src="{{< siteurl >}}/img/blog/2020-10-13-stateful-serverless-internals/request-reply-protocol.png" width="750px"/>
 	<figcaption><i><b>Fig.3:</b> The remote invocation request/reply protocol.</i></figcaption>
 	</figure>
 </center>
@@ -145,7 +145,7 @@ cart demo application!
 
 <center>
 	<figure>
-	<img src="{{ site.baseurl }}/img/blog/2020-10-13-stateful-serverless-internals/protocol-walkthrough-1.png" width="750px"/>
+	<img src="{{< siteurl >}}/img/blog/2020-10-13-stateful-serverless-internals/protocol-walkthrough-1.png" width="750px"/>
 	<figcaption><i><b>Fig.4:</b> Message flow walkthrough.</i></figcaption>
 	</figure>
 </center>
@@ -190,7 +190,7 @@ for an invocation included in the HTTP request (i.e. input events and state acce
 included in the HTTP response (i.e. outgoing messages and state modifications).
 
 <figure style="float:right;padding-left:1px;padding-top: 0px">
-  <img src="{{ site.baseurl }}/img/blog/2020-10-13-stateful-serverless-internals/aws-deployment.png" width="450px">
+  <img src="{{< siteurl >}}/img/blog/2020-10-13-stateful-serverless-internals/aws-deployment.png" width="450px">
   <figcaption style="padding-top: 10px;text-align:center"><i><b>Fig.5:</b> Complete deployment example on AWS.</i></figcaption>
 </figure>
 

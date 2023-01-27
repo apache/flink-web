@@ -13,9 +13,9 @@ title: 'Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detecti
 
 In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
 
- - [Dynamic updates of application logic]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html)
+ - [Dynamic updates of application logic]({{< siteurl >}}/news/2020/03/24/demo-fraud-detection-2.html)
  - Dynamic data partitioning (shuffle), controlled at runtime
- - [Low latency alerting]({{ site.baseurl }}/news/2020/07/30/demo-fraud-detection-3.html) based on custom windowing logic (without using the window API)
+ - [Low latency alerting]({{< siteurl >}}/news/2020/07/30/demo-fraud-detection-3.html) based on custom windowing logic (without using the window API)
 
 These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
 
@@ -50,7 +50,7 @@ The high-level goal of the Fraud Detection engine is to consume a stream of fina
 When you navigate to the demo URL in your browser, you will be presented with the following UI:
 
  <center>
- <img src="{{ site.baseurl }}/img/blog/2019-11-19-demo-fraud-detection/ui.png" width="800px" alt="Figure 1: Demo UI"/>
+ <img src="{{< siteurl >}}/img/blog/2019-11-19-demo-fraud-detection/ui.png" width="800px" alt="Figure 1: Demo UI"/>
  <br/>
  <i><small>Figure 1: Fraud Detection Demo UI</small></i>
  </center>
@@ -69,7 +69,7 @@ The demo out-of-the-box comes with a set of predefined sample rules. You can cli
 Interactions between the main elements are depicted in _Figure 2_.
 
  <center>
- <img src="{{ site.baseurl }}/img/blog/2019-11-19-demo-fraud-detection/architecture.png" width="800px" alt="Figure 2: Demo Components"/>
+ <img src="{{< siteurl >}}/img/blog/2019-11-19-demo-fraud-detection/architecture.png" width="800px" alt="Figure 2: Demo Components"/>
  <br/>
  <i><small>Figure 2: Fraud Detection Demo Components</small></i>
  </center>
@@ -140,7 +140,7 @@ DataStream<Alert> alerts =
 We have previously established that each rule defines a **`groupingKeyNames`** parameter that specifies which combination of fields will be used for the incoming events' grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of `DynamicKeyFunction()`.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png" width="800px" alt="Figure 3: Forking events with Dynamic Key Function"/>
+<img src="{{< siteurl >}}/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png" width="800px" alt="Figure 3: Forking events with Dynamic Key Function"/>
 <br/>
 <i><small>Figure 3: Forking events with Dynamic Key Function</small></i>
 </center>
@@ -213,10 +213,10 @@ To remain focused on describing the core mechanics of the pattern, we kept the c
 In the second part of this series, we will describe how the rules make their way into the running Fraud Detection engine. Additionally, we will go over the implementation details of the main processing function of the pipeline - _DynamicAlertFunction()_.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2019-11-19-demo-fraud-detection/end-to-end.png" width="800px" alt="Figure 4: End-to-end pipeline"/>
+<img src="{{< siteurl >}}/img/blog/2019-11-19-demo-fraud-detection/end-to-end.png" width="800px" alt="Figure 4: End-to-end pipeline"/>
 <br/>
 <i><small>Figure 4: End-to-end pipeline</small></i>
 </center>
 <br/>
 
-In the [next article]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html), we will see how Flink's broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).
+In the [next article]({{< siteurl >}}/news/2020/03/24/demo-fraud-detection-2.html), we will see how Flink's broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).

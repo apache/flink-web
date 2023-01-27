@@ -21,7 +21,7 @@ The Flink community is thrilled to share that the project is applying again to [
 As one of the most active projects in the ASF, Flink is experiencing a boom in contributions and some major changes to its codebase. And, while the project has also seen a significant increase in activity when it comes to writing, reviewing and translating documentation, it’s hard to keep up with the pace.
 
 <center>
-	<img src="{{ site.baseurl }}/img/blog/2020-05-04-season-of-docs/2020-04-30-season-of-docs_1.png" width="650px" alt="GitHub 1"/>
+	<img src="{{< siteurl >}}/img/blog/2020-05-04-season-of-docs/2020-04-30-season-of-docs_1.png" width="650px" alt="GitHub 1"/>
 </center>
 
 <div style="line-height:60%;">

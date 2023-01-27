@@ -47,25 +47,25 @@ You can use Flink SQL to perform streaming ETL by following the steps below
 * Step 1. Create source table to represent the source data.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table"/>
+<img src="{{< siteurl >}}/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table"/>
 </center>
 
 * Step 2. Create a sink table to represent the processed data.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table"/>
+<img src="{{< siteurl >}}/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table"/>
 </center>
 
 * Step 3. After creating the source and sink table, we can insert them to our statement to trigger the stream processing job as the following: 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL"/>
+<img src="{{< siteurl >}}/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL"/>
 </center>
 
 * Step 4. After initiating the streaming job, you can use another SQL statement to query the sink table to verify the results of your job. Here you can see the top 10 records which will be refreshed every 3 seconds.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview"/>
+<img src="{{< siteurl >}}/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview"/>
 </center>
 
 # Summary

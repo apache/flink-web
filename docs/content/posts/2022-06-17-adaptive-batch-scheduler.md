@@ -71,7 +71,7 @@ The details will be introduced in the following sections.
 
 <center>
 <br/>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/1-overall-structure.png" width="60%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/1-overall-structure.png" width="60%"/>
 <br/>
 Fig. 1 - The overall structure of automatically deciding parallelism
 </center>
@@ -96,7 +96,7 @@ Suppose
 
 then the parallelism of this job vertex ***P*** will be:
 <center>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/parallelism-formula.png" width="60%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/parallelism-formula.png" width="60%"/>
 </center>
 
 Note that we introduced two special treatment in the above formula :
@@ -136,7 +136,7 @@ The parallelism of the job vertex needs to be decided first so that Flink knows 
 
 <center>
 <br/>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/2-dynamic-graph.png" width="90%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/2-dynamic-graph.png" width="90%"/>
 <br/>
 Fig. 2 - Build up execution graph dynamically
 </center>
@@ -150,7 +150,7 @@ Taking Fig. 3 as example, parallelism of the consumer B is 2, so the result part
 
 <center>
 <br/>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/3-static-graph-subpartition-mapping.png" width="30%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/3-static-graph-subpartition-mapping.png" width="30%"/>
 <br/>
 Fig. 3 - How subpartitions serve consumer execution vertices with static execution graph
 </center>
@@ -162,14 +162,14 @@ But obviously, this doesn't work for dynamic graphs, because when a job vertex i
 To achieve this goal, we can set the number of subpartitions to be the max parallelism of the consumer job vertex. Then when the consumer execution vertices are deployed, they should be assigned with a subpartition range to consume. Suppose N is the number of consumer execution vertices and P is the number of subpartitions. For the kth consumer execution vertex, the consumed subpartition range should be:
 
 <center>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/range-formula.png" width="55%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/range-formula.png" width="55%"/>
 </center>
 
 Taking Fig. 4 as example, the max parallelism of B is 4, so A1/A2 have 4 subpartitions. And then if the decided parallelism of B is 2, then the subpartitions mapping will be Fig. 4 (a), if the decided parallelism of B is 3, then the subpartitions mapping will be  Fig. 4 (b).
 
 <center>
 <br/>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/4-dynamic-graph-subpartition-mapping.png" width="75%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/4-dynamic-graph-subpartition-mapping.png" width="75%"/>
 <br/>
 Fig. 4 - How subpartitions serve consumer execution vertices with dynamic graph
 </center>
@@ -199,7 +199,7 @@ Based on the implementation of adaptive batch scheduler, we can solve the above 
 
 <center>
 <br/>
-<img src="{{site.baseurl}}/img/blog/2022-06-17-adaptive-batch-scheduler/5-auto-rebalance.png" width="75%"/>
+<img src="{{< siteurl >}}/img/blog/2022-06-17-adaptive-batch-scheduler/5-auto-rebalance.png" width="75%"/>
 <br/>
 Fig. 5 - Auto-rebalance with finer grained subpartitions
 </center>

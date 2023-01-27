@@ -35,7 +35,7 @@ However, there are still some cases when this duration is high
 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/failing-task.png"/>
+<img src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/failing-task.png"/>
 <br/>
 </center>
 <br/>
@@ -46,7 +46,7 @@ With the existing incremental checkpoint implementation of the RocksDB state bac
 ### Unnecessary delay before uploading state snapshot
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/checkpoint-timing.png"/>
+<img src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/checkpoint-timing.png"/>
 <br/>
 </center>
 <br/>
@@ -70,9 +70,9 @@ This can be illustrated as follows:
 <center>
     <div style="overflow-x: auto">
         <div style="width:150%">
-            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_1.png"/> 
-            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_2.png"/> 
-            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_3.png"/> 
+            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_1.png"/> 
+            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_2.png"/> 
+            <img style="display:inline; max-width: 33%; max-height: 200px; margin-left: -1%" src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/log_checkpoints_3.png"/> 
         </div>
     </div>
 
@@ -145,7 +145,7 @@ DSTL continuously writes state changes to DFS and flushes them periodically and 
 RocksDB on the other hand is still used for querying the state. Furthermore, its SSTables are periodically uploaded to DFS, which is called “materialization”. That upload is independent of and is much less frequent than checkpointing procedure, with 10 minutes as the default interval.
 
 <center>
-<img style="max-width: 80%" src="{{ site.baseurl }}/img/blog/2022-05-30-changelog-state-backend/changelog-simple.png"/>
+<img style="max-width: 80%" src="{{< siteurl >}}/img/blog/2022-05-30-changelog-state-backend/changelog-simple.png"/>
 <br/>
 </center>
 <br/>

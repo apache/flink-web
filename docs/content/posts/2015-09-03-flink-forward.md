@@ -11,7 +11,7 @@ this conference in October 12 and 13 from Berlin, the place where
 Apache Flink started.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/flink-forward-banner.png" style="width:80%;margin:15px">
+<img src="{{< siteurl >}}/img/blog/flink-forward-banner.png" style="width:80%;margin:15px">
 </center>
 
 The [conference program](http://2015.flink-forward.org/?post_type=day) has

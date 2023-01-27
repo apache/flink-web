@@ -31,7 +31,7 @@ Please check out the full [documentation]({{< param DocsBaseUrl >}}flink-table-s
 Flink Table Store is a data lake storage for streaming updates/deletes changelog ingestion and high-performance queries in real time.
 
 <center>
-<img src="{{site.baseurl}}/img/blog/table-store/table-store-0.2.png" width="100%"/>
+<img src="{{< siteurl >}}/img/blog/table-store/table-store-0.2.png" width="100%"/>
 </center>
 
 As a new type of updatable data lake, Flink Table Store has the following features:

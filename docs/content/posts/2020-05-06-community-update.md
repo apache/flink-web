@@ -29,7 +29,7 @@ In the beginning of April, the Flink community announced the [release of Statefu
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-06-community-update/2020-05-06-community-update_2.png" width="550px" alt="Stateful Functions"/>
+<img src="{{< siteurl >}}/img/blog/2020-05-06-community-update/2020-05-06-community-update_2.png" width="550px" alt="Stateful Functions"/>
 </center>
 
 <div style="line-height:60%;">
@@ -125,7 +125,7 @@ This week, the Flink website received the invaluable contribution of a self-pace
 </div>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/2020-05-06-community-update/2020-05-06-community-update_1.png" width="1000px" alt="Self-paced Flink Training"/>
+<img src="{{< siteurl >}}/img/blog/2020-05-06-community-update/2020-05-06-community-update_1.png" width="1000px" alt="Self-paced Flink Training"/>
 </center>
 
 <div style="line-height:140%;">

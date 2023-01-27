@@ -13,7 +13,7 @@ These releases only include a version upgrade for Log4j to address [CVE-2021-442
 
 We highly recommend all users to upgrade to the respective patch release.
 
-You can find the source and binaries on the updated [Downloads page]({{ site.baseurl }}/downloads.html), and Docker images in the [apache/flink](https://hub.docker.com/r/apache/flink) dockerhub repository.
+You can find the source and binaries on the updated [Downloads page]({{< siteurl >}}/downloads.html), and Docker images in the [apache/flink](https://hub.docker.com/r/apache/flink) dockerhub repository.
 
 <div class="alert alert-info" markdown="1">
 We are publishing this announcement earlier than usual to give users access to the updated source/binary releases as soon as possible.

@@ -33,7 +33,7 @@ solution last time, in this article we will describe how you can use the
 \"Swiss knife\" of Flink - the [*Process Function*]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/process_function.html) to create an
 implementation that is tailor-made to match your streaming business
 logic requirements. Our discussion will continue in the context of the
-[Fraud Detection engine]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html#fraud-detection-demo). We will also demonstrate how you can
+[Fraud Detection engine]({{< siteurl >}}/news/2020/01/15/demo-fraud-detection.html#fraud-detection-demo). We will also demonstrate how you can
 implement your own **custom replacement for time windows** for cases
 where the out-of-the-box windowing available from the DataStream API
 does not satisfy your requirements. In particular, we will look at the
@@ -42,8 +42,8 @@ low-latency reactions to individual events.
 
 This article will describe some high-level concepts that can be applied
 independently, but it is recommended that you review the material in
-[part one]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html) and
-[part two]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html) of the series as well as checkout the [code
+[part one]({{< siteurl >}}/news/2020/01/15/demo-fraud-detection.html) and
+[part two]({{< siteurl >}}/news/2020/03/24/demo-fraud-detection-2.html) of the series as well as checkout the [code
 base](https://github.com/afedulov/fraud-detection-demo) in order to make
 it easier to follow along.
 
@@ -67,7 +67,7 @@ along to the position of the last observed event for a particular data
 partitioning key.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/time-windows.png" width="600px" alt="Figure 1: Time Windows"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/time-windows.png" width="600px" alt="Figure 1: Time Windows"/>
 <br/>
 <i><small>Figure 1: Time Windows</small></i>
 </center>
@@ -107,7 +107,7 @@ the question of feasibility of applying the Window API in this case. The Window 
 based on the session [gaps]({{< param DocsBaseUrl >}}flink-docs-release-1.11/dev/stream/operators/windows.html#session-windows)
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/evaluation-delays.png" width="600px" alt="Figure 2: Evaluation Delays"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/evaluation-delays.png" width="600px" alt="Figure 2: Evaluation Delays"/>
 <br/>
 <i><small>Figure 2: Evaluation Delays</small></i>
 </center>
@@ -179,7 +179,7 @@ other words, cleaned up from state).
 
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/window-clean-up.png" width="400px" alt="Figure 3: Window Clean-up"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/window-clean-up.png" width="400px" alt="Figure 3: Window Clean-up"/>
 <br/>
 <i><small>Figure 3: Window Clean-up</small></i>
 </center>
@@ -215,7 +215,7 @@ per event key*, in our case, `MapState` is the right choice.
 <br/>
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/keyed-state-scoping.png" width="800px" alt="Figure 4: Keyed State Scoping"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/keyed-state-scoping.png" width="800px" alt="Figure 4: Keyed State Scoping"/>
 <br/>
 <i><small>Figure 4: Keyed State Scoping</small></i>
 </center>
@@ -223,7 +223,7 @@ per event key*, in our case, `MapState` is the right choice.
 </div>
 
 
-As described in the [first blog of the series]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html), we are dispatching events based on the keys
+As described in the [first blog of the series]({{< siteurl >}}/news/2020/01/15/demo-fraud-detection.html), we are dispatching events based on the keys
 specified in the active fraud detection rules. Multiple distinct rules
 can be based on the same grouping key. This means that our alerting
 function can potentially receive transactions scoped by the same key
@@ -266,14 +266,14 @@ private void updateWidestWindowRule(Rule rule, BroadcastState<Integer, Rule> bro
 Let's now look at the implementation of the main method,
 `processElement()`, in some detail.
 
-In the [previous blog post]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning), we described how `DynamicKeyFunction` allowed
+In the [previous blog post]({{< siteurl >}}/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning), we described how `DynamicKeyFunction` allowed
 us to perform dynamic data partitioning based on the `groupingKeyNames`
 parameter in the rule definition. The subsequent description is focused
 around the `DynamicAlertFunction`, which makes use of the remaining rule
 settings.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/sample-rule-definition.png" width="700px" alt="Figure 5: Sample Rule Definition"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/sample-rule-definition.png" width="700px" alt="Figure 5: Sample Rule Definition"/>
 <br/>
 <i><small>Figure 5: Sample Rule Definition</small></i>
 </center>
@@ -285,7 +285,7 @@ series, our alerting process function receives events of type
 `Keyed<Transaction, String, Integer>`, where `Transaction` is the main
 "wrapped" event, String is the key (*payer \#x - beneficiary \#y* in
 Figure 1), and `Integer` is the ID of the rule that caused the dispatch of
-this event. This rule was previously [stored in the broadcast state]({{ site.baseurl }}/news/2020/03/24/demo-fraud-detection-2.html#broadcast-state-pattern) and has to be retrieved from that state by the ID. Here is the
+this event. This rule was previously [stored in the broadcast state]({{< siteurl >}}/news/2020/03/24/demo-fraud-detection-2.html#broadcast-state-pattern) and has to be retrieved from that state by the ID. Here is the
 outline of the implementation:
 
 ```java
@@ -408,7 +408,7 @@ window span. This means that during the clean-up, we only need to remove
 the state which is out of scope of this widest window.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/widest-window.png" width="800px" alt="Figure 6: Widest Window"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/widest-window.png" width="800px" alt="Figure 6: Widest Window"/>
 <br/>
 <i><small>Figure 6: Widest Window</small></i>
 </center>
@@ -499,7 +499,7 @@ having potentially incomplete time window data for such late firings
 (see Figure 7).
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/late-events.png" width="500px" alt="Figure 7: Late Events Handling"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/late-events.png" width="500px" alt="Figure 7: Late Events Handling"/>
 <br/>
 <i><small>Figure 7: Late Events Handling</small></i>
 </center>
@@ -547,7 +547,7 @@ follows:
     transaction.
 
 <center>
-<img src="{{ site.baseurl }}/img/blog/patterns-blog-3/pre-aggregation.png" width="700px" alt="Figure 8: Pre-aggregation"/>
+<img src="{{< siteurl >}}/img/blog/patterns-blog-3/pre-aggregation.png" width="700px" alt="Figure 8: Pre-aggregation"/>
 <br/>
 <i><small>Figure 8: Pre-aggregation</small></i>
 </center>
@@ -591,13 +591,13 @@ the returned TypeInformation.
 <table class="tg">
   <tr>
     <td class="tg-topcenter">
-      <img src="{{ site.baseurl }}/img/blog/patterns-blog-3/type-pojo.png" alt="POJO"/></td>
+      <img src="{{< siteurl >}}/img/blog/patterns-blog-3/type-pojo.png" alt="POJO"/></td>
     <td class="tg-topcenter">
       <i>PojoTypeInfo</i> indicates that that an efficient Flink POJO serializer will be used.</td>
   </tr>
   <tr>
     <td class="tg-top">
-      <img src="{{ site.baseurl }}/img/blog/patterns-blog-3/type-kryo.png" alt="Kryo"/></td>
+      <img src="{{< siteurl >}}/img/blog/patterns-blog-3/type-kryo.png" alt="Kryo"/></td>
     <td class="tg-topcenter">
       <i>GenericTypeInfo</i> indicates the fallback to a Kryo serializer.</td>
   </tr>
@@ -623,7 +623,7 @@ easily turn into a premature optimization.
 ## Summary:
 
 This article concludes the description of the implementation of the
-fraud detection engine that we started in [part one]({{ site.baseurl }}/news/2020/01/15/demo-fraud-detection.html). In this blog
+fraud detection engine that we started in [part one]({{< siteurl >}}/news/2020/01/15/demo-fraud-detection.html). In this blog
 post we demonstrated how `ProcessFunction` can be utilized to
 \"impersonate\" a window with a sophisticated custom logic. We have
 discussed the pros and cons of such approach and elaborated how custom

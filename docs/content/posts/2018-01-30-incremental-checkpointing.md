@@ -71,7 +71,7 @@ For tracking changes between checkpoints, the uploading of consolidated tables i
 
 #### An Example
 
-![Example setup]({{ site.baseurl }}/img/blog/incremental_cp_impl_example.svg)
+![Example setup]({{< siteurl >}}/img/blog/incremental_cp_impl_example.svg)
 _Example setup_
 
 Take an example with a subtask of one operator that has a keyed state, and the number of retained checkpoints set at **2**. The columns in the figure above show the state of the local RocksDB instance for each checkpoint, the files it references, and the counts in the shared state registry after the checkpoint completes.
