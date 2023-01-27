@@ -8,7 +8,7 @@ weight: 17
 
 Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展的项目。我们欢迎给 Flink 做贡献，但由于项目的规模大，以及为了保持高质量的代码库，我们要求贡献者遵循本文所阐述的贡献流程。
 
-**请随时提出任何问题！** 可以发送邮件到 [dev mailing list]( {{ site.base }}/zh/community.html#mailing-lists )，也可以对正在处理的 Jira issue 发表评论。
+**请随时提出任何问题！** 可以发送邮件到 [dev mailing list]( {{< siteurl >}}/zh/community.html#mailing-lists )，也可以对正在处理的 Jira issue 发表评论。
 
 **重要提示**：在开始准备代码贡献之前，请仔细阅读本文档。请遵循如下所述的流程和指南，为 Apache Flink 做贡献并不是从创建 pull request 开始的。我们希望贡献者先和我们联系，共同讨论整体方案。如果没有与 Flink committers 达成共识，那么贡献可能需要大量返工或不予审核通过。
 
@@ -109,7 +109,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">实现</a></h2>
-        <p>根据<a href="{{ site.base }}/zh/contributing/code-style-and-quality-preamble.html">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
+        <p>根据<a href="{{< siteurl >}}/zh/contributing/code-style-and-quality-preamble.html">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
         <p><b>只有在达成共识时,才开始去实现(例如已经有工单分配给你了)</b></p>
       </div>
     </div>
@@ -187,9 +187,9 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
   - 对 Flink 构建时间的影响
   - 依赖关系及其许可证
 
-如果在 Jira 的讨论中发现改动是一个大的或有争议的变更，则可能需要起草 [Flink 改动建议(FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) 或在 [ dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists) 中讨论以达成一致的意见。
+如果在 Jira 的讨论中发现改动是一个大的或有争议的变更，则可能需要起草 [Flink 改动建议(FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) 或在 [ dev 邮件列表]( {{< siteurl >}}/zh/community.html#mailing-lists) 中讨论以达成一致的意见。
 
-一般 Committer 会在几天内对工单进行回应。如果工单没有得到任何关注，我们建议你联系 [dev 邮件列表]( {{ site.base }}/zh/community.html#mailing-lists)。请注意，Flink 社区有时无法处理发来的所有贡献信息。
+一般 Committer 会在几天内对工单进行回应。如果工单没有得到任何关注，我们建议你联系 [dev 邮件列表]( {{< siteurl >}}/zh/community.html#mailing-lists)。请注意，Flink 社区有时无法处理发来的所有贡献信息。
 
 
 一旦满足了工单的所有条件后，Committer 就会将工单*`分配`*给某个人，然后被分配到工单的人就可以继续后续的工作了。
@@ -207,7 +207,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 以下是在实现时要注意的一些要点：
 
 - [设置 Flink 的开发环境](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- 遵循 Flink 的[代码风格和质量指南]({{ site.base }}/zh/contributing/code-style-and-quality-preamble.html)
+- 遵循 Flink 的[代码风格和质量指南]({{< siteurl >}}/zh/contributing/code-style-and-quality-preamble.html)
 - 接受来自 Jira issue 或设计文档中的任何讨论和要求。
 - 不要将不相关的问题混合到一个贡献中。
 
@@ -231,7 +231,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 
 Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/en/articles/creating-a-pull-request) 进行审查和合并。
 
-这里有关于[如何审查 pull request]({{ site.base }}/zh/contributing/reviewing-prs.html) 的单独指南，包括我们的 pull request 审核流程。作为代码作者，在你准备 pull request 前，应该满足以上所有要求。
+这里有关于[如何审查 pull request]({{< siteurl >}}/zh/contributing/reviewing-prs.html) 的单独指南，包括我们的 pull request 审核流程。作为代码作者，在你准备 pull request 前，应该满足以上所有要求。
 
 <a name="merge"></a>
 
