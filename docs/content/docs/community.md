@@ -268,7 +268,7 @@ The complete list of repositories of Apache Flink can be found under https://git
 
 ## Project Wiki
 
-The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">project wiki</a> contains a range of relevant resources for Flink users. However, some content on the wiki might be out-of-date. When in doubt, please refer to the <a href="{{ site.docs-stable }}" target="_blank">Flink documentation</a>.
+The Apache Flink <a href="https://cwiki.apache.org/confluence/display/FLINK/Apache+Flink+Home" target="_blank">project wiki</a> contains a range of relevant resources for Flink users. However, some content on the wiki might be out-of-date. When in doubt, please refer to the [Flink documentation](https://nightlies.apache.org/flink/flink-docs-stable/).
 
 ## Flink Forward
 
