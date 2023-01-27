@@ -64,65 +64,64 @@ Flink 根据抽象程度分层，提供了三种不同的 API。每一种 API �
 
 下面的代码示例展示了如何在 `KeyedStream` 上利用 `KeyedProcessFunction` 对标记为 `START` 和 `END` 的事件进行处理。当收到 `START` 事件时，处理函数会记录其时间戳，并且注册一个时长4小时的计时器。如果在计时器结束之前收到 `END` 事件，处理函数会计算其与上一个 `START` 事件的时间间隔，清空状态并将计算结果返回。否则，计时器结束，并清空状态。
 
-{% highlight java %}
+```java
 /**
-
-* 将相邻的 keyed START 和 END 事件相匹配并计算两者的时间间隔
-* 输入数据为 Tuple2<String, String> 类型，第一个字段为 key 值，
-* 第二个字段标记 START 和 END 事件。
+* Matches keyed START and END events and computes the difference between
+* both elements' timestamps. The first String field is the key attribute,
+* the second String attribute marks START and END events.
   */
   public static class StartEndDuration
   extends KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Long>> {
 
-private ValueState<Long> startTime;
+  private ValueState<Long> startTime;
+  
+  @Override
+  public void open(Configuration conf) {
+    // obtain state handle
+    startTime = getRuntimeContext()
+      .getState(new ValueStateDescriptor<Long>("startTime", Long.class));
+  }
 
-@Override
-public void open(Configuration conf) {
-// obtain state handle
-startTime = getRuntimeContext()
-.getState(new ValueStateDescriptor<Long>("startTime", Long.class));
-}
+  /** Called for each processed event. */
+  @Override
+  public void processElement(
+      Tuple2<String, String> in,
+      Context ctx,
+      Collector<Tuple2<String, Long>> out) throws Exception {
+  
+      switch (in.f1) {
+        case "START":
+          // set the start time if we receive a start event.
+          startTime.update(ctx.timestamp());
+          // register a timer in four hours from the start event.
+          ctx.timerService()
+            .registerEventTimeTimer(ctx.timestamp() + 4 * 60 * 60 * 1000);
+          break;
+        case "END":
+          // emit the duration between start and end event
+          Long sTime = startTime.value();
+          if (sTime != null) {
+            out.collect(Tuple2.of(in.f0, ctx.timestamp() - sTime));
+            // clear the state
+            startTime.clear();
+          }
+        default:
+          // do nothing
+      }
+  }
 
-/** Called for each processed event. */
-@Override
-public void processElement(
-Tuple2<String, String> in,
-Context ctx,
-Collector<Tuple2<String, Long>> out) throws Exception {
-
-    switch (in.f1) {
-      case "START":
-        // set the start time if we receive a start event.
-        startTime.update(ctx.timestamp());
-        // register a timer in four hours from the start event.
-        ctx.timerService()
-          .registerEventTimeTimer(ctx.timestamp() + 4 * 60 * 60 * 1000);
-        break;
-      case "END":
-        // emit the duration between start and end event
-        Long sTime = startTime.value();
-        if (sTime != null) {
-          out.collect(Tuple2.of(in.f0, ctx.timestamp() - sTime));
-          // clear the state
-          startTime.clear();
-        }
-      default:
-        // do nothing
-    }
-}
-
-/** Called when a timer fires. */
-@Override
-public void onTimer(
-long timestamp,
-OnTimerContext ctx,
-Collector<Tuple2<String, Long>> out) {
+  /** Called when a timer fires. */
+  @Override
+  public void onTimer(
+    long timestamp,
+    OnTimerContext ctx,
+    Collector<Tuple2<String, Long>> out) {
 
     // Timeout interval exceeded. Cleaning up the state.
     startTime.clear();
+  }
 }
-}
-{% endhighlight %}
+```
 
 这个例子充分展现了 `KeyedProcessFunction` 强大的表达力，也因此是一个实现相当复杂的接口。
 
@@ -132,27 +131,27 @@ Collector<Tuple2<String, Long>> out) {
 
 下面的代码示例展示了如何捕获会话时间范围内所有的点击流事件，并对每一次会话的点击量进行计数。
 
-{% highlight java %}
-// 网站点击 Click 的数据流
+```java
+// a stream of website clicks
 DataStream<Click> clicks = ...
 
 DataStream<Tuple2<String, Long>> result = clicks
-// 将网站点击映射为 (userId, 1) 以便计数
-.map(
-// 实现 MapFunction 接口定义函数
-new MapFunction<Click, Tuple2<String, Long>>() {
-@Override
-public Tuple2<String, Long> map(Click click) {
-return Tuple2.of(click.userId, 1L);
-}
-})
-// 以 userId (field 0) 作为 key
-.keyBy(0)
-// 定义 30 分钟超时的会话窗口
-.window(EventTimeSessionWindows.withGap(Time.minutes(30L)))
-// 对每个会话窗口的点击进行计数，使用 lambda 表达式定义 reduce 函数
-.reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1));
-{% endhighlight %}
+  // project clicks to userId and add a 1 for counting
+  .map(
+    // define function by implementing the MapFunction interface.
+    new MapFunction<Click, Tuple2<String, Long>>() {
+      @Override
+      public Tuple2<String, Long> map(Click click) {
+        return Tuple2.of(click.userId, 1L);
+      }
+    })
+  // key by userId (field 0)
+  .keyBy(0)
+  // define session window with 30 minute gap
+  .window(EventTimeSessionWindows.withGap(Time.minutes(30L)))
+  // count clicks per session. Define function as lambda function.
+  .reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1));
+```
 
 ### SQL &amp; Table API
 

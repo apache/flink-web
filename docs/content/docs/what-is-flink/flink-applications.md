@@ -64,7 +64,7 @@ We briefly present each API, discuss its applications, and show a code example.
 
 The following example shows a `KeyedProcessFunction` that operates on a `KeyedStream` and matches `START` and `END` events. When a `START` event is received, the function remembers its timestamp in state and registers a timer in four hours. If an `END` event is received before the timer fires, the function computes the duration between `END` and `START` event, clears the state, and returns the value. Otherwise, the timer just fires and clears the state.
 
-{% highlight java %}
+```java
 /**
 * Matches keyed START and END events and computes the difference between
 * both elements' timestamps. The first String field is the key attribute,
@@ -73,55 +73,55 @@ The following example shows a `KeyedProcessFunction` that operates on a `KeyedSt
   public static class StartEndDuration
   extends KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Long>> {
 
-private ValueState<Long> startTime;
+  private ValueState<Long> startTime;
+  
+  @Override
+  public void open(Configuration conf) {
+    // obtain state handle
+    startTime = getRuntimeContext()
+      .getState(new ValueStateDescriptor<Long>("startTime", Long.class));
+  }
 
-@Override
-public void open(Configuration conf) {
-// obtain state handle
-startTime = getRuntimeContext()
-.getState(new ValueStateDescriptor<Long>("startTime", Long.class));
-}
+  /** Called for each processed event. */
+  @Override
+  public void processElement(
+      Tuple2<String, String> in,
+      Context ctx,
+      Collector<Tuple2<String, Long>> out) throws Exception {
+  
+      switch (in.f1) {
+        case "START":
+          // set the start time if we receive a start event.
+          startTime.update(ctx.timestamp());
+          // register a timer in four hours from the start event.
+          ctx.timerService()
+            .registerEventTimeTimer(ctx.timestamp() + 4 * 60 * 60 * 1000);
+          break;
+        case "END":
+          // emit the duration between start and end event
+          Long sTime = startTime.value();
+          if (sTime != null) {
+            out.collect(Tuple2.of(in.f0, ctx.timestamp() - sTime));
+            // clear the state
+            startTime.clear();
+          }
+        default:
+          // do nothing
+      }
+  }
 
-/** Called for each processed event. */
-@Override
-public void processElement(
-Tuple2<String, String> in,
-Context ctx,
-Collector<Tuple2<String, Long>> out) throws Exception {
-
-    switch (in.f1) {
-      case "START":
-        // set the start time if we receive a start event.
-        startTime.update(ctx.timestamp());
-        // register a timer in four hours from the start event.
-        ctx.timerService()
-          .registerEventTimeTimer(ctx.timestamp() + 4 * 60 * 60 * 1000);
-        break;
-      case "END":
-        // emit the duration between start and end event
-        Long sTime = startTime.value();
-        if (sTime != null) {
-          out.collect(Tuple2.of(in.f0, ctx.timestamp() - sTime));
-          // clear the state
-          startTime.clear();
-        }
-      default:
-        // do nothing
-    }
-}
-
-/** Called when a timer fires. */
-@Override
-public void onTimer(
-long timestamp,
-OnTimerContext ctx,
-Collector<Tuple2<String, Long>> out) {
+  /** Called when a timer fires. */
+  @Override
+  public void onTimer(
+    long timestamp,
+    OnTimerContext ctx,
+    Collector<Tuple2<String, Long>> out) {
 
     // Timeout interval exceeded. Cleaning up the state.
     startTime.clear();
+  }
 }
-}
-{% endhighlight %}
+```
 
 The example illustrates the expressive power of the `KeyedProcessFunction` but also highlights that it is a rather verbose interface.
 
@@ -131,27 +131,27 @@ The {{< docs_link file="flink-docs-stable/dev/datastream_api.html" name="DataStr
 
 The following example shows how to sessionize a clickstream and count the number of clicks per session.
 
-{% highlight java %}
+```java
 // a stream of website clicks
 DataStream<Click> clicks = ...
 
 DataStream<Tuple2<String, Long>> result = clicks
-// project clicks to userId and add a 1 for counting
-.map(
-// define function by implementing the MapFunction interface.
-new MapFunction<Click, Tuple2<String, Long>>() {
-@Override
-public Tuple2<String, Long> map(Click click) {
-return Tuple2.of(click.userId, 1L);
-}
-})
-// key by userId (field 0)
-.keyBy(0)
-// define session window with 30 minute gap
-.window(EventTimeSessionWindows.withGap(Time.minutes(30L)))
-// count clicks per session. Define function as lambda function.
-.reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1));
-{% endhighlight %}
+  // project clicks to userId and add a 1 for counting
+  .map(
+    // define function by implementing the MapFunction interface.
+    new MapFunction<Click, Tuple2<String, Long>>() {
+      @Override
+      public Tuple2<String, Long> map(Click click) {
+        return Tuple2.of(click.userId, 1L);
+      }
+    })
+  // key by userId (field 0)
+  .keyBy(0)
+  // define session window with 30 minute gap
+  .window(EventTimeSessionWindows.withGap(Time.minutes(30L)))
+  // count clicks per session. Define function as lambda function.
+  .reduce((a, b) -> Tuple2.of(a.f0, a.f1 + b.f1));
+```
 
 ### SQL &amp; Table API
 
