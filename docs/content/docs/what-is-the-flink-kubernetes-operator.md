@@ -4,6 +4,7 @@ bold: true
 bookCollapseSection: false
 weight: 4
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-stable/"
+group: top
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

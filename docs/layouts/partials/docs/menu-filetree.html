@@ -25,16 +25,25 @@ under the License.
 {{ end }}
 
 {{ with .Site.GetPage $bookSection }}
-  {{ template "book-section-children" (dict "Section" . "CurrentPage" $) }}
+  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "top") }}
+  <br/>
+  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "mid") }}
+  <br/>
+  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "bot") }}
 {{ end }}
 
-{{ define "book-section-children" }}{{/* (dict "Section" .Section "CurrentPage" .CurrentPage) */}}
+{{ define "book-section-children" }}{{/* (dict "Section" .Section "CurrentPage" .CurrentPage "Group" "top") */}}
   <ul>
-    {{ range (where .Section.Pages "Params.bookhidden" "ne" true) }}
+    {{ $x := .Section.Pages }}
+    {{ if ne .Group "ignore" }}
+      {{ $x = where .Section.Pages "Params.group" $.Group }}
+    {{ end }}
+    {{ range (where $x "Params.bookhidden" "ne" true) }}
       {{ if .IsSection }}
         <li {{- if .Params.BookFlatSection }} class="book-section-flat" {{ end -}}>
           {{ template "book-page-link" (dict "Page" . "CurrentPage" $.CurrentPage) }}
-          {{ template "book-section-children" (dict "Section" . "CurrentPage" $.CurrentPage) }}
+          <!-- Ignore grouping on sub-items; keeps grouping details out of subpage front-matter-->
+          {{ template "book-section-children" (dict "Section" . "Group" "ignore" "CurrentPage" $.CurrentPage) }}
         </li>
       {{ else if and .IsPage .Content }}
         <li>

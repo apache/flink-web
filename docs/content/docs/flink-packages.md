@@ -4,6 +4,7 @@ bold: true
 bookCollapseSection: false
 weight: 13
 bookHref: "https://flink-packages.org/"
+group: mid
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
