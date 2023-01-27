@@ -42,7 +42,7 @@ any given point in time.
 ## Flink’s Metrics System
 
 The foundation for monitoring Flink jobs is its [metrics
-system](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html>)
+system](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html>)
 which consists of two components; `Metrics` and `MetricsReporters`.
 
 ### Metrics
@@ -63,7 +63,7 @@ the number of records temporarily buffered in managed state. Besides counters,
 Flink offers additional metrics types like gauges and histograms. For
 instructions on how to register your own metrics with Flink’s metrics system
 please check out [Flink’s
-documentation](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#registering-metrics>).
+documentation](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#registering-metrics>).
 In this blog post, we will focus on how to get the most out of Flink’s built-in
 metrics.
 
@@ -74,7 +74,7 @@ MetricsReporters to send the metrics to external systems. Apache Flink provides
 reporters to the most common monitoring tools out-of-the-box including JMX,
 Prometheus, Datadog, Graphite and InfluxDB. For information about how to
 configure a reporter check out Flink’s [MetricsReporter
-documentation](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#reporter>).
+documentation](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#reporter>).
 
 In the remaining part of this blog post, we will go over some of the most
 important metrics to monitor your Apache Flink application.
@@ -134,7 +134,7 @@ keeping up with the upstream systems.
 
 Flink provides multiple metrics to measure the throughput of our application.
 For each operator or task (remember: a task can contain multiple [chained
-tasks](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/dev/stream/operators/#task-chaining-and-resource-groups>)
+tasks](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/dev/stream/operators/#task-chaining-and-resource-groups>)
 Flink counts the number of records and bytes going in and out. Out of those
 metrics, the rate of outgoing records per operator is often the most intuitive
 and easiest to reason about.
@@ -263,7 +263,7 @@ inside the Flink topology and cannot be attributed to transactional sinks or
 events being buffered for functional reasons (4.).
 
 To this end, Flink comes with a feature called [Latency
-Tracking](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#latency-tracking>).
+Tracking](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#latency-tracking>).
 When enabled, Flink will insert so-called latency markers periodically at all
 sources. For each sub-task, a latency distribution from each source to this
 operator will be reported. The granularity of these histograms can be further
@@ -311,7 +311,7 @@ metric to watch. This is especially true when using Flink’s filesystem
 statebackend as it keeps all state objects on the JVM Heap. If the size of
 long-living objects on the Heap increases significantly, this can usually be
 attributed to the size of your application state (check the 
-[checkpointing metrics](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#checkpointing>)
+[checkpointing metrics](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#checkpointing>)
 for an estimated size of the on-heap state). The possible reasons for growing
 state are very application-specific. Typically, an increasing number of keys, a
 large event-time skew between different input streams or simply missing state
@@ -324,7 +324,7 @@ to 250 megabyte by default.
 
 * The biggest driver of Direct memory is by far the
 number of Flink’s network buffers, which can be
-[configured](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/ops/config.html#configuring-the-network-buffers>).
+[configured](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/ops/config.html#configuring-the-network-buffers>).
 
 * Mapped memory is usually close to zero as Flink does not use memory-mapped files.
 
@@ -416,7 +416,7 @@ system to gather insights about system resources, i.e. memory, CPU &
 network-related metrics for the whole machine as opposed to the Flink processes
 alone. System resource monitoring is disabled by default and requires additional
 dependencies on the classpath. Please check out the 
-[Flink system resource metrics documentation](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#system-resources>) for
+[Flink system resource metrics documentation](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#system-resources>) for
 additional guidance and details. System resource monitoring in Flink can be very
 helpful in setups without existing host monitoring capabilities.
 
@@ -434,5 +434,5 @@ Flink’s internals early on.
 
 Last but not least, this post only scratches the surface of the overall metrics
 and monitoring capabilities of Apache Flink. I highly recommend going over
-[Flink’s metrics documentation](<{{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html>)
+[Flink’s metrics documentation](<{{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html>)
 for a full reference of Flink’s metrics system.

@@ -28,7 +28,7 @@ In a [previous blog post]({{< siteurl >}}/2019/06/05/flink-network-stack.html), 
 
 ## Monitoring
 
-Probably the most important part of network monitoring is [monitoring backpressure]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/monitoring/back_pressure.html), a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:
+Probably the most important part of network monitoring is [monitoring backpressure]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/back_pressure.html), a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:
 
 * The receiver is slow.<br>
   This can happen because the receiver is backpressured itself, is unable to keep processing at the same rate as the sender, or is temporarily blocked by garbage collection, lack of system resources, or I/O.
@@ -50,7 +50,7 @@ Flink’s web UI is likely the first entry point for a quick troubleshooting but
 
 ### Backpressure Monitor
 
-The [backpressure monitor]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/monitoring/back_pressure.html) is only exposed via Flink’s web UI². Since it's an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks' threads on all TaskManagers via `Thread.getStackTrace()` and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of
+The [backpressure monitor]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/back_pressure.html) is only exposed via Flink’s web UI². Since it's an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks' threads on all TaskManagers via `Thread.getStackTrace()` and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of
 
 * <span style="color:green">OK</span> for `ratio ≤ 0.10`,
 * <span style="color:orange">LOW</span> for `0.10 < Ratio ≤ 0.5`, and
@@ -70,7 +70,7 @@ The backpressure monitor can help you find where (at which task/operator) backpr
 
 ## Network Metrics
 
-[Network]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/monitoring/metrics.html#network) and [task I/O]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/monitoring/metrics.html#io) metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:
+[Network]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/metrics.html#network) and [task I/O]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/metrics.html#io) metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:
 
 
 * **<span style="color:orange">up to Flink 1.8:</span>** `outPoolUsage`, `inPoolUsage`<br>
@@ -234,7 +234,7 @@ The relation between `exclusiveBuffersUsage`, `floatingBuffersUsage`, and the up
 
 Besides the obvious use of each individual metric mentioned above, there are also a few combinations providing useful insight into what is happening in the network stack:
 
-* Low throughput with frequent `outPoolUsage` values around 100% but low `inPoolUsage` on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the [buffers-per-channel]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel) parameter or try disabling credit-based flow control to verify.
+* Low throughput with frequent `outPoolUsage` values around 100% but low `inPoolUsage` on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the [buffers-per-channel]({{< param DocsBaseUrl >}}flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel) parameter or try disabling credit-based flow control to verify.
 
 * Combining `numRecordsOut` and `numBytesOut` helps identifying average serialised record sizes which supports you in capacity planning for peak scenarios.
 
@@ -283,7 +283,7 @@ This list is far from exhaustive. Generally, in order to reduce a bottleneck and
 
 Tracking latencies at the various locations they may occur is a topic of its own. In this section, we will focus on the time records wait inside Flink’s network stack — including the system’s network connections. In low throughput scenarios, these latencies are influenced directly by the output flusher via the buffer timeout parameter or indirectly by any application code latencies. When processing a record takes longer than expected or when (multiple) timers fire at the same time — and block the receiver from processing incoming records — the time inside the network stack for following records is extended dramatically. We highly recommend adding your own metrics to your Flink job  for better latency tracking in your job’s components and a broader view on the cause of delays.
 
-Flink offers some support for [tracking the latency]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/monitoring/metrics.html#latency-tracking) of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s [configuration via `metrics.latency.interval`]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/ops/config.html#metrics-latency-interval) or via [ExecutionConfig#setLatencyTrackingInterval()]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-). Once enabled, Flink will collect latency histograms based on the [granularity defined via `metrics.latency.granularity`]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/ops/config.html#metrics-latency-granularity):
+Flink offers some support for [tracking the latency]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/metrics.html#latency-tracking) of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s [configuration via `metrics.latency.interval`]({{< param DocsBaseUrl >}}flink-docs-release-1.8/ops/config.html#metrics-latency-interval) or via [ExecutionConfig#setLatencyTrackingInterval()]({{< param DocsBaseUrl >}}flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-). Once enabled, Flink will collect latency histograms based on the [granularity defined via `metrics.latency.granularity`]({{< param DocsBaseUrl >}}flink-docs-release-1.8/ops/config.html#metrics-latency-granularity):
 
 * `single`: one histogram for each operator subtask
 * `operator` (default): one histogram for each combination of source task and operator subtask

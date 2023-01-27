@@ -209,4 +209,4 @@ The `KeyedBroadcastProcessFunction` has full access to Flink state and time feat
 
 In this blog post, we walked you through an example application to explain what Apache Flink’s broadcast state is and how it can be used to evaluate dynamic patterns on event streams. We’ve also discussed the API and showed the source code of our example application. 
 
-We invite you to check the [documentation]({{ site.DOCS_BASE_URL }}flink-docs-stable/dev/stream/state/broadcast_state.html) of this feature and provide feedback or suggestions for further improvements through our [mailing list](http://mail-archives.apache.org/mod_mbox/flink-community/).
+We invite you to check the [documentation]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/state/broadcast_state.html) of this feature and provide feedback or suggestions for further improvements through our [mailing list](http://mail-archives.apache.org/mod_mbox/flink-community/).
