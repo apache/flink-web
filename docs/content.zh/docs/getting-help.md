@@ -93,7 +93,7 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 }
 ~~~
 
-请参阅 [类型提取和序列化]({{ site.docs-snapshot }}/dev/types_serialization.html) 深入讨论 Flink 如何处理类型。
+请参阅 [类型提取和序列化]({{< param DocsBaseUrl >}}/dev/types_serialization.html) 深入讨论 Flink 如何处理类型。
 
 ### 我看到一个 ClassCastException: X cannot be cast to X.
 

@@ -100,7 +100,7 @@ def myFunction[T: TypeInformation](input: DataSet[T]): DataSet[Seq[T]] = {
 }
 ~~~
 
-See [Type Extraction and Serialization]({{ site.docs-snapshot }}/dev/types_serialization.html) for
+See [Type Extraction and Serialization]({{< param DocsBaseUrl >}}/dev/types_serialization.html) for
 an in-depth discussion of how Flink handles types.
 
 ### I see a ClassCastException: X cannot be cast to X.
