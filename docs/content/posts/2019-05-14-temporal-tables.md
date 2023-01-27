@@ -28,7 +28,7 @@ In the 1.7 release, Flink has introduced the concept of **temporal tables** into
 
 * Exposing the stream as a **temporal table function** that maps each point in time to a static relation.
 
-Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic [table function]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/udfs.html#table-functions) class and can be defined in the same straightforward way to be used with the Table API or SQL parser.
+Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic [table function]({{< param DocsBaseUrl >}}flink-docs-release-1.8/dev/table/udfs.html#table-functions) class and can be defined in the same straightforward way to be used with the Table API or SQL parser.
 
 ```java
 import org.apache.flink.table.functions.TemporalTableFunction;
@@ -98,10 +98,10 @@ Each record from the append-only table on the probe side (```Taxi Fare```) is jo
 </center>
 <br>
 
-Temporal table joins support both [processing]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins) and [event time]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins) semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:
+Temporal table joins support both [processing]({{< param DocsBaseUrl >}}flink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins) and [event time]({{< param DocsBaseUrl >}}flink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins) semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:
 
 * Narrowing the **scope** of the join: only the time-matching version of ```ratesHistory``` is visible for a given ```taxiFare.time```;
-* Pruning **unneeded records** from state: for cases using event time, records between current time and the [watermark]({{ site.DOCS_BASE_URL }}flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks) delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.
+* Pruning **unneeded records** from state: for cases using event time, records between current time and the [watermark]({{< param DocsBaseUrl >}}flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks) delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.
 
 ## Conclusion
 

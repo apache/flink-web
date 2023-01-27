@@ -12,7 +12,7 @@ excerpt: This blog post describes how developers can leverage Apache Flink's bui
 title: 'Flink and Prometheus: Cloud-native monitoring of streaming applications'
 ---
 
-This blog post describes how developers can leverage Apache Flink's built-in [metrics system]({{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html) together with [Prometheus](https://prometheus.io/) to observe and monitor streaming applications in an effective way. This is a follow-up post from my [Flink Forward](https://flink-forward.org/) Berlin 2018 talk ([slides](https://www.slideshare.net/MaximilianBode1/monitoring-flink-with-prometheus), [video](https://www.ververica.com/flink-forward-berlin/resources/monitoring-flink-with-prometheus)). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.
+This blog post describes how developers can leverage Apache Flink's built-in [metrics system]({{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html) together with [Prometheus](https://prometheus.io/) to observe and monitor streaming applications in an effective way. This is a follow-up post from my [Flink Forward](https://flink-forward.org/) Berlin 2018 talk ([slides](https://www.slideshare.net/MaximilianBode1/monitoring-flink-with-prometheus), [video](https://www.ververica.com/flink-forward-berlin/resources/monitoring-flink-with-prometheus)). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.
 
 ## Why Prometheus?
 
@@ -26,7 +26,7 @@ Prometheus is a metrics-based monitoring system that was originally created in 2
 
 * **PromQL** is Prometheus' [query language](https://prometheus.io/docs/prometheus/latest/querying/basics/). It can be used for both building dashboards and setting up alert rules that will trigger when specific conditions are met.
 
-When considering metrics and monitoring systems for your Flink jobs, there are many [options]({{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html). Flink offers native support for exposing data to Prometheus via the `PrometheusReporter` configuration. Setting up this integration is very easy.
+When considering metrics and monitoring systems for your Flink jobs, there are many [options]({{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html). Flink offers native support for exposing data to Prometheus via the `PrometheusReporter` configuration. Setting up this integration is very easy.
 
 Prometheus is a great choice as usually Flink jobs are not running in isolation but in a greater context of microservices. For making metrics available to Prometheus from other parts of a larger system, there are two options: There exist [libraries for all major languages](https://prometheus.io/docs/instrumenting/clientlibs/) to instrument other applications. Additionally, there is a wide variety of [exporters](https://prometheus.io/docs/instrumenting/exporters/), which are tools that expose metrics of third-party systems (like databases or Apache Kafka) as Prometheus metrics.
 
@@ -38,7 +38,7 @@ We have provided a [GitHub repository](https://github.com/mbode/flink-prometheus
 ./gradlew composeUp
 ```
 
-This builds a Flink job using the build tool [Gradle](https://gradle.org/) and starts up a local environment based on [Docker Compose](https://docs.docker.com/compose/) running the job in a [Flink job cluster]({{ site.DOCS_BASE_URL }}flink-docs-release-1.7/ops/deployment/docker.html#flink-job-cluster) (reachable at [http://localhost:8081](http://localhost:8081/)) as well as a Prometheus instance ([http://localhost:9090](http://localhost:9090/)).
+This builds a Flink job using the build tool [Gradle](https://gradle.org/) and starts up a local environment based on [Docker Compose](https://docs.docker.com/compose/) running the job in a [Flink job cluster]({{< param DocsBaseUrl >}}flink-docs-release-1.7/ops/deployment/docker.html#flink-job-cluster) (reachable at [http://localhost:8081](http://localhost:8081/)) as well as a Prometheus instance ([http://localhost:9090](http://localhost:9090/)).
 
 <center>
 <img src="{{< siteurl >}}/img/blog/2019-03-11-prometheus-monitoring/prometheusexamplejob.png" width="600px" alt="PrometheusExampleJob in Flink Web UI"/>
@@ -75,7 +75,7 @@ To start monitoring Flink with Prometheus, the following steps are necessary:
 
         cp /opt/flink/opt/flink-metrics-prometheus-1.7.2.jar /opt/flink/lib
 
-2. [Configure the reporter]({{ site.DOCS_BASE_URL }}flink-docs-release-1.7/monitoring/metrics.html#reporter) in Flink's _flink-conf.yaml_. All job managers and task managers will expose the metrics on the configured port.
+2. [Configure the reporter]({{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html#reporter) in Flink's _flink-conf.yaml_. All job managers and task managers will expose the metrics on the configured port.
 
         metrics.reporters: prom
         metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
@@ -107,7 +107,7 @@ To test Prometheus' alerting feature, kill one of the Flink task managers via
 docker kill taskmanager1
 ```
 
-Our Flink job can recover from this partial failure via the mechanism of [Checkpointing]({{ site.DOCS_BASE_URL }}flink-docs-release-1.7/dev/stream/state/checkpointing.html). Nevertheless, after roughly one minute (as configured in the alert rule) the following alert will fire:
+Our Flink job can recover from this partial failure via the mechanism of [Checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.7/dev/stream/state/checkpointing.html). Nevertheless, after roughly one minute (as configured in the alert rule) the following alert will fire:
 
 <center>
 <img src="{{< siteurl >}}/img/blog/2019-03-11-prometheus-monitoring/prometheusalerts.png" width="600px" alt="Prometheus web UI with example alert"/>
