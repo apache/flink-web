@@ -114,7 +114,7 @@ ext {
     javaVersion = '1.8'
     flinkVersion = '${flinkVersion}'
     scalaBinaryVersion = '${scalaBinaryVersion}'
-    slf4jVersion = '1.7.32'
+    slf4jVersion = '1.7.36'
     log4jVersion = '2.17.1'
     flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.16"
 }
