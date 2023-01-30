@@ -19,88 +19,83 @@ under the License.
 <!--
     Partial that renders the side navigation.
 -->
-{{ $bookSection := default "docs" .Site.Params.BookSection  }}
-{{ if eq $bookSection "*" }}
-  {{ $bookSection = "/" }}{{/* Backward compatibility */}}
+
+<!-- Main layout -->
+{{ range where .Site.Sections "Section" "docs" }}
+  {{ template "book-menu-group" (dict "Pages" .Pages "CurrentPage" $ "Group" 1) }}
+  {{ template "book-menu-group" (dict "Pages" .Pages "CurrentPage" $ "Group" 2) }}
+  {{ template "book-menu-group" (dict "Pages" .Pages "CurrentPage" $ "Group" 3) }}
 {{ end }}
 
-{{ with .Site.GetPage $bookSection }}
-  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "top") }}
-  <br/>
-  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "mid") }}
-  <br/>
-  {{ template "book-section-children" (dict "Section" . "CurrentPage" $ "Group" "bot") }}
+{{ range where .Site.Sections "Section" "posts" }}
+  {{ template "book-page-link" (dict "Page" . "CurrentPage" $ "CSS" "") }}
 {{ end }}
 
-{{ define "book-section-children" }}{{/* (dict "Section" .Section "CurrentPage" .CurrentPage "Group" "top") */}}
-  <ul>
-    {{ $x := .Section.Pages }}
-    {{ if ne .Group "ignore" }}
-      {{ $x = where .Section.Pages "Params.group" $.Group }}
+<!-- Templates -->
+{{ define "book-menu-group" }}
+  {{ range where $.Pages "Params.menu_weight" $.Group }}
+    {{ template "book-menu-top" (dict "Item" . "CurrentPage" $.CurrentPage) }}
+  {{ end }}
+  <br/>
+{{ end }}
+
+{{ define "book-menu-top" }}
+  {{ if $.Item.IsSection }}
+    {{ template "book-menu-dropdown" (dict "Page" $.Item "CurrentPage" $.CurrentPage) }}
+    <ul>
+    {{ range (where $.Item.Pages "Params.bookhidden" "ne" true) }}
+      <li>
+      {{ template "book-page-link" (dict "Page" . "CurrentPage" $.CurrentPage "CSS" " flink-menu-child") }}
+      </li>
     {{ end }}
-    {{ range (where $x "Params.bookhidden" "ne" true) }}
-      {{ if .IsSection }}
-        <li {{- if .Params.BookFlatSection }} class="book-section-flat" {{ end -}}>
-          {{ template "book-page-link" (dict "Page" . "CurrentPage" $.CurrentPage) }}
-          <!-- Ignore grouping on sub-items; keeps grouping details out of subpage front-matter-->
-          {{ template "book-section-children" (dict "Section" . "Group" "ignore" "CurrentPage" $.CurrentPage) }}
-        </li>
-      {{ else if and .IsPage .Content }}
-        <li>
-          {{ template "book-page-link" (dict "Page" . "CurrentPage" $.CurrentPage) }}
-        </li>
-      {{ end }}
-    {{ end }}
-  </ul>
+    </ul>
+  {{ else }}
+    {{ template "book-page-link" (dict "Page" $.Item "CurrentPage" $.CurrentPage "CSS" "") }}
+  {{ end }}
+{{ end }}
+
+{{ define "book-menu-dropdown" }}
+  {{ $current := eq .CurrentPage .Page }}
+  {{ $ancestor := .Page.IsAncestor .CurrentPage }}
+
+  <input type="checkbox" id="section-{{ md5 .Page }}" class="toggle" {{ if or $current $ancestor }}checked{{ end }} />
+  <label for="section-{{ md5 .Page }}" class="flex justify-between flink-menu-item">
+    {{- partial "docs/title" .Page -}}
+    <span>▾</span>
+  </label>
 {{ end }}
 
 {{ define "book-page-link" }}{{/* (dict "Page" .Page "CurrentPage" .CurrentPage) */}}
   {{ $current := eq .CurrentPage .Page }}
-  {{ $ancestor := .Page.IsAncestor .CurrentPage }}
 
-  {{ if .Page.Params.sectionBreak }}
-  	<br/>
-  {{ end }}
-  {{ if .Page.Params.bookCollapseSection }}
-    <input type="checkbox" id="section-{{ md5 .Page }}" class="toggle" {{ if or $current $ancestor }}checked{{ end }} />
-    <label for="section-{{ md5 .Page }}" class="flex justify-between">
-      {{- partial "docs/title" .Page -}}
-      <span>▾</span>
-    </label>
   <!-- For all menu links that should directly go to an external link -->
-  {{ else if .Page.Params.BookHref }}
-    <label for="section-{{ md5 .Page }}" class="flex justify-between">
-    <a href="{{ .Page.Params.BookHref }}" class="{{ if $current }}active{{ end }}" target="_blank" rel="noopener">
-      <!-- For latest Flink stable release -->
-      {{ if eq .Page.Params.Type "FlinkStableDocumentation" }}
-        {{- partial "docs/flink-stable-version" .Page -}}
-      <!-- For latest Statefun stable release -->
-      {{ else if eq .Page.Params.Type "FlinkStateFunStableDocumentation" }}
-        {{- partial "docs/flink-statefun-stable-version" .Page -}}
-      <!-- For latest Flink ML stable release -->
-      {{ else if eq .Page.Params.Type "FlinkMLStableDocumentation" }}
-        {{- partial "docs/flink-ml-stable-version" .Page -}}
-      <!-- For latest Flink Kubernetes Operator stable release -->
-      {{ else if eq .Page.Params.Type "FlinkKubernetesOperatorStableDocumentation" }}
-        {{- partial "docs/flink-kubernetes-operator-stable-version" .Page -}}
-      <!-- For latest Flink Table Store stable release -->
-      {{ else if eq .Page.Params.Type "FlinkTableStoreStableDocumentation" }}
-        {{- partial "docs/flink-table-store-stable-version" .Page -}}
-      <!-- For all other menu links that should directly go to external link -->
-      {{ else }}
-        {{- partial "docs/title" .Page -}}
-      {{ end }}
-    </a>
-    </label>
-  {{ else if .Page.Content }}
-    <label for="section-{{ md5 .Page }}" class="flex justify-between">
+  {{ if .Page.Params.BookHref }}
+    <!-- For latest Flink stable release -->
+    {{ $title := "" }}
+    {{ if eq .Page.Params.Type "FlinkStableDocumentation" }}
+      {{ $title = (partial "docs/flink-stable-version" .Page) }}
+    <!-- For latest Statefun stable release -->
+    {{ else if eq .Page.Params.Type "FlinkStateFunStableDocumentation" }}
+      {{ $title = (partial "docs/flink-statefun-stable-version" .Page) }}
+    <!-- For latest Flink ML stable release -->
+    {{ else if eq .Page.Params.Type "FlinkMLStableDocumentation" }}
+      {{ $title = (partial "docs/flink-ml-stable-version" .Page) }}
+    <!-- For latest Flink Kubernetes Operator stable release -->
+    {{ else if eq .Page.Params.Type "FlinkKubernetesOperatorStableDocumentation" }}
+      {{ $title = (partial "docs/flink-kubernetes-operator-stable-version" .Page) }}
+    <!-- For latest Flink Table Store stable release -->
+    {{ else if eq .Page.Params.Type "FlinkTableStoreStableDocumentation" }}
+      {{ $title = (partial "docs/flink-table-store-stable-version" .Page) }}
+    <!-- For all other menu links that should directly go to external link -->
+    {{ else }}
+      {{ $title = (partial "docs/title" .Page) }}
+    {{ end }}
+    {{ partial "docs/inject/ext-link" (dict "Title" $title "Link" .Page.Params.BookHref "CSS" $.CSS) }}
+  {{ else }}
+    <label for="section-{{ md5 .Page }}" class="flex justify-between flink-menu-item{{ $.CSS }}">
     <a href="{{ .Page.RelPermalink }}" class="{{ if $current }}active{{ end }}">
       {{- partial "docs/title" .Page -}}
     </a>
-    </label>
-  {{ else }}
-    <label for="section-{{ md5 .Page }}" class="flex justify-between">
-    <span>{{- partial "docs/title" .Page -}}</span>
     </label>
   {{ end }}
 {{ end }}

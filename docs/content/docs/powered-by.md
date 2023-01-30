@@ -1,10 +1,9 @@
 ---
 title: Powered By
-bold: true
 bookToc: false
 bookCollapseSection: false
 weight: 7
-group: top
+menu_weight: 1
 
 tables:
     powered-by:
