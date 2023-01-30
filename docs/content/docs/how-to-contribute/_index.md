@@ -1,9 +1,8 @@
 ---
 title: How to Contribute
-bold: true
 bookCollapseSection: true
 weight: 15
-group: bot
+menu_weight: 3
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

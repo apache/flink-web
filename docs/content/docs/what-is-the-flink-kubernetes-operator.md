@@ -1,10 +1,9 @@
 ---
 title: What is the Flink Kubernetes Operator?
-bold: true
 bookCollapseSection: false
 weight: 4
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-stable/"
-group: top
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

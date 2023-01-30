@@ -1,9 +1,8 @@
 ---
 title: Use Cases
-bold: true
 bookCollapseSection: false
 weight: 6
-group: top
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
