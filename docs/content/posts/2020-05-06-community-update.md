@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-05-06T08:00:00Z"
 excerpt: Can you smell it? It’s release month! This time around, we’re warming up
   for Flink 1.11 and peeping back to the past month in the Flink community — with

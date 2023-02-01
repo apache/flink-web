@@ -3,7 +3,6 @@ authors:
 - name: Seth Wiesman
   seth: null
   twitter: sjwiesman
-categories: news
 date: "2020-01-29T12:00:00Z"
 excerpt: This post discusses the efforts of the Flink community as they relate to
   state management in Apache Flink. We showcase some practical examples of how the

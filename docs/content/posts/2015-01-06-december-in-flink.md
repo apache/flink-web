@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2015-01-06T10:00:00Z"
 title: December 2014 in the Flink community
 ---

@@ -1,7 +1,6 @@
 ---
 author: Fabian Hueske
 author-twitter: fhueske
-categories: news
 date: "2016-05-24T10:00:00Z"
 excerpt: |-
   <p>About six months ago, the Apache Flink community started an effort to add a SQL interface for stream data analysis. SQL is <i>the</i> standard language to access and process data. Everybody who occasionally analyzes data is familiar with SQL. Consequently, a SQL interface for stream data processing will make this technology accessible to a much wider audience. Moreover, SQL support for streaming data will also enable new use cases such as interactive and ad-hoc stream analysis and significantly simplify many applications including stream ingestion and simple transformations.</p>

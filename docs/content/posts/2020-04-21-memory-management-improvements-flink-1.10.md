@@ -2,7 +2,6 @@
 authors:
 - andrey: null
   name: Andrey Zagrebin
-categories: news
 date: "2020-04-21T12:00:00Z"
 excerpt: This post discusses the recent changes to the memory model of the Task Managers
   and configuration options for your Flink applications in Flink 1.10.

@@ -6,7 +6,6 @@ authors:
 - chris: null
   name: Chris Ward
   twitter: chrischinch
-categories: features
 date: "2018-01-30T12:00:00Z"
 excerpt: Flink 1.3.0 introduced incremental checkpointing, making it possible for
   applications with large state to generate checkpoints more efficiently.

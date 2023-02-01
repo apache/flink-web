@@ -3,7 +3,6 @@ authors:
 - fabian: null
   name: Fabian Hueske
   twitter: fhueske
-categories: news
 date: "2019-03-06T11:00:00Z"
 excerpt: The third annual Flink Forward conference in San Francisco is just a few
   weeks away. Let's see what Flink Forward SF 2019 has in store for the Apache Flink

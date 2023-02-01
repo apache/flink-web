@@ -1,7 +1,6 @@
 ---
 author: Timo Walther
 author-twitter: twalthr
-categories: news
 date: "2017-03-29T12:00:00Z"
 excerpt: <p>Broadening the user base and unifying batch & streaming with relational
   APIs</p>

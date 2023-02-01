@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2015-06-24T14:00:00Z"
 title: Announcing Apache Flink 0.9.0
 ---

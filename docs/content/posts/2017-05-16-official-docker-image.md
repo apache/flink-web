@@ -1,7 +1,6 @@
 ---
 author: Patrick Lucas (Data Artisans) and Ismaël Mejía (Talend)
 author-twitter: iemejia
-categories: news
 date: "2017-05-16T09:00:00Z"
 title: Introducing Docker Images for Apache Flink
 ---

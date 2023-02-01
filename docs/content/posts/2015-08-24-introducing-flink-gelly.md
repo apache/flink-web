@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2015-08-24T00:00:00Z"
 title: 'Introducing Gelly: Graph Processing with Apache Flink'
 ---

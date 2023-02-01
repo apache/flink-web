@@ -9,7 +9,6 @@ authors:
 - name: Xiaowei Jiang
   twitter: XiaoweiJ
   xiaowei: null
-categories: news
 date: "2019-02-13T12:00:00Z"
 excerpt: A few weeks ago, Alibaba contributed its Flink-fork 'Blink' back to Apache
   Flink. In this blog post we discuss how Blink's features will help the Flink community

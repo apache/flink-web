@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-06-10T08:00:00Z"
 excerpt: And suddenly it’s June. The previous month has been calm on the surface,
   but quite hectic underneath — the final testing phase for Flink 1.11 is moving at

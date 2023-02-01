@@ -2,7 +2,6 @@
 authors:
 - gerred: null
   name: Gerred Dillon
-categories: news
 date: "2019-11-06T12:00:00Z"
 excerpt: A common use case for Apache Flink is streaming data analytics together with
   Apache Kafka, which provides a pub/sub model and durability for data streams. In

@@ -3,7 +3,6 @@ authors:
 - bowen: null
   name: Bowen Li
   twitter: Bowen__Li
-categories: features
 date: "2020-03-27T02:30:00Z"
 title: 'Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive
   Integration'

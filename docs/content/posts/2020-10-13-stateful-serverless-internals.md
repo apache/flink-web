@@ -3,7 +3,6 @@ authors:
 - name: Tzu-Li (Gordon) Tai
   twitter: tzulitai
   tzulitai: null
-categories: news
 date: "2020-10-13T00:00:00Z"
 excerpt: This blog post dives deep into the internals of the StateFun runtime, taking
   a look at how it enables consistent and fault-tolerant stateful serverless applications.

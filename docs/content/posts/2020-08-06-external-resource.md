@@ -2,7 +2,6 @@
 authors:
 - name: Yangze Guo
   yangze: null
-categories: news
 date: "2020-08-06T08:00:00Z"
 excerpt: This post introduces the new External Resource Framework in Flink 1.11 and
   take GPU as an example to show how to accelerate your workload with external resources.

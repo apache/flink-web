@@ -2,7 +2,6 @@
 authors:
 - chesnay: null
   name: Chesnay Schepler
-categories: news
 date: "2021-12-16T00:00:00Z"
 title: Apache Flink Log4j emergency releases
 ---

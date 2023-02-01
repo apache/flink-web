@@ -3,7 +3,6 @@ authors:
 - kartik: null
   name: Kartik Khare
   twitter: khare_khote
-categories: news
 date: "2020-02-03T12:00:00Z"
 excerpt: This post provides a detailed guide for unit testing of Apache Flink applications.
 title: A Guide for Unit Testing in Apache Flink

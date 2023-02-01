@@ -3,7 +3,6 @@ authors:
 - kostas: null
   name: Kostas Kloudas
   twitter: kkloudas
-categories: news
 date: "2020-07-14T08:00:00Z"
 title: 'Application Deployment in Flink: Current State and the new Application Mode'
 ---

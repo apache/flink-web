@@ -3,7 +3,6 @@ authors:
 - name: Jeff Zhang
   twitter: zjffdu
   zjffdu: null
-categories: ecosystem
 date: "2020-06-23T08:00:00Z"
 title: Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 2
 ---

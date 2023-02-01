@@ -6,7 +6,6 @@ authors:
 - name: Tzu-Li (Gordon) Tai
   twitter: tzulitai
   tzulitai: null
-categories: news
 date: "2021-04-15T08:00:00Z"
 subtitle: The Apache Flink community is happy to announce the release of Stateful
   Functions (StateFun) 3.0.0.

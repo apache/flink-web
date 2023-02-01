@@ -5,7 +5,6 @@ authors:
   twitter: GyulaFora
 - matyas: null
   name: Matyas Orhidi
-categories: news
 date: "2022-07-25T08:00:00Z"
 subtitle: Lifecycle management for Apache Flink deployments using native Kubernetes
   tooling

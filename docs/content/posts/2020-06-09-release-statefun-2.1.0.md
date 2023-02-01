@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-06-09T08:00:00Z"
 title: Stateful Functions 2.1.0 Release Announcement
 ---

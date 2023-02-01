@@ -4,7 +4,6 @@ authors:
   name: Igal Shilman
 - name: Seth Wiesman
   seth: null
-categories: news
 date: "2021-12-22T00:00:00Z"
 title: Apache Flink StateFun Log4j emergency release
 ---

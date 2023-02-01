@@ -3,7 +3,6 @@ authors:
 - name: Robert Metzger
   rmetzger: null
   twitter: rmetzger_
-categories: news
 date: "2020-08-20T00:00:00Z"
 excerpt: This blog post gives an update on the recent developments of Flink's support
   for Docker.

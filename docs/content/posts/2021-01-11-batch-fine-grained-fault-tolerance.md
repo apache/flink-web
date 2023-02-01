@@ -3,7 +3,6 @@ authors:
 - name: Robert Metzger
   rmetzger: null
   twitter: rmetzger_
-categories: news
 date: "2021-01-11T00:00:00Z"
 excerpt: Apache Flink 1.9 introduced fine-grained recovery through FLIP-1. The Flink
   APIs that are made for bounded workloads benefit from this change by individually

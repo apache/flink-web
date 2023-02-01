@@ -1,7 +1,6 @@
 ---
 author: Fabian Hüske
 author-twitter: fhueske
-categories: news
 date: "2014-11-18T10:00:00Z"
 title: Hadoop Compatibility in Flink
 ---

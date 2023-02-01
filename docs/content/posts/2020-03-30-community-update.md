@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-03-30T08:00:00Z"
 excerpt: While things slow down around us, the Apache Flink community is privileged
   to remain as active as ever. This blogpost combs through the past few months to

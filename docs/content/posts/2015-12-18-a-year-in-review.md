@@ -1,7 +1,6 @@
 ---
 author: Robert Metzger
 author-twitter: rmetzger_
-categories: news
 date: "2015-12-18T10:00:00Z"
 excerpt: <p>With 2015 ending, we thought that this would be good time to reflect on
   the amazing work done by the Flink community over this past year, and how much this

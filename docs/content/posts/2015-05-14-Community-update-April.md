@@ -1,7 +1,6 @@
 ---
 author: Kostas Tzoumas
 author-twitter: kostas_tzoumas
-categories: news
 date: "2015-05-14T10:00:00Z"
 excerpt: <p>The monthly update from the Flink community. Including the availability
   of a new preview release, lots of meetups and conference talks and a great interview
