@@ -1,8 +1,8 @@
 ---
 title: 获取帮助
-bold: true
 bookCollapseSection: false
 weight: 11
+menu_weight: 2
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

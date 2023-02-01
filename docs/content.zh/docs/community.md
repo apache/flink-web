@@ -1,8 +1,8 @@
 ---
 title: 社区 & 项目信息
-bold: true
 bookCollapseSection: false
 weight: 14
+menu_weight: 3
 
 tables:
     mailing-lists:

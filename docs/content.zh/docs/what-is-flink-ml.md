@@ -1,9 +1,9 @@
 ---
 title: What is Flink ML?
-bold: true
 bookCollapseSection: false
 weight: 3
 bookHref: "https://nightlies.apache.org/flink/flink-ml-docs-stable/"
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
