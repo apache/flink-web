@@ -1,9 +1,9 @@
 ---
 title: flink-packages.org
-bold: true
 bookCollapseSection: false
 weight: 13
 bookHref: "https://flink-packages.org/"
+menu_weight: 2
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

@@ -1,9 +1,9 @@
 ---
 title: What is Stateful Functions?
-bold: true
 bookCollapseSection: false
 weight: 2
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-stable/"
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

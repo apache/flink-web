@@ -1,8 +1,8 @@
 ---
 title: 教程
-bold: true
 bookCollapseSection: true
 weight: 9
+menu_weight: 2
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
