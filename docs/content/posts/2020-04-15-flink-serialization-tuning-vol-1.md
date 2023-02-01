@@ -2,7 +2,6 @@
 authors:
 - Nico Kruber: null
   name: Nico Kruber
-categories: news
 date: "2020-04-15T08:00:00Z"
 excerpt: Serialization is a crucial element of your Flink job. This article is the
   first in a series of posts that will highlight Flink’s serialization stack, and

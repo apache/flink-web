@@ -4,7 +4,6 @@ authors:
   name: Jingsong Lee
 - becketqin: null
   name: Jiangjie (Becket) Qin
-categories: news
 date: "2022-05-11T08:00:00Z"
 subtitle: For building dynamic tables for both stream and batch processing in Flink,
   supporting high speed data ingestion and timely data query.

@@ -1,7 +1,6 @@
 ---
 author: Stephan Ewen
 author-twitter: stephanewen
-categories: news
 date: "2015-09-16T08:00:00Z"
 excerpt: |-
   <p>Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, &quot;off-heap&quot; has become almost something like a magic word to solve these problems.</p>

@@ -1,7 +1,6 @@
 ---
 author: Matthias J. Sax
 author-twitter: MatthiasJSax
-categories: news
 date: "2015-12-11T10:00:00Z"
 excerpt: In this blog post, we describe Flink's compatibility package for <a href="https://storm.apache.org">Apache
   Storm</a> that allows to embed Spouts (sources) and Bolts (operators) in a regular

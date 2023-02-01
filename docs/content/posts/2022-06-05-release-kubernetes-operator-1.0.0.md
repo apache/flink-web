@@ -5,7 +5,6 @@ authors:
   twitter: GyulaFora
 - name: Yang Wang
   wangyang0918: null
-categories: news
 date: "2022-06-05T08:00:00Z"
 subtitle: Lifecycle management for Apache Flink deployments using native Kubernetes
   tooling

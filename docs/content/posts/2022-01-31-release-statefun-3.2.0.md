@@ -6,7 +6,6 @@ authors:
 - igalshilman: null
   name: Igal Shilman
   twitter: IgalShilman
-categories: news
 date: "2022-01-31T08:00:00Z"
 subtitle: The Apache Flink community is happy to announce the release of Stateful
   Functions (StateFun) 3.2.0.

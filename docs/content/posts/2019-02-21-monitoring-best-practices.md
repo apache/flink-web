@@ -3,7 +3,6 @@ authors:
 - konstantin: null
   name: Konstantin Knauf
   twitter: snntrable
-categories: news
 date: "2019-02-21T12:00:00Z"
 excerpt: The monitoring of business-critical applications is a crucial aspect of a
   production deployment. It ensures that any degradation or downtime is immediately

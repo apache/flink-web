@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2015-02-09T12:00:00Z"
 title: Introducing Flink Streaming
 ---

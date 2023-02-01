@@ -6,8 +6,6 @@ authors:
 - markos: null
   name: Markos Sfikas
   twitter: MarkSfik
-categories:
-- ecosystem
 date: "2020-02-22T12:00:00Z"
 excerpt: This blog post discusses the reasons to use Flink together with Beam for
   your stream processing needs and takes a closer look at how Flink works with Beam

@@ -3,7 +3,6 @@ authors:
 - name: Stephan Ewen
   stephan: null
   twitter: stephanewen
-categories: news
 date: "2020-04-07T08:00:00Z"
 subtitle: Making the Stream Processor for Event-driven Applications what the Database
   was to CRUD Applications

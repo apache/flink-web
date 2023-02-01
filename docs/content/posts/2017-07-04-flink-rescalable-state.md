@@ -1,7 +1,6 @@
 ---
 author: Stefan Richter
 author-twitter: StefanRRichter
-categories: features
 date: "2017-07-04T09:00:00Z"
 excerpt: <p>A primer on stateful stream processing and an in-depth walkthrough of
   rescalable state in Apache Flink.</p>

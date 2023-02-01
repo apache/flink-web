@@ -2,7 +2,6 @@
 authors:
 - JingsongLi: null
   name: Jingsong Lee
-categories: news
 date: "2022-10-13T08:00:00Z"
 excerpt: The Apache Flink Community is pleased to announce a bug fix release for Flink
   Table Store 0.2.

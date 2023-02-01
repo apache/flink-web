@@ -6,7 +6,6 @@ authors:
 - mike: null
   name: Mike Winters
   twitter: wints
-categories: features
 date: "2018-02-28T12:00:00Z"
 excerpt: Flink 1.4.0 introduced a new feature that makes it possible to build end-to-end
   exactly-once applications with Flink and data sources and sinks that support transactions.

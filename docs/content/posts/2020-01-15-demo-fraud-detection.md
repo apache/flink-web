@@ -3,7 +3,6 @@ authors:
 - alex: null
   name: Alexander Fedulov
   twitter: alex_fedulov
-categories: news
 date: "2020-01-15T12:00:00Z"
 excerpt: In this series of blog posts you will learn about three powerful Flink patterns
   for building streaming applications.

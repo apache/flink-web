@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2019-09-05T12:00:00Z"
 excerpt: This has been an exciting, fast-paced year for the Apache Flink community.
   But with over 10k messages across the mailing lists, 3k Jira tickets and 2k pull

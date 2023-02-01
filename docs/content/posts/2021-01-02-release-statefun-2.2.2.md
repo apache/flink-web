@@ -3,7 +3,6 @@ authors:
 - name: Tzu-Li (Gordon) Tai
   twitter: tzulitai
   tzulitai: null
-categories: news
 date: "2021-01-02T00:00:00Z"
 title: Stateful Functions 2.2.2 Release Announcement
 ---

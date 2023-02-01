@@ -1,7 +1,6 @@
 ---
 author: Fabian Hueske
 author-twitter: fhueske
-categories: news
 date: "2015-12-04T10:00:00Z"
 excerpt: |-
   <p>The data analysis space is witnessing an evolution from batch to stream processing for many use cases. Although batch can be handled as a special case of stream processing, analyzing never-ending streaming data often requires a shift in the mindset and comes with its own terminology (for example, “windowing” and “at-least-once”/”exactly-once” processing). This shift and the new terminology can be quite confusing for people being new to the space of stream processing. Apache Flink is a production-ready stream processor with an easy-to-use yet very expressive API to define advanced stream analysis programs. Flink's API features very flexible window definitions on data streams which let it stand out among other open source stream processors.</p>

@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-09-04T08:00:00Z"
 excerpt: Ah, so much for a quiet August month. This time around, we bring you some
   new Flink Improvement Proposals (FLIPs), a preview of the upcoming Flink Stateful

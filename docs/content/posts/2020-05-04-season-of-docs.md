@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-05-04T06:00:00Z"
 excerpt: The Flink community is thrilled to share that the project is applying again
   to Google Season of Docs (GSoD) this year! If you’re unfamiliar with the program,

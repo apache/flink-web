@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2015-09-03T08:00:00Z"
 title: Announcing Flink Forward 2015
 ---

@@ -6,7 +6,6 @@ authors:
 - marksfik: null
   name: Markos Sfikas
   twitter: MarkSfik
-categories: news
 date: "2019-11-25T12:00:00Z"
 excerpt: This blog post discusses the new developments and integrations between Apache
   Flink and Apache Pulsar and showcases how you can leverage Pulsar’s built-in schema

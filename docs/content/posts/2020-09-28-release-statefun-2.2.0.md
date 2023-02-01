@@ -6,7 +6,6 @@ authors:
 - igalshilman: null
   name: Igal Shilman
   twitter: IgalShilman
-categories: news
 date: "2020-09-28T08:00:00Z"
 title: Stateful Functions 2.2.0 Release Announcement
 ---

@@ -1,7 +1,6 @@
 ---
 author: Till Rohrmann
 author-twitter: stsffap
-categories: news
 date: "2016-04-06T10:00:00Z"
 excerpt: In this blog post, we introduce Flink's new <a href="{{< param DocsBaseUrl >}}flink-docs-master/apis/streaming/libs/cep.html">CEP
   library</a> that allows you to do pattern matching on event streams. Through the

@@ -1,7 +1,6 @@
 ---
 author: Aljoscha Krettek
 author-twitter: aljoscha
-categories: news
 date: "2016-04-14T10:00:00Z"
 title: Flink Forward 2016 Call for Submissions Is Now Open
 ---

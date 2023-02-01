@@ -1,6 +1,5 @@
 ---
 author: Fabian Hueske, Shaoxuan Wang, and Xiaowei Jiang
-categories: news
 date: "2017-03-30T12:00:00Z"
 excerpt: |-
   <p>Flink's relational APIs, the Table API and SQL, are unified APIs for stream and batch processing, meaning that a query produces the same result when being evaluated on streaming or static data.</p>

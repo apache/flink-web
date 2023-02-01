@@ -6,7 +6,6 @@ authors:
 - gyfora: null
   name: Gyula Fora
   twitter: GyulaFora
-categories: news
 date: "2022-12-14T08:00:00Z"
 subtitle: Lifecycle management for Apache Flink deployments using native Kubernetes
   tooling

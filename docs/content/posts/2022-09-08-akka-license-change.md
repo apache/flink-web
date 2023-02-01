@@ -2,7 +2,6 @@
 authors:
 - Chesnay: null
   name: Chesnay Schepler
-categories: news
 date: "2022-09-08T08:00:00Z"
 title: Regarding Akka's licensing change
 ---

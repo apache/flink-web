@@ -6,8 +6,6 @@ authors:
 - Fabian: null
   name: Fabian Hueske
   twitter: fhueske
-categories:
-- feature
 date: "2019-09-13T12:00:00Z"
 excerpt: This post explores the State Processor API, introduced with Flink 1.9.0,
   why this feature is a big step for Flink, what you can use it for, how to use it

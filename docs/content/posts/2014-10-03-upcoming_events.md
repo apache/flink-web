@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2014-10-03T10:00:00Z"
 title: Upcoming Events
 ---

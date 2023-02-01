@@ -1,5 +1,4 @@
 ---
-categories: news
 date: "2016-08-24T09:00:00Z"
 title: 'Flink Forward 2016: Announcing Schedule, Keynotes, and Panel Discussion'
 ---

@@ -1,7 +1,6 @@
 ---
 author: Fabian Hüske
 author-twitter: fhueske
-categories: news
 date: "2015-03-13T10:00:00Z"
 excerpt: Joins are prevalent operations in many data processing applications. Most
   data processing systems feature APIs that make joining data sets very easy. However,

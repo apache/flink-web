@@ -3,8 +3,6 @@ authors:
 - max: null
   name: Maximilian Bode, TNG Technology Consulting
   twitter: mxpbode
-categories:
-- features
 date: "2019-03-11T12:00:00Z"
 excerpt: This blog post describes how developers can leverage Apache Flink's built-in
   metrics system together with Prometheus to observe and monitor streaming applications

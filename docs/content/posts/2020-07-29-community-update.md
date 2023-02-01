@@ -3,7 +3,6 @@ authors:
 - morsapaes: null
   name: Marta Paes
   twitter: morsapaes
-categories: news
 date: "2020-07-29T08:00:00Z"
 excerpt: As July draws to an end, we look back at a monthful of activity in the Flink
   community, including two releases (!) and some work around improving the first-time
