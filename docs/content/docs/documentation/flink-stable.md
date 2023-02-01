@@ -1,6 +1,6 @@
 ---
 weight: 1
-type: FlinkStableDocumentation
+title: ML $FlinkStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/"
 ---
 <!--
