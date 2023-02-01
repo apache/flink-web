@@ -1,6 +1,6 @@
 ---
 weight: 9
-type: FlinkTableStoreStableDocumentation
+title: Table Store $FlinkTableStoreStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-stable/"
 ---
 <!--

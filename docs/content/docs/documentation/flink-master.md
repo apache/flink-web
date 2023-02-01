@@ -1,7 +1,6 @@
 ---
 weight: 2
-title: Flink Master (Latest snapshot)
-type: FlinkMasterDocumentation
+title: Flink Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-docs-master/"
 ---
 <!--

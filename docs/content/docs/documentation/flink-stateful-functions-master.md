@@ -1,7 +1,6 @@
 ---
 weight: 4
-title: Flink Stateful Functions (Latest snapshot)
-type: FlinkStateFunMasterDocumentation
+title: Stateful Functions Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-master"
 ---
 <!--

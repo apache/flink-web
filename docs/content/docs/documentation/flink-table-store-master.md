@@ -1,7 +1,6 @@
 ---
 weight: 10
-title: Flink Table Store Master (Latest snapshot)
-type: FlinkTableStoreMasterDocumentation
+title: Table Store Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-master/"
 ---
 <!--
