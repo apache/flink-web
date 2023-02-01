@@ -1,7 +1,6 @@
 ---
 weight: 6
-title: Flink ML (Latest snapshot)
-type: FlinkMLMasterDocumentation
+title: ML Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-ml-docs-master"
 ---
 <!--

@@ -1,6 +1,6 @@
 ---
 weight: 7
-type: FlinkKubernetesOperatorStableDocumentation
+title: Kubernetes Operator $FlinkKubernetesOperatorStableShortVersion (latest)
 bookHref: "https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/"
 ---
 <!--
