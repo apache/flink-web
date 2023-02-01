@@ -1,7 +1,6 @@
 ---
 weight: 8
-title: Flink Kubernetes Operator Main (Latest snapshot)
-type: FlinkKubernetesOperatorMasterDocumentation
+title: Kubernetes Operator Main (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main"
 ---
 <!--
