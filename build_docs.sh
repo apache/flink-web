@@ -25,4 +25,4 @@ then
 fi
 git submodule update --init --recursive
 
-hugo -b "" serve
+hugo -b "" -D -F --source docs serve
