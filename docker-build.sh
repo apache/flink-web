@@ -17,10 +17,20 @@
 # limitations under the License.
 ################################################################################
 
-hugo -v --source docs --destination target
+git submodule update --init --recursive
+
+# Remove old content folder and create new one
+rm -r content && mkdir content
+
+# Generate new static HTML
+docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --destination target
 if [ $? -ne 0 ]; then
 	echo "Error building the docs"
 	exit 1
 fi
-mv docs/target content
+
+# Move newly generated static HTML to the content serving folder
+mv docs/target/* content
+
+# Copy rewrite rules and Google Search Console identifier
 cp -r _include/. content
