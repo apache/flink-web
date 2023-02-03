@@ -37,7 +37,7 @@ under the License.
             <li>流批分析</li>
             <li>数据管道 & ETL</li>
             </ul>
-        <a href={{< ref "docs/use-cases" >}}>了解更多</a>
+        <a href={{< ref "use-cases" >}}>了解更多</a>
     </div>
 </div>
 
@@ -52,7 +52,7 @@ under the License.
             <li>事件时间处理</li>
             <li>成熟的迟到数据处理</li>
         </ul>
-    <a href="{{< ref "docs/what-is-flink/flink-applications" >}}#building-blocks-for-streaming-applications">了解更多</a>
+    <a href="{{< ref "what-is-flink/flink-applications" >}}#building-blocks-for-streaming-applications">了解更多</a>
     </div>
 </div>
 
@@ -67,7 +67,7 @@ under the License.
             <li>DataStream API & DataSet API</li>
             <li>ProcessFunction (Time & State)</li>
         </ul>
-    <a href="{{< ref "docs/what-is-flink/flink-applications" >}}#layered-apis">了解更多</a>
+    <a href="{{< ref "what-is-flink/flink-applications" >}}#layered-apis">了解更多</a>
     </div>
 </div>
 {{< /columns >}}
@@ -83,7 +83,7 @@ under the License.
             <li>高可用</li>
             <li>保存点</li>
         </ul>
-    <a href="{{< ref "docs/what-is-flink/flink-operations" >}}">了解更多</a>
+    <a href="{{< ref "what-is-flink/flink-operations" >}}">了解更多</a>
     </div>
 </div>
 
@@ -98,7 +98,7 @@ under the License.
             <li>支持超大状态</li>
             <li>增量检查点机制</li>
         </ul>
-    <a href="{{< ref "docs/what-is-flink/flink-architecture" >}}#run-applications-at-any-scale">了解更多</a>
+    <a href="{{< ref "what-is-flink/flink-architecture" >}}#run-applications-at-any-scale">了解更多</a>
     </div>
 </div>
 
@@ -113,7 +113,7 @@ under the License.
             <li>高吞吐</li>
             <li>内存计算</li>
         </ul>
-    <a href="{{< ref "docs/what-is-flink/flink-architecture" >}}#leverage-in-memory-performance">了解更多</a>
+    <a href="{{< ref "what-is-flink/flink-architecture" >}}#leverage-in-memory-performance">了解更多</a>
     </div>
 </div>
 {{< /columns >}}
