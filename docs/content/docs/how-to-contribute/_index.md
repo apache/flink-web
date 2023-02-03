@@ -1,7 +1,7 @@
 ---
 title: How to Contribute
 bookCollapseSection: true
-weight: 15
+weight: 16
 menu_weight: 3
 ---
 <!--
