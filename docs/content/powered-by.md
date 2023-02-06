@@ -271,6 +271,6 @@ Apache Flink powers business-critical applications in many companies and enterpr
 
 More Flink users are listed in the <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small> Powered by Flink directory</a> in the project wiki. Please note that the list is *not* comprehensive. We only add users that explicitly ask to be listed.
 
-If you would you like to be included on this page, please reach out to the [Flink user mailing list]({{< ref "community" >}}) and let us know.
+If you would you like to be included on this page, please reach out to the [Flink user mailing list]({{< relref "community" >}}) and let us know.
 
 {{< table_noheader "powered-by" >}}

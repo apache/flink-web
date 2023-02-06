@@ -30,7 +30,7 @@ _Streaming_ jobs usually require that all _[operator subtasks](#executiongraph)_
 Therefore, all the required resources to run these jobs have to be provided upfront, and all _operator subtasks_ must be deployed at once.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-12-02-pipelined-region-sheduling/streaming-job-example.png" width="400px" alt="Streaming job example:high"/>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/streaming-job-example.png" width="400px" alt="Streaming job example:high"/>
 <br/>
 <i><small>Flink: Streaming job example</small></i>
 </center>
@@ -53,7 +53,7 @@ a stage may have to wait for upstream results to be produced before it can run.
 These are called _[blocking results](#intermediate-results)_, and in this case stages cannot run in parallel.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-12-02-pipelined-region-sheduling/batch-job-example.png" width="600px" alt="Batch job example:high"/>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/batch-job-example.png" width="600px" alt="Batch job example:high"/>
 <br/>
 <i><small>Flink: Batch job example</small></i>
 </center>
@@ -130,7 +130,7 @@ because the consumer (**C**) can run as soon as the first result records from **
 You can think of **B->C** as a _finite streaming_ job. It’s then possible to identify two separate stages within the _ExecutionGraph_: **A** and **B->C**.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-12-02-pipelined-region-sheduling/sql-join-job-example.png" width="450px" alt="SQL Join job example:high"/>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/sql-join-job-example.png" width="450px" alt="SQL Join job example:high"/>
 <br/>
 <i><small>Flink: SQL Join job example</small></i>
 </center>
@@ -174,7 +174,7 @@ _Subtasks_ from different _pipelined regions_ are connected only by _[blocking](
 The depicted example of an _ExecutionGraph_ has four _pipelined regions_ and _subtasks_, A to H:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-12-02-pipelined-region-sheduling/pipelined-regions.png" width="250px" alt="Pipelined regions:high"/>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/pipelined-regions.png" width="250px" alt="Pipelined regions:high"/>
 <br/>
 <i><small>Flink: Pipelined regions</small></i>
 </center>

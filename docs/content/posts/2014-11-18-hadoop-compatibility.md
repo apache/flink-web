@@ -10,7 +10,7 @@ title: Hadoop Compatibility in Flink
 ## Flink’s Hadoop Compatibility Package
 
 <center>
-<img src="{{< siteurl >}}/img/blog/hcompat-logos.png" style="width:30%;margin:15px">
+<img src="/img/blog/hcompat-logos.png" style="width:30%;margin:15px">
 </center>
 
 To close this gap, Flink provides a Hadoop Compatibility package to wrap functions implemented against Hadoop’s MapReduce interfaces and embed them in Flink programs. This package was developed as part of a [Google Summer of Code](https://developers.google.com/open-source/soc/) 2014 project. 
@@ -74,7 +74,7 @@ As you can see, Flink represents Hadoop key-value pairs as `Tuple2<key, value>` 
 Hadoop functions can be used at any position within a Flink program and of course also be mixed with native Flink functions. This means that instead of assembling a workflow of Hadoop jobs in an external driver method or using a workflow scheduler such as [Apache Oozie](http://oozie.apache.org), you can implement an arbitrary complex Flink program consisting of multiple Hadoop Input- and OutputFormats, Mapper and Reducer functions. When executing such a Flink program, data will be pipelined between your Hadoop functions and will not be written to HDFS just for the purpose of data exchange.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/hcompat-flow.png" style="width:100%;margin:15px">
+<img src="/img/blog/hcompat-flow.png" style="width:100%;margin:15px">
 </center>
 
 ## What comes next?

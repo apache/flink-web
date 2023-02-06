@@ -120,7 +120,7 @@ under the License.
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 用户邮件列表 获得帮助。你还可以加入社区专属的 [Slack](#slack)。有些 Committer 同时会关注 [Stack Overflow](#stack-overflow)。请在提问的时候记得添加 *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* 的标签。问题反馈以及新特性的讨论则可以在 开发邮件列表 或者 [Jira](https://issues.apache.org/jira/browse/FLINK) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南]({{< ref "how-to-contribute" >}}).
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 用户邮件列表 获得帮助。你还可以加入社区专属的 [Slack](#slack)。有些 Committer 同时会关注 [Stack Overflow](#stack-overflow)。请在提问的时候记得添加 *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* 的标签。问题反馈以及新特性的讨论则可以在 开发邮件列表 或者 [Jira](https://issues.apache.org/jira/browse/FLINK) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南]({{< relref "how-to-contribute" >}}).
 
 ## 邮件列表
 
@@ -276,4 +276,4 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
 
 ## 素材以及 Apache Flink Logo
 
-[素材页面]({{< ref "material" >}}) 提供了不同尺寸以及不同颜色的 Apache Flink Logo。
+[素材页面]({{< relref "material" >}}) 提供了不同尺寸以及不同颜色的 Apache Flink Logo。

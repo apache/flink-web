@@ -87,7 +87,7 @@ Got a Flink story to share? Maybe your recent adventures with Stateful Functions
 </div>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-10-community-update/FlinkForward_Banner_CFP_Global_2020.png" width="600px" alt="Flink Forward Global 2020"/>
+<img src="/img/blog/2020-06-10-community-update/FlinkForward_Banner_CFP_Global_2020.png" width="600px" alt="Flink Forward Global 2020"/>
 </center>
 
 <div style="line-height:60%;">

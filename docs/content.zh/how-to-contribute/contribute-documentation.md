@@ -26,7 +26,7 @@ git clone https://github.com/<your-user-name>/flink.git
 
 …请确保已经有一个相对应的 [Jira](https://issues.apache.org/jira/browse/FLINK) issue 存在了。我们要求所有文档更改都需要关联一个 Jira issue，除了一些微不足道的修复，如拼写错误。
 
-同时，先阅读一下 [文档样式指南]({{< ref "how-to-contribute/documentation-style-guide" >}}) 能够很好的帮助你写出易懂、连贯和全面的文档。
+同时，先阅读一下 [文档样式指南]({{< relref "how-to-contribute/documentation-style-guide" >}}) 能够很好的帮助你写出易懂、连贯和全面的文档。
 
 ## 更新或扩展文档
 

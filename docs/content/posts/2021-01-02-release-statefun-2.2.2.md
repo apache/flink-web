@@ -18,7 +18,7 @@ older versions earlier than StateFun 2.2.1. Previously, restoring from savepoint
 
 ---
 
-You can find the binaries on the updated [Downloads page]({{< siteurl >}}/downloads.html).
+You can find the binaries on the updated [Downloads page](/downloads.html).
 
 This release includes 5 fixes and minor improvements since StateFun 2.2.1. Below is a detailed list of all fixes and improvements:
 

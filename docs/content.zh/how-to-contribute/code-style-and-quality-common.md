@@ -6,13 +6,13 @@ bookHidden: true
 
 # Code Style and Quality Guide — Common Rules
 
-#### [序言]({{< ref "how-to-contribute/code-style-and-quality-preamble" >}})
-#### [Pull Requests & Changes]({{< ref "how-to-contribute/code-style-and-quality-pull-requests" >}})
-#### [常用编码指南]({{< ref "how-to-contribute/code-style-and-quality-common" >}})
-#### [Java 语言指南]({{< ref "how-to-contribute/code-style-and-quality-java" >}})
-#### [Scala 语言指南]({{< ref "how-to-contribute/code-style-and-quality-scala" >}})
-#### [组件指南]({{< ref "how-to-contribute/code-style-and-quality-components" >}})
-#### [格式指南]({{< ref "how-to-contribute/code-style-and-quality-formatting" >}})
+#### [序言]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< relref "how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [常用编码指南]({{< relref "how-to-contribute/code-style-and-quality-common" >}})
+#### [Java 语言指南]({{< relref "how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala 语言指南]({{< relref "how-to-contribute/code-style-and-quality-scala" >}})
+#### [组件指南]({{< relref "how-to-contribute/code-style-and-quality-components" >}})
+#### [格式指南]({{< relref "how-to-contribute/code-style-and-quality-formatting" >}})
 
 <hr>
 
@@ -173,7 +173,7 @@ For nullability, the Flink codebase aims to follow these conventions:
 _Note: This means that `@Nonnull` annotations are usually not necessary, but can be used in certain cases to override a previous annotation, or to point non-nullability out in a context where one would expect a nullable value._
 
 `Optional` is a good solution as a return type for method that may or may not have a result, so nullable return types are good candidates to be replaced with `Optional`.
-See also [usage of Java Optional]({{< ref "how-to-contribute/code-style-and-quality-java" >}}#java-optional).
+See also [usage of Java Optional]({{< relref "how-to-contribute/code-style-and-quality-java" >}}#java-optional).
 
 
 ### Avoid Code Duplication

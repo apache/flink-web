@@ -24,7 +24,7 @@ including Apache Flink.
 
 ## Flink 0.9.0-milestone1 release
 
-The highlight of April was of course the availability of [Flink 0.9-milestone1]({{< siteurl >}}/news/2015/04/13/release-0.9.0-milestone1.html). This was a release packed with new features, including, a Python DataSet API, the new SQL-like Table API, FlinkML, a machine learning library on Flink, Gelly, FLink's Graph API, as well as a mode to run Flink on YARN leveraging Tez. In case you missed it, check out the [release announcement blog post]({{< siteurl >}}/news/2015/04/13/release-0.9.0-milestone1.html) for details
+The highlight of April was of course the availability of [Flink 0.9-milestone1](/news/2015/04/13/release-0.9.0-milestone1.html). This was a release packed with new features, including, a Python DataSet API, the new SQL-like Table API, FlinkML, a machine learning library on Flink, Gelly, FLink's Graph API, as well as a mode to run Flink on YARN leveraging Tez. In case you missed it, check out the [release announcement blog post](/news/2015/04/13/release-0.9.0-milestone1.html) for details
 
 ## Conferences and meetups
 

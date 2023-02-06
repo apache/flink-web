@@ -37,7 +37,7 @@ under the License.
             <li>Stream &amp; Batch Analytics</li>
             <li>Data Pipelines &amp; ETL</li>
             </ul>
-        <a href={{< ref "use-cases" >}}>Learn more</a>
+        <a href={{< relref "use-cases" >}}>Learn more</a>
     </div>
 </div>
 
@@ -52,7 +52,7 @@ under the License.
             <li>Event-time processing</li>
             <li>Sophisticated late data handling</li>
         </ul>
-    <a href="{{< ref "what-is-flink/flink-applications" >}}#building-blocks-for-streaming-applications">Learn more</a>
+    <a href="{{< relref "what-is-flink/flink-applications" >}}#building-blocks-for-streaming-applications">Learn more</a>
     </div>
 </div>
 
@@ -67,7 +67,7 @@ under the License.
             <li>DataStream API &amp; DataSet API</li>
             <li>ProcessFunction (Time &amp; State)</li>
         </ul>
-    <a href="{{< ref "what-is-flink/flink-applications" >}}#layered-apis">Learn more</a>
+    <a href="{{< relref "what-is-flink/flink-applications" >}}#layered-apis">Learn more</a>
     </div>
 </div>
 {{< /columns >}}
@@ -83,7 +83,7 @@ under the License.
             <li>High-availability setup</li>
             <li>Savepoints</li>
         </ul>
-    <a href="{{< ref "what-is-flink/flink-operations" >}}">Learn more</a>
+    <a href="{{< relref "what-is-flink/flink-operations" >}}">Learn more</a>
     </div>
 </div>
 
@@ -98,7 +98,7 @@ under the License.
             <li>Support for very large state</li>
             <li>Incremental checkpointing</li>
         </ul>
-    <a href="{{< ref "what-is-flink/flink-architecture" >}}#run-applications-at-any-scale">Learn more</a>
+    <a href="{{< relref "what-is-flink/flink-architecture" >}}#run-applications-at-any-scale">Learn more</a>
     </div>
 </div>
 
@@ -113,7 +113,7 @@ under the License.
             <li>High throughput</li>
             <li>In-Memory computing</li>
         </ul>
-    <a href="{{< ref "what-is-flink/flink-architecture" >}}#leverage-in-memory-performance">Learn more</a>
+    <a href="{{< relref "what-is-flink/flink-architecture" >}}#leverage-in-memory-performance">Learn more</a>
     </div>
 </div>
 {{< /columns >}}

@@ -24,7 +24,7 @@ allocation, can be used to build an end-to-end real-time AI workflow.
 Typical AI workloads fall into two categories: training and inference.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-08-06-accelerate-with-external-resources/ai-workflow.png" width="800px" alt="Typical AI Workflow"/>
+<img src="/img/blog/2020-08-06-accelerate-with-external-resources/ai-workflow.png" width="800px" alt="Typical AI Workflow"/>
 <br/>
 <i><small>Typical AI Workflow</small></i>
 </center>

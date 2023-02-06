@@ -26,7 +26,7 @@ The output format is translated in HTML, and you can specify a paragraph local p
 And you can use `{i}` as placeholder for the {i}th column of the result.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_single_mode.gif" width="80%" alt="Single Mode"/>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_single_mode.gif" width="80%" alt="Single Mode"/>
 </center>
 
 ### Update Mode
@@ -34,7 +34,7 @@ Update mode is suitable for the cases when the output format is more than one ro
 and will always be continuously updated. Here’s one example where we use ``GROUP BY``.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_update_mode.gif" width="80%" alt="Update Mode"/>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_update_mode.gif" width="80%" alt="Update Mode"/>
 </center>
 
 ### Append Mode
@@ -42,7 +42,7 @@ Append mode is suitable for the cases when the output data is always appended.
 For instance, the example below uses a tumble window.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_append_mode.gif" width="80%" alt="Append Mode"/>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_append_mode.gif" width="80%" alt="Append Mode"/>
 </center>
 
 # UDF
@@ -82,13 +82,13 @@ After you define the UDFs, you can use them directly in SQL:
 * Use Scala UDF in SQL
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_scala_udf.png" width="100%" alt="Scala UDF"/>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_scala_udf.png" width="100%" alt="Scala UDF"/>
 </center>
 
 * Use Python UDF in SQL
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_python_udf.png" width="100%" alt="Python UDF"/>
+<img src="/img/blog/2020-06-23-flink-on-zeppelin-part2/flink_python_udf.png" width="100%" alt="Python UDF"/>
 </center>
 
 # Summary

@@ -14,7 +14,7 @@ title: Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL
 Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of **temporal data**, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-05-13-temporal-tables/TemporalTables1.png" width="500px" alt="Taxi Fares and Conversion Rates"/>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables1.png" width="500px" alt="Taxi Fares and Conversion Rates"/>
 </center>
 <br>
 
@@ -71,7 +71,7 @@ SELECT * FROM Rates('11:00');
 ```
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-05-13-temporal-tables/TemporalTables2.png" width="650px" alt="Point-in-time Querying"/>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables2.png" width="650px" alt="Point-in-time Querying"/>
 </center>
 <br>
 
@@ -87,14 +87,14 @@ Temporal tables reach their full potential when used in combination — erm, joi
 In the particular case of temporal data, time-windowed joins are not enough (well, at least not without getting into some expensive tweaking): sooner or later, each reference record will fall outside of the window and be wiped from state, no longer being considered for future join results. To address this limitation, Flink has introduced support for temporal table joins to cover time-varying relations.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-05-13-temporal-tables/TemporalTables3.png" width="500px" alt="Temporal Table Join between Taxi Fares and Conversion Rates"/>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables3.png" width="500px" alt="Temporal Table Join between Taxi Fares and Conversion Rates"/>
 </center>
 <br>
 
 Each record from the append-only table on the probe side (```Taxi Fare```) is joined with the version of the record from the temporal table on the build side (```Conversion Rate```) that most closely matches the probe side record time attribute (```time```) for the same value of the primary key (```currency```). Remember the temporal table function (```Rates```) we registered earlier? It can now be used to express this join as a simple SQL statement that would otherwise require a heavier statement with a subquery.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-05-13-temporal-tables/TemporalTables4.png" width="700px" alt="Regular Join vs. Temporal Table Join"/>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables4.png" width="700px" alt="Regular Join vs. Temporal Table Join"/>
 </center>
 <br>
 
@@ -109,4 +109,4 @@ All this means it is now possible to express continuous stream enrichment in rel
 
 If you'd like to get some **hands-on practice in joining streams with Flink SQL** (and Flink SQL in general), checkout this [free training for Flink SQL](https://github.com/ververica/sql-training/wiki). The training environment is based on Docker and set up in just a few minutes.
 
-Subscribe to the [Apache Flink mailing lists]({{< siteurl >}}/community.html#mailing-lists) to stay up-to-date with the latest developments in this space.
+Subscribe to the [Apache Flink mailing lists](/community.html#mailing-lists) to stay up-to-date with the latest developments in this space.

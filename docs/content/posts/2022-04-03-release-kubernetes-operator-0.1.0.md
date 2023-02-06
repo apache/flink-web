@@ -28,7 +28,7 @@ This way users do not have to use the Flink Clients (e.g. CLI) or interact with 
 
 <center>
 	<figure>
-	<img src="{{< siteurl >}}/img/blog/2022-04-03-release-kubernetes-operator-0.1.0/overview.svg" width="600px" alt="Overview 1"/>
+	<img src="/img/blog/2022-04-03-release-kubernetes-operator-0.1.0/overview.svg" width="600px" alt="Overview 1"/>
 	<br/><br/>
 	</figure>
 </center>

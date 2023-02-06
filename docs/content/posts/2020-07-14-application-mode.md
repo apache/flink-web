@@ -119,7 +119,7 @@ the same Client.
 </div>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-07-14-application-mode/session-per-job.png" width="75%" alt="Session and Per-Job Mode"/>
+<img src="/img/blog/2020-07-14-application-mode/session-per-job.png" width="75%" alt="Session and Per-Job Mode"/>
 </center>
 
 <div style="line-height:150%;">
@@ -141,7 +141,7 @@ Mode, each TaskManager can only have tasks of a single job.
 
 # Application Mode
 
-<img style="float: right;margin-left:10px;margin-right: 15px;" src="{{< siteurl >}}/img/blog/2020-07-14-application-mode/application.png" width="320px" alt="Application Mode"/>
+<img style="float: right;margin-left:10px;margin-right: 15px;" src="/img/blog/2020-07-14-application-mode/application.png" width="320px" alt="Application Mode"/>
 
 The Application Mode builds on the above observations and tries to combine the resource
 isolation of the per-job mode with a lightweight and scalable application submission 

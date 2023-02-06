@@ -60,7 +60,7 @@ Flink 根据抽象程度分层，提供了三种不同的 API。每一种 API �
 
 ### ProcessFunction
 
-{{< docs_link file="flink-docs-stable/dev/stream/operators/process_function.html" name="ProcessFunction">}} 是 Flink 所提供的最具表达力的接口。ProcessFunction 可以处理一或两条输入数据流中的单个事件或者归入一个特定窗口内的多个事件。它提供了对于时间和状态的细粒度控制。开发者可以在其中任意地修改状态，也能够注册定时器用以在未来的某一时刻触发回调函数。因此，你可以利用 ProcessFunction 实现许多[有状态的事件驱动应用]({{< ref "use-cases#eventDrivenApps" >}})所需要的基于单个事件的复杂业务逻辑。
+{{< docs_link file="flink-docs-stable/dev/stream/operators/process_function.html" name="ProcessFunction">}} 是 Flink 所提供的最具表达力的接口。ProcessFunction 可以处理一或两条输入数据流中的单个事件或者归入一个特定窗口内的多个事件。它提供了对于时间和状态的细粒度控制。开发者可以在其中任意地修改状态，也能够注册定时器用以在未来的某一时刻触发回调函数。因此，你可以利用 ProcessFunction 实现许多[有状态的事件驱动应用]({{< relref "use-cases#eventDrivenApps" >}})所需要的基于单个事件的复杂业务逻辑。
 
 下面的代码示例展示了如何在 `KeyedStream` 上利用 `KeyedProcessFunction` 对标记为 `START` 和 `END` 的事件进行处理。当收到 `START` 事件时，处理函数会记录其时间戳，并且注册一个时长4小时的计时器。如果在计时器结束之前收到 `END` 事件，处理函数会计算其与上一个 `START` 事件的时间间隔，清空状态并将计算结果返回。否则，计时器结束，并清空状态。
 
@@ -157,7 +157,7 @@ DataStream<Tuple2<String, Long>> result = clicks
 
 Flink 支持两种关系型的 API，{{< docs_link file="flink-docs-stable/dev/table/index.html" name="Table API 和 SQL">}}。这两个 API 都是批处理和流处理统一的 API，这意味着在无边界的实时数据流和有边界的历史记录数据流上，关系型 API 会以相同的语义执行查询，并产生相同的结果。Table API 和 SQL 借助了 [Apache Calcite](https://calcite.apache.org) 来进行查询的解析，校验以及优化。它们可以与 DataStream 和 DataSet API 无缝集成，并支持用户自定义的标量函数，聚合函数以及表值函数。
 
-Flink 的关系型 API 旨在简化[数据分析]({{< ref "use-cases#analytics" >}})、[数据流水线和 ETL 应用]({{< ref "use-cases#pipelines" >}})的定义。
+Flink 的关系型 API 旨在简化[数据分析]({{< relref "use-cases#analytics" >}})、[数据流水线和 ETL 应用]({{< relref "use-cases#pipelines" >}})的定义。
 
 下面的代码示例展示了如何使用 SQL 语句查询捕获会话时间范围内所有的点击流事件，并对每一次会话的点击量进行计数。此示例与上述 DataStream API 中的示例有着相同的逻辑。
 

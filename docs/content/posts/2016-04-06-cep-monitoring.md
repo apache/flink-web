@@ -34,7 +34,7 @@ In the remainder of this blog post, we introduce Flink’s CEP library and we il
 ## Monitoring and alert generation for data centers
 
 <center>
-<img src="{{< siteurl >}}/img/blog/cep-monitoring.svg" style="width:600px;margin:15px">
+<img src="/img/blog/cep-monitoring.svg" style="width:600px;margin:15px">
 </center>
 
 Assume we have a data center with a number of racks. 

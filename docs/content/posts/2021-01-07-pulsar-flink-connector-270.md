@@ -38,7 +38,7 @@ When users needed to strictly guarantee the ordering of messages, only one consu
 
 <br>
 <div class="row front-graphic">
-  <img src="{{< siteurl >}}/img/blog/2021-01-07-pulsar-flink/pulsar-key-shared.png" width="640px" alt="Apache Pulsar Key-Shared Subscription"/>
+  <img src="/img/blog/2021-01-07-pulsar-flink/pulsar-key-shared.png" width="640px" alt="Apache Pulsar Key-Shared Subscription"/>
 </div>
 
 Pulsar Flink Connector 2.7.0 supports the Key_Shared subscription model. You can enable this feature by setting `enable-key-hash-range` to `true`. The Key Hash range processed by each consumer is decided by the parallelism of tasks.
@@ -160,7 +160,7 @@ The batch and stream solution based on the new Flink Source API is divided into 
 
 <br>
 <div class="row front-graphic">
-  <img src="{{< siteurl >}}/img/blog/2021-01-07-pulsar-flink/pulsar-flink-batch-stream.png" width="640px" alt="Batch and Stream Solution with Apache Pulsar and Apache Flink"/>
+  <img src="/img/blog/2021-01-07-pulsar-flink/pulsar-flink-batch-stream.png" width="640px" alt="Batch and Stream Solution with Apache Pulsar and Apache Flink"/>
 </div>
 
 Apache Pulsar stores messages in the ledger block for users to locate the ledgers through Pulsar admin, and then provide broker partition, BookKeeper partition, Offloader partition, and other information through different partitioning policies. For more details, you can refer [here](https://github.com/streamnative/pulsar-flink/issues/187).

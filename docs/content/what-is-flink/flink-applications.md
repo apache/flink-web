@@ -60,7 +60,7 @@ We briefly present each API, discuss its applications, and show a code example.
 
 ### The ProcessFunctions
 
-{{< docs_link file="flink-docs-stable/dev/stream/operators/process_function.html" name="ProcessFunctions">}} are the most expressive function interfaces that Flink offers. Flink provides ProcessFunctions to process individual events from one or two input streams or events that were grouped in a window. ProcessFunctions provide fine-grained control over time and state. A ProcessFunction can arbitrarily modify its state and register timers that will trigger a callback function in the future. Hence, ProcessFunctions can implement complex per-event business logic as required for many [stateful event-driven applications]({{< ref "use-cases#eventDrivenApps" >}}).
+{{< docs_link file="flink-docs-stable/dev/stream/operators/process_function.html" name="ProcessFunctions">}} are the most expressive function interfaces that Flink offers. Flink provides ProcessFunctions to process individual events from one or two input streams or events that were grouped in a window. ProcessFunctions provide fine-grained control over time and state. A ProcessFunction can arbitrarily modify its state and register timers that will trigger a callback function in the future. Hence, ProcessFunctions can implement complex per-event business logic as required for many [stateful event-driven applications]({{< relref "use-cases#eventDrivenApps" >}}).
 
 The following example shows a `KeyedProcessFunction` that operates on a `KeyedStream` and matches `START` and `END` events. When a `START` event is received, the function remembers its timestamp in state and registers a timer in four hours. If an `END` event is received before the timer fires, the function computes the duration between `END` and `START` event, clears the state, and returns the value. Otherwise, the timer just fires and clears the state.
 
@@ -157,7 +157,7 @@ DataStream<Tuple2<String, Long>> result = clicks
 
 Flink features two relational APIs, the {{< docs_link file="flink-docs-stable/dev/table/index.html" name="Table API and SQL">}}. Both APIs are unified APIs for batch and stream processing, i.e., queries are executed with the same semantics on unbounded, real-time streams or bounded, recorded streams and produce the same results. The Table API and SQL leverage [Apache Calcite](https://calcite.apache.org) for parsing, validation, and query optimization. They can be seamlessly integrated with the DataStream and DataSet APIs and support user-defined scalar, aggregate, and table-valued functions.
 
-Flink's relational APIs are designed to ease the definition of [data analytics]({{< ref "use-cases#analytics" >}}), [data pipelining, and ETL applications]({{< ref "use-cases#pipelines" >}}).
+Flink's relational APIs are designed to ease the definition of [data analytics]({{< relref "use-cases#analytics" >}}), [data pipelining, and ETL applications]({{< relref "use-cases#pipelines" >}}).
 
 The following example shows the SQL query to sessionize a clickstream and count the number of clicks per session. This is the same use case as in the example of the DataStream API.
 

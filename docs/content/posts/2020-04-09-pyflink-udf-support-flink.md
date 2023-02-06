@@ -25,7 +25,7 @@ Before diving into how you can define and use Python UDFs, we explain the motiva
 The PyFlink architecture mainly includes two parts — local and cluster — as shown in the architecture visual below. The local phase is the compilation of the job, and the cluster is the execution of the job.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-04-09-pyflink-udfs/pyflink-udf-architecture.png" width="600px" alt="PyFlink UDF Architecture"/>
+<img src="/img/blog/2020-04-09-pyflink-udfs/pyflink-udf-architecture.png" width="600px" alt="PyFlink UDF Architecture"/>
 </center>
 <br>
 
@@ -190,6 +190,6 @@ A `requirements.txt` file that defines the third-party dependencies is used. If 
 In this blog post, we introduced the architecture of Python UDFs in PyFlink and provided some examples on how to define, register and invoke UDFs. Flink 1.10 brings Python support in the framework to new levels, allowing Python users to write even more magic with their preferred language. The community is actively working towards continuously improving the functionality and performance of PyFlink. Future work in upcoming releases will introduce support for Pandas UDFs in scalar and aggregate functions, add support to use Python UDFs through the SQL client to further expand the usage scope of Python UDFs, provide support for a Python ML Pipeline API and finally work towards even more performance improvements. The picture below provides more details on the roadmap for succeeding releases. 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-04-09-pyflink-udfs/roadmap-of-pyflink.png" width="600px" alt="Roadmap of PyFlink"/>
+<img src="/img/blog/2020-04-09-pyflink-udfs/roadmap-of-pyflink.png" width="600px" alt="Roadmap of PyFlink"/>
 </center>
 <br>

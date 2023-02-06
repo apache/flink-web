@@ -39,7 +39,7 @@ We have provided a [GitHub repository](https://github.com/mbode/flink-prometheus
 This builds a Flink job using the build tool [Gradle](https://gradle.org/) and starts up a local environment based on [Docker Compose](https://docs.docker.com/compose/) running the job in a [Flink job cluster]({{< param DocsBaseUrl >}}flink-docs-release-1.7/ops/deployment/docker.html#flink-job-cluster) (reachable at [http://localhost:8081](http://localhost:8081/)) as well as a Prometheus instance ([http://localhost:9090](http://localhost:9090/)).
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-03-11-prometheus-monitoring/prometheusexamplejob.png" width="600px" alt="PrometheusExampleJob in Flink Web UI"/>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheusexamplejob.png" width="600px" alt="PrometheusExampleJob in Flink Web UI"/>
 <br/>
 <i><small>Job graph and custom metric for example job in Flink web interface.</small></i>
 </center>
@@ -91,7 +91,7 @@ To start monitoring Flink with Prometheus, the following steps are necessary:
 Both custom metrics are now available in Prometheus:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-03-11-prometheus-monitoring/prometheus.png" width="600px" alt="Prometheus web UI with example metric"/>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheus.png" width="600px" alt="Prometheus web UI with example metric"/>
 <br/>
 <i><small>Example metric in Prometheus web UI.</small></i>
 </center>
@@ -108,7 +108,7 @@ docker kill taskmanager1
 Our Flink job can recover from this partial failure via the mechanism of [Checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.7/dev/stream/state/checkpointing.html). Nevertheless, after roughly one minute (as configured in the alert rule) the following alert will fire:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-03-11-prometheus-monitoring/prometheusalerts.png" width="600px" alt="Prometheus web UI with example alert"/>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheusalerts.png" width="600px" alt="Prometheus web UI with example alert"/>
 <br/>
 <i><small>Example alert in Prometheus web UI.</small></i>
 </center>

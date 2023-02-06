@@ -14,4 +14,4 @@ This release include a version upgrade of Apache Flink to 1.13.5, for log4j to a
 
 We highly recommend all users to upgrade to the latest patch release.
 
-You can find the source and binaries on the updated [Downloads page]({{< siteurl >}}/downloads.html), and Docker images in the [apache/flink-statefun](https://hub.docker.com/r/apache/flink-statefun) dockerhub repository.
+You can find the source and binaries on the updated [Downloads page](/downloads.html), and Docker images in the [apache/flink-statefun](https://hub.docker.com/r/apache/flink-statefun) dockerhub repository.

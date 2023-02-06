@@ -20,7 +20,7 @@ We highly recommend all users upgrade to Flink Table Store 0.2.1.
 
 ## Binaries
 
-You can find the binaries on the updated [Downloads page]({{< siteurl >}}/downloads.html).
+You can find the binaries on the updated [Downloads page](/downloads.html).
 
 # Release Notes
 

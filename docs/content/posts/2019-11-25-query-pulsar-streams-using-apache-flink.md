@@ -101,7 +101,7 @@ consumer.receive();
 Let’s assume we have an application that specifies a schema to the producer and/or consumer. Upon receiving the schema information, the producer (or consumer) — that is connected to the broker — will transfer such information so that the broker can then perform schema registration, validations and schema compatibility checks before returning or rejecting the schema as illustrated in the diagram below: 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/flink-pulsar-sql-blog-post-visual.png" width="600px" alt="Pulsar Schema"/>
+<img src="/img/blog/flink-pulsar-sql-blog-post-visual.png" width="600px" alt="Pulsar Schema"/>
 </center>
 <br>
 
@@ -113,7 +113,7 @@ For the cases when Flink users do not interact with schema directly or make use 
 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/flink-pulsar-sql-blog-post-visual-primitive-avro-schema.png" width="600px" alt="Primitive and AVRO Schema"/>
+<img src="/img/blog/flink-pulsar-sql-blog-post-visual-primitive-avro-schema.png" width="600px" alt="Primitive and AVRO Schema"/>
 </center>
 <br>
 

@@ -11,7 +11,7 @@ title: Continuous Queries on Dynamic Tables
 More and more companies are adopting stream processing and are migrating existing batch applications to streaming or implementing streaming solutions for new use cases. Many of those applications focus on analyzing streaming data. The data streams that are analyzed come from a wide variety of sources such as database transactions, clicks, sensor measurements, or IoT devices. 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/streams.png" style="width:45%;margin:10px">
+<img src="/img/blog/dynamic-tables/streams.png" style="width:45%;margin:10px">
 </center>
 
 Apache Flink is very well suited to power streaming analytics applications because it provides support for event-time semantics, stateful exactly-once processing, and achieves high throughput and low latency at the same time. Due to these features, Flink is able to compute exact and deterministic results from high-volume input streams in near real-time while providing exactly-once semantics in case of failures.
@@ -77,13 +77,13 @@ In its current state (version 1.2.0), Flink's relational APIs support a limited 
 The limitations of the current version are acceptable for applications that emit data to storage systems such as Kafka topics, message queues, or files which only support append operations and no updates or deletes. Common use cases that follow this pattern are for example continuous ETL and stream archiving applications that persist streams to an archive or prepare data for further online (streaming) analysis or later offline analysis. Since it is not possible to update previously emitted results, these kinds of applications have to make sure that the emitted results are correct and will not need to be corrected in the future. The following figure illustrates such applications.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/query-append-out.png" style="width:60%;margin:10px">
+<img src="/img/blog/dynamic-tables/query-append-out.png" style="width:60%;margin:10px">
 </center>
 
 While queries that only support appends are useful for some kinds of applications and certain types of storage systems, there are many streaming analytics use cases that need to update results. This includes streaming applications that cannot discard late arriving records, need early results for (long-running) windowed aggregates, or require non-windowed aggregates. In each of these cases, previously emitted result records need to be updated. Result-updating queries often materialize their result to an external database or key-value store in order to make it accessible and queryable for external applications. Applications that implement this pattern are dashboards, reporting applications, or [other applications](http://2016.flink-forward.org/kb_sessions/joining-infinity-windowless-stream-processing-with-flink/), which require timely access to continuously updated results. The following figure illustrates these kind of applications.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/query-update-out.png" style="width:60%;margin:10px">
+<img src="/img/blog/dynamic-tables/query-update-out.png" style="width:60%;margin:10px">
 </center>
 
 ## Continuous Queries on Dynamic Tables
@@ -95,7 +95,7 @@ So when adding support for result-updating queries, we must of course preserve t
 Assuming we can run queries on dynamic tables which produce new dynamic tables, the next question is, How do streams and dynamic tables relate to each other? The answer is that streams can be converted into dynamic tables and dynamic tables can be converted into streams. The following figure shows the conceptual model of processing a relational query on a stream.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/stream-query-stream.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/stream-query-stream.png" style="width:70%;margin:10px">
 </center>
 
 First, the stream is converted into a dynamic table. The dynamic table is queried with a continuous query, which produces a new dynamic table. Finally, the resulting table is converted back into a stream. It is important to note that this is only the logical model and does not imply how the query is actually executed. In fact, a continuous query is internally translated into a conventional DataStream program.
@@ -113,13 +113,13 @@ The first step of evaluating a SQL query on a dynamic table is to define a dynam
 In append mode each stream record is an insert modification to the dynamic table. Hence, all records of a stream are appended to the dynamic table such that it is ever-growing and infinite in size. The following figure illustrates the append mode.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/append-mode.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/append-mode.png" style="width:70%;margin:10px">
 </center>
 
 In update mode a stream record can represent an insert, update, or delete modification on the dynamic table (append mode is in fact a special case of update mode). When defining a dynamic table on a stream via update mode, we can specify a unique key attribute on the table. In that case, update and delete operations are performed with respect to the key attribute. The update mode is visualized in the following figure.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/replace-mode.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/replace-mode.png" style="width:70%;margin:10px">
 </center>
 
 ## Querying a Dynamic Table
@@ -131,7 +131,7 @@ A query *q* on a dynamic table *A* produces a dynamic table *R*, which is at eac
 In the figure below, we see a dynamic input table *A* on the left side, which is defined in append mode. At time *t = 8*, *A* consists of six rows (colored in blue). At time *t = 9* and *t = 12*, one row is appended to *A* (visualized in green and orange, respectively). We run a simple query on table *A* which is shown in the center of the figure. The query groups by attribute *k* and counts the records per group. On the right hand side we see the result of query *q* at time *t = 8* (blue), *t = 9* (green), and *t = 12* (orange). At each point in time t, the result table is equivalent to a batch query on the dynamic table *A* at time *t*.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/query-groupBy-cnt.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/query-groupBy-cnt.png" style="width:70%;margin:10px">
 </center>
 
 The query in this example is a simple grouped (but not windowed) aggregation query. Hence, the size of the result table depends on the number of distinct grouping keys of the input table. Moreover, it is worth noticing that the query continuously updates result rows that it had previously emitted instead of merely adding new rows.
@@ -139,7 +139,7 @@ The query in this example is a simple grouped (but not windowed) aggregation que
 The second example shows a similar query which differs in one important aspect. In addition to grouping on the key attribute *k*, the query also groups records into tumbling windows of five seconds, which means that it computes a count for each value of *k* every five seconds. Again, we use Calcite's [group window functions](https://calcite.apache.org/docs/reference.html#grouped-window-functions) to specify this query. On the left side of the figure we see the input table *A* and how it changes over time in append mode. On the right we see the result table and how it evolves over time.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/query-groupBy-window-cnt.png" style="width:80%;margin:10px">
+<img src="/img/blog/dynamic-tables/query-groupBy-window-cnt.png" style="width:80%;margin:10px">
 </center>
 
 In contrast to the result of the first example, the resulting table grows relative to the time, i.e., every five seconds new result rows are computed (given that the input table received more records in the last five seconds). While the non-windowed query (mostly) updates rows of the result table, the windowed aggregation query only appends new rows to the result table.
@@ -155,7 +155,7 @@ Traditional database systems use logs to rebuild tables in case of failures and 
 A dynamic table is converted into a redo+undo stream by converting the modifications on the table into stream messages. An insert modification is emitted as an insert message with the new row, a delete modification is emitted as a delete message with the old row, and an update modification is emitted as a delete message with the old row and an insert message with the new row. This behavior is illustrated in the following figure.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/undo-redo-mode.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/undo-redo-mode.png" style="width:70%;margin:10px">
 </center>
 
 The left shows a dynamic table which is maintained in append mode and serves as input to the query in the center. The result of the query converted into a redo+undo stream which is shown at the bottom. The first record *(1, A)* of the input table results in a new record in the result table and hence in an insert message *+(A, 1)* to the stream. The second input record with *k = 'A'* *(4, A)* produces an update of the *(A, 1)* record in the result table and hence yields a delete message *-(A, 1)* and an insert message for *+(A, 2)*. All downstream operators or data sinks need to be able to correctly handle both types of messages. 
@@ -163,7 +163,7 @@ The left shows a dynamic table which is maintained in append mode and serves as 
 A dynamic table can be converted into a redo stream in two cases: either it is an append-only table (i.e., it only has insert modifications) or it has a unique key attribute. Each insert modification on the dynamic table results in an insert message with the new row to the redo stream. Due to the restriction of redo streams, only tables with unique keys can have update and delete modifications. If a key is removed from the keyed dynamic table, either because a row is deleted or because the key attribute of a row was modified, a delete message with the removed key is emitted to the redo stream. An update modification yields an update message with the updating, i.e., new row. Since delete and update modifications are defined with respect to the unique key, the downstream operators need to be able to access previous values by key. The figure below shows how the result table of the same query as above is converted into a redo stream.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/dynamic-tables/redo-mode.png" style="width:70%;margin:10px">
+<img src="/img/blog/dynamic-tables/redo-mode.png" style="width:70%;margin:10px">
 </center>
 
 The row *(1, A)* which yields an insert into the dynamic table results in the *+(A, 1)* insert message. The row *(4, A)* which produces an update yields the **(A, 2)* update message.

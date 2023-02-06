@@ -242,7 +242,7 @@ After running this through the [jmh](http://openjdk.java.net/projects/code-tools
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-04-15-flink-serialization-performance-results.svg" width="800px" alt="Communication between the Flink operator and the Python execution environment"/>
+<img src="/img/blog/2020-04-15-flink-serialization-performance-results.svg" width="800px" alt="Communication between the Flink operator and the Python execution environment"/>
 </center>
 <br>
 

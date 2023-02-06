@@ -27,7 +27,7 @@ The execution model, as well as the API of Apache Beam, are similar to Flink's. 
 One of the most exciting developments in the Beam technology is the framework’s support for multiple programming languages including Java, Python, Go, Scala and SQL. Essentially, developers can write their applications in a programming language of their choice. Beam, with the help of the Runners, translates the program to one of the execution engines, as shown in the diagram below.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-beam-vision.png" width="600px" alt="The vision of Apache Beam"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-beam-vision.png" width="600px" alt="The vision of Apache Beam"/>
 </center>
 
 
@@ -71,7 +71,7 @@ The Flink Runner has two translation paths. Depending on whether we execute in b
 4. **The Portable Flink Runner for streaming jobs:** Executes Java as well as Python, Go and other supported SDK pipelines for streaming scenarios
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-runner-translation-paths.png" width="300px" alt="The 4 translation paths in the Beam's Flink Runner"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-runner-translation-paths.png" width="300px" alt="The 4 translation paths in the Beam's Flink Runner"/>
 </center>
 
 
@@ -80,7 +80,7 @@ The Flink Runner has two translation paths. Depending on whether we execute in b
 The classic Flink Runner was the initial version of the Runner, hence the "classic" name. Beam pipelines are represented as a graph in Java which is composed of the aforementioned composite and primitive transforms. Beam provides translators which traverse the graph in topological order. Topological order means that we start from all the sources first as we iterate through the graph. Presented with a transform from the graph, the Flink Runner generates the API calls as you would normally when writing a Flink job.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/classic-flink-runner-beam.png" width="600px" alt="The Classic Flink Runner in Beam"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/classic-flink-runner-beam.png" width="600px" alt="The Classic Flink Runner in Beam"/>
 </center>
 
 While Beam and Flink share very similar concepts, there are enough differences between the two frameworks that make Beam pipelines impossible to be translated 1:1 into a Flink program. In the following sections, we will present the key differences:
@@ -90,7 +90,7 @@ While Beam and Flink share very similar concepts, there are enough differences b
 When data is transferred over the wire in Flink, it has to be turned into bytes. This is done with the help of serializers. Flink has a type system to instantiate the correct coder for a given type, e.g. `StringTypeSerializer` for a String. Apache Beam also has its own type system which is similar to Flink's but uses slightly different interfaces. Serializers are called Coders in Beam. In order to make a Beam Coder run in Flink, we have to make the two serializer types compatible. This is done by creating a special Flink type information that looks like the one in Flink but calls the appropriate Beam coder. That way, we can use Beam's coders although we are executing the Beam job with Flink. Flink operators expect a TypeInformation, e.g. `StringTypeInformation`, for which we use a `CoderTypeInformation` in Beam. The type information returns the serializer for which we return a `CoderTypeSerializer`, which calls the underlying Beam Coder. 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-serializers-coders.png" width="300px" alt="Serializers vs Coders"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-serializers-coders.png" width="300px" alt="Serializers vs Coders"/>
 </center>
 
 ### Read
@@ -130,7 +130,7 @@ There are two important building blocks for portable Runners:
 The Runner API provides a universal representation of the pipeline as Protobuf which contains the transforms, types, and user code. Protobuf was chosen as the format because every language has libraries available for it. Similarly, for the execution part, Beam introduced the Fn API interface to handle the communication between the Runner/execution engine and the user code that may be written in a different language and executes in a different process. Fn API is pronounced "fun API", you may guess why.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability.png" width="600px" alt="Language Portability in Apache Beam"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability.png" width="600px" alt="Language Portability in Apache Beam"/>
 </center>
 
 
@@ -146,7 +146,7 @@ Users write their Beam pipelines in one language, but they may get executed in a
 Environments hold the _SDK Harness_ which is the code that handles the execution and the communication with the Runner over the Fn API. For example, when Flink executes Python code, it sends the data to the Python environment containing the Python SDK Harness. Sending data to an external process involves a minor overhead which we have measured to be 5-10% slower than the classic Java pipelines. However, Beam uses a fusion of transforms to execute as many transforms as possible in the same environment which share the same input or output. That's why in real-world scenarios the overhead could be much lower.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability-architecture.png" width="600px" alt="Language Portability Architecture in beam"/>
+<img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability-architecture.png" width="600px" alt="Language Portability Architecture in beam"/>
 </center>
 
 

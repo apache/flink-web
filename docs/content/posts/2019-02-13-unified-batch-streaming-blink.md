@@ -24,7 +24,7 @@ Last week, we [broke the news](https://lists.apache.org/thread.html/2f7330e85d70
 Since its early days, Apache Flink has followed the philosophy of taking a unified approach to batch and streaming data processing. The core building block is *"continuous processing of unbounded data streams"*: if you can do that, you can also do offline processing of bounded data sets (batch processing use cases), because these are just streams that happen to end at some point.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/unified-batch-streaming-blink/bounded-unbounded.png" width="600px" alt="Processing of bounded and unbounded data."/>
+<img src="/img/blog/unified-batch-streaming-blink/bounded-unbounded.png" width="600px" alt="Processing of bounded and unbounded data."/>
 </center>
 <br>
 
@@ -51,7 +51,7 @@ We always believed that it is possible to have a runtime that is state-of-the-ar
 Apache Flink has a network stack that supports both [low-latency/high-throughput streaming data exchanges](https://www.ververica.com/flink-forward-berlin/resources/improving-throughput-and-latency-with-flinks-network-stack), as well as high-throughput batch shuffles. Flink has streaming runtime operators for many operations, but also specialized operators for bounded inputs, which get used when you choose the DataSet API or select the batch environment in the Table API.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/unified-batch-streaming-blink/stream-batch-joins.png" width="500px" alt="Streaming and batch joins."/>
+<img src="/img/blog/unified-batch-streaming-blink/stream-batch-joins.png" width="500px" alt="Streaming and batch joins."/>
 <br>
 <i>The figure illustrates a streaming join and a batch join. The batch join can read one input fully into a hash table and then probe with the other input. The stream join needs to build tables for both sides, because it needs to continuously process both inputs. 
 For data larger than memory, the batch join can partition both data sets into subsets that fit in memory (data hits disk once) whereas the continuous nature of the stream join requires it to always keep all data in the table and repeatedly hit disk on cache misses.</i>
@@ -61,7 +61,7 @@ For data larger than memory, the batch join can partition both data sets into su
 Because of that, Apache Flink has been actually demonstrating some pretty impressive batch processing performance since its early days. The below benchmark is a bit older, but validated our architectural approach early on.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/unified-batch-streaming-blink/sort-performance.png" width="500px" alt="Sort performance."/>
+<img src="/img/blog/unified-batch-streaming-blink/sort-performance.png" width="500px" alt="Sort performance."/>
 <br>
 <i>Time to sort 3.2 TB (80 GB/node), in seconds<br>
 (<a href="https://www.slideshare.net/FlinkForward/dongwon-kim-a-comparative-performance-evaluation-of-flink" target="blank">Presentation by Dongwon Kim, Flink Forward Berlin 2015</a>.)</i>
@@ -105,7 +105,7 @@ Blink is a fork of Apache Flink, originally created inside Alibaba to improve Fl
 The changes in Blink result in a big improvement in performance. The below numbers were reported by the developers of Blink to give a rough impression of the performance gains.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/unified-batch-streaming-blink/blink-flink-tpch.png" width="600px" alt="TPC-H performance of Blink and Flink."/>
+<img src="/img/blog/unified-batch-streaming-blink/blink-flink-tpch.png" width="600px" alt="TPC-H performance of Blink and Flink."/>
 <br>
 <i>Relative performance of Blink versus Flink 1.6.0 in the TPC-H benchmark, query by query.<br>
 The performance improvement is in average 10x.<br>
@@ -114,7 +114,7 @@ The performance improvement is in average 10x.<br>
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/unified-batch-streaming-blink/blink-spark-tpcds.png" width="600px" alt="TPC-DS performace of Blink and Spark."/>
+<img src="/img/blog/unified-batch-streaming-blink/blink-spark-tpcds.png" width="600px" alt="TPC-DS performace of Blink and Spark."/>
 <br>
 <i>Performance of Blink versus Spark in the TPC-DS benchmark, aggregate time for all queries together.<br>
 <a href="https://www.bilibili.com/video/av42325467/?p=3" target="blank">Presentation by Xiaowei Jiang at Flink Forward Beijing, 2018</a>.</i>

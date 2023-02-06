@@ -120,7 +120,7 @@ under the License.
 
 ## How do I get help from Apache Flink?
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](#stack-overflow). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira](https://issues.apache.org/jira/browse/FLINK). Those interested in contributing to Flink should check out the [contribution guide]({{< ref "how-to-contribute" >}}).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](#stack-overflow). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira](https://issues.apache.org/jira/browse/FLINK). Those interested in contributing to Flink should check out the [contribution guide]({{< relref "how-to-contribute" >}}).
 
 ## Mailing Lists
 
@@ -280,4 +280,4 @@ Please find the most up-to-date list <a href="https://projects.apache.org/commit
 
 ## Materials / Apache Flink Logos
 
-The [materials page]({{< ref "material" >}}) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
+The [materials page]({{< relref "material" >}}) offers assets such as the Apache Flink logo in different image formats, or the Flink color scheme.
