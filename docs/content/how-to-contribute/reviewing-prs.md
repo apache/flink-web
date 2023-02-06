@@ -19,7 +19,7 @@ Every review needs to check the following six aspects. **We encourage to check t
 
 ### 1. Is the Contribution Well-Described?
 
-Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly [according to a prior discussion on Jira or the development mainling list]({{< ref "how-to-contribute/contribute-code" >}}#consensus), only a short reference to that discussion is needed.
+Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly [according to a prior discussion on Jira or the development mainling list]({{< relref "how-to-contribute/contribute-code" >}}#consensus), only a short reference to that discussion is needed.
 If the implementation is different from the agreed approach in the consensus discussion, a detailed description of the implementation is required for any further review of the contribution.
 
 Any pull request that changes functionality or behavior needs to describe the big picture of these changes, so that reviews know what to look for (and don’t have to dig through the code to hopefully understand what the change does).
@@ -31,7 +31,7 @@ Any pull request that changes functionality or behavior needs to describe the bi
 
 ### 2. Is There Consensus that the Change or Feature Should Go into Flink?
 
-This question can be directly answered from the linked Jira issue. For pull requests that are created without prior consensus, a [discussion in Jira to seek consensus]({{< ref "how-to-contribute/contribute-code" >}}) will be needed.
+This question can be directly answered from the linked Jira issue. For pull requests that are created without prior consensus, a [discussion in Jira to seek consensus]({{< relref "how-to-contribute/contribute-code" >}}) will be needed.
 
 
 For `[hotfix]` pull requests, consensus needs to be checked in the pull request.
@@ -78,7 +78,7 @@ This is the detailed code review of the actual changes, covering:
 * Does the code avoid to introduce additional compiler warnings?
 * If dependencies have been changed, were the NOTICE files updated?
 
-Code guidelines can be found in the [Flink Code Style and Quality Guide]({{< ref "how-to-contribute/code-style-and-quality-preamble" >}}).
+Code guidelines can be found in the [Flink Code Style and Quality Guide]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}}).
 
 ----
 
@@ -86,4 +86,4 @@ Code guidelines can be found in the [Flink Code Style and Quality Guide]({{< ref
 
 If the pull request introduces a new feature, the feature should be documented. The Flink community is maintaining both an English and a Chinese documentation. So both documentations should be updated. If you are not familiar with the Chinese language, please open a Jira assigned to the `chinese-translation` component for Chinese documentation translation and link it with current Jira issue. If you are familiar with Chinese language, you are encouraged to update both sides in one pull request.
 
-See more about how to [contribute documentation]({{< ref "how-to-contribute/contribute-documentation" >}}).
+See more about how to [contribute documentation]({{< relref "how-to-contribute/contribute-documentation" >}}).

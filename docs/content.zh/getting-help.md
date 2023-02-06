@@ -49,7 +49,7 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 
 你可以通过 [此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1llkzbgyt-K2nNGGg88rfsDGLkT09Qzg) 加入 Apache Flink 社区专属的 Slack 工作空间。
 在成功加入后，不要忘记在 #introductions 频道介绍你自己。
-Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表]({{< ref "community" >}}#mailing-lists)。 
+Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表]({{< relref "community" >}}#mailing-lists)。 
 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 
 ### Stack Overflow
@@ -60,7 +60,7 @@ Flink 社区的许多成员都活跃在 [Stack Overflow](https://stackoverflow.c
 
 如果你发现一个意外行为可能是由 Bug 导致的，你可以在 [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK) 中搜索已经上报的 Bug 或者发布该 Bug。
 
-如果你不确定意外行为的发生是否由 Bug 引起的，请发送问题到 [用户邮件列表]({{< ref "community" >}}#user-mailing-list)。
+如果你不确定意外行为的发生是否由 Bug 引起的，请发送问题到 [用户邮件列表]({{< relref "community" >}}#user-mailing-list)。
 
 ## 收到错误信息?
 

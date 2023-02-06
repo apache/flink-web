@@ -6,13 +6,13 @@ bookHidden: true
 
 # Code Style and Quality Guide — Pull Requests & Changes
 
-#### [Preamble]({{< ref "how-to-contribute/code-style-and-quality-preamble" >}})
-#### [Pull Requests & Changes]({{< ref "how-to-contribute/code-style-and-quality-pull-requests" >}})
-#### [Common Coding Guide]({{< ref "how-to-contribute/code-style-and-quality-common" >}})
-#### [Java Language Guide]({{< ref "how-to-contribute/code-style-and-quality-java" >}})
-#### [Scala Language Guide]({{< ref "how-to-contribute/code-style-and-quality-scala" >}})
-#### [Components Guide]({{< ref "how-to-contribute/code-style-and-quality-components" >}})
-#### [Formatting Guide]({{< ref "how-to-contribute/code-style-and-quality-formatting" >}})
+#### [Preamble]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}})
+#### [Pull Requests & Changes]({{< relref "how-to-contribute/code-style-and-quality-pull-requests" >}})
+#### [Common Coding Guide]({{< relref "how-to-contribute/code-style-and-quality-common" >}})
+#### [Java Language Guide]({{< relref "how-to-contribute/code-style-and-quality-java" >}})
+#### [Scala Language Guide]({{< relref "how-to-contribute/code-style-and-quality-scala" >}})
+#### [Components Guide]({{< relref "how-to-contribute/code-style-and-quality-components" >}})
+#### [Formatting Guide]({{< relref "how-to-contribute/code-style-and-quality-formatting" >}})
 
 <hr>
 

@@ -24,7 +24,7 @@ Data can be processed as *unbounded* or *bounded* streams.
 
 **Apache Flink excels at processing unbounded and bounded data sets.** Precise control of time and state enable Flink's runtime to run any kind of application on unbounded streams. Bounded streams are internally processed by algorithms and data structures that are specifically designed for fixed sized data sets, yielding excellent performance.
 
-Convince yourself by exploring the [use cases]({{< ref "use-cases" >}}) that have been built on top of Flink.
+Convince yourself by exploring the [use cases]({{< relref "use-cases" >}}) that have been built on top of Flink.
 
 ## Deploy Applications Anywhere
 
@@ -53,7 +53,7 @@ Flink features two deployment modes for applications, the *framework mode* and t
 
 Flink is designed to run stateful streaming applications at any scale. Applications are parallelized into possibly thousands of tasks that are distributed and concurrently executed in a cluster. Therefore, an application can leverage virtually unlimited amounts of CPUs, main memory, disk and network IO. Moreover, Flink easily maintains very large application state. Its asynchronous and incremental checkpointing algorithm ensures minimal impact on processing latencies while guaranteeing exactly-once state consistency.
 
-[Users reported impressive scalability numbers]({{< ref "powered-by" >}}) for Flink applications running in their production environments, such as
+[Users reported impressive scalability numbers]({{< relref "powered-by" >}}) for Flink applications running in their production environments, such as
 
 * applications processing **multiple trillions of events per day**,
 * applications maintaining **multiple terabytes of state**, and

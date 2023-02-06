@@ -271,6 +271,6 @@ Apache Flink 为全球许多公司和企业的关键业务提供支持。在这�
 
 在项目的 wiki 页面中有一个 <a href="https://cwiki.apache.org/confluence/display/FLINK/Powered+by+Flink" target='_blank'><small><span class="glyphicon glyphicon-new-window"></span></small>  谁在使用 Flink</a> 的页面，展示了更多的 Flink 用户。请注意，该列表并不全面。我们只添加明确要求列出的用户。
 
-如果你希望加入此页面，请通过 [Flink 用户邮件列表]({{< ref "community" >}}) 告诉我们。
+如果你希望加入此页面，请通过 [Flink 用户邮件列表]({{< relref "community" >}}) 告诉我们。
 
 {{< table_noheader "powered-by" >}}

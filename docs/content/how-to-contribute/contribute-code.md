@@ -8,7 +8,7 @@ weight: 17
 
 Apache Flink is maintained, improved, and extended by code contributions of volunteers. We welcome contributions to Flink, but due to the size of the project and to preserve the high quality of the code base, we follow a contribution process that is explained in this document.
 
-**Please feel free to ask questions at any time.** Either send a mail to the [Dev mailing list]({{< ref "community" >}}#mailing-lists) or comment on the Jira issue you are working on.
+**Please feel free to ask questions at any time.** Either send a mail to the [Dev mailing list]({{< relref "community" >}}#mailing-lists) or comment on the Jira issue you are working on.
 
 **IMPORTANT**: Please read this document carefully before starting to work on a code contribution. Follow the process and guidelines explained below. Contributing to Apache Flink does not start with opening a pull request. We expect contributors to reach out to us first to discuss the overall approach together. Without consensus with the Flink committers, contributions might require substantial rework or will not be reviewed.
 
@@ -106,7 +106,7 @@ to the Flink project and want to learn about it and its contribution process, yo
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">Implement</a></h2>
-        <p>Implement the change according to the <a href="{{< ref "how-to-contribute/contribute-code" >}}">Code Style and Quality Guide</a> and the approach agreed upon in the Jira ticket.</p> <br />
+        <p>Implement the change according to the <a href="{{< relref "how-to-contribute/contribute-code" >}}">Code Style and Quality Guide</a> and the approach agreed upon in the Jira ticket.</p> <br />
         <p><b>Only start working on the implementation if there is consensus on the approach (e.g. you are assigned to the ticket)</b></p>
       </div>
     </div>
@@ -151,7 +151,7 @@ The first step for making a contribution to Apache Flink is to reach consensus w
 
 In most cases, the discussion should happen in [Flink's bug tracker: Jira](https://issues.apache.org/jira/projects/FLINK/issues).
 
-The following types of changes require a `[DISCUSS]` thread on the [Flink Dev mailing list]({{< ref "community" >}}#mailing-lists):
+The following types of changes require a `[DISCUSS]` thread on the [Flink Dev mailing list]({{< relref "community" >}}#mailing-lists):
 
 - big changes (major new feature; big refactorings, involving multiple components)
 - potentially controversial changes or issues
@@ -184,9 +184,9 @@ Jira tickets based on a dev@ discussion need to link to that discussion and shou
     - Impact on Flink's build time
     - Dependencies and their licenses
 
-If a change is identified as a large or controversial change in the discussion on Jira, it might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [Dev mailing list]({{< ref "community" >}}#mailing-lists) to reach agreement and consensus.
+If a change is identified as a large or controversial change in the discussion on Jira, it might require a [Flink Improvement Proposal (FLIP)](https://cwiki.apache.org/confluence/display/FLINK/Flink+Improvement+Proposals) or a discussion on the [Dev mailing list]({{< relref "community" >}}#mailing-lists) to reach agreement and consensus.
 
-Contributors can expect to get a first reaction from a committer within a few days after opening the ticket. If a ticket doesn't get any attention, we recommend reaching out to the [developer mailing list]({{< ref "community" >}}#mailing-lists). Note that the Flink community sometimes does not have the capacity to accept all incoming contributions.
+Contributors can expect to get a first reaction from a committer within a few days after opening the ticket. If a ticket doesn't get any attention, we recommend reaching out to the [developer mailing list]({{< relref "community" >}}#mailing-lists). Note that the Flink community sometimes does not have the capacity to accept all incoming contributions.
 
 
 Once all requirements for the ticket are met, a committer will assign somebody to the *`Assignee`* field of the ticket to work on it.
@@ -204,7 +204,7 @@ Once you've been assigned to a Jira issue, you may start to implement the requir
 Here are some further points to keep in mind while implementing:
 
 - [Set up a Flink development environment](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- Follow the [Code Style and Quality Guide]({{< ref "how-to-contribute/contribute-code" >}}) of Flink
+- Follow the [Code Style and Quality Guide]({{< relref "how-to-contribute/contribute-code" >}}) of Flink
 - Take any discussions and requirements from the Jira issue or design document into account.
 - Do not mix unrelated issues into one contribution.
 
@@ -228,7 +228,7 @@ Considerations before or right after opening a pull request:
 
 Code changes in Flink are reviewed and accepted through [GitHub pull requests](https://help.github.com/en/articles/creating-a-pull-request).
 
-There is a separate guide on [how to review a pull request]({{< ref "how-to-contribute/reviewing-prs" >}}), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
+There is a separate guide on [how to review a pull request]({{< relref "how-to-contribute/reviewing-prs" >}}), including our pull request review process. As a code author, you should prepare your pull request to meet all requirements.
 
 <a name="merge"></a>
 

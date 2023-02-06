@@ -28,11 +28,11 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> 贡献代码</td>
-      <td>请阅读 <a href=""{{< ref "how-to-contribute/contribute-code" >}}">代码贡献指南</a></td>
+      <td>请阅读 <a href=""{{< relref "how-to-contribute/contribute-code" >}}">代码贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> 帮助做代码审核</td>
-      <td>请阅读 <a href="{{< ref "how-to-contribute/reviewing-prs" >}}">代码审核指南</a></td>
+      <td>请阅读 <a href="{{< relref "how-to-contribute/reviewing-prs" >}}">代码审核指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> 帮助准备版本发布</td>
@@ -48,13 +48,13 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> 贡献文档</td>
-      <td>请阅读 <a href="{{< ref "how-to-contribute/contribute-documentation" >}}">文档贡献指南</a></td>
+      <td>请阅读 <a href="{{< relref "how-to-contribute/contribute-documentation" >}}">文档贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 支持 Flink 用户</td>
       <td>
         <ul class="contribute-card-list">
-          <li>回答 <a href="{{< ref "community" >}}#mailing-lists">用户邮件列表</a> 中的问题</li>
+          <li>回答 <a href="{{< relref "community" >}}#mailing-lists">用户邮件列表</a> 中的问题</li>
           <li>回答 <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> 上带有 <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>、 <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> 或 <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> 标签的 Flink 相关问题</li>
           <li>检查 <a href="http://issues.apache.org/jira/browse/FLINK">Jira</a> 上近期发布的 issue 中用户提出的问题</li>
         </ul>
@@ -62,7 +62,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span> 改进网站</td>
-      <td>请阅读 <a href="{{< ref "how-to-contribute/improve-website" >}}">网站贡献指南</a></td>
+      <td>请阅读 <a href="{{< relref "how-to-contribute/improve-website" >}}">网站贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-volume-up" aria-hidden="true"></span> 推广 Flink</td>
@@ -70,13 +70,13 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
         <ul class="contribute-card-list">
         <li>组织或出席 <a href="https://www.meetup.com/topics/apache-flink/">Flink Meetup</a></li>
         <li>贡献 <a href="https://flink.apache.org/blog/">Flink blog</a></li>
-        <li>在 <a href="{{< ref "community" >}}#mailing-lists">community@flink.apache.org 邮件列表</a>分享你的会议、聚会或博客文章，或发 tweet 并 <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a>。</li>
+        <li>在 <a href="{{< relref "community" >}}#mailing-lists">community@flink.apache.org 邮件列表</a>分享你的会议、聚会或博客文章，或发 tweet 并 <a href="https://twitter.com/ApacheFlink">@ApacheFlink</a>。</li>
       </ul>
       </td>
     </tr>
     <tr>
       <td colspan="2">
-        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> 如有其他问题请到 <a href="{{< ref "community" >}}#mailing-lists">dev@flink.apache.org 邮件列表</a> 寻求帮助！
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> 如有其他问题请到 <a href="{{< relref "community" >}}#mailing-lists">dev@flink.apache.org 邮件列表</a> 寻求帮助！
       </td>
     </tr>
   </tbody>

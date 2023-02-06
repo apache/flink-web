@@ -19,7 +19,7 @@ weight: 18
 
 ### 1. 贡献的描述是否清晰？
 
-检查贡献是否有充分的描述以方便审核，不重要的更改和修复不需要很长的描述。如果实现方案完全是[按照之前在 Jira 或 dev 邮件列表上讨论结论]({{< ref "how-to-contribute/contribute-code" >}}#consensus)进行的话，只需要一个对讨论的简短的引用即可。 如果实现方案与之前达成一致的方案不同的话，关于实现的详细描述是需要的，以便 review 贡献时更深入地讨论。
+检查贡献是否有充分的描述以方便审核，不重要的更改和修复不需要很长的描述。如果实现方案完全是[按照之前在 Jira 或 dev 邮件列表上讨论结论]({{< relref "how-to-contribute/contribute-code" >}}#consensus)进行的话，只需要一个对讨论的简短的引用即可。 如果实现方案与之前达成一致的方案不同的话，关于实现的详细描述是需要的，以便 review 贡献时更深入地讨论。
 
 任何改变功能或行为的 pull request 都需要描述这些改变的重点, 以便知道审核什么内容(并且不必钻研代码来了解更改的作用)。
 
@@ -29,7 +29,7 @@ weight: 18
 
 ### 2. 是否一致认为这一变更或者功能应该进入 Flink？
 
-这个问题要直接在关联的 Jira issue 中回答。对于在达成一致前创建的 pull request 来说，需要[先在 Jira 中寻求一致的意见]({{< ref "how-to-contribute/contribute-code" >}})。
+这个问题要直接在关联的 Jira issue 中回答。对于在达成一致前创建的 pull request 来说，需要[先在 Jira 中寻求一致的意见]({{< relref "how-to-contribute/contribute-code" >}})。
 
 对于 `[hotfix]` 类型的的 pull request，可以在 pull request 中寻求意见一致。
 
@@ -72,7 +72,7 @@ weight: 18
 * 代码是否避免引入额外的编译器警告？
 * 如果依赖更新了，NOTICE 文件是否也更新了？
 
-可以在 [Flink代码样式和质量指南]({{< ref "how-to-contribute/code-style-and-quality-preamble" >}}) 中找到编码的规范和指南。
+可以在 [Flink代码样式和质量指南]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}}) 中找到编码的规范和指南。
 
 ----
 
@@ -80,4 +80,4 @@ weight: 18
 
 如果这个 pull request 引入了一个新功能，该功能应该被文档化。Flink 社区正在同时维护英文和中文文档。所以如果你想要更新或扩展文档，英文和中文文档都需要更新。如果你不熟悉中文，请创建一个用于中文文档翻译的 JIRA 并附上 `chinese-translation` 的组件名，并与当前 JIRA 关联起来。如果你熟悉中文，我们鼓励在一个 pull request 中同时更新两边的文档。
 
-阅读[如何贡献文档]({{< ref "how-to-contribute/contribute-documentation" >}})了解更多。
+阅读[如何贡献文档]({{< relref "how-to-contribute/contribute-documentation" >}})了解更多。
