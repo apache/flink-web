@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.109.0">
+  <meta name="generator" content="Hugo 0.110.0">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Since version 1.5.0, Apache Flink features a new type of state which is called Broadcast State. In this post, we explain what Broadcast State is, and show an example of how it can be applied to an application that evaluates dynamic patterns on an event stream. We walk you through the processing steps and the source code to implement this application in practice.
@@ -19,7 +19,7 @@ What is Broadcast State? # The Broadcast State can be used to combine and jointl
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.30e557547cab788ae30a839ecad96a7f47a717d42150ded79f8469e8035006d8.js" integrity="sha256-MOVXVHyreIrjCoOeytlqf0enF9QhUN7Xn4Rp6ANQBtg="></script>
+<script defer src="/en.search.min.0796a5d66e2b6df43395bc0ed89d4d35f205517a3b6ebb91be5277a20695e095.js" integrity="sha256-B5al1m4rbfQzlbwO2J1NNfIFUXo7bruRvlJ3ogaV4JU="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -27,9 +27,9 @@ https://github.com/alex-shpak/hugo-book
 
   
 
-<link rel="stylesheet" type="text/css" href="//flink.apache.org/font-awesome/css/font-awesome.min.css">
-<script src="//flink.apache.org/js/anchor.min.js"></script>
-<script src="//flink.apache.org/js/flink.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
 
 
     
@@ -64,10 +64,10 @@ https://github.com/alex-shpak/hugo-book
 <nav>
 
 
-<a id="logo" href="//flink.apache.org">
+<a id="logo" href="">
     <img width="70%" src="/flink-header-logo.svg">
 </a>
-<p style="text-align:right">&#8203</p>
+
 
 <div class="book-search">
   <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
@@ -783,7 +783,6 @@ https://github.com/alex-shpak/hugo-book
 
 
 <br/>
-<hr class="menu-break">
 
   
 <label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
@@ -841,12 +840,12 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-<a  href="//flink.apache.org/zh/" class="flex align-center">
+<a  href="/zh/" class="flex align-center">
   <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
   中文版
 </a>
 
-<script src="//flink.apache.org/js/track-search-terms.js"></script>
+<script src="/js/track-search-terms.js"></script>
 
 
 </nav>
@@ -934,9 +933,7 @@ The new broadcast state is a natural fit for applications that need to join a lo
 <p>Imagine an e-commerce website that captures the interactions of all users as a stream of user actions. The company that operates the website is interested in analyzing the interactions to increase revenue, improve the user experience, and detect and prevent malicious behavior.
 The website implements a streaming application that detects a pattern on the stream of user events. However, the company wants to avoid modifying and redeploying the application every time the pattern changes. Instead, the application ingests a second stream of patterns and updates its active pattern when it receives a new pattern from the pattern stream. In the following, we discuss this application step-by-step and show how it leverages the broadcast state feature in Apache Flink.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig1.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig1.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>Our example application ingests two data streams. The first stream provides user actions on the website and is illustrated on the top left side of the above figure. A user interaction event consists of the type of the action (user login, user logout, add to cart, or complete payment) and the id of the user, which is encoded by color. The user action event stream in our illustration contains a logout action of User 1001 followed by a payment-complete event for User 1003, and an “add-to-cart” action of User 1002.</p>
@@ -949,38 +946,28 @@ The website implements a streaming application that detects a pattern on the str
 <p>On the right-hand side, the figure shows three parallel tasks of an operator that ingest the pattern and user action streams, evaluate the patterns on the action stream, and emit pattern matches downstream. For the sake of simplicity, the operator in our example only evaluates a single pattern with exactly two subsequent actions. The currently active pattern is replaced when a new pattern is received from the pattern stream. In principle, the operator could also be implemented to evaluate more complex patterns or multiple patterns concurrently which could be individually added or removed.</p>
 <p>We will describe how the pattern matching application processes the user action and pattern streams.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig2.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig2.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>First a pattern is sent to the operator. The pattern is broadcasted to all three parallel tasks of the operator. The tasks store the pattern in their broadcast state. Since the broadcast state should only be updated using broadcasted data, the state of all tasks is always expected to be the same.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig3.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig3.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>Next, the first user actions are partitioned on the user id and shipped to the operator tasks. The partitioning ensures that all actions of the same user are processed by the same task. The figure above shows the state of the application after the first pattern and the first three action events were consumed by the operator tasks.</p>
 <p>When a task receives a new user action, it evaluates the currently active pattern by looking at the user’s latest and previous actions. For each user, the operator stores the previous action in the keyed state. Since the tasks in the figure above only received a single action for each user so far (we just started the application), the pattern does not need to be evaluated. Finally, the previous action in the user’s keyed state is updated to the latest action, to be able to look it up when the next action of the same user arrives.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig4.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig4.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>After the first three actions are processed, the next event, the logout action of User 1001, is shipped to the task that processes the events of User 1001. When the task receives the actions, it looks up the current pattern from the broadcast state and the previous action of User 1001. Since the pattern matches both actions, the task emits a pattern match event. Finally, the task updates its keyed state by overriding the previous event with the latest action.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig5.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig5.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>When a new pattern arrives in the pattern stream, it is broadcasted to all tasks and each task updates its broadcast state by replacing the current pattern with the new one.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/broadcastState/fig6.png" width="600px" alt="Broadcast State in Apache Flink."/>
+<img src="/img/blog/broadcastState/fig6.png" width="600px" alt="Broadcast State in Apache Flink."/>
 </center>
 <br>
 <p>Once the broadcast state is updated with a new pattern, the matching logic continues as before, i.e., user action events are partitioned by key and evaluated by the responsible task.</p>

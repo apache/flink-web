@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.109.0">
+  <meta name="generator" content="Hugo 0.110.0">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Part one of this blog post explained the motivation behind introducing sort-based blocking shuffle, presented benchmark results, and provided guidelines on how to use this new feature.
@@ -19,7 +19,7 @@ Like sort-merge shuffle implemented by other distributed data processing framewo
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.30e557547cab788ae30a839ecad96a7f47a717d42150ded79f8469e8035006d8.js" integrity="sha256-MOVXVHyreIrjCoOeytlqf0enF9QhUN7Xn4Rp6ANQBtg="></script>
+<script defer src="/en.search.min.0796a5d66e2b6df43395bc0ed89d4d35f205517a3b6ebb91be5277a20695e095.js" integrity="sha256-B5al1m4rbfQzlbwO2J1NNfIFUXo7bruRvlJ3ogaV4JU="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -27,9 +27,9 @@ https://github.com/alex-shpak/hugo-book
 
   
 
-<link rel="stylesheet" type="text/css" href="//flink.apache.org/font-awesome/css/font-awesome.min.css">
-<script src="//flink.apache.org/js/anchor.min.js"></script>
-<script src="//flink.apache.org/js/flink.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
 
 
     
@@ -64,10 +64,10 @@ https://github.com/alex-shpak/hugo-book
 <nav>
 
 
-<a id="logo" href="//flink.apache.org">
+<a id="logo" href="">
     <img width="70%" src="/flink-header-logo.svg">
 </a>
-<p style="text-align:right">&#8203</p>
+
 
 <div class="book-search">
   <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
@@ -783,7 +783,6 @@ https://github.com/alex-shpak/hugo-book
 
 
 <br/>
-<hr class="menu-break">
 
   
 <label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
@@ -841,12 +840,12 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-<a  href="//flink.apache.org/zh/" class="flex align-center">
+<a  href="/zh/" class="flex align-center">
   <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
   中文版
 </a>
 
-<script src="//flink.apache.org/js/track-search-terms.js"></script>
+<script src="/js/track-search-terms.js"></script>
 
 
 </nav>
@@ -1003,9 +1002,7 @@ https://github.com/alex-shpak/hugo-book
 </span></span><span class="line"><span class="cl"><span class="o">}</span>
 </span></span></code></pre></div><p>Currently, Flink does not need to sort records by key on the data producer side, so the default implementation of sort buffer only sorts data by subpartition index, which is achieved by binary bucket sort. More specifically, each data record will be serialized and attached a 16 bytes binary header. Among the 16 bytes, 4 bytes is for the record length, 4 bytes is for the data type (event or data buffer) and 8 bytes is for pointers to the next records belonging to the same subpartition to be consumed by the same downstream data consumer. When reading data from the sort buffer, all records of the same subpartition will be copied one by one following the pointer in the record header, which guarantees that for each subpartition, the order of record reading/spilling is the same order as when the record is emitted by the producer task. The following picture shows the internal structure of the in-memory binary sort buffer:</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/2021-10-26-sort-shuffle/1.jpg" width="70%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/1.jpg" width="70%"/>
 </center>
 <h2 id="storage-structure">
   Storage structure
@@ -1014,15 +1011,11 @@ https://github.com/alex-shpak/hugo-book
 <p>The data of each blocking result partition is stored as a physical data file on the disk. The data file consists of multiple data regions, one data spilling produces one data region. In each data region, the data is clustered by the subpartition ID (index) and each subpartition is corresponding to one data consumer.</p>
 <p>The following picture shows the structure of a simple data file. This data file has three data regions (R1, R2, R3) and three consumers (C1, C2, C3). Data blocks B1.1, B2.1 and B3.1 will be consumed by C1, data blocks B1.2, B2.2 and B3.2 will be consumed by C2, and data blocks B1.3, B2.3 and B3.3 will be consumed by C3.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/2021-10-26-sort-shuffle/2.jpg" width="60%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/2.jpg" width="60%"/>
 </center>
 <p>In addition to the data file, for each result partition, there is also an index file which contains pointers to the data file. The index file has the same number of regions as the data file. In each region, there are n (equals to the number of subpartitions) index entries. Each index entry consists of two parts: one is the file offset of the target data in the data file, the other is the data size. To reduce the disk IO caused by index data file access, Flink caches the index data using unmanaged heap memory if the index data file size is less than 4M. The following picture illustrates the relationship between index file and data file:</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/2021-10-26-sort-shuffle/4.jpg" width="60%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/4.jpg" width="60%"/>
 </center>
 <h2 id="io-scheduling">
   IO scheduling
@@ -1047,9 +1040,7 @@ https://github.com/alex-shpak/hugo-book
 <p>Shuffle data broadcast in Flink refers to sending the same collection of data to all the downstream data consumers. Instead of copying and writing the same data multiple times, Flink optimizes this process by copying and spilling the broadcast data only once, which improves the data broadcast performance.</p>
 <p>More specifically, when broadcasting a data record to the sort buffer, the record will be copied and stored once. A similar thing happens when spilling the broadcast data into files. For index data, the only difference is that all the index entries for different downstream consumers point to the same data in the data file.</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/2021-10-26-sort-shuffle/5.jpg" width="85%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/5.jpg" width="85%"/>
 </center>
 <h2 id="data-compression">
   Data compression
@@ -1057,9 +1048,7 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p>Data compression is a simple but really useful technique to improve blocking shuffle performance. Similar to the data compression implementation of the hash-based blocking shuffle, data is compressed per buffer after it is copied from the in-memory sort buffer and before it is spilled to disk. If the data size becomes even larger after compression, the original uncompressed data buffer will be kept. Then the corresponding downstream data consumers are responsible for decompressing the received shuffle data when processing it. In fact, the sort-based blocking shuffle reuses those building blocks implemented for the hash-based blocking shuffle directly. The following picture illustrates the shuffle data compression process:</p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/2021-10-26-sort-shuffle/3.jpg" width="85%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/3.jpg" width="85%"/>
 </center>
 <h1 id="future-improvements">
   Future improvements

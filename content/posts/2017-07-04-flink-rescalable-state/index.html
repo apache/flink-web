@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.109.0">
+  <meta name="generator" content="Hugo 0.110.0">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. {% toc %}
@@ -21,7 +21,7 @@ In contrast, operators in stateless stream processing only consider their curren
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.30e557547cab788ae30a839ecad96a7f47a717d42150ded79f8469e8035006d8.js" integrity="sha256-MOVXVHyreIrjCoOeytlqf0enF9QhUN7Xn4Rp6ANQBtg="></script>
+<script defer src="/en.search.min.0796a5d66e2b6df43395bc0ed89d4d35f205517a3b6ebb91be5277a20695e095.js" integrity="sha256-B5al1m4rbfQzlbwO2J1NNfIFUXo7bruRvlJ3ogaV4JU="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -29,9 +29,9 @@ https://github.com/alex-shpak/hugo-book
 
   
 
-<link rel="stylesheet" type="text/css" href="//flink.apache.org/font-awesome/css/font-awesome.min.css">
-<script src="//flink.apache.org/js/anchor.min.js"></script>
-<script src="//flink.apache.org/js/flink.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
 
 
     
@@ -66,10 +66,10 @@ https://github.com/alex-shpak/hugo-book
 <nav>
 
 
-<a id="logo" href="//flink.apache.org">
+<a id="logo" href="">
     <img width="70%" src="/flink-header-logo.svg">
 </a>
-<p style="text-align:right">&#8203</p>
+
 
 <div class="book-search">
   <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
@@ -785,7 +785,6 @@ https://github.com/alex-shpak/hugo-book
 
 
 <br/>
-<hr class="menu-break">
 
   
 <label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
@@ -843,12 +842,12 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-<a  href="//flink.apache.org/zh/" class="flex align-center">
+<a  href="/zh/" class="flex align-center">
   <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
   中文版
 </a>
 
-<script src="//flink.apache.org/js/track-search-terms.js"></script>
+<script src="/js/track-search-terms.js"></script>
 
 
 </nav>
@@ -953,9 +952,7 @@ https://github.com/alex-shpak/hugo-book
 <p>On restore, the new tasks for the job (which potentially run on different machines now) can again pick up the state data from the distributed storage system.</p>
 <p><br><center><i>Figure 1</i></center></p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/stateless-stateful-streaming.svg" style="width:70%;margin:10px">
+<img src="/img/blog/stateless-stateful-streaming.svg" style="width:70%;margin:10px">
 </center>
 <br>
 <p>We can piggyback rescaling of stateful jobs on checkpointing, as shown in <strong>Figure 1B</strong>. First, a checkpoint is triggered and sent to a distributed storage system. Next, the job is restarted with a changed parallelism and can access a consistent snapshot of all previous state from the distributed storage. While this solves (i) redistribution of a (ii) consistent state across machines there is still one problem: without a clear 1:1 relationship between previous state and new parallel operator instances, how can we assign the state in a (iii) meaningful way?</p>
@@ -973,9 +970,7 @@ https://github.com/alex-shpak/hugo-book
 <p>As a generalized approach to solve this black box problem, we slightly modified the checkpointing interface, called <code>ListCheckpointed</code>. <strong>Figure 2B</strong> shows the new checkpointing interface, which returns and receives a list of state partitions. Introducing a list instead of a single object makes the meaningful partitioning of state explicit: each item in the list still remains a black box to Flink, but is considered an atomic, independently re-distributable part of the operator state.</p>
 <p><br><center><i>Figure 2</i></center></p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/list-checkpointed.svg" style="width:70%;margin:10px">
+<img src="/img/blog/list-checkpointed.svg" style="width:70%;margin:10px">
 </center><br>
 <p>Our approach provides a simple API with which implementing operators can encode domain-specific knowledge about how to partition and merge units of state. With our new checkpointing interface, the Kafka source makes individual partition offsets explicit, and state reassignment becomes as easy as splitting and merging lists.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">FlinkKafkaConsumer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">RichParallelSourceFunction</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">CheckpointedFunction</span> <span class="o">{</span>
@@ -1031,9 +1026,7 @@ https://github.com/alex-shpak/hugo-book
 <p>We have illustrated rescaling from parallelism 3 to 4 with 10 key-groups in <strong>Figure 3B</strong>. As we can see, introducing key-groups and assigning them as ranges greatly improves the access pattern over the naive approach. Equation 2 and 3 in <strong>Figure 3B</strong> also details how we compute key-groups and the range assignment.</p>
 <p><br><center><i>Figure 2</i></center></p>
 <center>
-<img src="
-
-//flink.apache.org/img/blog/key-groups.svg" style="width:70%;margin:10px">
+<img src="/img/blog/key-groups.svg" style="width:70%;margin:10px">
 </center><br>
 <h2 id="wrapping-up">
   Wrapping Up
