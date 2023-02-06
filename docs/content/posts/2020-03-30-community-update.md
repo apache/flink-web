@@ -59,7 +59,7 @@ Congratulations to all and thank you for your hardworking commitment to Flink!
 In the [last update](https://flink.apache.org/news/2019/09/10/community-update.html), we shared some numbers around Flink releases and mailing list activity. This time, we’re looking into the activity in the Flink repository and how it’s evolving.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_1.png" width="725px" alt="GitHub 1"/>
+<img src="/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_1.png" width="725px" alt="GitHub 1"/>
 </center>
 
 There is a clear upward trend in the number of contributions to the repository, based on the number of commits. This reflects the **fast pace of development** the project is experiencing and also the **successful integration of the China-based Flink contributors** started early last year. To complement these observations, the repository registered a **1.5x increase in the number of individual contributors in 2019**, compared to the previous year. 
@@ -67,7 +67,7 @@ There is a clear upward trend in the number of contributions to the repository, 
 But did this increase in capacity produce any other measurable benefits?
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_2.png" width="725px" alt="GitHub 2"/>
+<img src="/img/blog/2020-03-30-flink-community-update/2020-03-30-flink-community-update_2.png" width="725px" alt="GitHub 2"/>
 </center>
 
 If we look at the average time of Pull Request (PR) “resolution”, it seems like it did: **the average time it takes to close a PR these days has been steadily decreasing** since last year, sitting between 5-6 days for the past few months. 

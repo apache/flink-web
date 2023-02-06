@@ -212,7 +212,7 @@ $ ./build_and_run.sh
 This builds the connector, starts a Flink cluster, a [test email server](https://greenmail-mail-test.github.io/greenmail/) (which you will need later), and the [SQL client](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/dev/table/sqlclient/) (which is bundled in the regular Flink distribution) for you. If successful, you should see the SQL CLI:
 
 <div class="row front-graphic">
-  <img src="{{< siteurl >}}/img/blog/2021-09-07-connector-table-sql-api/flink-sql-client.png" alt="Flink SQL Client"/>
+  <img src="/img/blog/2021-09-07-connector-table-sql-api/flink-sql-client.png" alt="Flink SQL Client"/>
 	<p class="align-center">Flink SQL Client</p>
 </div>
 

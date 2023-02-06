@@ -16,7 +16,7 @@ It has now been a month since the community released [Apache Flink 1.14](https:/
 From the team, we collected emotions that have been attributed to points in time of the 1.14 release cycle:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-11-03-flink-backward/1.14-weather.png" width="70%"/>
+<img src="/img/blog/2021-11-03-flink-backward/1.14-weather.png" width="70%"/>
 </center>
 
 The overall sentiment seems to be quite good. A ship crushed a robot two times, someone felt sick towards the end, an octopus causing negative emotions appeared in June...

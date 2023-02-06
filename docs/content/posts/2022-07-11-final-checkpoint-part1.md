@@ -31,7 +31,7 @@ with records containing retraction or exploit the property that data is roughly 
 users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.
 
 <center>
-<img vspace="20" style="width:70%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/stream_batch_cmp.png" />
+<img vspace="20" style="width:70%" src="/img/blog/2022-07-11-final-checkpoint/stream_batch_cmp.png" />
 <p style="font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em">
   Figure 1. A comparison of the Streaming mode and Batch mode for the example Count operator. For streaming mode, the arrived
   elements are not sorted, the operator would read / write the state corresponding to the element for computation.
@@ -72,7 +72,7 @@ execution of this operator on startup. For other operators, their states are com
 running subtasks. The states will be repartitioned on restarting and all the new subtasks restarted with the assigned states.
 
 <center>
-<img vspace="20" style="width:50%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png" />
+<img vspace="20" style="width:50%" src="/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png" />
 <p style="font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em">
   Figure 2. An illustration of the extended checkpoint format.
 </p>
@@ -124,7 +124,7 @@ An intuitive idea is to directly insert a step to the tasks’ lifecycle to wait
 of Figure 3. However, it could not solve all the issues.
 
 <center>
-<img vspace="20" style="width:90%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/finish_cmp.png" />
+<img vspace="20" style="width:90%" src="/img/blog/2022-07-11-final-checkpoint/finish_cmp.png" />
 <p style="font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em">
   Figure 3. A comparison of the two options to ensure tasks committed all the data before getting finished. The first
   option directly inserts a step in the tasks’ lifecycle to wait for the next checkpoint, which disallows the tasks to wait
@@ -139,7 +139,7 @@ wait for the next checkpoint separately, thus the job needs to wait for three mo
 which might prolong the total execution time for a long time.
 
 <center>
-<img vspace="20" style="width:90%" src="{{< siteurl >}}/img/blog/2022-07-11-final-checkpoint/example_job.png" />
+<img vspace="20" style="width:90%" src="/img/blog/2022-07-11-final-checkpoint/example_job.png" />
 <p style="font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em">
     Figure 4. An example job that contains a chain of tasks containing two-phase-commit operators. 
 </p>

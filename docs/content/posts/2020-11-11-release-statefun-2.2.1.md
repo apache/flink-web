@@ -37,7 +37,7 @@ mailing lists as soon as this is ready, so please subscribe to the mailing lists
 
 ---
 
-You can find the binaries on the updated [Downloads page]({{< siteurl >}}/downloads.html).
+You can find the binaries on the updated [Downloads page](/downloads.html).
 
 This release includes 6 fixes and minor improvements since StateFun 2.2.0. Below is a detailed list of all fixes and improvements:
 

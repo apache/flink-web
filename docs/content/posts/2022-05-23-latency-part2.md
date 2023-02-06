@@ -30,7 +30,7 @@ To avoid this situation, you should change your code to spread out the workload 
 
 
 <center>
-<img vspace="8" style="width:50%" src="{{< siteurl >}}/img/blog/2022-05-23-latency-part2/spread-work.png" />
+<img vspace="8" style="width:50%" src="/img/blog/2022-05-23-latency-part2/spread-work.png" />
 </center>
 
 
@@ -41,7 +41,7 @@ To avoid this situation, you should change your code to spread out the workload 
 When interacting with external systems (e.g., RDBMS, object stores, web services) in a Flink job for data enrichment, the latency in getting responses from external systems often dominates the overall latency of the job. With Flink’s [Async I/O API](https://ci.apache.org/projects/flink/flink-docs-stable/dev/stream/operators/asyncio.html) (e.g., `AsyncDataStream.unorderedWait()` or `AsyncDataStream.orderedWait()`), a single parallel function instance can handle many requests concurrently and receive responses asynchronously. This reduces latencies because the waiting time for responses is amortized over multiple requests.
 
 <center>
-<img vspace="8" style="width:50%" src="{{< siteurl >}}/img/blog/2022-05-23-latency-part2/async-io.png" />
+<img vspace="8" style="width:50%" src="/img/blog/2022-05-23-latency-part2/async-io.png" />
 </center>
 
 **You can apply this optimization** if the client of your external system supports asynchronous requests. If it does not, you can use a thread pool of multiple clients to handle synchronous requests in parallel. You can also use a cache to speed up lookups if the data in the external system is not changing frequently. A cache, however, comes at the cost of working with outdated data.
@@ -50,7 +50,7 @@ In this experiment, we simulated an external system that returns responses withi
 
 
 <center>
-<img vspace="8" style="width:50%" src="{{< siteurl >}}/img/blog/2022-05-23-latency-part2/enriching-with-async-io.png" />
+<img vspace="8" style="width:50%" src="/img/blog/2022-05-23-latency-part2/enriching-with-async-io.png" />
 </center>
 
 ### Using a streaming join

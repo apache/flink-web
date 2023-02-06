@@ -30,7 +30,7 @@ For the remainder of this article, we'll use the following example showing a str
 
 <span>
 	<center>
-	<img vspace="8" style="width:75%" src="{{< siteurl >}}/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-1.png" />
+	<img vspace="8" style="width:75%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-1.png" />
 	</center>
 </span>
 
@@ -45,7 +45,7 @@ Flink relies on its **state checkpointing and recovery mechanism** to implement 
 </div>
 
 <center>
-	<img vspace="8" style="width:90%" src="{{< siteurl >}}/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-2.png" />
+	<img vspace="8" style="width:90%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-2.png" />
 </center>
 
 <div style="line-height:60%;">
@@ -71,7 +71,7 @@ The following figure shows what happens when a barrier reaches an operator.
 
 <span>
 	<center>
-	<img vspace="8" style="width:100%" src="{{< siteurl >}}/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-3.png" />
+	<img vspace="8" style="width:100%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-3.png" />
 	</center>
 </span>
 
@@ -87,7 +87,7 @@ When operators restart from a checkpoint (automatically during recovery or manua
 
 <span>
 	<center>
-	<img vspace="8" style="width:100%" src="{{< siteurl >}}/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-4.png" />
+	<img vspace="8" style="width:100%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-4.png" />
 	</center>
 </span>
 
@@ -119,7 +119,7 @@ Consider the example below:
 
 <span>
 	<center>
-	<img vspace="8" style="width:75%" src="{{< siteurl >}}/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-5.png" />
+	<img vspace="8" style="width:75%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-5.png" />
 	</center>
 </span>
 

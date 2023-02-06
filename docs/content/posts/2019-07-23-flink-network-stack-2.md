@@ -22,7 +22,7 @@ title: 'Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure T
 .tg .tg-center{text-align:center;vertical-align:center}
 </style>
 
-In a [previous blog post]({{< siteurl >}}/2019/06/05/flink-network-stack.html), we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post. If you are unfamiliar with the network stack we highly recommend reading the [network stack deep-dive]({{< siteurl >}}/2019/06/05/flink-network-stack.html) first and then continuing here.
+In a [previous blog post](/2019/06/05/flink-network-stack.html), we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post. If you are unfamiliar with the network stack we highly recommend reading the [network stack deep-dive](/2019/06/05/flink-network-stack.html) first and then continuing here.
 
 {% toc %}
 
@@ -59,7 +59,7 @@ The [backpressure monitor]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monit
 Although you can tune things like the refresh-interval, the number of samples, or the delay between samples, normally, you would not need to touch these since the defaults already give good-enough results.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-07-23-network-stack-2/back_pressure_sampling_high.png" width="600px" alt="Backpressure sampling:high"/>
+<img src="/img/blog/2019-07-23-network-stack-2/back_pressure_sampling_high.png" width="600px" alt="Backpressure sampling:high"/>
 </center>
 
 <sup>2</sup> You may also access the backpressure monitor via the REST API: `/jobs/:jobid/vertices/:vertexid/backpressure`

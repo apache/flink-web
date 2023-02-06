@@ -31,7 +31,7 @@ Before we dive into the technical details of how the Kubernetes-based HA service
 All in all, this is similar to how Flink integrates with other resource management systems (_e.g._ YARN, Mesos), so it should be somewhat straightforward to integrate with Kubernetes if you’ve managed such deployments before — and especially if you already had some internal deployer for the lifecycle management of multiple Flink jobs.
 
 <center>
-    <img vspace="8" style="width:75%" src="{{< siteurl >}}/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-architecture.png" />
+    <img vspace="8" style="width:75%" src="/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-architecture.png" />
     <p>
     <em><b>Fig. 1:</b> Architecture of Flink's native Kubernetes integration.</em>
     </p>
@@ -47,7 +47,7 @@ However, managing a Zookeeper cluster on Kubernetes for HA would require an addi
 From Flink 1.12, we leverage these features to make running a HA-configured Flink cluster on Kubernetes more convenient to users.
 
 <center>
-    <img vspace="8" style="width:72%" src="{{< siteurl >}}/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-ha-architecture.png" />
+    <img vspace="8" style="width:72%" src="/img/blog/2021-02-10-native-k8s-with-ha/native-k8s-ha-architecture.png" />
     <p>
     <em><b>Fig. 2:</b> Architecture of Flink's Kubernetes High Availability (HA) service.</em>
     </p>

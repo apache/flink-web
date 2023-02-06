@@ -29,13 +29,13 @@ Latency can refer to different things. [LatencyMarkers]({{< param DocsBaseUrl >}
 There are two scenarios to consider. In the first scenario, a pipeline does a simple transformation, and there are no timers or any other complex event time logic. For example, a pipeline that produces one output event for each input event. In this case, we measure the processing delay as the latency, that is, `t2 - t1` as shown in the diagram.
 
 <center>
-<img vspace="8" style="width:40%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/scenario1-simple.png" />
+<img vspace="8" style="width:40%" src="/img/blog/2022-05-18-latency-part1/scenario1-simple.png" />
 </center>
 
 The second scenario is where complex event time logic is involved (e.g., timers, aggregation, windowing). In this case, we measure the event time lag as the latency, that is, `current processing time - current watermark`. The event time lag gives us the difference between the expected output time and the actual output time.
 
 <center>
-<img vspace="8" style="width:40%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/scenario2-eventtime.png" />
+<img vspace="8" style="width:40%" src="/img/blog/2022-05-18-latency-part1/scenario2-eventtime.png" />
 </center>
 
 In both scenarios, we capture a histogram and show the 99th percentile of the end-to-end latency. The latency we measure here includes the time an event stays in the source message queue (e.g., Kafka). The reason for this is that it covers the scenarios where a source operator in a pipeline is backpressured by other operators. The more the source operator is backpressured, the longer the messages stay in the message queue. So, including the time events stay in the message queue in the latency gives us how slow or fast a pipeline is.
@@ -58,7 +58,7 @@ Below are the experimental results of [WindowingJob](https://github.com/ververic
 
 
 <center>
-<img vspace="8" style="width:90%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/increase-parallelism.png" />
+<img vspace="8" style="width:90%" src="/img/blog/2022-05-18-latency-part1/increase-parallelism.png" />
 </center>
 
 
@@ -73,7 +73,7 @@ When using the `filesystem` (Flink 1.12 or early) or `hashmap` (Flink 1.13 or la
 Our experiments with the previously mentioned [WindowingJob](https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java) after switching the state backend from `rocksdb` to `hashmap` show a further reduction of the latency down to 500ms. Depending on your job’s state access pattern, you may see larger or smaller improvements. The graph on the right shows the garbage collection's impact on the latency.
 
 <center>
-<img vspace="8" style="width:90%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/choose-state-backend.png" />
+<img vspace="8" style="width:90%" src="/img/blog/2022-05-18-latency-part1/choose-state-backend.png" />
 </center>
 
 ### Emit watermarks quickly
@@ -87,7 +87,7 @@ When using a periodic [watermark generator]({{< param DocsBaseUrl >}}flink-docs-
 We re-ran the previous [WindowingJob](https://github.com/ververica/lab-flink-latency/blob/main/src/main/java/com/ververica/lablatency/job/WindowingJob.java) experiment with the reduced watermark interval `pipeline.auto-watermark-interval: 100ms` and reduced the latency further to 430ms.
 
 <center>
-<img vspace="8" style="width:50%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/watermark-interval.png" />
+<img vspace="8" style="width:50%" src="/img/blog/2022-05-18-latency-part1/watermark-interval.png" />
 </center>
 
 
@@ -103,7 +103,7 @@ As seen in the following experiment results, by using `execution.buffer-timeout:
 
 
 <center>
-<img vspace="8" style="width:50%" src="{{< siteurl >}}/img/blog/2022-05-18-latency-part1/buffer-timeout.png" />
+<img vspace="8" style="width:50%" src="/img/blog/2022-05-18-latency-part1/buffer-timeout.png" />
 </center>
 
 

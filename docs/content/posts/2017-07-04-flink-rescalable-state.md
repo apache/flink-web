@@ -52,7 +52,7 @@ On restore, the new tasks for the job (which potentially run on different machin
 
 <br><center><i>Figure 1</i></center>
 <center>
-<img src="{{< siteurl >}}/img/blog/stateless-stateful-streaming.svg" style="width:70%;margin:10px">
+<img src="/img/blog/stateless-stateful-streaming.svg" style="width:70%;margin:10px">
 </center>
 <br>
 
@@ -79,7 +79,7 @@ As a generalized approach to solve this black box problem, we slightly modified 
 
 <br><center><i>Figure 2</i></center>
 <center>
-<img src="{{< siteurl >}}/img/blog/list-checkpointed.svg" style="width:70%;margin:10px">
+<img src="/img/blog/list-checkpointed.svg" style="width:70%;margin:10px">
 </center><br>
 
 
@@ -151,7 +151,7 @@ We have illustrated rescaling from parallelism 3 to 4 with 10 key-groups in **Fi
 
 <br><center><i>Figure 2</i></center>
 <center>
-<img src="{{< siteurl >}}/img/blog/key-groups.svg" style="width:70%;margin:10px">
+<img src="/img/blog/key-groups.svg" style="width:70%;margin:10px">
 </center><br>
 
 ## Wrapping Up

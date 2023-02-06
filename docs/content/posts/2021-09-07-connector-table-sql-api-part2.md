@@ -506,7 +506,7 @@ For this example, let's connect to a Gmail account. This requires SSL and comes 
 First, head to SQL → Connectors. There you can create a new connector by uploading your JAR file. The platform will detect the connector options automatically. Afterwards, go back to the SQL Editor and you should now be able to use the connector.
 
 <div class="row front-graphic">
-  <img src="{{< siteurl >}}/img/blog/2021-09-07-connector-table-sql-api/VVP-SQL-Editor.png" alt="Ververica Platform - SQL Editor"/>
+  <img src="/img/blog/2021-09-07-connector-table-sql-api/VVP-SQL-Editor.png" alt="Ververica Platform - SQL Editor"/>
 	<p class="align-center">Ververica Platform - SQL Editor</p>
 </div>
 

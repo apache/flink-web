@@ -31,7 +31,7 @@ This blog post is the first in a series of posts about the network stack. In the
 Flink’s network stack provides the following logical view to the subtasks when communicating with each other, for example during a network shuffle as required by a `keyBy()`.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack1.png" width="400px" alt="Logical View on Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack1.png" width="400px" alt="Logical View on Flink's Network Stack"/>
 </center>
 <br>
 
@@ -101,7 +101,7 @@ The following table summarises the valid combinations:
 
 
 <sup>1</sup> Currently not used by Flink. <br>
-<sup>2</sup> This may become applicable to streaming jobs once the [Batch/Streaming unification]({{< siteurl >}}/roadmap.html#batch-and-streaming-unification) is done.
+<sup>2</sup> This may become applicable to streaming jobs once the [Batch/Streaming unification](/roadmap.html#batch-and-streaming-unification) is done.
 
 
 <br>
@@ -150,7 +150,7 @@ Each (remote) network connection between different tasks will get its own TCP ch
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack2.png" width="700px" alt="Physical-transport-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack2.png" width="700px" alt="Physical-transport-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -167,7 +167,7 @@ Whenever a subtask’s sending buffer pool is exhausted — buffers reside in ei
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack3.png" width="700px" alt="Physical-transport-backpressure-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack3.png" width="700px" alt="Physical-transport-backpressure-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -183,7 +183,7 @@ Receivers will announce the availability of buffers as **credits** to the sender
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack4.png" width="700px" alt="Physical-transport-credit-flow-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack4.png" width="700px" alt="Physical-transport-credit-flow-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -198,7 +198,7 @@ As opposed to the receiver's backpressure mechanisms without flow control, credi
 
 ### What do we Gain? Where is the Catch?
 
-<img align="right" src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack5.png" width="300" height="200" alt="Physical-transport-credit-flow-checkpoints-Flink's Network Stack"/>
+<img align="right" src="/img/blog/2019-06-05-network-stack/flink-network-stack5.png" width="300" height="200" alt="Physical-transport-credit-flow-checkpoints-Flink's Network Stack"/>
 
 Since, with flow control, a channel in a multiplex cannot block another of its logical channels, the overall resource utilisation should increase. In addition, by having full control over how much data is “on the wire”, we are also able to improve [checkpoint alignments]({{< param DocsBaseUrl >}}flink-docs-release-1.8/internals/stream_checkpointing.html#checkpointing): without flow control, it would take a while for the channel to fill the network stack’s internal buffers and propagate that the receiver is not reading anymore. During that time, a lot of buffers could be sitting around. Any checkpoint barrier would have to queue up behind these buffers and would thus have to wait until all of those have been processed before it can start (“Barriers never overtake records!”).
 
@@ -248,7 +248,7 @@ The following picture extends the slightly more high-level view from above with 
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack6.png" width="700px" alt="Physical-transport-complete-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack6.png" width="700px" alt="Physical-transport-complete-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -274,7 +274,7 @@ The RecordWriter works with a local serialisation buffer for the current record 
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack7.png" width="500px" alt="Record-writer-to-network-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack7.png" width="500px" alt="Record-writer-to-network-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -287,7 +287,7 @@ In order to support low-latency use cases, we cannot only rely on buffers being 
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack8.png" width="500px" alt="Record-writer-to-network-with-flusher-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack8.png" width="500px" alt="Record-writer-to-network-with-flusher-Flink's Network Stack"/>
 </center>
 <br>
 
@@ -322,7 +322,7 @@ Network buffers were introduced to get higher resource utilisation and higher th
 <br>
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2019-06-05-network-stack/flink-network-stack9.png" width="650px" alt="Network-buffertimeout-Flink's Network Stack"/>
+<img src="/img/blog/2019-06-05-network-stack/flink-network-stack9.png" width="650px" alt="Network-buffertimeout-Flink's Network Stack"/>
 </center>
 <br>
 

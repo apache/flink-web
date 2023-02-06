@@ -35,7 +35,7 @@ The API contains a set of utility functions for graph analysis, supports iterati
 processing and introduces a library of graph algorithms.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/flink-stack.png" style="width:90%;margin:15px">
+<img src="/img/blog/flink-stack.png" style="width:90%;margin:15px">
 </center>
 
 [Back to top](#top)
@@ -102,7 +102,7 @@ one or more values per vertex, the more general  `groupReduceOnEdges()` and
 Consider the following graph, for instance:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/neighborhood.png" style="width:60%;margin:15px">
+<img src="/img/blog/neighborhood.png" style="width:60%;margin:15px">
 </center>
 
 Assume you would want to compute the sum of the values of all incoming neighbors for each vertex.
@@ -115,7 +115,7 @@ graph.reduceOnNeighbors(new SumValues(), EdgeDirection.IN);
 The vertex with id 1 is the only node that has no incoming edges. The result is therefore:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/reduce-on-neighbors.png" style="width:90%;margin:15px">
+<img src="/img/blog/reduce-on-neighbors.png" style="width:90%;margin:15px">
 </center>
 
 [Back to top](#top)
@@ -156,7 +156,7 @@ For example, consider a Single Source Shortest Paths problem on the following gr
 is the source node, i is the iteration counter and the edge values represent distances between nodes:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/sssp.png" style="width:90%;margin:15px">
+<img src="/img/blog/sssp.png" style="width:90%;margin:15px">
 </center>
 
 In each iteration, a vertex receives distances from its neighbors and adopts the minimum of
@@ -175,7 +175,7 @@ The user-defined iterative function is applied on these inputs to produce state 
 These updates are efficiently applied on the state, which is kept in memory.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/iteration.png" style="width:60%;margin:15px">
+<img src="/img/blog/iteration.png" style="width:60%;margin:15px">
 </center>
 
 Internally, a vertex-centric iteration is a Flink delta iteration, where the initial Solution Set
@@ -189,7 +189,7 @@ vertex-update function is applied on the result. The output of this coGroup oper
 used to update the Solution Set and create the Workset input for the next iteration.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/vertex-centric-plan.png" style="width:40%;margin:15px">
+<img src="/img/blog/vertex-centric-plan.png" style="width:40%;margin:15px">
 </center>
 
 #### Gather-Sum-Apply
@@ -226,7 +226,7 @@ current vertex values (solution set), the values are updated, thus creating a ne
 serves as input for the next iteration.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/GSA-plan.png" style="width:40%;margin:15px">
+<img src="/img/blog/GSA-plan.png" style="width:40%;margin:15px">
 </center>
 
 [Back to top](#top)
@@ -310,7 +310,7 @@ vertices are songs and where the weight represents the number of times the user 
 certain song.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/user-song-graph.png" style="width:90%;margin:15px">
+<img src="/img/blog/user-song-graph.png" style="width:90%;margin:15px">
 </center>
 
 ```java
@@ -355,7 +355,7 @@ two users who listen to the same song will simply be linked together through an 
 in the figure below.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/user-song-to-user-user.png" style="width:90%;margin:15px">
+<img src="/img/blog/user-song-to-user-user.png" style="width:90%;margin:15px">
 </center>
 
 To form the user-user graph in Flink, we will simply take the edges from the user-song graph

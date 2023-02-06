@@ -89,7 +89,7 @@ public interface SortBuffer {
 Currently, Flink does not need to sort records by key on the data producer side, so the default implementation of sort buffer only sorts data by subpartition index, which is achieved by binary bucket sort. More specifically, each data record will be serialized and attached a 16 bytes binary header. Among the 16 bytes, 4 bytes is for the record length, 4 bytes is for the data type (event or data buffer) and 8 bytes is for pointers to the next records belonging to the same subpartition to be consumed by the same downstream data consumer. When reading data from the sort buffer, all records of the same subpartition will be copied one by one following the pointer in the record header, which guarantees that for each subpartition, the order of record reading/spilling is the same order as when the record is emitted by the producer task. The following picture shows the internal structure of the in-memory binary sort buffer:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-10-26-sort-shuffle/1.jpg" width="70%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/1.jpg" width="70%"/>
 </center>
 
 ## Storage structure
@@ -99,13 +99,13 @@ The data of each blocking result partition is stored as a physical data file on 
 The following picture shows the structure of a simple data file. This data file has three data regions (R1, R2, R3) and three consumers (C1, C2, C3). Data blocks B1.1, B2.1 and B3.1 will be consumed by C1, data blocks B1.2, B2.2 and B3.2 will be consumed by C2, and data blocks B1.3, B2.3 and B3.3 will be consumed by C3.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-10-26-sort-shuffle/2.jpg" width="60%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/2.jpg" width="60%"/>
 </center>
 
 In addition to the data file, for each result partition, there is also an index file which contains pointers to the data file. The index file has the same number of regions as the data file. In each region, there are n (equals to the number of subpartitions) index entries. Each index entry consists of two parts: one is the file offset of the target data in the data file, the other is the data size. To reduce the disk IO caused by index data file access, Flink caches the index data using unmanaged heap memory if the index data file size is less than 4M. The following picture illustrates the relationship between index file and data file:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-10-26-sort-shuffle/4.jpg" width="60%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/4.jpg" width="60%"/>
 </center>
 
 ## IO scheduling
@@ -133,7 +133,7 @@ Shuffle data broadcast in Flink refers to sending the same collection of data to
 More specifically, when broadcasting a data record to the sort buffer, the record will be copied and stored once. A similar thing happens when spilling the broadcast data into files. For index data, the only difference is that all the index entries for different downstream consumers point to the same data in the data file.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-10-26-sort-shuffle/5.jpg" width="85%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/5.jpg" width="85%"/>
 </center>
 
 ## Data compression
@@ -141,7 +141,7 @@ More specifically, when broadcasting a data record to the sort buffer, the recor
 Data compression is a simple but really useful technique to improve blocking shuffle performance. Similar to the data compression implementation of the hash-based blocking shuffle, data is compressed per buffer after it is copied from the in-memory sort buffer and before it is spilled to disk. If the data size becomes even larger after compression, the original uncompressed data buffer will be kept. Then the corresponding downstream data consumers are responsible for decompressing the received shuffle data when processing it. In fact, the sort-based blocking shuffle reuses those building blocks implemented for the hash-based blocking shuffle directly. The following picture illustrates the shuffle data compression process:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2021-10-26-sort-shuffle/3.jpg" width="85%"/>
+<img src="/img/blog/2021-10-26-sort-shuffle/3.jpg" width="85%"/>
 </center>
 
 # Future improvements

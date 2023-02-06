@@ -59,7 +59,7 @@ We'll walk through the two-phase commit protocol and how it enables end-to-end e
 Flink's support for end-to-end exactly-once semantics is not limited to Kafka and you can use it with any source / sink that provides the necessary coordination mechanism. For example, [Pravega](http://pravega.io/), an open-source streaming storage system from Dell/EMC, also supports end-to-end exactly-once semantics with Flink via the `TwoPhaseCommitSinkFunction`.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/eo-post-graphic-1.png" width="600px" alt="A sample Flink application"/>
+<img src="/img/blog/eo-post-graphic-1.png" width="600px" alt="A sample Flink application"/>
 </center>
 
 In the sample Flink application that we'll discuss today, we have: 
@@ -79,7 +79,7 @@ The starting of a checkpoint represents the "pre-commit" phase of our two-phase 
 The barrier is passed from operator to operator. For every operator, it triggers the operator's state backend to take a snapshot of its state. 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/eo-post-graphic-2.png" width="600px" alt="A sample Flink application - precommit"/>
+<img src="/img/blog/eo-post-graphic-2.png" width="600px" alt="A sample Flink application - precommit"/>
 </center>
 
 The data source stores its Kafka offsets, and after completing this, it passes the checkpoint barrier to the next operator. 
@@ -87,7 +87,7 @@ The data source stores its Kafka offsets, and after completing this, it passes t
 This approach works if an operator has internal state _only_. _Internal state_ is everything that is stored and managed by Flink's state backends - for example, the windowed sums in the second operator. When a process has only internal state, there is no need to perform any additional action during pre-commit aside from updating the data in the state backends before it is checkpointed. Flink takes care of correctly committing those writes in case of checkpoint success or aborting them in case of failure. 
 
 <center>
-<img src="{{< siteurl >}}/img/blog/eo-post-graphic-3.png" width="600px" alt="A sample Flink application - precommit without external state"/>
+<img src="/img/blog/eo-post-graphic-3.png" width="600px" alt="A sample Flink application - precommit without external state"/>
 </center>
 
 However, when a process has _external_ state, this state must be handled a bit differently. External state usually comes in the form of writes to an external system such as Kafka. In that case, to provide exactly-once guarantees, the external system must provide support for transactions that integrates with a two-phase commit protocol.
@@ -95,7 +95,7 @@ However, when a process has _external_ state, this state must be handled a bit d
 We know that the data sink in our example has such external state because it's writing data to Kafka. In this case, in the pre-commit phase, the data sink must pre-commit its external transaction in addition to writing its state to the state backend.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/eo-post-graphic-4.png" width="600px" alt="A sample Flink application - precommit with external state"/>
+<img src="/img/blog/eo-post-graphic-4.png" width="600px" alt="A sample Flink application - precommit with external state"/>
 </center>
 
 The pre-commit phase finishes when the checkpoint barrier passes through all of the operators and the triggered snapshot callbacks complete. At this point the checkpoint completed successfully and consists of the state of the entire application, including pre-committed external state. In case of a failure, we would re-initialize the application from this checkpoint.
@@ -103,7 +103,7 @@ The pre-commit phase finishes when the checkpoint barrier passes through all of 
 The next step is to notify all operators that the checkpoint has succeeded. This is the commit phase of the two-phase commit protocol and the JobManager issues checkpoint-completed callbacks for every operator in the application. The data source and window operator have no external state, and so in the commit phase, these operators don't have to take any action. The data sink does have external state, though, and commits the transaction with the external writes.
 
 <center>
-<img src="{{< siteurl >}}/img/blog/eo-post-graphic-5.png" width="600px" alt="A sample Flink application - commit external state"/>
+<img src="/img/blog/eo-post-graphic-5.png" width="600px" alt="A sample Flink application - commit external state"/>
 </center>
 
 So let's put all of these different pieces together:

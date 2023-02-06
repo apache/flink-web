@@ -37,7 +37,7 @@ However, it is powerful enough to cover many use cases.
 ## Executing Storm topologies with Flink
 
 <center>
-<img src="{{< siteurl >}}/img/blog/flink-storm.png" style="height:200px;margin:15px">
+<img src="/img/blog/flink-storm.png" style="height:200px;margin:15px">
 </center>
 
 The easiest way to use the Storm compatibility package is by executing a whole Storm topology in Flink.
@@ -154,5 +154,5 @@ If you want to try out Flink's Storm compatibility package checkout our [Documen
 
 <hr />
 
-<sup id="fn1">1. We confess, there are three lines changed compared to a Storm project <img class="emoji" style="width:16px;height:16px;align:absmiddle" src="{{< siteurl >}}/img/blog/smirk.png">---because the example covers local *and* remote execution. <a href="#ref1" title="Back to text.">↩</a></sup>
+<sup id="fn1">1. We confess, there are three lines changed compared to a Storm project <img class="emoji" style="width:16px;height:16px;align:absmiddle" src="/img/blog/smirk.png">---because the example covers local *and* remote execution. <a href="#ref1" title="Back to text.">↩</a></sup>
 

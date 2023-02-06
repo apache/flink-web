@@ -15,7 +15,7 @@ Apache Flink 1.10 comes with significant changes to the memory model of the Task
 Having a clear understanding of Apache Flink’s memory model allows you to manage resources for the various workloads more efficiently. The following diagram illustrates the main memory components in Flink:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-04-21-memory-management-improvements-flink-1.10/total-process-memory.svg" width="400px" alt="Flink: Total Process Memory"/>
+<img src="/img/blog/2020-04-21-memory-management-improvements-flink-1.10/total-process-memory.svg" width="400px" alt="Flink: Total Process Memory"/>
 <br/>
 <i><small>Flink: Total Process Memory</small></i>
 </center>
@@ -58,7 +58,7 @@ While configuring Flink’s memory, the size of different memory components can 
 This method allows a proportional breakdown of the *Total Flink Memory* where the [Managed Memory]({{< param DocsBaseUrl >}}flink-docs-release-1.10/ops/memory/mem_setup.html#managed-memory) (if not set explicitly) and [Network Buffers]({{< param DocsBaseUrl >}}flink-docs-release-1.10/ops/memory/mem_detail.html#capped-fractionated-components) can take certain fractions of it. The remaining memory is then assigned to the [Task Heap]({{< param DocsBaseUrl >}}flink-docs-release-1.10/ops/memory/mem_setup.html#task-operator-heap-memory) (if not set explicitly) and other fixed *JVM Heap* and *Off-Heap components*. The following picture represents an example of such a setup:
 
 <center>
-<img src="{{< siteurl >}}/img/blog/2020-04-21-memory-management-improvements-flink-1.10/flink-memory-setup.svg" width="800px" alt="Flink: Example of Memory Setup"/>
+<img src="/img/blog/2020-04-21-memory-management-improvements-flink-1.10/flink-memory-setup.svg" width="800px" alt="Flink: Example of Memory Setup"/>
 <br/>
 <i><small>Flink: Example of Memory Setup</small></i>
 </center>

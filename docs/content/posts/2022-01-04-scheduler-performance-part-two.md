@@ -27,7 +27,7 @@ A distribution pattern describes how consumer tasks are connected to producer ta
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/1-distribution-pattern.svg" width="75%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/1-distribution-pattern.svg" width="75%"/>
 <br/>
 Fig. 1 - Two distribution patterns in Flink
 </center>
@@ -43,7 +43,7 @@ The basic idea of our optimizations is to put all the vertices that consume the 
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/2-groups.svg" width="80%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/2-groups.svg" width="80%"/>
 <br/>
 Fig. 2 - How partitions and vertices are grouped w.r.t. distribution patterns
 </center>
@@ -94,7 +94,7 @@ To solve this problem, the blob server can be used to distribute large ShuffleDe
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/3-how-shuffle-descriptors-are-distributed.svg" width="80%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/3-how-shuffle-descriptors-are-distributed.svg" width="80%"/>
 <br/>
 Fig. 3 - How ShuffleDescriptors are distributed
 </center>
@@ -110,7 +110,7 @@ Since the pipelined data stream is produced and consumed simultaneously, Flink n
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/4-pipelined-region.svg" width="90%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/4-pipelined-region.svg" width="90%"/>
 <br/>
 Fig. 4 - The LogicalPipelinedRegion and the SchedulingPipelinedRegion
 </center>
@@ -122,7 +122,7 @@ During the construction of pipelined regions, a problem arises: There may be cyc
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/5-scheduling-deadlock.svg" width="90%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/5-scheduling-deadlock.svg" width="90%"/>
 <br/>
 Fig. 5 - The topology with scheduling deadlock
 </center>
@@ -136,7 +136,7 @@ If there are only pointwise distribution patterns inside a region, Tarjan's stro
 
 <center>
 <br/>
-<img src="{{< siteurl >}}/img/blog/2022-01-05-scheduler-performance/6-building-pipelined-region.svg" width="90%"/>
+<img src="/img/blog/2022-01-05-scheduler-performance/6-building-pipelined-region.svg" width="90%"/>
 <br/>
 Fig. 6 - How to convert a LogicalPipelinedRegion to ScheduledPipelinedRegions
 </center>
