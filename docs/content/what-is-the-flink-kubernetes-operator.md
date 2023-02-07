@@ -2,7 +2,7 @@
 title: What is the Flink Kubernetes Operator?
 bookCollapseSection: false
 weight: 4
-bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-stable/"
+bookHref: "https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/"
 menu_weight: 1
 ---
 <!--
