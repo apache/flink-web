@@ -364,6 +364,18 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">gates</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/19502505?s=50" class="committer-avatar"></td>
+    <td class="text-center">Weijie Guo</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">guoweijie</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/8684799?s=50" class="committer-avatar"></td>
+    <td class="text-center">Yangze Guo</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">guoyangze</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/569655?s=50" class="committer-avatar"></td>
     <td class="text-center">Greg Hogan</td>
     <td class="text-center">PMC, Committer</td>
@@ -554,12 +566,6 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">Feng Wang</td>
     <td class="text-center">Committer</td>
     <td class="text-center">fengwang</td>
-  </tr>
-  <tr>
-    <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/8684799?s=50" class="committer-avatar"></td>
-    <td class="text-center">Yangze Guo</td>
-    <td class="text-center">Committer</td>
-    <td class="text-center">guoyangze</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/9400874?s=50" class="committer-avatar"></td>
