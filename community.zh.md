@@ -683,7 +683,7 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
   <tr>
         <td class="text-center"><img src="https://avatars.githubusercontent.com/u/5873403?s=50" class="committer-avatar" /></td>
         <td class="text-center">Dong Lin</td>
-        <td class="text-center">Committer</td>
+        <td class="text-center">PMC, Committer</td>
         <td class="text-center">lindong</td>
   </tr>
   <tr>
