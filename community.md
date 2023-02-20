@@ -400,6 +400,12 @@ The list below could be outdated. Please find the most up-to-date list <a href="
     <td class="text-center">fhueske</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars.githubusercontent.com/u/3996532?s=50" class="committer-avatar" /></td>
+    <td class="text-center">Anton Kalashnikov</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">akalash</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars3.githubusercontent.com/u/498957?v=3&s=50" class="committer-avatar"></td>
     <td class="text-center">Vasia Kalavri</td>
     <td class="text-center">PMC, Committer</td>
