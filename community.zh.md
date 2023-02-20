@@ -339,6 +339,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">sewen</td>
   </tr>
   <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/38427477?s=50" class="committer-avatar"></td>
+    <td class="text-center">Rui Fan</td>
+    <td class="text-center">Committer</td>
+    <td class="text-center">fanrui</td>
+  </tr>
+  <tr>
     <td class="text-center"><img src="https://avatars1.githubusercontent.com/u/5880972?s=50" class="committer-avatar"></td>
     <td class="text-center">Gyula Fóra</td>
     <td class="text-center">PMC, Committer</td>
@@ -457,6 +463,12 @@ Flink Forward 大会每年都会在世界的不同地方举办。关于大会最
     <td class="text-center">Maximilian Michels</td>
     <td class="text-center">PMC, Committer</td>
     <td class="text-center">mxm</td>
+  </tr>
+  <tr>
+    <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/8957547?s=50" class="committer-avatar"></td>
+    <td class="text-center">Piotr Nowojski</td>
+    <td class="text-center">PMC, Committer</td>
+    <td class="text-center">pnowojski</td>
   </tr>
   <tr>
     <td class="text-center"><img src="https://avatars2.githubusercontent.com/u/1941681?s=50" class="committer-avatar"></td>
