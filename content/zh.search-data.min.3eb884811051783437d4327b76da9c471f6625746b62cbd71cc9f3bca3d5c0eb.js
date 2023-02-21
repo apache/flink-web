@@ -211,7 +211,7 @@ Training # Ververica 目前维护了一些免费的 Apache Flink 培训。 train
 Flink Forward # Flink Forward 大会每年都会在世界的不同地方举办。关于大会最新的信息可以到 Flink-Forward.org 网站获取到。
 PMC 和 Committer 列表 # 以下列表可能不是最新。最新列表请参考 此页面。
 素材以及 Apache Flink Logo # 素材页面 提供了不同尺寸以及不同颜色的 Apache Flink Logo。
-`}),e.add({id:32,href:"/zh/roadmap/",title:"Roadmap",section:"Apache Flink Documentation",content:` Roadmap # 导读： 此计划路线图旨在对Flink社区当前正在进行的项目进行总结摘要，并对这些项目根据工作内容进行分组。 鉴于Flink每个分组中现在都有非常多的工作正在进行，我们希望此计划书有助于用户和贡献者理解每个项目乃至于整个Flink的未来方向。 这个计划书既涵盖刚起步的项目，也包括接近完成的项目，这样可以使大家更好地了解各项目的发展方向以及当前的进展。
+`}),e.add({id:32,href:"/zh/roadmap/",title:"开发计划",section:"Apache Flink Documentation",content:` Roadmap # 导读： 此计划路线图旨在对Flink社区当前正在进行的项目进行总结摘要，并对这些项目根据工作内容进行分组。 鉴于Flink每个分组中现在都有非常多的工作正在进行，我们希望此计划书有助于用户和贡献者理解每个项目乃至于整个Flink的未来方向。 这个计划书既涵盖刚起步的项目，也包括接近完成的项目，这样可以使大家更好地了解各项目的发展方向以及当前的进展。
 关于各个项目更多的细节讨论和其他较小的改动记录在 FLIPs 。
 路线图会不断更新。一旦达成共识，新的特性和工作都会添加到路线图中。 这里的共识是指这些特性和工作将来确定会发生，以及这些工作对于用户来说大致是什么样的。
 Last Update: 2022-11-14
