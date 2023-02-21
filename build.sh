@@ -23,6 +23,17 @@ then
 	echo "Please see docs/README.md for more details"
 	exit 1
 fi
-git submodule update --init --recursive
 
-hugo -b "" -D -F --source docs serve
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+source "${SCRIPT_DIR}/_utils.sh"
+
+action=$1
+if [[ $action = "build" ]]
+then
+  prepareDocBuild
+  hugo -b "" -D -F --source docs --destination target
+  finalizeDocBuild
+else
+  hugo -b "" -D -F --source docs server --buildDrafts --buildFuture --bind 0.0.0.0
+fi
+

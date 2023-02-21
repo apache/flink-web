@@ -17,8 +17,7 @@ The built site is served at http://localhost:1313/.
 #### Using Hugo Docker image:
 
 ```sh
-$ git submodule update --init --recursive
-$ docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest server --buildDrafts --buildFuture --bind 0.0.0.0
+$ ./docker-build.sh
 ```
 
 #### Local Hugo installation:
@@ -26,8 +25,7 @@ $ docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest se
 Make sure you have installed [Hugo](https://gohugo.io/getting-started/installing/) on your system.
 
 ```sh
-$ git submodule update --init --recursive
-$ ./build_docs.sh
+$ ./build.sh
 ```
 
 The site can be viewed at http://localhost:1313/
@@ -40,8 +38,16 @@ The website needs to be rebuilt before being merged into the `asf-site` branch.
 
 You can execute the following command to rebuild non-incrementally:
 
+#### Using Hugo Docker image:
+
 ```bash
-./docker-build.sh
+./docker-build.sh build
+```
+
+#### Local Hugo installation:
+
+```bash
+./build.sh build
 ```
 
 This will generate the static HTML files in the `content` folder, which are used to serve out the project website.

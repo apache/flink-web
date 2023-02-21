@@ -17,15 +17,17 @@
 # limitations under the License.
 ################################################################################
 
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-source "${SCRIPT_DIR}/_utils.sh"
+git submodule update --init --recursive
 
-action=$1
-if [[ $action = "build" ]]
-then
-  prepareDocBuild
-  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --destination target
-  finalizeDocBuild
-else
-  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest server --buildDrafts --buildFuture --bind 0.0.0.0
-fi
+function prepareDocBuild {
+  # Remove old content folder and create new one
+  rm -r content && mkdir content
+}
+
+function finalizeDocBuild {
+  # Move newly generated static HTML to the content serving folder
+  mv docs/target/* content
+
+  # Copy quickstarts, rewrite rules and Google Search Console identifier
+  cp -r _include/. content
+}
