@@ -10,6 +10,8 @@ excerpt: As July draws to an end, we look back at a monthful of activity in the 
   so we've put together a list of some great events you can (virtually) attend in
   August!
 title: Flink Community Update - July'20
+aliases:
+- /news/2020/07/27/community-update.html
 ---
 
 As July draws to an end, we look back at a monthful of activity in the Flink community, including two releases (!) and some work around improving the first-time contribution experience in the project.

@@ -9,6 +9,8 @@ excerpt: This post discusses the efforts of the Flink community as they relate t
   different features and APIs can be utilized and cover some future ideas for new
   and improved ways of managing state in Apache Flink.
 title: 'State Unlocked: Interacting with State in Apache Flink'
+aliases:
+- /news/2020/01/29/state-unlocked-interacting-with-state-in-apache-flink.html
 ---
 
 # Introduction

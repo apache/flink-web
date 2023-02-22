@@ -5,6 +5,8 @@ authors:
 - gyfora:
   name: "Gyula Fora"
   twitter: "GyulaFora"
+aliases:
+- /news/2023/01/10/release-kubernetes-operator-1.3.1.html
 ---
 The Apache Flink Community is pleased to announce the first bug fix release of the Flink Kubernetes Operator 1.3 series.
 

@@ -13,6 +13,8 @@ excerpt: The Apache Flink community put some great effort into integrating Panda
   this article, we will introduce how these functionalities work and how to use them
   with a step-by-step example.
 title: 'PyFlink: The integration of Pandas into PyFlink'
+aliases:
+- /2020/08/04/pyflink-pandas-udf-support-flink.html
 ---
 
 Python has evolved into one of the most important programming languages for many fields of data processing. So big has been Python’s popularity, that it has pretty much become the default data processing language for data scientists. On top of that, there is a plethora of Python-based data processing tools such as NumPy, Pandas, and Scikit-learn that have gained additional popularity due to their flexibility or powerful functionalities. 

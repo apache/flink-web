@@ -9,6 +9,8 @@ excerpt: Flink has implemented the sort-based blocking shuffle (FLIP-148) for ba
   data processing. In this blog post, we will take a close look at the design & implementation
   details and see what we can gain from it.
 title: Sort-Based Blocking Shuffle Implementation in Flink - Part One
+aliases:
+- /2021/10/26/sort-shuffle-part1.html
 ---
 
 Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.

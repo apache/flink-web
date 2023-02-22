@@ -10,6 +10,8 @@ date: "2022-12-14T08:00:00Z"
 subtitle: Lifecycle management for Apache Flink deployments using native Kubernetes
   tooling
 title: Apache Flink Kubernetes Operator 1.3.0 Release Announcement
+aliases:
+- /news/2022/12/14/release-kubernetes-operator-1.3.0.html
 ---
 The Flink community is happy to announce that the latest Flink Kubernetes Operator version went live today. Beyond the regular operator improvements and fixes the 1.3.0 version also integrates better with some popular infrastructure management tools like OLM and Argo CD. These improvements are clear indicators that the original intentions of the Flink community, namely to provide the de facto standard solution for managing Flink applications on Kubernetes is making steady progress to becoming a reality.
 

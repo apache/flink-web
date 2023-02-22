@@ -5,6 +5,8 @@ authors:
   twitter: kkloudas
 date: "2020-07-14T08:00:00Z"
 title: 'Application Deployment in Flink: Current State and the new Application Mode'
+aliases:
+- /news/2020/07/14/application-mode.html
 ---
 
 With the rise of stream processing and real-time analytics as a critical tool for modern 

@@ -6,6 +6,8 @@ authors:
   name: Daisy Tsang
 date: "2021-09-07T00:00:00Z"
 title: 'Implementing a custom source connector for Table API and SQL - Part Two '
+aliases:
+- /2021/09/07/connector-table-sql-api-part2.html
 ---
 
 In [part one](/2021/09/07/connector-table-sql-api-part1) of this tutorial, you learned how to build a custom source connector for Flink. In part two, you will learn how to integrate the connector with a test email inbox through the IMAP protocol and filter out emails using Flink SQL.

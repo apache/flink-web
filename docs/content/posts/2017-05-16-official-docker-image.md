@@ -3,6 +3,8 @@ author: Patrick Lucas (Data Artisans) and Ismaël Mejía (Talend)
 author-twitter: iemejia
 date: "2017-05-16T09:00:00Z"
 title: Introducing Docker Images for Apache Flink
+aliases:
+- /news/2017/05/16/official-docker-image.html
 ---
 
 For some time, the Apache Flink community has provided scripts to build a Docker image to run Flink. Now, starting with version 1.2.1, Flink will have a [Docker image](https://hub.docker.com/r/_/flink/) on the Docker Hub. This image is maintained by the Flink community and curated by the [Docker](https://github.com/docker-library/official-images) team to ensure it meets the quality standards for container images of the Docker community.

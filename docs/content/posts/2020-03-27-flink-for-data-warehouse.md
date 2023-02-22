@@ -6,6 +6,8 @@ authors:
 date: "2020-03-27T02:30:00Z"
 title: 'Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive
   Integration'
+aliases:
+- /features/2020/03/27/flink-for-data-warehouse.html
 ---
 
 In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.

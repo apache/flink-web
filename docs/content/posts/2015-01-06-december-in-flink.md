@@ -1,6 +1,8 @@
 ---
 date: "2015-01-06T10:00:00Z"
 title: December 2014 in the Flink community
+aliases:
+- /news/2015/01/06/december-in-flink.html
 ---
 
 This is the first blog post of a “newsletter” like series where we give a summary of the monthly activity in the Flink community. As the Flink project grows, this can serve as a "tl;dr" for people that are not following the Flink dev and user mailing lists, or those that are simply overwhelmed by the traffic.

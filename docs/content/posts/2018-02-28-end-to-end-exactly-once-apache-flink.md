@@ -11,6 +11,8 @@ excerpt: Flink 1.4.0 introduced a new feature that makes it possible to build en
   exactly-once applications with Flink and data sources and sinks that support transactions.
 title: An Overview of End-to-End Exactly-Once Processing in Apache Flink (with Apache
   Kafka, too!)
+aliases:
+- /features/2018/03/01/end-to-end-exactly-once-apache-flink.html
 ---
 
 *This post is an adaptation of [Piotr Nowojski's presentation from Flink Forward Berlin 2017](https://berlin.flink-forward.org/kb_sessions/hit-me-baby-just-one-time-building-end-to-end-exactly-once-applications-with-flink/). You can find the slides and a recording of the presentation on the Flink Forward Berlin website.*

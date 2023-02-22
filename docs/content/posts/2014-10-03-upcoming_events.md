@@ -1,6 +1,8 @@
 ---
 date: "2014-10-03T10:00:00Z"
 title: Upcoming Events
+aliases:
+- /news/2014/10/03/upcoming_events.html
 ---
 
 We are happy to announce several upcoming Flink events both in Europe and the US. Starting with a **Flink hackathon in Stockholm** (Oct 8-9) and a talk about Flink at the **Stockholm Hadoop User Group** (Oct 8). This is followed by the very first **Flink Meetup in Berlin** (Oct 15). In the US, there will be two Flink Meetup talks: the first one at the **Pasadena Big Data User Group** (Oct 29) and the second one at **Silicon Valley Hands On Programming Events** (Nov 4).

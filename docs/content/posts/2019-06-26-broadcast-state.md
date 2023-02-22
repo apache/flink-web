@@ -9,6 +9,8 @@ excerpt: Apache Flink has multiple types of operator state, one of which is call
   of how it can be applied to an application that evaluates dynamic patterns on an
   event stream.
 title: A Practical Guide to Broadcast State in Apache Flink
+aliases:
+- /2019/06/26/broadcast-state.html
 ---
 
 Since version 1.5.0, Apache Flink features a new type of state which is called Broadcast State. In this post, we explain what Broadcast State is, and show an example of how it can be applied to an application that evaluates dynamic patterns on an event stream. We walk you through the processing steps and the source code to implement this application in practice.

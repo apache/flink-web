@@ -8,6 +8,8 @@ excerpt: The third annual Flink Forward conference in San Francisco is just a fe
   weeks away. Let's see what Flink Forward SF 2019 has in store for the Apache Flink
   and stream processing communities. This post covers some of its highlights!
 title: What to expect from Flink Forward San Francisco 2019
+aliases:
+- /news/2019/03/06/ffsf-preview.html
 ---
 
 The third annual Flink Forward San Francisco is just a few weeks away! As always, Flink Forward will be the right place to meet and mingle with experienced Flink users, contributors, and committers. Attendees will hear and chat about the latest developments around Flink and learn from technical deep-dive sessions and exciting use cases that were put into production with Flink. The event will take place on April 1-2, 2019 at Hotel Nikko in San Francisco. The [program committee](https://sf-2019.flink-forward.org/program-committee) assembled an amazing [lineup of speakers](https://sf-2019.flink-forward.org/speakers) who will cover many different aspects of Apache Flink and stream processing. 

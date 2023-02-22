@@ -3,6 +3,8 @@ author: Fabian Hüske
 author-twitter: fhueske
 date: "2014-11-18T10:00:00Z"
 title: Hadoop Compatibility in Flink
+aliases:
+- /news/2014/11/18/hadoop-compatibility.html
 ---
 
 [Apache Hadoop](http://hadoop.apache.org) is an industry standard for scalable analytical data processing. Many data analysis applications have been implemented as Hadoop MapReduce jobs and run in clusters around the world. Apache Flink can be an alternative to MapReduce and improves it in many dimensions. Among other features, Flink provides much better performance and offers APIs in Java and Scala, which are very easy to use. Similar to Hadoop, Flink’s APIs provide interfaces for Mapper and Reducer functions, as well as Input- and OutputFormats along with many more operators. While being conceptually equivalent, Hadoop’s MapReduce and Flink’s interfaces for these functions are unfortunately not source compatible.

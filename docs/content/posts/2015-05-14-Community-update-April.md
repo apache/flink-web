@@ -6,6 +6,8 @@ excerpt: <p>The monthly update from the Flink community. Including the availabil
   of a new preview release, lots of meetups and conference talks and a great interview
   about Flink.</p>
 title: April 2015 in the Flink community
+aliases:
+- /news/2015/05/14/Community-update-April.html
 ---
 
 

@@ -5,6 +5,8 @@ authors:
   tzulitai: null
 date: "2021-01-02T00:00:00Z"
 title: Stateful Functions 2.2.2 Release Announcement
+aliases:
+- /news/2021/01/02/release-statefun-2.2.2.html
 ---
 
 The Apache Flink community released the second bugfix release of the Stateful Functions (StateFun) 2.2 series, version 2.2.2.

@@ -8,6 +8,8 @@ excerpt: The Apache Flink Community is pleased to announce the release for Flink
 subtitle: For building dynamic tables for both stream and batch processing in Flink,
   supporting high speed data ingestion and real-time data query.
 title: Apache Flink Table Store 0.2.0 Release Announcement
+aliases:
+- /news/2022/08/29/release-table-store-0.2.0.html
 ---
 
 <!-- improve style of tables -->

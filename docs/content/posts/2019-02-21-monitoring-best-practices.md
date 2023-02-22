@@ -9,6 +9,8 @@ excerpt: The monitoring of business-critical applications is a crucial aspect of
   identified and can be resolved as quickly as possible. In this post, we discuss
   the most important metrics that indicate healthy Flink applications.
 title: Monitoring Apache Flink Applications 101
+aliases:
+- /news/2019/02/25/monitoring-best-practices.html
 ---
 
 <!-- improve style of tables -->

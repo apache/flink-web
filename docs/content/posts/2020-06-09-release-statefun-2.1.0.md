@@ -5,6 +5,8 @@ authors:
   twitter: morsapaes
 date: "2020-06-09T08:00:00Z"
 title: Stateful Functions 2.1.0 Release Announcement
+aliases:
+- /news/2020/06/09/release-statefun-2.1.0.html
 ---
 
 The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.1.0! This release introduces new features around state expiration and performance improvements for co-located deployments, as well as other important changes that improve the stability and testability of the project. As the community around StateFun grows, the release cycle will follow this pattern of smaller and more frequent releases to incorporate user feedback and allow for faster iteration.

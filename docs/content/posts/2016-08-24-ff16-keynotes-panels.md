@@ -1,6 +1,8 @@
 ---
 date: "2016-08-24T09:00:00Z"
 title: 'Flink Forward 2016: Announcing Schedule, Keynotes, and Panel Discussion'
+aliases:
+- /news/2016/08/24/ff16-keynotes-panels.html
 ---
 
 <p>An update for the Flink community: the <a href="http://flink-forward.org/kb_day/day-1/">Flink Forward 2016 schedule</a> is now available online. This year's event will include 2 days of talks from stream processing experts at Google, MapR, Alibaba, Netflix, Cloudera, and more. Following the talks is a full day of hands-on Flink training.</p>

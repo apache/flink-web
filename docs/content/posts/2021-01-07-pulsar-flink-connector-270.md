@@ -14,6 +14,8 @@ excerpt: With the unification of batch and streaming regarded as the future in d
   Flink's data format. The Pulsar Flink Connector 2.7.0 will be contributed to the
   Flink repository soon and the contribution process is ongoing.
 title: What's New in the Pulsar Flink Connector 2.7.0
+aliases:
+- /2021/01/07/pulsar-flink-connector-270.html
 ---
 
 ## About the Pulsar Flink Connector

@@ -11,6 +11,8 @@ excerpt: This post will outline the journey of improving snapshotting in past re
   take savepoints in the native state backend specific format as well as clarifying
   snapshots ownership.
 title: 'Improvements to Flink operations: Snapshots Ownership and Savepoint Formats'
+aliases:
+- /2022/05/06/restore-modes.html
 ---
 
 Flink has become a well established data streaming engine and a

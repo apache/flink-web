@@ -11,6 +11,8 @@ excerpt: This blog post discusses the new developments and integrations between 
   Flink and Apache Pulsar and showcases how you can leverage Pulsar’s built-in schema
   to query Pulsar streams in real time using Apache Flink.
 title: How to query Pulsar Streams using Apache Flink
+aliases:
+- /news/2019/11/25/query-pulsar-streams-using-apache-flink.html
 ---
 
 In a previous [story](https://flink.apache.org/2019/05/03/pulsar-flink.html) on the  Flink blog, we explained the different ways that [Apache Flink](https://flink.apache.org/) and [Apache Pulsar](https://pulsar.apache.org/) can integrate to provide elastic data processing at large scale. This blog post discusses the new developments and integrations between the two frameworks and showcases how you can leverage Pulsar’s built-in schema to query Pulsar streams in real time using Apache Flink. 

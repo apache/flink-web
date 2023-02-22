@@ -1,6 +1,8 @@
 ---
 date: "2015-03-02T10:00:00Z"
 title: February 2015 in the Flink community
+aliases:
+- /news/2015/03/02/february-2015-in-flink.html
 ---
 
 February might be the shortest month of the year, but this does not

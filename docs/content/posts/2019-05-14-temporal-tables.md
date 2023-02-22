@@ -9,6 +9,8 @@ excerpt: Apache Flink natively supports temporal table joins since the 1.7 relea
   of how this new concept can be leveraged for effective point-in-time analysis in
   streaming scenarios.
 title: Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL
+aliases:
+- /2019/05/14/temporal-tables.html
 ---
 
 Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of **temporal data**, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?

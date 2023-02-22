@@ -5,6 +5,8 @@ authors:
   zjffdu: null
 date: "2020-06-23T08:00:00Z"
 title: Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 2
+aliases:
+- /ecosystem/2020/06/23/flink-on-zeppelin-part2.html
 ---
 
 In a previous post, we introduced the basics of Flink on Zeppelin and how to do Streaming ETL. In this second part of the "Flink on Zeppelin" series of posts, I will share how to 

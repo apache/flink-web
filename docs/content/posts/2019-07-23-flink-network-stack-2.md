@@ -10,6 +10,8 @@ excerpt: In a previous blog post, we presented how Flink’s network stack works
   monitoring network-related metrics to identify backpressure or bottlenecks in throughput
   and latency.
 title: 'Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure Thing'
+aliases:
+- /2019/07/23/flink-network-stack-2.html
 ---
 
 <style type="text/css">

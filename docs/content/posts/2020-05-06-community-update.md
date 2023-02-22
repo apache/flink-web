@@ -9,6 +9,8 @@ excerpt: Can you smell it? It’s release month! This time around, we’re warmi
   the release of Stateful Functions 2.0, a new self-paced Flink training and some
   efforts to improve the Flink documentation experience.
 title: Flink Community Update - May'20
+aliases:
+- /news/2020/05/07/community-update.html
 ---
 
 Can you smell it? It’s release month! It took a while, but now that we’re [all caught up with the past](https://flink.apache.org/news/2020/04/01/community-update.html), the Community Update is here to stay. This time around, we’re warming up for Flink 1.11 and peeping back to the month of April in the Flink community — with the release of Stateful Functions 2.0, a new self-paced Flink training and some efforts to improve the Flink documentation experience.

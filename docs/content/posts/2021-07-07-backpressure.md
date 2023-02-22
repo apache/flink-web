@@ -8,6 +8,8 @@ excerpt: Apache Flink 1.13 introduced a couple of important changes in the area 
   backpressure monitoring and performance analysis of Flink Jobs. This blog post aims
   to introduce those changes and explain how to use them.
 title: How to identify the source of backpressure?
+aliases:
+- /2021/07/07/backpressure.html
 ---
 
 {% toc %}

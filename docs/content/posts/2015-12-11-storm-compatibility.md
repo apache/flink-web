@@ -8,6 +8,8 @@ excerpt: In this blog post, we describe Flink's compatibility package for <a hre
   API in order to execute whole Storm topologies with (almost) no code adaption.
 title: 'Storm Compatibility in Apache Flink: How to run existing Storm topologies
   on Flink'
+aliases:
+- /news/2015/12/11/storm-compatibility.html
 ---
 
 [Apache Storm](https://storm.apache.org) was one of the first distributed and scalable stream processing systems available in the open source space offering (near) real-time tuple-by-tuple processing semantics.

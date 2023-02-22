@@ -8,6 +8,8 @@ excerpt: Ah, so much for a quiet August month. This time around, we bring you so
   new Flink Improvement Proposals (FLIPs), a preview of the upcoming Flink Stateful
   Functions 2.2 release and a look into how far Flink has come in comparison to 2019.
 title: Flink Community Update - August'20
+aliases:
+- /news/2020/09/04/community-update.html
 ---
 
 Ah, so much for a quiet August month. This time around, we bring you some new Flink Improvement Proposals (FLIPs), a preview of the upcoming [Flink Stateful Functions]({{< param DocsBaseUrl >}}flink-statefun-docs-master/) 2.2 release and a look into how far Flink has come in comparison to 2019.

@@ -1,6 +1,8 @@
 ---
 date: "2015-06-24T14:00:00Z"
 title: Announcing Apache Flink 0.9.0
+aliases:
+- /news/2015/06/24/announcing-apache-flink-0.9.0-release.html
 ---
 
 The Apache Flink community is pleased to announce the availability of the 0.9.0 release. The release is the result of many months of hard work within the Flink community. It contains many new features and improvements which were previewed in the 0.9.0-milestone1 release and have been polished since then. This is the largest Flink release so far.

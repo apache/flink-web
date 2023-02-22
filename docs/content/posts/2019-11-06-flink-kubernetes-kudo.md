@@ -7,6 +7,8 @@ excerpt: A common use case for Apache Flink is streaming data analytics together
   Apache Kafka, which provides a pub/sub model and durability for data streams. In
   this post, we demonstrate how to orchestrate Flink and Kafka with KUDO.
 title: Running Apache Flink on Kubernetes with KUDO
+aliases:
+- /news/2019/12/09/flink-kubernetes-kudo.html
 ---
 
 A common use case for Apache Flink is streaming data analytics together with Apache Kafka, which provides a pub/sub model and durability for data streams. To achieve elastic scalability, both are typically deployed in clustered environments, and increasingly on top of container orchestration platforms like Kubernetes. The [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) provides an extension mechanism to Kubernetes that captures human operator knowledge about an application, like Flink, in software to automate its operation. [KUDO](https://kudo.dev) is an open source toolkit for building Operators using declarative YAML specs, with a focus on ease of use for cluster admins and developers.

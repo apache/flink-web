@@ -10,6 +10,8 @@ date: "2021-04-15T08:00:00Z"
 subtitle: The Apache Flink community is happy to announce the release of Stateful
   Functions (StateFun) 3.0.0.
 title: 'Stateful Functions 3.0.0: Remote Functions Front and Center'
+aliases:
+- /news/2021/04/15/release-statefun-3.0.0.html
 ---
 
 The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 3.0.0!

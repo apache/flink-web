@@ -10,6 +10,8 @@ excerpt: To automatically decide parallelism of Flink batch jobs, we introduced 
   & implementation details.
 title: 'Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch
   Jobs'
+aliases:
+- /2022/06/17/adaptive-batch-scheduler.html
 ---
 
 {% toc %}

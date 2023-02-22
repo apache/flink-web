@@ -8,6 +8,8 @@ authors:
   twitter: IgalShilman
 date: "2020-09-28T08:00:00Z"
 title: Stateful Functions 2.2.0 Release Announcement
+aliases:
+- /news/2020/09/28/release-statefun-2.2.0.html
 ---
 
 The Apache Flink community is happy to announce the release of Stateful Functions (StateFun) 2.2.0! This release

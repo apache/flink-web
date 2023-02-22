@@ -7,6 +7,8 @@ date: "2020-04-07T08:00:00Z"
 subtitle: Making the Stream Processor for Event-driven Applications what the Database
   was to CRUD Applications
 title: Stateful Functions 2.0 - An Event-driven Database on Apache Flink
+aliases:
+- /news/2020/04/07/release-statefun-2.0.0.html
 ---
 
 Today, we are announcing the release of Stateful Functions (StateFun) 2.0 — the first release of Stateful Functions as part of the Apache Flink project.

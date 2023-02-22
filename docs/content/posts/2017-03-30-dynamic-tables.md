@@ -5,6 +5,8 @@ excerpt: |-
   <p>Flink's relational APIs, the Table API and SQL, are unified APIs for stream and batch processing, meaning that a query produces the same result when being evaluated on streaming or static data.</p>
   <p>In this blog post we discuss the future of these APIs and introduce the concept of Dynamic Tables. Dynamic tables will significantly expand the scope of the Table API and SQL on streams and enable many more advanced use cases. We discuss how streams and dynamic tables relate to each other and explain the semantics of continuously evaluating queries on dynamic tables.</p>
 title: Continuous Queries on Dynamic Tables
+aliases:
+- /news/2017/04/04/dynamic-tables.html
 ---
 #### Analyzing Data Streams with SQL
 

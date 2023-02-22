@@ -1,6 +1,8 @@
 ---
 date: "2015-02-09T12:00:00Z"
 title: Introducing Flink Streaming
+aliases:
+- /news/2015/02/09/streaming-example.html
 ---
 
 This post is the first of a series of blog posts on Flink Streaming,

@@ -9,6 +9,8 @@ excerpt: This multi-part series of blog post presents a collection of low-latenc
   techniques in Flink. Following with part one, Part two continues  with a few more
   techniques that optimize latency directly.
 title: Getting into Low-Latency Gears with Apache Flink - Part Two
+aliases:
+- /2022/05/23/latency-part2.html
 ---
 
 This series of blog posts present a collection of low-latency techniques in Flink. In [part one](https://flink.apache.org/2022/05/18/latency-part1.html), we discussed the types of latency in Flink and the way we measure end-to-end latency and presented a few techniques that optimize latency directly. In this post, we will continue with a few more direct latency optimization techniques. Just like in part one, for each optimization technique, we will clarify what it is, when to use it, and what to keep in mind when using it. We will also show experimental results to support our statements.

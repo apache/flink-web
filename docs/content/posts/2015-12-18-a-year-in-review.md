@@ -6,6 +6,8 @@ excerpt: <p>With 2015 ending, we thought that this would be good time to reflect
   the amazing work done by the Flink community over this past year, and how much this
   community has grown.</p>
 title: 'Flink 2015: A year in review, and a lookout to 2016'
+aliases:
+- /news/2015/12/18/a-year-in-review.html
 ---
 
 With 2015 ending, we thought that this would be good time to reflect

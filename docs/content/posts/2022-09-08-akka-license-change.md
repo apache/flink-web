@@ -4,6 +4,8 @@ authors:
   name: Chesnay Schepler
 date: "2022-09-08T08:00:00Z"
 title: Regarding Akka's licensing change
+aliases:
+- /news/2022/09/08/akka-license-change.html
 ---
 
 On September 7th Lightbend announced a [license change](https://www.lightbend.com/blog/why-we-are-changing-the-license-for-akka) for the Akka project, the TL;DR being that you will need a commercial license to use future versions of Akka (2.7+) in production if you exceed a certain revenue threshold.

@@ -6,6 +6,8 @@ authors:
 date: "2020-02-03T12:00:00Z"
 excerpt: This post provides a detailed guide for unit testing of Apache Flink applications.
 title: A Guide for Unit Testing in Apache Flink
+aliases:
+- /news/2020/02/07/a-guide-for-unit-testing-in-apache-flink.html
 ---
 
 Writing unit tests is one of the essential tasks of designing a production-grade application. Without tests, a single change in code can result in cascades of failure in production. Thus unit tests should be written for all types of applications, be it a simple job cleaning data and training a model or a complex multi-tenant, real-time data processing system. In the following sections, we provide a guide for unit testing of Apache Flink applications. 

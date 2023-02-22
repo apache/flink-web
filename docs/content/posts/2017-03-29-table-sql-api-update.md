@@ -5,6 +5,8 @@ date: "2017-03-29T12:00:00Z"
 excerpt: <p>Broadening the user base and unifying batch & streaming with relational
   APIs</p>
 title: 'From Streams to Tables and Back Again: An Update on Flink''s Table & SQL API'
+aliases:
+- /news/2017/03/29/table-sql-api-update.html
 ---
 Stream processing can deliver a lot of value. Many organizations have recognized the benefit of managing large volumes of data in real-time, reacting quickly to trends, and providing customers with live services at scale. Streaming applications with well-defined business logic can deliver a competitive advantage.
 

@@ -14,6 +14,8 @@ excerpt: To improve the performance of the scheduler for large-scale jobs, sever
   optimizations were introduced in Flink 1.13 and 1.14. In this blog post we'll take
   a look at them.
 title: How We Improved Scheduler Performance for Large-scale Jobs - Part One
+aliases:
+- /2022/01/04/scheduler-performance-part-one.html
 ---
 
 # Introduction

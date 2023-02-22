@@ -7,6 +7,8 @@ date: "2020-08-20T00:00:00Z"
 excerpt: This blog post gives an update on the recent developments of Flink's support
   for Docker.
 title: The State of Flink on Docker
+aliases:
+- /news/2020/08/20/flink-docker.html
 ---
 
 With over 50 million downloads from Docker Hub, the Flink docker images are a very popular deployment option.

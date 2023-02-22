@@ -9,6 +9,8 @@ excerpt: Apache Flink 1.9 introduced fine-grained recovery through FLIP-1. The F
   recovering failed operators, re-using results from the previous processing step.
   This blog post gives an overview over these changes and evaluates their effectiveness.
 title: Exploring fine-grained recovery of bounded data sets on Flink
+aliases:
+- /news/2021/01/11/batch-fine-grained-fault-tolerance.html
 ---
 
 {% toc %}

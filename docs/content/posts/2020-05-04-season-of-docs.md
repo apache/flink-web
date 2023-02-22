@@ -11,6 +11,8 @@ excerpt: The Flink community is thrilled to share that the project is applying a
   to shoulder with the Flink community on documentation sound exciting? We’d love
   to hear from you!
 title: Applying to Google Season of Docs 2020
+aliases:
+- /news/2020/05/04/season-of-docs.html
 ---
 
 The Flink community is thrilled to share that the project is applying again to [Google Season of Docs](https://developers.google.com/season-of-docs/) (GSoD) this year! If you’re unfamiliar with the program, GSoD is a great initiative organized by [Google Open Source](https://opensource.google.com/) to pair technical writers with mentors to work on documentation for open source projects. The [first edition](https://developers.google.com/season-of-docs/docs/2019/participants) supported over 40 projects, including some other cool Apache Software Foundation (ASF) members like Apache Airflow and Apache Cassandra.

@@ -10,6 +10,8 @@ excerpt: This has been an exciting, fast-paced year for the Apache Flink communi
   happening around it. With that in mind, we want to bring back regular community
   updates to the Flink blog.
 title: Flink Community Update - September'19
+aliases:
+- /news/2019/09/10/community-update.html
 ---
 
 This has been an exciting, fast-paced year for the Apache Flink community. But with over 10k messages across the mailing lists, 3k Jira tickets and 2k pull requests, it is not easy to keep up with the latest state of the project. Plus everything happening around it. With that in mind, we want to bring back regular community updates to the Flink blog.

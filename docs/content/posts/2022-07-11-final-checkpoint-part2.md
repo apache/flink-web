@@ -10,6 +10,8 @@ date: "2022-07-11T00:00:00Z"
 excerpt: This post presents more details on the changes on the checkpoint procedure
   and task finish process made by the final checkpoint mechanism.
 title: 'FLIP-147: Support Checkpoints After Tasks Finished - Part Two'
+aliases:
+- /2022/07/11/final-checkpoint-part2.html
 ---
 
 In the [first part](/2022/07/11/final-checkpoint-part1.html) of this blog,

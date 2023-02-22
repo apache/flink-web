@@ -6,6 +6,8 @@ date: "2022-11-25T12:00:00Z"
 excerpt: An overview of how to optimise the throughput of async sinks using a custom
   RateLimitingStrategy
 title: Optimising the throughput of async sinks using a custom RateLimitingStrategy
+aliases:
+- /2022/11/25/async-sink-rate-limiting-strategy.html
 ---
 
 ## Introduction

@@ -11,6 +11,8 @@ excerpt: This post briefly describes the motivation and changes made by the fina
   checkpoint mechanism, including the changes to the checkpoint procedure and how
   tasks finish.
 title: 'FLIP-147: Support Checkpoints After Tasks Finished - Part One'
+aliases:
+- /2022/07/11/final-checkpoint-part1.html
 ---
 
 # Motivation

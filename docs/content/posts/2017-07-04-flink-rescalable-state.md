@@ -5,6 +5,8 @@ date: "2017-07-04T09:00:00Z"
 excerpt: <p>A primer on stateful stream processing and an in-depth walkthrough of
   rescalable state in Apache Flink.</p>
 title: A Deep Dive into Rescalable State in Apache Flink
+aliases:
+- /features/2017/07/04/flink-rescalable-state.html
 ---
  _Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink._
  <br>

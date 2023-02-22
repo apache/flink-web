@@ -7,6 +7,8 @@ date: "2020-07-30T12:00:00Z"
 excerpt: In this series of blog posts you will learn about powerful Flink patterns
   for building streaming applications.
 title: 'Advanced Flink Application Patterns Vol.3: Custom Window Processing'
+aliases:
+- /news/2020/07/30/demo-fraud-detection-3.html
 ---
 
 <style type="text/css">

@@ -6,6 +6,8 @@ date: "2020-08-06T08:00:00Z"
 excerpt: This post introduces the new External Resource Framework in Flink 1.11 and
   take GPU as an example to show how to accelerate your workload with external resources.
 title: Accelerating your workload with GPU and other external resources
+aliases:
+- /news/2020/08/06/external-resource.html
 ---
 
 Apache Flink 1.11 introduces a new [External Resource Framework]({{< param DocsBaseUrl >}}flink-docs-master/ops/external_resources.html),

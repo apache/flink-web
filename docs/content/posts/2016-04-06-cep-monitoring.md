@@ -7,6 +7,8 @@ excerpt: In this blog post, we introduce Flink's new <a href="{{< param DocsBase
   example of monitoring a data center and generating alerts, we showcase the library's
   ease of use and its intuitive Pattern API.
 title: Introducing Complex Event Processing (CEP) with Apache Flink
+aliases:
+- /news/2016/04/06/cep-monitoring.html
 ---
 
 With the ubiquity of sensor networks and smart devices continuously collecting more and more data, we face the challenge to analyze an ever growing stream of data in near real-time. 

@@ -9,6 +9,8 @@ excerpt: Kubernetes provides built-in functionalities that Flink can leverage fo
   production setups. In this blogpost, we will have a close look at how to deploy
   Flink applications natively on Kubernetes cluster with HA.
 title: How to natively deploy Flink on Kubernetes with High-Availability (HA)
+aliases:
+- /2021/02/10/native-k8s-with-ha.html
 ---
 
 Flink has supported resource management systems like YARN and Mesos since the early days; however, these were not designed for the fast-moving cloud-native architectures that are increasingly gaining popularity these days, or the growing need to support complex, mixed workloads (e.g. batch, streaming, deep learning, web services).

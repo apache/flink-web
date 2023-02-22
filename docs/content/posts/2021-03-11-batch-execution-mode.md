@@ -8,6 +8,8 @@ excerpt: Apache Flink 1.12 introduced batch execution mode through FLIP-140. Thi
   blog post discusses when to use the new mode, discusses its benefits and gives examples
   of programs that can be run in it.
 title: A Rundown of Batch Execution Mode in the DataStream API
+aliases:
+- /2021/03/11/batch-execution-mode.html
 ---
 
 {% toc %}

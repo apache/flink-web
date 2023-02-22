@@ -8,6 +8,8 @@ excerpt: In this series of blog posts you will learn about powerful Flink patter
   for building streaming applications.
 title: 'Advanced Flink Application Patterns Vol.2: Dynamic Updates of Application
   Logic'
+aliases:
+- /news/2020/03/24/demo-fraud-detection-2.html
 ---
 
 In the [first article](https://flink.apache.org/news/2020/01/15/demo-fraud-detection.html) of the series, we gave a high-level description of the objectives and required functionality of a Fraud Detection engine. We also described how to make data partitioning in Apache Flink customizable based on modifiable rules instead of using a hardcoded `KeysExtractor` implementation.

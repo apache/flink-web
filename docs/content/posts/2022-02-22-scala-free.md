@@ -7,6 +7,8 @@ date: "2022-02-22T00:00:00Z"
 excerpt: Apache Flink's runtime is now Scala free, allowing users to leverage any
   Scala version in their user code - including Scala 3!
 title: Scala Free in One Fifteen
+aliases:
+- /2022/02/22/scala-free.html
 ---
 
 Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath.

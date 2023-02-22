@@ -4,6 +4,8 @@ date: "2023-01-13T08:00:00.000Z"
 authors:
 - JingsongLi:
   name: "Jingsong Lee"
+aliases:
+- /news/2023/01/13/release-table-store-0.3.0.html
 ---
 
 The Apache Flink community is pleased to announce the release of the

@@ -9,6 +9,8 @@ date: "2022-06-05T08:00:00Z"
 subtitle: Lifecycle management for Apache Flink deployments using native Kubernetes
   tooling
 title: Apache Flink Kubernetes Operator 1.0.0 Release Announcement
+aliases:
+- /news/2022/06/05/release-kubernetes-operator-1.0.0.html
 ---
 
 In the last two months since our [initial preview release](https://flink.apache.org/news/2022/04/03/release-kubernetes-operator-0.1.0.html) the community has been hard at work to stabilize and improve the core Flink Kubernetes Operator logic.

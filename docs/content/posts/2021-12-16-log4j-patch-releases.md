@@ -4,6 +4,8 @@ authors:
   name: Chesnay Schepler
 date: "2021-12-16T00:00:00Z"
 title: Apache Flink Log4j emergency releases
+aliases:
+- /news/2021/12/16/log4j-patch-releases.html
 ---
 
 The Apache Flink community has released emergency bugfix versions of Apache Flink for the 1.11, 1.12, 1.13 and 1.14 series.

@@ -13,6 +13,8 @@ excerpt: This post explores the State Processor API, introduced with Flink 1.9.0
   into a system for unified batch and stream processing.
 title: 'The State Processor API: How to Read, write and modify the state of Flink
   applications'
+aliases:
+- /feature/2019/09/13/state-processor-api.html
 ---
 
 Whether you are running Apache Flink<sup>Ⓡ</sup> in production or evaluated Flink as a computation framework in the past, you've probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! [Apache Flink 1.9.0](https://flink.apache.org/news/2019/08/22/release-1.9.0.html) introduces the [State Processor API]({{< param DocsBaseUrl >}}flink-docs-release-1.9/dev/libs/state_processor_api.html), a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink's savepoints and checkpoints. 

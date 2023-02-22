@@ -1,6 +1,8 @@
 ---
 date: "2015-04-07T10:00:00Z"
 title: March 2015 in the Flink community
+aliases:
+- /news/2015/04/07/march-in-flink.html
 ---
 
 March has been a busy month in the Flink community.

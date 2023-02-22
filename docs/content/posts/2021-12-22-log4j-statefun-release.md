@@ -6,6 +6,8 @@ authors:
   seth: null
 date: "2021-12-22T00:00:00Z"
 title: Apache Flink StateFun Log4j emergency release
+aliases:
+- /news/2021/12/22/log4j-statefun-release.html
 ---
 
 The Apache Flink community has released an emergency bugfix version of Apache Flink Stateful Function 3.1.1.

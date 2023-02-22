@@ -9,6 +9,8 @@ excerpt: This blog post dives deep into the internals of the StateFun runtime, t
 subtitle: A look at how Apache Flink Stateful Functions' runtime enables consistent
   and fault-tolerant stateful serverless applications
 title: 'Stateful Functions Internals: Behind the scenes of Stateful Serverless'
+aliases:
+- /news/2020/10/13/stateful-serverless-internals.html
 ---
 
 Stateful Functions (StateFun) simplifies the building of distributed stateful applications by combining the best of two worlds:

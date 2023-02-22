@@ -15,6 +15,8 @@ excerpt: Part one of this blog post briefly introduced the optimizations we’ve
   and memory usage of scheduling large-scale jobs in Flink 1.14 is significantly reduced.
   In part two, we will elaborate on the details of these optimizations.
 title: How We Improved Scheduler Performance for Large-scale Jobs - Part Two
+aliases:
+- /2022/01/04/scheduler-performance-part-two.html
 ---
 
 [Part one](/2022/01/04/scheduler-performance-part-one) of this blog post briefly introduced the optimizations we’ve made to improve the performance of the scheduler; compared to Flink 1.12, the time cost and memory usage of scheduling large-scale jobs in Flink 1.14 is significantly reduced. In part two, we will elaborate on the details of these optimizations.

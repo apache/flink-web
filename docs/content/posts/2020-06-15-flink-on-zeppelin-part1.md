@@ -5,6 +5,8 @@ authors:
   zjffdu: null
 date: "2020-06-15T08:00:00Z"
 title: Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1
+aliases:
+- /news/2020/06/15/flink-on-zeppelin-part1.html
 ---
 
 The latest release of [Apache Zeppelin](https://zeppelin.apache.org/) comes with a redesigned interpreter for Apache Flink (version Flink 1.10+ is only supported moving forward) 

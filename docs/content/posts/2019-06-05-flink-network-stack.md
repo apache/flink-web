@@ -9,6 +9,8 @@ excerpt: Flink’s network stack is one of the core components that make up Apac
   exposed to the stream operators and detail their physical implementation and various
   optimisations in Apache Flink.
 title: A Deep-Dive into Flink's Network Stack
+aliases:
+- /2019/06/05/flink-network-stack.html
 ---
 
 <style type="text/css">

@@ -11,6 +11,8 @@ excerpt: This blog post discusses the reasons to use Flink together with Beam fo
   your stream processing needs and takes a closer look at how Flink works with Beam
   under the hood.
 title: 'Apache Beam: How Beam Runs on Top of Flink'
+aliases:
+- /ecosystem/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink.html
 ---
 
 Note: This blog post is based on the talk ["Beam on Flink: How Does It Actually Work?"](https://www.youtube.com/watch?v=hxHGLrshnCY).

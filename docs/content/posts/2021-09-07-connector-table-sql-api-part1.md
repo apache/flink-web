@@ -6,6 +6,8 @@ authors:
   name: Daisy Tsang
 date: "2021-09-07T00:00:00Z"
 title: 'Implementing a Custom Source Connector for Table API and SQL - Part One '
+aliases:
+- /2021/09/07/connector-table-sql-api-part1.html
 ---
 
 Part one of this tutorial will teach you how to build and run a custom source connector to be used with Table API and SQL, two high-level abstractions in Flink. The tutorial comes with a bundled [docker-compose](https://docs.docker.com/compose/) setup that lets you easily run the connector. You can then try it out with Flink’s SQL client.

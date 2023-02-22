@@ -6,6 +6,8 @@ excerpt: |-
   <p>About six months ago, the Apache Flink community started an effort to add a SQL interface for stream data analysis. SQL is <i>the</i> standard language to access and process data. Everybody who occasionally analyzes data is familiar with SQL. Consequently, a SQL interface for stream data processing will make this technology accessible to a much wider audience. Moreover, SQL support for streaming data will also enable new use cases such as interactive and ad-hoc stream analysis and significantly simplify many applications including stream ingestion and simple transformations.</p>
   <p>In this blog post, we report on the current status, architectural design, and future plans of the Apache Flink community to implement support for SQL as a language for analyzing data streams.</p>
 title: Stream Processing for Everyone with SQL and Apache Flink
+aliases:
+- /news/2016/05/24/stream-sql.html
 ---
 
 The capabilities of open source systems for distributed stream processing have evolved significantly over the last years. Initially, the first systems in the field (notably [Apache Storm](https://storm.apache.org)) provided low latency processing, but were limited to at-least-once guarantees, processing-time semantics, and rather low-level APIs. Since then, several new systems emerged and pushed the state of the art of open source stream processing in several dimensions. Today, users of Apache Flink or [Apache Beam](https://beam.incubator.apache.org) can use fluent Scala and Java APIs to implement stream processing jobs that operate in event-time with exactly-once semantics at high throughput and low latency. 

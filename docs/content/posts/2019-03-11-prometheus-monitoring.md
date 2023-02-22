@@ -8,6 +8,8 @@ excerpt: This blog post describes how developers can leverage Apache Flink's bui
   metrics system together with Prometheus to observe and monitor streaming applications
   in an effective way.
 title: 'Flink and Prometheus: Cloud-native monitoring of streaming applications'
+aliases:
+- /features/2019/03/11/prometheus-monitoring.html
 ---
 
 This blog post describes how developers can leverage Apache Flink's built-in [metrics system]({{< param DocsBaseUrl >}}flink-docs-release-1.7/monitoring/metrics.html) together with [Prometheus](https://prometheus.io/) to observe and monitor streaming applications in an effective way. This is a follow-up post from my [Flink Forward](https://flink-forward.org/) Berlin 2018 talk ([slides](https://www.slideshare.net/MaximilianBode1/monitoring-flink-with-prometheus), [video](https://www.ververica.com/flink-forward-berlin/resources/monitoring-flink-with-prometheus)). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.

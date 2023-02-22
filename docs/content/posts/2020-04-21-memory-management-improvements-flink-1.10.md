@@ -6,6 +6,8 @@ date: "2020-04-21T12:00:00Z"
 excerpt: This post discusses the recent changes to the memory model of the Task Managers
   and configuration options for your Flink applications in Flink 1.10.
 title: Memory Management Improvements with Apache Flink 1.10
+aliases:
+- /news/2020/04/21/memory-management-improvements-flink-1.10.html
 ---
 
 Apache Flink 1.10 comes with significant changes to the memory model of the Task Managers and configuration options for your Flink applications. These recently-introduced changes make Flink more adaptable to all kinds of deployment environments (e.g. Kubernetes, Yarn, Mesos), providing strict control over its memory consumption. In this post, we describe Flink’s memory model, as it stands in Flink 1.10, how to set up and manage memory consumption of your Flink applications and the recent changes the community implemented in the latest Apache Flink release. 

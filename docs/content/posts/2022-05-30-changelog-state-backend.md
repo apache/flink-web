@@ -10,6 +10,8 @@ excerpt: This post describes the mechanism introduced in Flink 1.15 that continu
   background
 title: Improving speed and stability of checkpointing with generic log-based incremental
   checkpoints
+aliases:
+- /2022/05/30/changelog-state-backend.html
 ---
 
 # Introduction

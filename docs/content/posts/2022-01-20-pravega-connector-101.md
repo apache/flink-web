@@ -6,6 +6,8 @@ authors:
 date: "2022-01-20T00:00:00Z"
 excerpt: A brief introduction to the Pravega Flink Connector
 title: Pravega Flink Connector 101
+aliases:
+- /2022/01/20/pravega-connector-101.html
 ---
 
 [Pravega](https://cncf.pravega.io/), which is now a CNCF sandbox project, is a cloud-native storage system based on abstractions for both batch and streaming data consumption. Pravega streams (a new storage abstraction) are durable, consistent, and elastic, while natively supporting long-term data retention. In comparison, [Apache Flink](https://flink.apache.org/) is a popular real-time computing engine that provides unified batch and stream processing. Flink provides high-throughput, low-latency computation, as well as support for complex event processing and state management. Both Pravega and Flink share the same design philosophy and treat data streams as primitives. This makes them a great match when constructing storage+computing data pipelines which can unify batch and streaming use cases.

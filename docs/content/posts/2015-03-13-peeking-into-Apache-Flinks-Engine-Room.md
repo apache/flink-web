@@ -9,6 +9,8 @@ excerpt: Joins are prevalent operations in many data processing applications. Mo
   Apache Flink’s layered architecture and take a look at its internals with a focus
   on how it handles joins.
 title: Peeking into Apache Flink's Engine Room
+aliases:
+- /news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html
 ---
 
 ### Join Processing in Apache Flink

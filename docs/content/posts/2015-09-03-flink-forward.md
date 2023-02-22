@@ -1,6 +1,8 @@
 ---
 date: "2015-09-03T08:00:00Z"
 title: Announcing Flink Forward 2015
+aliases:
+- /news/2015/09/03/flink-forward.html
 ---
 
 [Flink Forward 2015](http://2015.flink-forward.org/) is the first

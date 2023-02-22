@@ -8,6 +8,8 @@ excerpt: Apache Flink and Apache Pulsar are distributed data processing systems.
   combined, they offer elastic data processing at large scale. This post describes
   how Pulsar and Flink can work together to provide a seamless developer experience.
 title: When Flink & Pulsar Come Together
+aliases:
+- /2019/05/03/pulsar-flink.html
 ---
 
 The open source data technology frameworks [Apache Flink](https://flink.apache.org/) and [Apache Pulsar](https://pulsar.apache.org/en/) can integrate in different ways to provide elastic data processing at large scale. I recently gave a talk at [Flink Forward](https://www.flink-forward.org/) San Francisco 2019 and presented some of the integrations between the two frameworks for batch and streaming applications. In this post, I will give a short introduction to Apache Pulsar and its differentiating elements from other messaging systems and describe the ways that Pulsar and Flink can work together to provide a seamless developer experience for elastic data processing at scale.

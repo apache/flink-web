@@ -7,6 +7,8 @@ authors:
 - mbalassi:
   name: "Marton Balassi"
   twitter: "MartonBalassi"
+aliases:
+- /news/2023/01/20/delegation-token-framework.html
 ---
 
 The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes 

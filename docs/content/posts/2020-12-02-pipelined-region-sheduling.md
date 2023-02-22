@@ -7,6 +7,8 @@ excerpt: In this blogpost, we’ll take a closer look at how far the community h
   in improving task scheduling for batch workloads, why this matters and what you
   can expect in Flink 1.12 with the new pipelined region scheduler.
 title: Improvements in task scheduling for batch workloads in Apache Flink 1.12
+aliases:
+- /2020/12/15/pipelined-region-sheduling.html
 ---
 
 The Flink community has been working for some time on making Flink a

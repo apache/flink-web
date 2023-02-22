@@ -8,6 +8,8 @@ excerpt: In this series of blog posts you will learn about three powerful Flink 
   for building streaming applications.
 title: 'Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection
   System'
+aliases:
+- /news/2020/01/15/demo-fraud-detection.html
 ---
 
 In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:

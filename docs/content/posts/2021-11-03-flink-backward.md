@@ -5,6 +5,8 @@ authors:
 date: "2021-11-03T00:00:00Z"
 excerpt: A look back at the development cycle for Flink 1.14
 title: Flink Backward - The Apache Flink Retrospective
+aliases:
+- /2021/11/03/flink-backward.html
 ---
 
 It has now been a month since the community released [Apache Flink 1.14](https://flink.apache.org/downloads.html#apache-flink-1140) into the wild. We had a comprehensive look at the enhancements, additions, and fixups in the release announcement blog post, and now we will look at the development cycle from a different angle. Based on feedback collected from contributors involved in this release, we will explore the experiences and processes behind it all.

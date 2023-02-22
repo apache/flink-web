@@ -9,6 +9,8 @@ excerpt: Apache Flink 1.13 introduced Reactive Mode, a big step forward in Flink
   and overall costs. This blog post showcases how to use this new feature on Kubernetes,
   including some lessons learned.
 title: Scaling Flink automatically with Reactive Mode
+aliases:
+- /2021/05/06/reactive-mode.html
 ---
 
 {% toc %}

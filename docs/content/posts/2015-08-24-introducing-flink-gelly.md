@@ -1,6 +1,8 @@
 ---
 date: "2015-08-24T00:00:00Z"
 title: 'Introducing Gelly: Graph Processing with Apache Flink'
+aliases:
+- /news/2015/08/24/introducing-flink-gelly.html
 ---
 
 This blog post introduces **Gelly**, Apache Flink's *graph-processing API and library*. Flink's native support

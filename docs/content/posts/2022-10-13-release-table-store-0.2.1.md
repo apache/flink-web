@@ -6,6 +6,8 @@ date: "2022-10-13T08:00:00Z"
 excerpt: The Apache Flink Community is pleased to announce a bug fix release for Flink
   Table Store 0.2.
 title: Apache Flink Table Store 0.2.1 Release Announcement
+aliases:
+- /news/2022/10/13/release-table-store-0.2.1.html
 ---
 
 The Apache Flink Community is pleased to announce the first bug fix release of the Flink Table Store 0.2 series.

@@ -1,6 +1,8 @@
 ---
 date: "2015-02-04T10:00:00Z"
 title: January 2015 in the Flink community
+aliases:
+- /news/2015/02/04/january-in-flink.html
 ---
 
 Happy 2015! Here is a (hopefully digestible) summary of what happened last month in the Flink community.

@@ -9,6 +9,8 @@ excerpt: And suddenly it’s June. The previous month has been calm on the surfa
   full speed, Stateful Functions 2.1 is out in the wild and Flink has made it into
   Google Season of Docs 2020.
 title: Flink Community Update - June'20
+aliases:
+- /news/2020/06/11/community-update.html
 ---
 
 And suddenly it’s June. The previous month has been calm on the surface, but quite hectic underneath — the final testing phase for Flink 1.11 is moving at full speed, Stateful Functions 2.1 is out in the wild and Flink has made it into Google Season of Docs 2020. 

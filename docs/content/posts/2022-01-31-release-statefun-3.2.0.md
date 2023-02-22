@@ -10,6 +10,8 @@ date: "2022-01-31T08:00:00Z"
 subtitle: The Apache Flink community is happy to announce the release of Stateful
   Functions (StateFun) 3.2.0.
 title: Stateful Functions 3.2.0 Release Announcement
+aliases:
+- /news/2022/01/31/release-statefun-3.2.0.html
 ---
 
 Stateful Functions is a cross-platform stack for building Stateful Serverless applications, making it radically simpler to develop scalable, consistent, and elastic distributed applications.

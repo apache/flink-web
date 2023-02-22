@@ -9,6 +9,8 @@ excerpt: Apache Flink 1.11 has released many exciting new features, including ma
   closer look at how to quickly build streaming applications with Flink SQL from a
   practical point of view.
 title: 'Flink SQL Demo: Building an End-to-End Streaming Application'
+aliases:
+- /2020/07/28/flink-sql-demo-building-e2e-streaming-application.html
 ---
 
 Apache Flink 1.11 has released many exciting new features, including many developments in Flink SQL which is evolving at a fast pace. This article takes a closer look at how to quickly build streaming applications with Flink SQL from a practical point of view.

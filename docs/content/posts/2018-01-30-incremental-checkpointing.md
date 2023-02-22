@@ -10,6 +10,8 @@ date: "2018-01-30T12:00:00Z"
 excerpt: Flink 1.3.0 introduced incremental checkpointing, making it possible for
   applications with large state to generate checkpoints more efficiently.
 title: 'Managing Large State in Apache Flink: An Intro to Incremental Checkpointing'
+aliases:
+- /features/2018/01/30/incremental-checkpointing.html
 ---
 
 Apache Flink was purpose-built for _stateful_ stream processing. However, what is state in a stream processing application? I defined state and stateful stream processing in a [previous blog post](http://flink.apache.org/features/2017/07/04/flink-rescalable-state.html), and in case you need a refresher, _state is defined as memory in an application's operators that stores information about previously-seen events that you can use to influence the processing of future events_.

@@ -15,6 +15,8 @@ excerpt: A few weeks ago, Alibaba contributed its Flink-fork 'Blink' back to Apa
   to make a big step towards its vision to build a truly unified system for stream
   and batch processing.
 title: Batch as a Special Case of Streaming and Alibaba's contribution of Blink
+aliases:
+- /news/2019/02/13/unified-batch-streaming-blink.html
 ---
 
 Last week, we [broke the news](https://lists.apache.org/thread.html/2f7330e85d702a53b4a2b361149930b50f2e89d8e8a572f8ee2a0e6d@%3Cdev.flink.apache.org%3E) that Alibaba decided to contribute its Flink-fork, called Blink, back to the Apache Flink project. Why is that a big thing for Flink, what will it mean for users and the community, and how does it fit into Flink’s overall vision? Let's take a step back to understand this better...

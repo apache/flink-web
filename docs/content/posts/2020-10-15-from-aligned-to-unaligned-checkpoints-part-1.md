@@ -12,6 +12,8 @@ excerpt: Apache Flink’s checkpoint-based fault tolerance mechanism is one of i
   process in Flink, its core properties and issues under backpressure.
 title: 'From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and
   Backpressure'
+aliases:
+- /2020/10/15/from-aligned-to-unaligned-checkpoints-part-1.html
 ---
 
 Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both [very small](https://hal.inria.fr/hal-02463206/document) and [extremely large](https://102.alibaba.com/detail?id=35) scenarios and provides support for many operational features like stateful upgrades with [state evolution]({{< param DocsBaseUrl >}}flink-docs-stable/dev/stream/state/schema_evolution.html) or [roll-backs and time-travel]({{< param DocsBaseUrl >}}flink-docs-stable/ops/state/savepoints.html). 

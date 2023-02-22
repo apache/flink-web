@@ -10,6 +10,8 @@ excerpt: This multi-part series of blog post presents a collection of low-latenc
   we measure the end-to-end latency, followed by a few techniques that optimize latency
   directly.
 title: Getting into Low-Latency Gears with Apache Flink - Part One
+aliases:
+- /2022/05/18/latency-part1.html
 ---
 
 Apache Flink is a stream processing framework well known for its low latency processing capabilities. It is generic and suitable for a wide range of use cases. As a Flink application developer or a cluster administrator, you need to find the right gear that is best for your application. In other words, you don't want to be driving a luxury sports car while only using the first gear.

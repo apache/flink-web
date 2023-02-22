@@ -7,6 +7,8 @@ excerpt: Serialization is a crucial element of your Flink job. This article is t
   first in a series of posts that will highlight Flink’s serialization stack, and
   looks at the different ways Flink can serialize your data types.
 title: 'Flink Serialization Tuning Vol. 1: Choosing your Serializer — if you can'
+aliases:
+- /news/2020/04/15/flink-serialization-tuning-vol-1.html
 ---
 
 Almost every Flink job has to exchange data between its operators and since these records may not only be sent to another instance in the same JVM but instead to a separate process, records need to be serialized to bytes first. Similarly, Flink’s off-heap state-backend is based on a local embedded RocksDB instance which is implemented in native C++ code and thus also needs transformation into bytes on every state access. Wire and state serialization alone can easily cost a lot of your job’s performance if not executed correctly and thus, whenever you look into the profiler output of your Flink job, you will most likely see serialization in the top places for using CPU cycles.

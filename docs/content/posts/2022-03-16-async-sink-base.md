@@ -6,6 +6,8 @@ date: "2022-03-16T16:00:00Z"
 excerpt: An overview of the new AsyncBaseSink and how to use it for building your
   own concrete sink
 title: The Generic Asynchronous Base Sink
+aliases:
+- /2022/05/06/async-sink-base.html
 ---
 
 Flink sinks share a lot of similar behavior. Most sinks batch records according to user-defined buffering hints, sign requests, write them to the destination, retry unsuccessful or throttled requests, and participate in checkpointing.

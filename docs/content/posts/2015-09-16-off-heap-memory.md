@@ -6,6 +6,8 @@ excerpt: |-
   <p>Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, &quot;off-heap&quot; has become almost something like a magic word to solve these problems.</p>
   <p>In this blog post, we will look at how Flink exploits off-heap memory. The feature is part of the upcoming release, but you can try it out with the latest nightly builds. We will also give a few interesting insights into the behavior for Java's JIT compiler for highly optimized methods and loops.</p>
 title: Off-heap Memory in Apache Flink and the curious JIT compiler
+aliases:
+- /news/2015/09/16/off-heap-memory.html
 ---
 
 Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, "off-heap" has become almost something like a magic word to solve these problems.
