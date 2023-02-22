@@ -21,7 +21,7 @@ git submodule update --init --recursive
 
 function prepareDocBuild {
   # Remove old content folder and create new one
-  rm -r content && mkdir content
+  rm -r -f content && mkdir content
 }
 
 function finalizeDocBuild {
