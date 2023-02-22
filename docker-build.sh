@@ -27,5 +27,5 @@ then
   docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --destination target
   finalizeDocBuild
 else
-  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest server --buildDrafts --buildFuture --bind 0.0.0.0
+  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --buildDrafts --buildFuture --bind 0.0.0.0 server
 fi

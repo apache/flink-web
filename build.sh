@@ -31,9 +31,9 @@ action=$1
 if [[ $action = "build" ]]
 then
   prepareDocBuild
-  hugo -b "" -D -F --source docs --destination target
+  hugo --source docs --destination target
   finalizeDocBuild
 else
-  hugo -b "" -D -F --source docs server --buildDrafts --buildFuture --bind 0.0.0.0
+  hugo --source docs --buildDrafts --buildFuture --bind 0.0.0.0 server
 fi
 
