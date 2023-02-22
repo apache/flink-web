@@ -19,7 +19,7 @@ Every review needs to check the following six aspects. **We encourage to check t
 
 ### 1. Is the Contribution Well-Described?
 
-Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly [according to a prior discussion on Jira or the development mainling list]({{< relref "how-to-contribute/contribute-code" >}}#consensus), only a short reference to that discussion is needed.
+Check whether the contribution is sufficiently well-described to support a good review. Trivial changes and fixes do not need a long description. If the implementation is exactly [according to a prior discussion on Jira or the development mailing list]({{< relref "how-to-contribute/contribute-code" >}}#consensus), only a short reference to that discussion is needed.
 If the implementation is different from the agreed approach in the consensus discussion, a detailed description of the implementation is required for any further review of the contribution.
 
 Any pull request that changes functionality or behavior needs to describe the big picture of these changes, so that reviews know what to look for (and don’t have to dig through the code to hopefully understand what the change does).
