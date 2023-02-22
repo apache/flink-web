@@ -43,7 +43,7 @@ If you'd like to post to the mailing list, you need to
 2. confirm the subscription by replying to the confirmation email, and
 3. send your email to `user@flink.apache.org`.
 
-Please note that you won't receive a respose to your mail if you are not subscribed.
+Please note that you won't receive a response to your mail if you are not subscribed.
 
 ### Slack
 
