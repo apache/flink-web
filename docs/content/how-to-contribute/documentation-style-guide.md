@@ -441,7 +441,7 @@ best practices to keep in mind:
 
 * **Commands in code blocks.** Commands can be documented using `bash` syntax
   highlighted code blocks. The following items should be considered when adding
-  commands to the docummentation:
+  commands to the documentation:
     * **Use long parameter names.** Long parameter names help the reader to
       understand the purpose of the command. They should be preferred over their
       short counterparts.
