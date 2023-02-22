@@ -168,7 +168,7 @@ There is almost no use case in which Apache Flink is used on its own. It has est
 as part of many data related reference architectures. In fact you'll find the squirrel logo covering
 several aspects.
 
-The community has added a lot of connectors and formats. With the already mentionend
+The community has added a lot of connectors and formats. With the already mentioned
 [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface) and
 [FLIP-143](https://cwiki.apache.org/confluence/display/FLINK/FLIP-143%3A+Unified+Sink+API)
 a new default for connectors has been established.
