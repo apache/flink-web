@@ -57,7 +57,7 @@ This question can be answered with
 
 ### 4. Does the Implementation Follow the Agreed Upon Overall Approach/Architecture?
 
-In this step, we check if a contribution folllows the agreed upon approach from the previous discussion in Jira or the mailing lists.
+In this step, we check if a contribution follows the agreed upon approach from the previous discussion in Jira or the mailing lists.
 
 This question should be answerable from the Pull Request description (or the linked Jira) as much as possible.
 
