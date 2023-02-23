@@ -17,58 +17,23 @@
 # limitations under the License.
 ################################################################################
 
-RUBY=${RUBY:-ruby}
-GEM=${GEM:-gem}
-
-set -e
-cd "$(dirname ${BASH_SOURCE[0]})"
-
-DIR="`pwd`"
-
-# We need at least bundler to proceed
-if [ "`command -v bundle`" == "" ]; then
-    RUBYGEM_BINDIR=""
-
-    # Adjust the PATH to discover locally installed ruby gem binaries
-    export PATH="$(${RUBY} -e 'puts Gem.user_dir')/bin:$PATH"
-
-    if [ "`command -v bundle`" == "" ]; then
-        echo "WARN: Could not find bundle."
-        echo "Attempting to install locally. If this doesn't work, please install with 'gem install bundler'."
-
-        # install bundler locally
-        ${GEM} install --user-install --no-format-executable bundler
-    fi
+if ! command -v hugo &> /dev/null
+then
+	echo "Hugo must be installed to run the docs locally"
+	echo "Please see docs/README.md for more details"
+	exit 1
 fi
 
-# Install Ruby dependencies locally
-bundle install --full-index --path .rubydeps
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+source "${SCRIPT_DIR}/_utils.sh"
 
-DOCS_SRC=${DIR}
-DOCS_DST=${DOCS_SRC}/content
+action=$1
+if [[ $action = "build" ]]
+then
+  prepareDocBuild
+  hugo --source docs --destination target
+  finalizeDocBuild
+else
+  hugo --source docs --buildDrafts --buildFuture --bind 0.0.0.0 server
+fi
 
-# default jekyll command is to just build site
-JEKYLL_CMD="build"
-INCREMENTAL=""
-
-# if -p flag is provided, serve site on localhost
-while getopts ":pfi" opt; do
-    case $opt in
-        p)
-        JEKYLL_CMD="serve --baseurl= --watch --trace"
-        ;;
-        f)
-        JEKYLL_CMD="serve --baseurl= --watch --trace --future"
-        ;;
-        i)
-        echo "Incremental build enabled."
-        echo "Do NOT use incremental builds when building the site for publication."
-        echo "Incremental builds _can_ result in newly added blog posts not being displayed."
-        echo "If that happens, run this script once without incremental builds."
-        INCREMENTAL="--incremental"
-        ;;
-    esac
-done
-
-# use 'bundle exec' to insert the local Ruby dependencies
-bundle exec jekyll ${JEKYLL_CMD} ${INCREMENTAL} --source "${DOCS_SRC}" --destination "${DOCS_DST}"

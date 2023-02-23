@@ -1,0 +1,251 @@
+{{/*
+# The MIT License (MIT)
+
+Copyright 2021 Paul Duncan
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/}}
+
+{{/* get table config
+
+the search config path is:
+1. table "config" property (see below)
+2. "table_config" dictionary in page front matter
+3. "table_config" dictionary in site params
+4. default values (defaults to bulma classes)
+
+*/}}
+{{/* set default config */}}
+{{- $config := (dict "data_prefix" "" "table_class" "table" "align_left" "has-text-left" "align_center" "has-text-centered" "align_justify" "has-text-justified" "align_right" "has-text-right") -}}
+{{- if index $.Page.Params "table_config" -}}
+{{/* use table config from page front matter */}}
+{{- $config = $.Page.Params.table_config -}}
+{{- else if index $.Site.Params "table_config" -}}
+{{/* use table config from site config */}}
+{{- $config = $.Site.Params.table_shortcode -}}
+{{- end -}}
+
+{{/* get data prefix */}}
+{{- $dp := $config.data_prefix | safeHTMLAttr -}}
+
+{{/* get table data */}}
+{{- $table := (dict) -}}
+{{- if .Get 1 -}}
+{{/* get table data from site data */}}
+{{- $table = (index .Site.Data.tables (.Get 0) (.Get 1)) -}}
+{{- else -}}
+{{/* get table data from page params */}}
+{{- $table = (index $.Page.Params "tables" (.Get 0)) -}}
+{{- end -}}
+
+{{/* handle pure array table */}}
+{{- if reflect.IsSlice $table -}}
+{{/* convert table to map { "cols": cols", "rows": rows } */}}
+{{- $table = (dict "cols" (index $table 0) "rows" (last (sub (len $table) 1) $table)) -}}
+{{- end -}}
+
+{{- if index $table "config" -}}
+{{/* use config from table */}}
+{{- $config = $table.config -}}
+{{- end -}}
+
+<table
+        {{/* emit table ID */}}
+{{- if $table.id -}}id='{{- $table.id -}}'{{- end -}}
+
+{{/* base (e.g. "table" in bulma) and custom CSS class for table */}}
+class='{{- $config.table_class }} {{ default "" $table.css -}}'
+
+{{/* table tooltip and ARIA label */}}
+title='{{- default $table.name $table.tip -}}'
+aria-label='{{- default $table.name $table.tip -}}'
+>
+{{- if $table.caption -}}
+{{/* render caption */}}
+<caption>{{- $table.caption -}}</caption>
+{{- end -}}
+
+{{- if $table.rows -}}
+<tbody>
+{{/* is the first column a map? */}}
+{{- $first_col_is_map := reflect.IsMap (index $table.cols 0) -}}
+
+{{/* render rows */}}
+{{- range $y, $row := $table.rows -}}
+{{- if $first_col_is_map -}}
+<tr
+        {{/* emit row ID */}}
+{{- if $row._id -}}
+id='{{- $row._id -}}'
+{{- end -}}
+
+{{- if $row._tip -}}
+{{/* emit row tooltip */}}
+title='{{- $row._tip -}}'
+aria-label='{{- $row._tip -}}'
+{{- end -}}
+
+{{- if $row._css -}}
+{{/* emit row css */}}
+class='{{- $row._css -}}'
+{{- end -}}
+
+{{/* row position */}}
+data-{{- $dp -}}tr_y='{{- $y -}}'
+>
+{{- range $x, $col := $table.cols -}}
+{{/* get cell */}}
+{{- $cell := index $row $col.id -}}
+{{- $is_map := reflect.IsMap $cell -}}
+
+{{/* get cell value */}}
+{{- $val := "" -}}
+{{- if $is_map -}}
+{{- $val = index $cell.val -}}
+{{- else -}}
+{{- $val = $cell -}}
+{{- end -}}
+
+{{/* get cell ID */}}
+{{- $cell_id := "" -}}
+{{- if $is_map -}}
+{{- if index $cell "id" -}}
+{{- $cell_id = $cell.id -}}
+{{- end -}}
+{{- end -}}
+
+{{/* get cell tip */}}
+{{- $tip := (default $col.name $col.tip) -}}
+{{- if $is_map -}}
+{{- if index $cell "tip" -}}
+{{- $tip = $cell.tip -}}
+{{- end -}}
+{{- end -}}
+
+{{/* get cell alignment */}}
+{{- $align := $col.align -}}
+{{- if and $is_map -}}
+{{- if (index $cell "align") -}}
+{{- $align = index $cell "align" -}}
+{{- end -}}
+{{- end -}}
+
+{{/* get default cell css */}}
+{{- $css := "" -}}
+{{- if eq $align "left" -}}
+{{- $css = $config.align_left -}}
+{{- else if eq $align "center" -}}
+{{- $css = $config.align_center -}}
+{{- else if eq $align "justified" -}}
+{{- $css = $config.align_justify -}}
+{{- else if eq $align "right" -}}
+{{- $css = $config.align_right -}}
+{{- end -}}
+
+{{/* get cell css override */}}
+{{- if $is_map -}}
+{{- if index $cell "css" -}}
+{{- $css = $cell.css -}}
+{{- end -}}
+{{- end -}}
+
+{{/* get colspan */}}
+{{- $colspan := 1 -}}
+{{- if $is_map -}}
+{{- if index $cell "colspan" -}}
+{{- $colspan = $cell.colspan -}}
+{{- end -}}
+{{- end -}}
+
+{{/* get rowspan */}}
+{{- $rowspan := 1 -}}
+{{- if $is_map -}}
+{{- if index $cell "rowspan" -}}
+{{- $rowspan = $cell.rowspan -}}
+{{- end -}}
+{{- end -}}
+
+{{/* emit cell */}}
+<td
+        {{/* cell ID */}}
+{{- if $cell_id -}}
+id='{{- $cell_id -}}'
+{{- end -}}
+
+{{/* cell tooltip */}}
+title='{{- $tip -}}'
+aria-label='{{- $tip -}}'
+
+{{/* cell class */}}
+class='{{- $css -}}'
+
+{{/* cell position and ID */}}
+data-{{- $dp -}}td_x='{{- $x -}}'
+data-{{- $dp -}}td_id='{{- $col.id -}}'
+
+{{- if gt $colspan 1 -}}
+colspan='{{- $colspan -}}'
+{{- end -}}
+
+{{- if gt $rowspan 1 -}}
+rowspan='{{- $rowspan -}}'
+{{- end -}}
+>
+{{- if $is_map -}}
+{{- if $cell.html -}}
+{{/* render as raw HTML */}}
+{{- $val | safeHTML -}}
+{{- else -}}
+{{/* render as markup */}}
+{{- $val | $.Page.RenderString -}}
+{{- end -}}
+{{- else -}}
+{{/* render as markup */}}
+{{- $val | $.Page.RenderString -}}
+{{- end -}}
+</td>
+{{- end -}}
+</tr>
+{{- else -}}
+{{/* first column is string, rows are arrays of values */}}
+<tr
+        {{/* row position */}}
+data-{{- $dp -}}tr_y='{{- $y -}}'
+>
+{{- range $x, $col := $table.cols -}}
+<td
+        {{/* cell tooltip */}}
+title='{{- $col -}}'
+aria-label='{{- $col -}}'
+{{/* cell tooltip */}}
+
+{{/* cell position */}}
+data-{{- $dp -}}td_x='{{- $x -}}'
+>
+{{- index $row $x -}}
+</td>
+{{- end -}}
+</tr>
+{{- end -}}
+{{- end -}}
+</tbody>
+{{- end -}}
+</table>

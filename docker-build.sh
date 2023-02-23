@@ -17,4 +17,15 @@
 # limitations under the License.
 ################################################################################
 
-docker run --rm --volume="$PWD:/srv/flink-web" --expose=4000 -p 4000:4000 -it ruby:2.6.0 bash -c "cd /srv/flink-web && gem install bundler && ./build.sh $@"
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+source "${SCRIPT_DIR}/_utils.sh"
+
+action=$1
+if [[ $action = "build" ]]
+then
+  prepareDocBuild
+  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --destination target
+  finalizeDocBuild
+else
+  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --buildDrafts --buildFuture --bind 0.0.0.0 server
+fi
