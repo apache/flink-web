@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.110.0">
+  <meta name="generator" content="Hugo 0.101.0" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Introduction # When designing a Flink data processing job, one of the key concerns is maximising job throughput. Sink throughput is a crucial factor because it can determine the entire job’s throughput. We generally want the highest possible write rate in the sink without overloading the destination. However, since the factors impacting a destination’s performance are variable over the job’s lifetime, the sink needs to adjust its write rate dynamically.">
@@ -13,11 +13,12 @@
 <meta property="og:url" content="//flink.apache.org/2022/11/25/optimising-the-throughput-of-async-sinks-using-a-custom-ratelimitingstrategy/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-11-25T12:00:00+00:00" />
 <meta property="article:modified_time" content="2022-11-25T12:00:00+00:00" />
+
 <title>Optimising the throughput of async sinks using a custom RateLimitingStrategy | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<script defer src="/en.search.min.3951bb2df6c3de50fa70a51ded017b9b9dc75e8d6ff152d1d19232e8a4b5938a.js" integrity="sha256-OVG7LfbD3lD6cKUd7QF7m53HXo1v8VLR0ZIy6KS1k4o="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -493,8 +494,8 @@ https://github.com/alex-shpak/hugo-book
     
     
     
-<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
-    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+<label for="section-c83ad0caf34e364bf3729badd233a350" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.4 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
 </label>
   
 
@@ -998,10 +999,10 @@ https://github.com/alex-shpak/hugo-book
 </span></span><span class="line"><span class="cl">    
 </span></span><span class="line"><span class="cl">    <span class="nd">@Override</span>
 </span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerCompletedRequest</span><span class="o">(</span><span class="n">ResultInfo</span> <span class="n">resultInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightRequests</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">currentInFlightRequests</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightMessages</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">currentInFlightMessages</span> <span class="o">-</span> <span class="n">resultInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightRequests</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="n">currentInFlightRequests</span> <span class="o">-</span> <span class="n">1</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightMessages</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="n">currentInFlightMessages</span> <span class="o">-</span> <span class="n">resultInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">());</span>
 </span></span><span class="line"><span class="cl">        
-</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
 </span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleDown</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
 </span></span><span class="line"><span class="cl">        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
 </span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleUp</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
@@ -1018,7 +1019,7 @@ https://github.com/alex-shpak/hugo-book
 </span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nd">@Override</span>
 </span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerCompletedRequest</span><span class="o">(</span><span class="n">ResultInfo</span> <span class="n">resultInfo</span><span class="o">)</span> <span class="o">{</span>
 </span></span><span class="line"><span class="cl">        <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
 </span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleDown</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
 </span></span><span class="line"><span class="cl">        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
 </span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleUp</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
@@ -1048,8 +1049,8 @@ https://github.com/alex-shpak/hugo-book
 </span></span><span class="line"><span class="cl">    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Bucket</span> <span class="n">bucket</span><span class="o">;</span>
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="nf">TokenBucketRateLimitingStrategy</span><span class="o">()</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Refill</span> <span class="n">refill</span> <span class="o">=</span> <span class="n">Refill</span><span class="o">.</span><span class="na">intervally</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Bandwidth</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">Bandwidth</span><span class="o">.</span><span class="na">classic</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">refill</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Refill</span> <span class="n">refill</span> <span class="o">=</span> <span class="n">Refill</span><span class="o">.</span><span class="na">intervally</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="n">1</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Bandwidth</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">Bandwidth</span><span class="o">.</span><span class="na">classic</span><span class="o">(</span><span class="n">10</span><span class="o">,</span> <span class="n">refill</span><span class="o">);</span>
 </span></span><span class="line"><span class="cl">        <span class="k">this</span><span class="o">.</span><span class="na">bucket</span> <span class="o">=</span> <span class="n">Bucket4j</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
 </span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">addLimit</span><span class="o">(</span><span class="n">limit</span><span class="o">)</span>
 </span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">build</span><span class="o">();</span>
