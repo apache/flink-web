@@ -1,0 +1,1187 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this blog post, we&rsquo;ll take a look at a class of use cases that is a natural fit for Flink Stateful Functions: monitoring and controlling networks of connected devices (often called the “Internet of Things” (IoT)).
+IoT networks are composed of many individual, but interconnected components, which makes getting some kind of high-level insight into the status, problems, or optimization opportunities in these networks not trivial. Each individual device “sees” only its own state, which means that the status of groups of devices, or even the network as a whole, is often a complex aggregation of the individual devices’ state.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions" />
+<meta property="og:description" content="In this blog post, we&rsquo;ll take a look at a class of use cases that is a natural fit for Flink Stateful Functions: monitoring and controlling networks of connected devices (often called the “Internet of Things” (IoT)).
+IoT networks are composed of many individual, but interconnected components, which makes getting some kind of high-level insight into the status, problems, or optimization opportunities in these networks not trivial. Each individual device “sees” only its own state, which means that the status of groups of devices, or even the network as a whole, is often a complex aggregation of the individual devices’ state." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2020/08/18/monitoring-and-controlling-networks-of-iot-devices-with-flink-stateful-functions/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-08-18T08:00:00+00:00" />
+<meta property="article:modified_time" content="2020-08-18T08:00:00+00:00" />
+<title>Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#monitoring-a-virtual-datacenter-via-digital-twins">Monitoring a Virtual Datacenter via Digital Twins</a></li>
+    <li><a href="#implementing-the-use-case-with-flink-statefun">Implementing the use case with Flink StateFun</a></li>
+    <li><a href="#how-does-it-really-look">How does it really look?</a>
+      <ul>
+        <li><a href="#serverfun">ServerFun</a></li>
+        <li><a href="#rackfun">RackFun</a></li>
+        <li><a href="#datacenterfun">DataCenterFun</a></li>
+      </ul>
+    </li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2020/08/18/monitoring-and-controlling-networks-of-iot-devices-with-flink-stateful-functions/">Monitoring and Controlling Networks of IoT Devices with Flink Stateful Functions</a>
+    </h1>
+    
+  August 18, 2020 -
+
+
+
+  Igal Shilman
+
+  <a href="https://twitter.com/IgalShilman">(@IgalShilman)</a>
+  
+
+
+
+    <p><p>In this blog post, we&rsquo;ll take a look at a class of use cases that is a natural fit for <a href="https://flink.apache.org/stateful-functions.html">Flink Stateful Functions</a>: monitoring and controlling networks of connected devices (often called the “Internet of Things” (IoT)).</p>
+<p>IoT networks are composed of many individual, but interconnected components, which makes getting some kind of high-level insight into the status, problems, or optimization opportunities in these networks not trivial. Each individual device “sees” only its own state, which means that the status of groups of devices, or even the network as a whole, is often a complex aggregation of the individual devices’ state. Diagnosing, controlling, or optimizing these groups of devices thus requires distributed logic that analyzes the &ldquo;bigger picture&rdquo; and then acts upon it.</p>
+<p>A powerful approach to implement this is using <em><a href="https://en.wikipedia.org/wiki/Digital_twin">digital twins</a></em>: each device has a corresponding virtual entity (i.e. the digital twin), which also captures their relationships and interactions. The digital twins track the status of their corresponding devices and send updates to other twins, representing groups (such as geographical regions) of devices. Those, in turn, handle the logic to obtain the network&rsquo;s aggregated view, or this &ldquo;bigger picture&rdquo; we mentioned before.</p>
+<h1 id="our-scenario-datacenter-monitoring-and-alerting">
+  Our Scenario: Datacenter Monitoring and Alerting
+  <a class="anchor" href="#our-scenario-datacenter-monitoring-and-alerting">#</a>
+</h1>
+<figure style="float:right;padding-left:1px;padding-top: 20px">
+  <img src="/img/blog/2020-08-18-statefun/rack.png" width="350px">
+  <figcaption style="padding-top: 10px;text-align:center"><b>Fig.1</b> An oversimplified view of a data center.</figcaption>
+</figure>
+<p>There are many examples of the digital twins approach in the real world, such as <a href="https://www.infoq.com/presentations/tesla-vpp/">smart grids of batteries</a>, <a href="https://www.alibabacloud.com/solutions/intelligence-brain/city">smart cities</a>, or <a href="https://www.youtube.com/watch?v=9y27FJgz5-M">monitoring infrastructure software clusters</a>. In this blogpost, we&rsquo;ll use the example of data center monitoring and alert correlation implemented with Stateful Functions.</p>
+<p>Consider a very simplified view of a data center, consisting of many thousands of commodity servers arranged in server racks. Each server rack typically contains up to 40 servers, with a ToR (Top of the Rack) network switch connected to each server. The switches from all the racks connect through a larger switch (<strong>Fig. 1</strong>).</p>
+<p>In this datacenter, many things can go wrong: a disk in a server can stop working, network cards can start dropping packets, or ToR switches might cease to function. The entire data center might also be affected by power supply degradation, causing servers to operate at reduced capacity. On-site engineers must be able to identify these incidents quickly and fix them promptly.</p>
+<p>Diagnosing individual server failures is rather straightforward: take a recent history of metric reports from that particular server, analyse it and pinpoint the anomaly. On the other hand, other incidents only make sense &ldquo;together&rdquo;, because they share a common root cause. Diagnosing or predicting causes of networking degradation at a rack or datacenter level requires an aggregate view of metrics (such as package drop rates) from the individual machines and racks, and possibly some prediction model or diagnosis code that runs under certain conditions.</p>
+<h2 id="monitoring-a-virtual-datacenter-via-digital-twins">
+  Monitoring a Virtual Datacenter via Digital Twins
+  <a class="anchor" href="#monitoring-a-virtual-datacenter-via-digital-twins">#</a>
+</h2>
+<p>For the sake of this blog post, our oversimplified data center has some servers and racks, each with a unique ID. Each server has a metrics-collecting daemon that publishes metrics to a message queue, and there is a provisioning service that operators will use to ask for server commission- and decommissioning.</p>
+<div style="line-height:60%;">
+    <br>
+</div>
+<center>
+<img src="/img/blog/2020-08-18-statefun/1.png" width="550px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<p>Our application will consume these server metrics and commission/decommission events, and produce server/rack/datacenter alerts. There will also be an operator consuming any alerts triggered by the monitoring system. In the next section, we&rsquo;ll show how this use case can be naturally modeled with Stateful Functions (StateFun).</p>
+<h2 id="implementing-the-use-case-with-flink-statefun">
+  Implementing the use case with Flink StateFun
+  <a class="anchor" href="#implementing-the-use-case-with-flink-statefun">#</a>
+</h2>
+<div class="alert alert-info" markdown="1">
+You can find the code for this example at: <a href="https://github.com/igalshilman/iot-statefun-blogpost">https://github.com/igalshilman/iot-statefun-blogpost</a>
+</div>
+<p>The basic building block for modeling a StateFun application is a <a href="//nightlies.apache.org/flinkflink-statefun-docs-release-2.1/concepts/application-building-blocks.html#stateful-functions"><em>stateful function</em></a>, which has the following properties:</p>
+<ul>
+<li>
+<p>It has a logical unique address; and persisted, fault tolerant state, scoped to that address.</p>
+</li>
+<li>
+<p>It can <em>react</em> to messages, both internal (or, sent from other stateful functions) and external (e.g. a message from Kafka).</p>
+</li>
+<li>
+<p>Invocations of a specific function are serializable, so messages sent to a specific address are <strong>not</strong> executed concurrently.</p>
+</li>
+<li>
+<p>There can be many billions of function instances in a single StateFun cluster.</p>
+</li>
+</ul>
+<p>To model our use case, we&rsquo;ll define three functions: <strong>ServerFun</strong>, <strong>RackFun</strong> and <strong>DataCenterFun</strong>.</p>
+<p><strong>ServerFun</strong></p>
+<p>Each physical server is represented with its <em>digital twin</em> stateful function. This function is responsible for:</p>
+<ol>
+<li>
+<p>Maintaining a sliding window of incoming metrics.</p>
+</li>
+<li>
+<p>Applying a model that decides whether or not to trigger an alert.</p>
+</li>
+<li>
+<p>Alerting if metrics are missing for too long.</p>
+</li>
+<li>
+<p>Notifying its containing <strong>RackFun</strong> about any open incidents.</p>
+</li>
+</ol>
+<p><strong>RackFun</strong></p>
+<p>While the <em>ServerFun</em> is responsible for identifying server-local incidents, we need a function that correlates incidents happening on the different servers deployed in the same rack and:</p>
+<ol>
+<li>
+<p>Collects open incidents reported by the <strong>ServerFun</strong> functions.</p>
+</li>
+<li>
+<p>Maintains an histogram of currently opened incidents on this rack.</p>
+</li>
+<li>
+<p>Applies a correlation model to the individual incidents sent by the <strong>ServerFun</strong>, and reports high-level, related incidents as a single incident to the <strong>DataCenterFun</strong>.</p>
+</li>
+</ol>
+<p><strong>DataCenterFun</strong></p>
+<p>This function maintains a view of incidents across different racks in our datacenter.</p>
+<div style="line-height:60%;">
+    <br>
+</div>
+<center>
+<img src="/img/blog/2020-08-18-statefun/2.png" width="600px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<p>To summarize our plan:</p>
+<ul>
+<li>
+<p>Leaf functions ingest raw metric data (<span style="color:blue">blue</span> lines), and apply localized logic to trigger an alert.</p>
+</li>
+<li>
+<p>Intermediate functions operate on already summarized events (<span style="color:orange">orange</span> lines) and correlate them into high-level events.</p>
+</li>
+<li>
+<p>A root function correlates the high-level events across the intermediate functions and into a single <em>healthy/not healthy</em> value.</p>
+</li>
+</ul>
+<h2 id="how-does-it-really-look">
+  How does it really look?
+  <a class="anchor" href="#how-does-it-really-look">#</a>
+</h2>
+<h3 id="serverfun">
+  ServerFun
+  <a class="anchor" href="#serverfun">#</a>
+</h3>
+<center>
+<img src="/img/blog/2020-08-18-statefun/3_1.png" width="600px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<ol>
+<li>This section associates a behaviour for every message that the function expects to be invoked with.</li>
+<li>The <code>metricsHistory</code> buffer is our sliding window of the last 15 minutes worth of <code>ServerMetricReports</code>. Note that this buffer is configured to expire entries 15 minutes after they were written.</li>
+<li><code>serverHealthState</code> represents the current physical server state, open incidents and so on.</li>
+</ol>
+<p>Let&rsquo;s take a look at what happens when a <code>ServerMetricReport</code> message arrives:</p>
+<center>
+<img src="/img/blog/2020-08-18-statefun/3_2.png" width="600px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<ol>
+<li>Retrieve the previously computed <code>serverHealthState</code> that is kept in state.</li>
+<li>Evaluate a model on the sliding window of the previous metric reports + the current metric reported + the previously computed server state to obtain an assessment of the current server health.</li>
+<li>If the server is not believed to be healthy, emit an alert via an alerts topic, and also send a message to our containing rack with all the open incidents that this server currently has.</li>
+</ol>
+<div class="alert alert-warning" markdown="1">
+We'll omit the other handlers for brevity, but it's important to mention that <b>onTimer</b> makes sure that metric reports are coming in periodically, otherwise it'd trigger an alert stating that we didn’t hear from that server for a long time.
+</div>
+<h3 id="rackfun">
+  RackFun
+  <a class="anchor" href="#rackfun">#</a>
+</h3>
+<center>
+<img src="/img/blog/2020-08-18-statefun/5.png" width="650px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<ol>
+<li>This function keeps a mapping between a <code>ServerId</code> and a set of open incidents on that server.</li>
+<li>When new alerts are received, this function tries to correlate the alert with any other open alerts on that rack. If a correlated rack alert is present, this function notifies the <strong>DataCenterFun</strong> about it.</li>
+</ol>
+<h3 id="datacenterfun">
+  DataCenterFun
+  <a class="anchor" href="#datacenterfun">#</a>
+</h3>
+<center>
+<img src="/img/blog/2020-08-18-statefun/6.png" width="650px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<ol>
+<li>A persisted mapping between a <code>RackId</code> and the latest alert that rack reported.</li>
+<li>Throughout the usage of ingress/egress pairs, this function can report back its current view of the world of what racks are currently known to be unhealthy.</li>
+<li>An operator (via a front-end) can send a <code>GetUnhealthyRacks</code> message addressed to that <strong>DataCenterFun</strong>, and wait for the corresponding response <code>message(UnhealthyRacks)</code>. Whenever a rack reports <em>OK</em>, it&rsquo;ll be removed from the unhealthy racks map.</li>
+</ol>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>This pattern — where each layer of functions performs a stateful aggregation of events sent from the previous layer (or the input) — is useful for a whole class of problems. And, although we used connected devices to motivate this use case, it&rsquo;s not limited to the IoT domain.</p>
+<center>
+<img src="/img/blog/2020-08-18-statefun/7.png" width="500px" alt=""/>
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<p>Stateful Functions provides the building blocks necessary for building complex distributed applications (here the digital twins that support analysis and interactions of the physical entities), while removing common complexities of distributed systems like service discovery, retires, circuit breakers, state management, scalability and similar challenges. If you&rsquo;d like to learn more about Stateful Functions, head over to the official <a href="//nightlies.apache.org/flinkflink-statefun-docs-master/">documentation</a>, where you can also find more hands-on tutorials to try out yourself!</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-08-18-statefun.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#monitoring-a-virtual-datacenter-via-digital-twins">Monitoring a Virtual Datacenter via Digital Twins</a></li>
+    <li><a href="#implementing-the-use-case-with-flink-statefun">Implementing the use case with Flink StateFun</a></li>
+    <li><a href="#how-does-it-really-look">How does it really look?</a>
+      <ul>
+        <li><a href="#serverfun">ServerFun</a></li>
+        <li><a href="#rackfun">RackFun</a></li>
+        <li><a href="#datacenterfun">DataCenterFun</a></li>
+      </ul>
+    </li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

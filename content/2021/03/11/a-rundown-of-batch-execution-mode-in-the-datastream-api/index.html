@@ -1,0 +1,1191 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="{% toc %}
+Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="A Rundown of Batch Execution Mode in the DataStream API" />
+<meta property="og:description" content="{% toc %}
+Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-03-11T00:00:00+00:00" />
+<title>A Rundown of Batch Execution Mode in the DataStream API | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>A Rundown of Batch Execution Mode in the DataStream API</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#which-api-and-execution-mode-should-i-use">Which API and execution mode should I use?</a></li>
+    <li><a href="#how-to-use-the-_batch_-execution">How to use the <em>batch</em> execution</a>
+      <ul>
+        <li><a href="#hello-_batch_-mode">Hello <em>batch</em> mode</a></li>
+        <li><a href="#example-two-input-operators">Example: Two input operators</a></li>
+      </ul>
+    </li>
+    <li><a href="#looking-into-the-future">Looking into the future</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/">A Rundown of Batch Execution Mode in the DataStream API</a>
+    </h1>
+    
+  March 11, 2021 -
+
+
+
+  Dawid Wysakowicz
+
+  <a href="https://twitter.com/dwysakowicz">(@dwysakowicz)</a>
+  
+
+
+
+    <p><p>{% toc %}</p>
+<p>Flink has been following the mantra that <a href="https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html">Batch is a Special Case of Streaming</a> since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for <em>batch</em> (DataSet API) and <em>streaming</em> execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of <em>unification</em>. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient <a href="https://cwiki.apache.org/confluence/x/4i94CQ">batch execution in the DataStream API</a>.</p>
+<p>The idea behind making the DataStream API a unified abstraction for <em>batch</em> and <em>streaming</em> execution instead of maintaining separate APIs is two-fold:</p>
+<ul>
+<li>
+<p>Reusability: efficient batch and stream processing under the same API would allow you to easily switch between both execution modes without rewriting any code. So, a job could be easily reused to process real-time and historical data.</p>
+</li>
+<li>
+<p>Operational simplicity: providing a unified API would mean using a single set of connectors, maintaining a single codebase and being able to easily implement mixed execution pipelines e.g. for use cases like backfilling.</p>
+</li>
+</ul>
+<hr>
+<p>The difference between BATCH and STREAMING vs BOUNDED and UNBOUNDED is subtle, and a common source of confusion — so, let&rsquo;s start by clarifying that. These terms might seem mostly interchangeable, but in reality serve different purposes:</p>
+<p><em>Bounded</em> and <em>unbounded</em> refer to the <strong>characteristics</strong> of the streams you want to process: whether or not they are known to have an end. The terms are also sometimes applied to the applications processing these streams: an application that only processes bounded streams is a <em>bounded</em> stream processing application that eventually finishes; while an <em>unbounded</em> stream processing application processes an unbounded stream and runs forever (or until canceled).</p>
+<p><em>Batch</em> and <em>streaming</em> are <strong>execution modes</strong>. Batch execution is only applicable to bounded streams/applications because it exploits the fact that it can process the whole data (e.g. from a partition) in a batch rather than event-by-event, and possibly execute different batches one after the other. Continuous streaming execution runs everything at the same time, continuously processes (small groups of) events and is applicable to both bounded and unbounded applications.</p>
+<p>Based on that differentiation, there are two main scenarios that result of the combination of these properties:</p>
+<ol>
+<li>A <em>bounded</em> Stream Processing Application that is executed in a <em>batch</em> mode, which you can call a Batch (Processing) Application.</li>
+<li>An <em>unbounded</em> Stream Processing Application that is executed in a <em>streaming</em> mode. This is the combination that has been the primary use case for the DataStream API in Flink.</li>
+</ol>
+<p>It&rsquo;s also possible to have a <em>bounded</em> Stream Processing Application that is executed in <em>streaming</em> mode, but this combination is less significant and likely to be used e.g. in a test environment or in other rare corner cases.</p>
+<h2 id="which-api-and-execution-mode-should-i-use">
+  Which API and execution mode should I use?
+  <a class="anchor" href="#which-api-and-execution-mode-should-i-use">#</a>
+</h2>
+<p>Before going into the choice of execution mode, try looking at your use case from a different angle: do you need to process structured data? Does your data have a schema of some sort? The Table API/SQL will most likely be the right choice. In fact, the majority of <em>batch</em> use cases should be expressed with the <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/table/">Table API/SQL</a>! Finite, bounded data can most often be organized, described with a schema and put into a catalog. This is where the SQL API shines, giving you a rich set of functions and operators out-of-the box with low-level optimizations and broad connector support, all supported by standard SQL. And it works for <em>streaming</em> use cases, as well!</p>
+<p>However, if you need explicit control over the execution graph, you want to manually control the state of your operations, or you need to be able to upgrade Flink (which applies to <em>unbounded</em> applications), the <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/datastream_api.html">DataStream API</a> is the right choice.
+If the DataStream API sounds like the best fit for your use cases, the next decision is what execution mode to run your program in.</p>
+<p><strong>When should you use the <em>batch</em> mode, then?</strong></p>
+<p>The simple answer is if you run your computation on <em>bounded</em>, historic data. The <em>batch</em> mode has a few benefits:</p>
+<ol>
+<li>In <em>bounded</em> data there is no such thing as late data. You do not need to think how to adjust the watermarking logic that you use in your application. In a streaming case, you need to maintain the order in which the records were written - which is often not possible to recreate when reading from e.g. historic files. In <em>batch</em> mode you don&rsquo;t need to care about that as the data will be sorted according to the timestamp and &ldquo;perfect&rdquo; watermarks will be injected automatically.</li>
+<li>The way streaming applications are scheduled and react upon failure have significant performance implications that can be optimized when dealing with <em>bounded</em> data. We recommend reading through the blogposts on <a href="https://flink.apache.org/2020/12/15/pipelined-region-sheduling.html">pipelined region scheduling</a> and <a href="https://flink.apache.org/news/2021/01/11/batch-fine-grained-fault-tolerance.html">fine-grained fault tolerance</a> to better understand these performance implications.</li>
+<li>It can simplify the operational overhead of setting up and maintaining your pipelines. For example, there is no need to configure checkpointing, which otherwise requires things like choosing a state backend or setting up distributed storage for checkpoints.</li>
+</ol>
+<h2 id="how-to-use-the-_batch_-execution">
+  How to use the <em>batch</em> execution
+  <a class="anchor" href="#how-to-use-the-_batch_-execution">#</a>
+</h2>
+<p>Once you have a good understanding of which execution mode is better suited to your use case, you can configure it via the <code>execution.runtime-mode</code> setting. There are three possible values:</p>
+<ul>
+<li><code>STREAMING</code>: The classic DataStream execution mode (default)</li>
+<li><code>BATCH</code>: Batch-style execution on the DataStream API</li>
+<li><code>AUTOMATIC</code>: Let the system decide based on the boundedness of the sources</li>
+</ul>
+<p>This can be configured via command line parameters of <code>bin/flink run ...</code> when submitting a job:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</span></span></code></pre></div><p>, or programmatically when creating/configuring the <code>StreamExecutionEnvironment</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="na">setRuntimeMode</span><span class="o">(</span><span class="n">RuntimeExecutionMode</span><span class="o">.</span><span class="na">BATCH</span><span class="o">);</span>
+</span></span></code></pre></div><p>We recommend passing the execution mode when submitting the job, in order to keep your code configuration-free and potentially be able to execute the same application in different execution modes.</p>
+<h3 id="hello-_batch_-mode">
+  Hello <em>batch</em> mode
+  <a class="anchor" href="#hello-_batch_-mode">#</a>
+</h3>
+<p>Now that you know how to set the execution mode, let&rsquo;s try to write a simple word count program and see how it behaves depending on the chosen mode. The program is a variation of a standard word count, where we count number of orders placed
+in a given currency. We derive the number in 1-day windows. We read the input data from a new <a href="//nightlies.apache.org/flinkflink-docs-release-1.12/api/java/org/apache/flink/connector/file/src/FileSource.html">unified file source</a> and then apply a <a href="//nightlies.apache.org/flinkflink-docs-release-1.12/dev/stream/operators/windows.html#windows">window aggregation</a>. Notice that we will be checking the side output for late arriving data, which can illustrate how watermarks behave differently in the two execution modes.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">WindowWordCount</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">OutputTag</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">LATE_DATA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OutputTag</span><span class="o">&lt;&gt;(</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;late-data&#34;</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">		<span class="n">BasicArrayTypeInfo</span><span class="o">.</span><span class="na">STRING_ARRAY_TYPE_INFO</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">		<span class="n">ParameterTool</span> <span class="n">config</span> <span class="o">=</span> <span class="n">ParameterTool</span><span class="o">.</span><span class="na">fromArgs</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="n">Path</span> <span class="n">path</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;path&#34;</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl">		<span class="n">SingleOutputStreamOperator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">env</span>
+</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">				<span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">path</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">				<span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">forBoundedOutOfOrderness</span><span class="o">(</span><span class="n">Duration</span><span class="o">.</span><span class="na">ofDays</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">					<span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">(</span><span class="k">new</span> <span class="n">OrderTimestampAssigner</span><span class="o">()),</span>
+</span></span><span class="line"><span class="cl">				<span class="s">&#34;Text file&#34;</span>
+</span></span><span class="line"><span class="cl">			<span class="o">)</span>
+</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="n">value</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="o">[</span><span class="mi">4</span><span class="o">])</span> <span class="c1">// group by currency
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">TumblingEventTimeWindows</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">days</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
+</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">sideOutputLateData</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">aggregate</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">				<span class="k">new</span> <span class="n">CountFunction</span><span class="o">(),</span> <span class="c1">// count number of orders in a given currency
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>				<span class="k">new</span> <span class="n">CombineWindow</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">		<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">lateData</span> <span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">getSideOutput</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">results</span> <span class="o">=</span> <span class="n">lateData</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">				<span class="n">String</span><span class="o">[]</span> <span class="n">late</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">				<span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">					<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">toString</span><span class="o">(</span><span class="n">late</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl">				<span class="o">}</span>
+</span></span><span class="line"><span class="cl">				<span class="n">i</span><span class="o">++;</span>
+</span></span><span class="line"><span class="cl">			<span class="o">}</span>
+</span></span><span class="line"><span class="cl">		<span class="o">}</span>
+</span></span><span class="line"><span class="cl">		<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&#34;Number of late records: &#34;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">results</span> 
+</span></span><span class="line"><span class="cl">				<span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">				<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">			<span class="o">}</span>
+</span></span><span class="line"><span class="cl">		<span class="o">}</span>
+</span></span><span class="line"><span class="cl">	<span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>If we simply execute the above program with:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run examples/streaming/WindowWordCount.jar
+</span></span></code></pre></div><p>it will be executed in a <em>streaming</em> mode by default. Because of that, it will use the given watermarking strategy and produce windows based on it. In real-time scenarios, it might happen that records do not adhere to watermarks and
+some records might actually be considered late, so you&rsquo;ll get results like:</p>
+<pre tabindex="0"><code>...
+[1431681, 130936, F, 135996.21, NOK, 2020-04-11 07:53:02.674, 2-HIGH, Clerk#000000922, 0, quests. slyly regular platelets cajole ironic deposits: blithely even depos]
+[1431744, 143957, F, 36391.24, CHF, 2020-04-11 07:53:27.631, 2-HIGH, Clerk#000000406, 0, eans. blithely special instructions are quickly. q]
+[1431812, 58096, F, 55292.05, CAD, 2020-04-11 07:54:16.956, 2-HIGH, Clerk#000000561, 0, , regular packages use. slyly even instr]
+[1431844, 77335, O, 415443.20, CAD, 2020-04-11 07:54:40.967, 2-HIGH, Clerk#000000446, 0, unts across the courts wake after the accounts! ruthlessly]
+[1431968, 122005, F, 44964.19, JPY, 2020-04-11 07:55:42.661, 1-URGENT, Clerk#000000001, 0, nal theodolites against the slyly special packages poach blithely special req]
+[1432097, 26035, F, 42464.15, CAD, 2020-04-11 07:57:13.423, 5-LOW, Clerk#000000213, 0, l accounts hang blithely. carefully blithe dependencies ]
+[1432193, 97537, F, 87856.63, NOK, 2020-04-11 07:58:06.862, 4-NOT SPECIFIED, Clerk#000000356, 0, furiously furiously brave foxes. bo]
+[1432291, 112045, O, 114327.52, JPY, 2020-04-11 07:59:12.912, 1-URGENT, Clerk#000000732, 0, ding to the fluffily ironic requests haggle carefully alongsid]
+Number of late records: 1514
+(GBP,374,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(HKD,401,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CNY,402,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CAD,392,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(JPY,411,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CHF,371,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(NOK,370,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+...
+</code></pre><p>However, if you execute the exact same code using the <em>batch</em> execution mode:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</span></span></code></pre></div><p>you&rsquo;ll see that there won&rsquo;t be any late records.</p>
+<pre tabindex="0"><code>Number of late records: 0
+(GBP,374,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(HKD,401,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CNY,402,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CAD,392,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(JPY,411,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(CHF,371,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(NOK,370,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+(RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+</code></pre><p>Also, if you compare the execution timelines of both runs, you&rsquo;ll see that the jobs were scheduled differently. In the case of <em>batch</em> execution, the two stages were executed one after the other:</p>
+<p><a href="/img/blog/2021-03-11-batch-execution-mode/batch-execution.png"><img src="/img/blog/2021-03-11-batch-execution-mode/batch-execution.png" alt="" /></a></p>
+<p>whereas for <em>streaming</em> both stages started at the same time.</p>
+<p><a href="/img/blog/2021-03-11-batch-execution-mode/stream-execution.png"><img src="/img/blog/2021-03-11-batch-execution-mode/stream-execution.png" alt="" /></a></p>
+<h3 id="example-two-input-operators">
+  Example: Two input operators
+  <a class="anchor" href="#example-two-input-operators">#</a>
+</h3>
+<p>Operators that process data from multiple inputs can be executed in both execution modes as well. Let&rsquo;s see how we may implement a join of two data sets on a common key. (Disclaimer: Make sure to think first if you <a href="#which-api-and-execution-mode-should-i-use">should use the Table API/SQL</a> for your join!). We will enrich a stream of orders with information about the customer and we will make it run either of the two modes.</p>
+<p>For this particular use case, the DataStream API provides a <code>DataStream#join</code> method that requires a window in which the join must happen; since we&rsquo;ll process the data in bulk, we can use a <code>GlobalWindow</code> (that would otherwise not be very useful on its own in an <em>unbounded</em> case due to state size concerns):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="n">env</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">ordersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="o">),</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;Text file&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Path</span> <span class="n">customersPath</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">customers</span> <span class="o">=</span> <span class="n">env</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">customersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="o">),</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;Text file&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">orders</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">customers</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="n">order</span> <span class="o">-&gt;</span> <span class="n">order</span><span class="o">[</span><span class="mi">1</span><span class="o">]).</span><span class="na">equalTo</span><span class="o">(</span><span class="n">customer</span> <span class="o">-&gt;</span> <span class="n">customer</span><span class="o">[</span><span class="mi">0</span><span class="o">])</span> <span class="c1">// join on customer id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">GlobalWindows</span><span class="o">.</span><span class="na">create</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">trigger</span><span class="o">(</span><span class="n">ContinuousProcessingTimeTrigger</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">seconds</span><span class="o">(</span><span class="mi">5</span><span class="o">)))</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="k">new</span> <span class="n">ProjectFunction</span><span class="o">());</span>
+</span></span></code></pre></div><p>You might notice the <code>ContinuousProcessingTimeTrigger</code>. It is there for the application to produce results in a <em>streaming</em> mode. In a <em>streaming</em> application the <code>GlobalWindow</code> never finishes so we need to add a processing time trigger to emit results from time to time. We believe triggers are a way to control when to emit results, but are not part of the logic what to emit. Therefore we think it is safe to ignore those in case of <em>batch</em> mode and that&rsquo;s what we do. In <em>batch</em> mode you will just get one final result for the join.</p>
+<h2 id="looking-into-the-future">
+  Looking into the future
+  <a class="anchor" href="#looking-into-the-future">#</a>
+</h2>
+<p>Support for efficient <em>batch</em> execution in the DataStream API was introduced in Flink 1.12 as a first step towards achieving a truly unified runtime for both batch and stream processing. This is not the end of the story yet! The community is still working on some optimizations and exploring more use cases that can be enabled with this new mode.</p>
+<p>One of the first efforts we want to finalize is providing world-class support for transactional sinks in both execution modes, for <em>bounded</em> and <em>unbounded</em> streams. An experimental API for <a href="https://cwiki.apache.org/confluence/x/KEJ4CQ">transactional sinks</a> was already introduced in Flink 1.12, so we&rsquo;re working on stabilizing it and would be happy to hear feedback about its current state!</p>
+<p>We are also thinking how the two modes can be brought closer together and benefit from each other. A common pattern that we hear from users is bootstrapping state of a streaming job from a batch one. There are two somewhat different approaches we are considering here:</p>
+<ol>
+<li>
+<p>Having a mixed graph, where one of the branches would have only bounded sources and the other would reflect the unbounded part — you can think of such a graph as effectively two separate jobs. The bounded part would be executed first and sink into the state of a common vertex of the two parts. This jobs&rsquo; purpose would be to populate the state of the common operator. Once that job is done, we could proceed to running the unbounded part.</p>
+</li>
+<li>
+<p>Another approach is to run the exact same program first on the <em>bounded</em> data. However, this time we wouldn&rsquo;t assume completeness of the job; instead, we would produce the state of all operators up to a certain point in time and store it as a savepoint. Later on, we could use the savepoint to start the application on the <em>unbounded</em> data.</p>
+</li>
+</ol>
+<p>Lastly, to achieve feature parity with the DataSet API (Flink&rsquo;s legacy API for batch-style execution), we are looking into the topic of iterations and how to meet the different usage patterns depending on the mode. In STREAMING mode, iterations serve as a loopback edge, but we don&rsquo;t necessarily need to keep track of the iteration step. On the other hand, the iteration generation is vital for Machine Learning (ML) algorithms, which are the primary use case for iterations in BATCH mode.</p>
+<p>Have you tried the new BATCH execution mode in the DataStream API? How was your experience? We are happy to hear your feedback and stories!</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2021-03-11-batch-execution-mode.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#which-api-and-execution-mode-should-i-use">Which API and execution mode should I use?</a></li>
+    <li><a href="#how-to-use-the-_batch_-execution">How to use the <em>batch</em> execution</a>
+      <ul>
+        <li><a href="#hello-_batch_-mode">Hello <em>batch</em> mode</a></li>
+        <li><a href="#example-two-input-operators">Example: Two input operators</a></li>
+      </ul>
+    </li>
+    <li><a href="#looking-into-the-future">Looking into the future</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

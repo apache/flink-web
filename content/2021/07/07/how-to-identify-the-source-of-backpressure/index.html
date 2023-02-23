@@ -1,0 +1,1184 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="{% toc %}
+Backpressure monitoring in the web UI
+The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first&hellip;">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="How to identify the source of backpressure?" />
+<meta property="og:description" content="{% toc %}
+Backpressure monitoring in the web UI
+The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first&hellip;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2021/07/07/how-to-identify-the-source-of-backpressure/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-07-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-07-07T00:00:00+00:00" />
+<title>How to identify the source of backpressure? | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>How to identify the source of backpressure?</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#what-is-backpressure">What is backpressure?</a>
+      <ul>
+        <li><a href="#why-should-i-care-about-backpressure">Why should I care about backpressure?</a></li>
+        <li><a href="#why-shouldnt-i-care-about-backpressure">Why shouldn’t I care about backpressure?</a></li>
+      </ul>
+    </li>
+    <li><a href="#how-to-detect-and-track-down-the-source-of-backpressure">How to detect and track down the source of backpressure?</a>
+      <ul>
+        <li><a href="#what-are-those-numbers">What are those numbers?</a></li>
+        <li><a href="#varying-load">Varying load</a></li>
+      </ul>
+    </li>
+    <li><a href="#what-can-i-do-with-backpressure">What can I do with backpressure?</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2021/07/07/how-to-identify-the-source-of-backpressure/">How to identify the source of backpressure?</a>
+    </h1>
+    
+  July 7, 2021 -
+
+
+
+  Piotr Nowojski
+
+  <a href="https://twitter.com/PiotrNowojski">(@PiotrNowojski)</a>
+  
+
+
+
+    <p><p>{% toc %}</p>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/animated.png" alt="Backpressure monitoring in the web UI"/>
+	<p class="align-center">Backpressure monitoring in the web UI</p>
+</div>
+<p>The backpressure topic was tackled from different angles over the last couple of years. However, when it comes
+to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases
+(especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of
+these changes and go into more detail about how to track down the source of backpressure, but first&hellip;</p>
+<h2 id="what-is-backpressure">
+  What is backpressure?
+  <a class="anchor" href="#what-is-backpressure">#</a>
+</h2>
+<p>This has been explained very well in an old, but still accurate, <a href="https://www.ververica.com/blog/how-flink-handles-backpressure">post by Ufuk Celebi</a>.
+I highly recommend reading it if you are not familiar with this concept. For a much deeper and low-level understanding of
+the topic and how Flink’s network stack works, there is a more <a href="https://alibabacloud.com/blog/analysis-of-network-flow-control-and-back-pressure-flink-advanced-tutorials_596632">advanced explanation available here</a>.</p>
+<p>At a high level, backpressure happens if some operator(s) in the Job Graph cannot process records at the
+same rate as they are received. This fills up the input buffers of the subtask that is running this slow operator.
+Once the input buffers are full, backpressure propagates to the output buffers of the upstream subtasks.
+Once those are filled up, the upstream subtasks are also forced to slow down their records’ processing
+rate to match the processing rate of the operator causing this bottleneck down the stream. Backpressure
+further propagates up the stream until it reaches the source operators.</p>
+<p>As long as the load and available resources are static and none of the operators produce short bursts of
+data (like windowing operators), those input/output buffers should only be in one of two states: almost empty
+or almost full. If the downstream operator or subtask is able to keep up with the influx of data, the
+buffers will be empty. If not, then the buffers will be full [<sup>1</sup>]. In fact, checking the buffers’ usage metrics
+was the basis of the previously recommended way on how to detect and analyze backpressure described <a href="https://flink.apache.org/2019/07/23/flink-network-stack-2.html#backpressure">a couple
+of years back by Nico Kruber</a>.
+As I mentioned in the beginning, Flink now offers much better tools to do the same job, but before we get to that,
+there are two questions worth asking.</p>
+<h3 id="why-should-i-care-about-backpressure">
+  Why should I care about backpressure?
+  <a class="anchor" href="#why-should-i-care-about-backpressure">#</a>
+</h3>
+<p>Backpressure is an indicator that your machines or operators are overloaded. The buildup of backpressure
+directly affects the end-to-end latency of the system, as records are waiting longer in the queues before
+being processed. Secondly, aligned checkpointing takes longer with backpressure, while unaligned checkpoints
+will be larger (you can read more about aligned and unaligned checkpoints <a href="//nightlies.apache.org/flinkflink-docs-release-1.13/docs/concepts/stateful-stream-processing/#checkpointing">in the documentation</a>.
+If you are struggling with checkpoint barriers propagation times, taking care of backpressure would most
+likely help to solve the problem. Lastly, you might just want to optimize your job in order to reduce
+the costs of running the job.</p>
+<p>In order to address the problem for all cases, one needs to be aware of it, then locate and analyze it.</p>
+<h3 id="why-shouldnt-i-care-about-backpressure">
+  Why shouldn’t I care about backpressure?
+  <a class="anchor" href="#why-shouldnt-i-care-about-backpressure">#</a>
+</h3>
+<p>Frankly, you do not  always have to care about the presence of backpressure. Almost by definition, lack
+of backpressure means that your cluster is at least ever so slightly underutilized and over-provisioned.
+If you want to minimize idling resources, you probably can not avoid incurring some backpressure. This
+is especially true for batch processing.</p>
+<h2 id="how-to-detect-and-track-down-the-source-of-backpressure">
+  How to detect and track down the source of backpressure?
+  <a class="anchor" href="#how-to-detect-and-track-down-the-source-of-backpressure">#</a>
+</h2>
+<p>One way to detect backpressure is to use <a href="//nightlies.apache.org/flinkflink-docs-release-1.13/docs/ops/metrics/#system-metrics">metrics</a>,
+however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases, it should be enough to just
+look at the job graph in the Web UI.</p>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/simple-example.png"/>
+</div>
+<p>The first thing to note in the example above is that different tasks have different colors. Those colors
+represent a combination of two factors: under how much backpressure this task is and how busy it is. Idling
+tasks will be blue, fully busy tasks will be red hot, and fully backpressured tasks will be black. Anything
+in between will be a combination/shade of those three colors. With this knowledge, one can easily spot the
+backpressured tasks (black). The busiest (red) task downstream of the backpressured tasks will most likely
+be the source of the backpressure (the bottleneck).</p>
+<p>If you click on one particular task and go into the “BackPressure” tab you will be able to further dissect
+the problem and check what is the busy/backpressured/idle status of every subtask in that task. For example,
+this is especially handy if there is a data skew and not all subtasks are equally utilized.</p>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/subtasks.png" alt="Backpressure among subtasks"/>
+	<p class="align-center">Backpressure among subtasks</p>
+</div>
+<p>In the above example, we can clearly see which subtasks are idling, which are backpressured, and that
+none of them are busy. And frankly, in a nutshell, that should be enough to quickly understand what is
+happening with your Job :) However, there are a couple of more details worth explaining.</p>
+<h3 id="what-are-those-numbers">
+  What are those numbers?
+  <a class="anchor" href="#what-are-those-numbers">#</a>
+</h3>
+<p>If you are curious how it works underneath, we can go a little deeper. At the base of this new mechanism
+we have three <a href="//nightlies.apache.org/flinkflink-docs-release-1.13/docs/ops/metrics/#io">new metrics</a>
+that are exposed and calculated by each subtask:</p>
+<ul>
+<li><code>idleTimeMsPerSecond</code></li>
+<li><code>busyTimeMsPerSecond</code></li>
+<li><code>backPressuredTimeMsPerSecond</code></li>
+</ul>
+<p>Each of them measures the average time in milliseconds per second that the subtask spent being idle,
+busy, or backpressured respectively. Apart from some rounding errors they should complement each other and
+add up to 1000ms/s. In essence, they are quite similar to, for example, CPU usage metrics.</p>
+<p>Another important detail is that they are being averaged over a short period of time (a couple of seconds)
+and they take into account everything that is happening inside the subtask’s thread: operators, functions,
+timers, checkpointing, records serialization/deserialization, network stack, and other Flink internal
+overheads. A <code>WindowOperator</code> that is busy firing timers and producing results will be reported as busy or backpressured.
+A function doing some expensive computation in <code>CheckpointedFunction#snapshotState</code> call, for instance flushing
+internal buffers, will also be reported as busy.</p>
+<p>One limitation, however, is that <code>busyTimeMsPerSecond</code> and <code>idleTimeMsPerSecond</code> metrics are oblivious
+to anything that is happening in separate threads, outside of the main subtask’s execution loop.
+Fortunately, this is only relevant for two cases:</p>
+<ul>
+<li>Custom threads that you manually spawn in your operators (a discouraged practice).</li>
+<li>Old-style sources that implement the deprecated <code>SourceFunction</code> interface. Such sources will report <code>NaN</code>/<code>N/A</code>
+as the value for busyTimeMsPerSecond. For more information on the topic of Data Sources please
+<a href="//nightlies.apache.org/flinkflink-docs-release-1.13/docs/dev/datastream/sources/">take a look here</a>.</li>
+</ul>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/source-task-busy.png" alt="Old-style sources do not report busy time"/>
+	<p class="align-center">Old-style sources do not report busy time</p>
+</div>
+<p>In order to present those raw numbers in the web UI, those metrics need to be aggregated from all subtasks
+(on the job graph we are showing only tasks). This is why the web UI presents the maximal value from all
+subtasks of a given task and why the aggregated maximal values of busy and backpressured may not add up to 100%.
+One subtask can be backpressured at 60%, while another can be busy at 60%.  This can result in a task that
+is both backpressured and busy at 60%.</p>
+<h3 id="varying-load">
+  Varying load
+  <a class="anchor" href="#varying-load">#</a>
+</h3>
+<p>There is one more thing. Do you remember that those metrics are measured and averaged over a couple of seconds?
+Keep this in mind when analyzing jobs or tasks with varying load, such as (sub)tasks containing a <code>WindowOperator</code>
+that is firing periodically. Both the subtask with a constant load of 50% and the subtask that alternates every
+second between being fully busy and fully idle will be reporting the same value of <code>busyTimeMsPerSecond</code>
+of 500ms/s.</p>
+<p>Furthermore, varying load and especially firing windows can move the bottleneck to a different place in
+the job graph:</p>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/bottleneck-zoom.png" alt="Bottleneck alternating between two tasks"/>
+	<p class="align-center">Bottleneck alternating between two tasks</p>
+</div>
+<div class="row front-graphic">
+  <img src="/img/blog/2021-07-07-backpressure/sliding-window.png" alt="SlidingWindowOperator"/>
+	<p class="align-center">SlidingWindowOperator</p>
+</div>
+<p>In this particular example, <code>SlidingWindowOperator</code> was the bottleneck as long as it was accumulating records.
+However, as soon as it starts to fire its windows (once every 10 seconds), the downstream task
+<code>SlidingWindowCheckMapper -&gt; Sink: SlidingWindowCheckPrintSink</code> becomes the bottleneck and <code>SlidingWindowOperator</code>
+gets backpressured. As those busy/backpressured/idle metrics are averaging time over a couple of seconds,
+this subtlety is not immediately visible and has to be read between the lines. On top of that, the web UI
+is updating its state only once every 10 seconds, which makes spotting more frequent changes a bit more difficult.</p>
+<h2 id="what-can-i-do-with-backpressure">
+  What can I do with backpressure?
+  <a class="anchor" href="#what-can-i-do-with-backpressure">#</a>
+</h2>
+<p>In general this is a complex topic that is worthy of a dedicated blog post. It was, to a certain extent,
+addressed in <a href="https://flink.apache.org/2019/07/23/flink-network-stack-2.html#:~:text=this%20is%20unnecessary.-,What%20to%20do%20with%20Backpressure%3F,-Assuming%20that%20you">previous blog posts</a>.
+In short, there are two high-level ways of dealing with backpressure. Either add more resources (more machines,
+faster CPU, more RAM, better network, using SSDs…) or optimize usage of the resources you already have
+(optimize the code, tune the configuration, avoid data skew). In either case, you first need to analyze
+what is causing backpressure by:</p>
+<ol>
+<li>Identifying the presence of backpressure.</li>
+<li>Locating which subtask(s) or machines are causing it.</li>
+<li>Digging deeper into what part of the code is causing it and which resource is scarce.</li>
+</ol>
+<p>Backpressure monitoring improvements and metrics can help you with the first two points. To tackle the
+last one, profiling the code can be the way to go. To help with profiling, also starting from Flink 1.13,
+<a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a> are <a href="//nightlies.apache.org/flinkflink-docs-release-1.13/docs/ops/debugging/flame_graphs/">integrated into Flink&rsquo;s web UI</a>.
+Flame Graphs is a well known profiling tool and visualization technique and I encourage you to give it a try.</p>
+<p>But keep in mind that after locating where the bottleneck is, you can analyze it the same way you would
+any other non-distributed application (by checking resource utilization, attaching a profiler, etc).
+Usually there is no silver bullet for problems like this. You can try to scale up but sometimes it might
+not be easy or practical to do.</p>
+<p>Anyway&hellip; The aforementioned improvements to backpressure monitoring allow us to easily detect the source of backpressure,
+and Flame Graphs can help us to analyze why a particular subtask is causing problems. Together those two
+features should make the previously quite tedious process of debugging and performance analysis of Flink
+jobs that much easier! Please upgrade to Flink 1.13.x and try them out!</p>
+<p>[<sup>1</sup>] There is a third possibility. In a rare case when network exchange is actually the bottleneck in your job,
+the downstream task will have empty input buffers, while upstream output buffers will be full. <a class="anchor" id="1"></a></p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2021-07-07-backpressure.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#what-is-backpressure">What is backpressure?</a>
+      <ul>
+        <li><a href="#why-should-i-care-about-backpressure">Why should I care about backpressure?</a></li>
+        <li><a href="#why-shouldnt-i-care-about-backpressure">Why shouldn’t I care about backpressure?</a></li>
+      </ul>
+    </li>
+    <li><a href="#how-to-detect-and-track-down-the-source-of-backpressure">How to detect and track down the source of backpressure?</a>
+      <ul>
+        <li><a href="#what-are-those-numbers">What are those numbers?</a></li>
+        <li><a href="#varying-load">Varying load</a></li>
+      </ul>
+    </li>
+    <li><a href="#what-can-i-do-with-backpressure">What can I do with backpressure?</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

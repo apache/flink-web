@@ -1,0 +1,1171 @@
+
+<!DOCTYPE html>
+<html lang="zh" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Apache Flink 代码样式和质量指南 — 组件" />
+<meta property="og:description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/" /><meta property="article:section" content="how-to-contribute" />
+
+
+<title>Apache Flink 代码样式和质量指南 — 组件 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="alternate" hreflang="en" href="//flink.apache.org/how-to-contribute/code-style-and-quality-components/" title="Code Style and Quality Guide — Components Guide">
+
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/zh.search.min.bee7b04f2f8ac4faee3157e210929c981b4f34c6942611bddb4766d39af1d5f3.js" integrity="sha256-vuewTy&#43;KxPruMVfiEJKcmBtPNMaUJhG920dm05rx1fM="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="//zh">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="搜索" aria-label="搜索" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/what-is-flink/flink-architecture/" class="">架构</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/what-is-flink/flink-applications/" class="">应用</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/what-is-flink/flink-operations/" class="">运维</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/zh/use-cases/" class="">应用场景</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/zh/powered-by/" class="">Flink 用户</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/zh/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">教程<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/zh/getting-help/" class="">获取帮助</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/zh/community/" class="">社区 & 项目信息</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/zh/roadmap/" class="">开发计划</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle" checked />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/overview/" class="">如何参与贡献</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/contribute-code/" class="">贡献代码</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/reviewing-prs/" class="">审核 Pull Request</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/code-style-and-quality-preamble/" class="">代码样式与质量指南</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/contribute-documentation/" class="">贡献文档</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/documentation-style-guide/" class="">文档样式指南</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/zh/how-to-contribute/improve-website/" class="">贡献网站</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/zh/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+  
+
+
+
+
+
+<a  href="/how-to-contribute/code-style-and-quality-components/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  English
+</a>
+
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Apache Flink 代码样式和质量指南 — 组件</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#组件特定指南">组件特定指南</a>
+      <ul>
+        <li><a href="#配置更改">配置更改</a></li>
+        <li><a href="#连接器">连接器</a></li>
+        <li><a href="#示例">示例</a></li>
+        <li><a href="#表和-sql-api">表和 SQL API</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+  <article class="markdown"><h1 id="apache-flink-代码样式和质量指南--组件">
+  Apache Flink 代码样式和质量指南 — 组件
+  <a class="anchor" href="#apache-flink-%e4%bb%a3%e7%a0%81%e6%a0%b7%e5%bc%8f%e5%92%8c%e8%b4%a8%e9%87%8f%e6%8c%87%e5%8d%97--%e7%bb%84%e4%bb%b6">#</a>
+</h1>
+<h4 id="序言hahahugoshortcode-s0-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-preamble/">序言</a>
+  <a class="anchor" href="#%e5%ba%8f%e8%a8%80hahahugoshortcode-s0-hbhb">#</a>
+</h4>
+<h4 id="pull-requests--changeshahahugoshortcode-s1-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-pull-requests/">Pull Requests &amp; Changes</a>
+  <a class="anchor" href="#pull-requests--changeshahahugoshortcode-s1-hbhb">#</a>
+</h4>
+<h4 id="常用编码指南hahahugoshortcode-s2-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-common/">常用编码指南</a>
+  <a class="anchor" href="#%e5%b8%b8%e7%94%a8%e7%bc%96%e7%a0%81%e6%8c%87%e5%8d%97hahahugoshortcode-s2-hbhb">#</a>
+</h4>
+<h4 id="java-语言指南hahahugoshortcode-s3-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-java/">Java 语言指南</a>
+  <a class="anchor" href="#java-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode-s3-hbhb">#</a>
+</h4>
+<h4 id="scala-语言指南hahahugoshortcode-s4-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-scala/">Scala 语言指南</a>
+  <a class="anchor" href="#scala-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode-s4-hbhb">#</a>
+</h4>
+<h4 id="组件指南hahahugoshortcode-s5-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-components/">组件指南</a>
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e6%8c%87%e5%8d%97hahahugoshortcode-s5-hbhb">#</a>
+</h4>
+<h4 id="格式指南hahahugoshortcode-s6-hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-formatting/">格式指南</a>
+  <a class="anchor" href="#%e6%a0%bc%e5%bc%8f%e6%8c%87%e5%8d%97hahahugoshortcode-s6-hbhb">#</a>
+</h4>
+<h2 id="组件特定指南">
+  组件特定指南
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e7%89%b9%e5%ae%9a%e6%8c%87%e5%8d%97">#</a>
+</h2>
+<p><em>关于特定组件更改的附加指南。</em></p>
+<h3 id="配置更改">
+  配置更改
+  <a class="anchor" href="#%e9%85%8d%e7%bd%ae%e6%9b%b4%e6%94%b9">#</a>
+</h3>
+<p>配置选项应该放在哪里？</p>
+<ul>
+<li><span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。</li>
+<li><span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。</li>
+<li><span style="text-decoration:underline;">ExecutionEnvironment (in code)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。</li>
+</ul>
+<p>如何命名配置键：</p>
+<ul>
+<li>
+<p>配置键名应该分层级。将配置视为嵌套对象（JSON 样式）</p>
+<pre tabindex="0"><code>taskmanager: {
+  jvm-exit-on-oom: true,
+  network: {
+    detailed-metrics: false,
+    request-backoff: {
+      initial: 100,
+      max: 10000
+    },
+    memory: {
+      fraction: 0.1,
+      min: 64MB,
+      max: 1GB,
+      buffers-per-channel: 2,
+      floating-buffers-per-gate: 16
+    }
+  }
+}
+</code></pre></li>
+<li>
+<p>因此生成的配置键应该：</p>
+<p><strong>不是</strong> <code>&quot;taskmanager.detailed.network.metrics&quot;</code></p>
+<p><strong>而是</strong> <code>&quot;taskmanager.network.detailed-metrics&quot;</code></p>
+</li>
+</ul>
+<h3 id="连接器">
+  连接器
+  <a class="anchor" href="#%e8%bf%9e%e6%8e%a5%e5%99%a8">#</a>
+</h3>
+<p>连接器历来很难实现，需要处理多线程、并发和检查点等许多方面。</p>
+<p>作为 <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A&#43;Refactor&#43;Source&#43;Interface">FLIP-27</a> 的一部分，我们正在努力使数据源（source）的实现更简单。新的数据源应该不必处理并发/线程和检查点的任何方面。</p>
+<p>预计在不久的将来，会有类似针对数据汇（sink）的 FLIP。</p>
+<h3 id="示例">
+  示例
+  <a class="anchor" href="#%e7%a4%ba%e4%be%8b">#</a>
+</h3>
+<p>示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。数据源/数据汇可以使用 <code>StreamExecutionEnvironment.socketTextStream</code>，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的数据源/数据源。（对于流，Flink 提供了连续的文件数据源读取数据） 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。</p>
+<p>示例中应该有不少的注释。他们可以在类级 Javadoc 中描述示例的总体思路，并且描述正在发生什么和整个代码里使用了什么功能。还应描述预期的输入数据和输出数据。</p>
+<p>示例应该包括参数解析，以便你可以运行一个示例（使用 <code>bin/flink run path/to/myExample.jar --param1 … --param2</code> 运行程序）。</p>
+<h3 id="表和-sql-api">
+  表和 SQL API
+  <a class="anchor" href="#%e8%a1%a8%e5%92%8c-sql-api">#</a>
+</h3>
+<h4 id="语义">
+  语义
+  <a class="anchor" href="#%e8%af%ad%e4%b9%89">#</a>
+</h4>
+<p><strong>SQL 标准应该是事实的主要来源。</strong></p>
+<ul>
+<li>语法、语义和功能应该和 SQL 保持一致！</li>
+<li>我们不需要重造轮子。大部分问题都已经在业界广泛讨论过并写在 SQL 标准中了。</li>
+<li>我们依靠最新的标准（在写这篇文档时使用 SQL:2016 or ISO/IEC 9075:2016 (<a href="https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip">[下载]</a>)。并不是所有的部分都能在网上找到，但可以通过网络查找确认。</li>
+</ul>
+<p>讨论与标准或厂商特定解释的差异。</p>
+<ul>
+<li>一旦定义了语法或行为就不能轻易撤销。</li>
+<li>需要扩展或解释标准的贡献需要与社区进行深入的讨论。</li>
+<li>请通过一些对 Postgres、Microsoft SQL Server、Oracle、Hive、Calcite、Beam 等其他厂商如何处理此类案例进行初步的探讨来帮助提交者。</li>
+</ul>
+<p>将 Table API 视为 SQL 和 Java/Scala 编程世界之间的桥梁。</p>
+<ul>
+<li>Table API 是一种嵌入式域特定语言，用于遵循关系模型的分析程序。 在语法和名称方面不需要严格遵循 SQL 标准，但如果这有助于使其感觉更直观，那么可以更接近编程语言的方式/命名函数和功能。</li>
+<li>Table API 可能有一些非 SQL 功能（例如 map()、flatMap() 等），但还是应该“感觉像 SQL”。如果可能，函数和算子应该有相等的语义和命名。</li>
+</ul>
+<h4 id="常见错误">
+  常见错误
+  <a class="anchor" href="#%e5%b8%b8%e8%a7%81%e9%94%99%e8%af%af">#</a>
+</h4>
+<ul>
+<li>添加功能时支持 SQL 的类型系统。
+<ul>
+<li>SQL 函数、连接器或格式化从一开始就应该原生的支持大多数 SQL 类型。</li>
+<li>不支持的类型会导致混淆，限制可用性，多次修改相同代码会增加负担。</li>
+<li>例如，当添加 <code>SHIFT_LEFT</code> 函数时，确保贡献足够通用，不仅适用于 <code>INT</code> 也适用于 <code>BIGINT</code> 或 <code>TINYINT</code>.</li>
+</ul>
+</li>
+</ul>
+<h4 id="测试">
+  测试
+  <a class="anchor" href="#%e6%b5%8b%e8%af%95">#</a>
+</h4>
+<p>测试为空性</p>
+<ul>
+<li>几乎每个操作，SQL 都原生支持 <code>NULL</code>，并具有 3 值布尔逻辑。</li>
+<li>确保测试每个功能的可空性。</li>
+</ul>
+<p>尽量避免集成测试</p>
+<ul>
+<li>启动一个 Flink 集群并且对 SQL 查询生成的代码进行编译会很耗时。</li>
+<li>避免对 planner 测试或 API 调用的变更进行集成测试。</li>
+<li>相反，使用单元测试来验证 planner 产生的优化计划。或者直接测试算子的运行时行为。</li>
+</ul>
+<h4 id="兼容性">
+  兼容性
+  <a class="anchor" href="#%e5%85%bc%e5%ae%b9%e6%80%a7">#</a>
+</h4>
+<p>不要在次要版本中引入物理计划更改！</p>
+<ul>
+<li>流式 SQL 中状态的向后兼容性依赖于物理执行计划保持稳定的事实。否则，生成的 Operator Names/IDs 将发生变化，并且无法匹配和恢复状态。</li>
+<li>导致流传输管道的优化物理计划改变的每个 bug 修复均会破坏兼容性。</li>
+<li>因此，导致不同优化计划的此类更改目前仅可以合并到大版本中。</li>
+</ul>
+<h4 id="scala--java-互操作性遗留代码部分">
+  Scala / Java 互操作性（遗留代码部分）
+  <a class="anchor" href="#scala--java-%e4%ba%92%e6%93%8d%e4%bd%9c%e6%80%a7%e9%81%97%e7%95%99%e4%bb%a3%e7%a0%81%e9%83%a8%e5%88%86">#</a>
+</h4>
+<p>在设计接口时要牢记 Java。</p>
+<ul>
+<li>考虑一个类将来是否需要与 Java 类交互。</li>
+<li>在接口中使用 Java 集合和 Java Optional，以便与 Java 代码平滑集成。</li>
+<li>如果要将类转换为 Java，不要使用 .copy() 或 apply() 等 case class 的功能进行构造。</li>
+<li>纯 Scala 面向用户的 API 应该使用纯 Scala 集合/迭代/等与 Scala 自然和惯用的（“scalaesk”）集成。</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+	
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content.zh/how-to-contribute/code-style-and-quality-components.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#组件特定指南">组件特定指南</a>
+      <ul>
+        <li><a href="#配置更改">配置更改</a></li>
+        <li><a href="#连接器">连接器</a></li>
+        <li><a href="#示例">示例</a></li>
+        <li><a href="#表和-sql-api">表和 SQL API</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

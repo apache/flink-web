@@ -1,0 +1,1105 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink 1.11 introduces a new External Resource Framework, which allows you to request external resources from the underlying resource management systems (e.g., Kubernetes) and accelerate your workload with those resources. As Flink provides a first-party GPU plugin at the moment, we will take GPU as an example and show how it affects Flink applications in the AI field. Other external resources (e.g. RDMA and SSD) can also be supported in a pluggable manner.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Accelerating your workload with GPU and other external resources" />
+<meta property="og:description" content="Apache Flink 1.11 introduces a new External Resource Framework, which allows you to request external resources from the underlying resource management systems (e.g., Kubernetes) and accelerate your workload with those resources. As Flink provides a first-party GPU plugin at the moment, we will take GPU as an example and show how it affects Flink applications in the AI field. Other external resources (e.g. RDMA and SSD) can also be supported in a pluggable manner." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2020/08/06/accelerating-your-workload-with-gpu-and-other-external-resources/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-08-06T08:00:00+00:00" />
+<meta property="article:modified_time" content="2020-08-06T08:00:00+00:00" />
+<title>Accelerating your workload with GPU and other external resources | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Accelerating your workload with GPU and other external resources</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#why-flink">Why Flink</a></li>
+    <li><a href="#example-mnist-inference-with-flink">Example: MNIST Inference with Flink</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2020/08/06/accelerating-your-workload-with-gpu-and-other-external-resources/">Accelerating your workload with GPU and other external resources</a>
+    </h1>
+    
+  August 6, 2020 -
+
+
+
+  Yangze Guo
+
+
+
+
+    <p><p>Apache Flink 1.11 introduces a new <a href="//nightlies.apache.org/flinkflink-docs-master/ops/external_resources.html">External Resource Framework</a>,
+which allows you to request external resources from the underlying resource management systems (e.g., Kubernetes) and accelerate your workload with
+those resources. As Flink provides a first-party GPU plugin at the moment, we will take GPU as an example and show how it affects Flink applications
+in the AI field. Other external resources (e.g. RDMA and SSD) can also be supported <a href="//nightlies.apache.org/flinkflink-docs-master/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type">in a pluggable manner</a>.</p>
+<h1 id="end-to-end-real-time-ai-with-gpu">
+  End-to-end real-time AI with GPU
+  <a class="anchor" href="#end-to-end-real-time-ai-with-gpu">#</a>
+</h1>
+<p>Recently, AI and Machine Learning have gained additional popularity and have been widely used in various scenarios, such
+as personalized recommendation and image recognition. <a href="https://flink.apache.org/">Flink</a>, with the ability to support GPU
+allocation, can be used to build an end-to-end real-time AI workflow.</p>
+<h2 id="why-flink">
+  Why Flink
+  <a class="anchor" href="#why-flink">#</a>
+</h2>
+<p>Typical AI workloads fall into two categories: training and inference.</p>
+<center>
+<img src="/img/blog/2020-08-06-accelerate-with-external-resources/ai-workflow.png" width="800px" alt="Typical AI Workflow"/>
+<br/>
+<i><small>Typical AI Workflow</small></i>
+</center>
+<br/>
+<p>The training workload is usually a batch task, in which we train a model from a bounded dataset. On the other hand, the inference
+workload tends to be a streaming job. It consumes an unbounded data stream, which contains image data, for example, and uses a model
+to produce the output of predictions. Both workloads need to do data preprocessing first. Flink, as a
+<a href="https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html">unified batch and stream processing engine</a>, can be used to build an end-to-end AI workflow naturally.</p>
+<p>In many cases, the training and inference workload can benefit a lot by leveraging GPUs. <a href="https://azure.microsoft.com/en-us/blog/gpus-vs-cpus-for-deployment-of-deep-learning-models/">Research</a>
+shows that CPU cluster is outperformed by GPU cluster, which is of similar cost, by about 400 percent. As training datasets
+are getting bigger and models more complex, supporting GPUs has become mandatory for running AI workloads.</p>
+<p>With the <a href="//nightlies.apache.org/flinkflink-docs-master/ops/external_resources.html">External Resource Framework</a>
+and its <a href="//nightlies.apache.org/flinkflink-docs-master/ops/external_resources.html#plugin-for-gpu-resources">GPU plugin</a>, Flink
+can now request GPU resources from the external resource management system and expose GPU information to operators. With this
+feature, users can now easily build end-to-end training and real-time inference pipelines with GPU support on Flink.</p>
+<h2 id="example-mnist-inference-with-flink">
+  Example: MNIST Inference with Flink
+  <a class="anchor" href="#example-mnist-inference-with-flink">#</a>
+</h2>
+<p>We take the MNIST inference task as an example to show how to use the <a href="//nightlies.apache.org/flinkflink-docs-master/ops/external_resources.html">External Resource Framework</a>
+and how to leverage GPUs in Flink. MNIST is a database of handwritten digits, which is usually viewed as the HelloWorld of AI.
+The goal is to recognize a 28px*28px picture of a number from 0 to 9.</p>
+<p>First, you need to set configurations for the external resource framework to enable GPU support:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">external-resources: gpu
+</span></span><span class="line"><span class="cl"><span class="c1"># Define the driver factory class of gpu resource.</span>
+</span></span><span class="line"><span class="cl">external-resource.gpu.driver-factory.class: org.apache.flink.externalresource.gpu.GPUDriverFactory
+</span></span><span class="line"><span class="cl"><span class="c1"># Define the amount of gpu resource per TaskManager.</span>
+</span></span><span class="line"><span class="cl">external-resource.gpu.amount: <span class="m">1</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Enable the coordination mode if you run it in standalone mode</span>
+</span></span><span class="line"><span class="cl">external-resource.gpu.param.discovery-script.args: --enable-coordination
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># If you run it on Yarn</span>
+</span></span><span class="line"><span class="cl">external-resource.gpu.yarn.config-key: yarn.io/gpu
+</span></span><span class="line"><span class="cl"><span class="c1"># If you run it on Kubernetes</span>
+</span></span><span class="line"><span class="cl">external-resource.gpu.kubernetes.config-key: nvidia.com/gpu
+</span></span></code></pre></div><p>For more details of the configuration, please refer to the <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/ops/external_resources.html#configurations-1">official documentation</a>.</p>
+<p>In the MNIST inference task, we first need to read the images and do data preprocessing. You can download <a href="http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz">training</a>
+or <a href="http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz">testing</a> data from <a href="http://yann.lecun.com/exdb/mnist/">this site</a>.
+We provide a simple <a href="https://github.com/KarmaGYZ/flink-mnist/blob/master/src/main/java/org/apache/flink/MNISTReader.java">MNISTReader</a>.
+It will read the image data located in the provided file path and transform each image into a list of floating point numbers.</p>
+<p>Then, we need a classifier to recognize those images. A one-layer pre-trained neural network, whose prediction accuracy is 92.14%,
+is used in our classify operator. To leverage GPUs in order to accelerate the matrix-matrix multiplication, we use <a href="https://github.com/jcuda/jcuda">JCuda</a>
+to call the native Cuda API. The prediction logic of the <a href="https://github.com/KarmaGYZ/flink-mnist/blob/master/src/main/java/org/apache/flink/MNISTClassifier.java">MNISTClassifier</a> is shown below.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">MNISTClassifier</span> <span class="kd">extends</span> <span class="n">RichMapFunction</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Float</span><span class="o">&gt;,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">open</span><span class="o">(</span><span class="n">Configuration</span> <span class="n">parameters</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Get the GPU information and select the first GPU.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kd">final</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">ExternalResourceInfo</span><span class="o">&gt;</span> <span class="n">externalResourceInfos</span> <span class="o">=</span> <span class="n">getRuntimeContext</span><span class="o">().</span><span class="na">getExternalResourceInfos</span><span class="o">(</span><span class="n">resourceName</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">final</span> <span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">firstIndexOptional</span> <span class="o">=</span> <span class="n">externalResourceInfos</span><span class="o">.</span><span class="na">iterator</span><span class="o">().</span><span class="na">next</span><span class="o">().</span><span class="na">getProperty</span><span class="o">(</span><span class="s">&#34;index&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// Initialize JCublas with the selected GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">JCuda</span><span class="o">.</span><span class="na">cudaSetDevice</span><span class="o">(</span><span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">firstIndexOptional</span><span class="o">.</span><span class="na">get</span><span class="o">()));</span>
+</span></span><span class="line"><span class="cl">        <span class="n">JCublas</span><span class="o">.</span><span class="na">cublasInit</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">   <span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl">   <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">map</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Float</span><span class="o">&gt;</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">       <span class="c1">// Performs multiplication using JCublas. The matrixPointer points to our pre-trained model.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>       <span class="n">JCublas</span><span class="o">.</span><span class="na">cublasSgemv</span><span class="o">(</span><span class="sc">&#39;n&#39;</span><span class="o">,</span> <span class="n">DIMENSIONS</span><span class="o">.</span><span class="na">f1</span><span class="o">,</span> <span class="n">DIMENSIONS</span><span class="o">.</span><span class="na">f0</span><span class="o">,</span> <span class="mf">1.0f</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">matrixPointer</span><span class="o">,</span> <span class="n">DIMENSIONS</span><span class="o">.</span><span class="na">f1</span><span class="o">,</span> <span class="n">inputPointer</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mf">0.0f</span><span class="o">,</span> <span class="n">outputPointer</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">       <span class="c1">// Read the result back from GPU.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>       <span class="n">JCublas</span><span class="o">.</span><span class="na">cublasGetVector</span><span class="o">(</span><span class="n">DIMENSIONS</span><span class="o">.</span><span class="na">f1</span><span class="o">,</span> <span class="n">Sizeof</span><span class="o">.</span><span class="na">FLOAT</span><span class="o">,</span> <span class="n">outputPointer</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="n">Pointer</span><span class="o">.</span><span class="na">to</span><span class="o">(</span><span class="n">output</span><span class="o">),</span> <span class="mi">1</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">       <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">       <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">DIMENSIONS</span><span class="o">.</span><span class="na">f1</span><span class="o">;</span> <span class="o">++</span><span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">           <span class="n">result</span> <span class="o">=</span> <span class="n">output</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">&gt;</span> <span class="n">output</span><span class="o">[</span><span class="n">result</span><span class="o">]</span> <span class="o">?</span> <span class="n">i</span> <span class="o">:</span> <span class="n">result</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">       <span class="o">}</span>
+</span></span><span class="line"><span class="cl">       <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">   <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>The complete MNIST inference project can be found <a href="https://github.com/KarmaGYZ/flink-mnist">here</a>. In this project, we simply
+print the inference result to <strong>STDOUT</strong>. In the actual production environment, you could also write the result to Elasticsearch or Kafka, for example.</p>
+<p>The MNIST inference task is just a simple case that shows you how the external resource framework works and what Flink can
+do with GPU support. With Flink’s open source extension <a href="https://github.com/alibaba/Alink">Alink</a>, which contains a lot of
+pre-built algorithms based on Flink, and <a href="https://github.com/alibaba/flink-ai-extended">Tensorflow on Flink</a>, some complex
+AI workloads, e.g. online learning, real-time inference service, could be easily implemented as well.</p>
+<h1 id="other-external-resources">
+  Other external resources
+  <a class="anchor" href="#other-external-resources">#</a>
+</h1>
+<p>In addition to GPU support, there are many other external resources that can be used to accelerate jobs in some specific scenarios.
+E.g. FPGA, for AI workloads, is supported by both Yarn and Kubernetes. Some low-latency network devices, like RDMA and Solarflare, also
+provide their device plugin for Kubernetes. Currently, Yarn supports GPUs and FPGAs, while the list of Kubernetes’ device plugins can be found <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/#examples">here</a>.</p>
+<p>With the external resource framework, you only need to implement a plugin that enables the operator to get the information
+for these external resources; see <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/ops/external_resources.html#implement-a-plugin-for-your-custom-resource-type">Custom Plugin</a>
+for more details. If you just want to ensure that an external resource exists in the TaskManager, then you only need to find the
+configuration key of that resource in the underlying resource management system and configure the external resource framework accordingly.</p>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
+<p>In the latest Flink release (Flink 1.11), an external resource framework has been introduced to support requesting various types of
+resources from the underlying resource management systems, and supply all the necessary information for using these resources to the
+operators. The first-party GPU plugin expands the application prospects of Flink in the AI domain. Different resource types can be supported
+in a pluggable way. You can also implement your own plugins for custom resource types.</p>
+<p>Future developments in this area include implementing operator level resource isolation and fine-grained external resource scheduling.
+The community may kick this work off once <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-56%3A&#43;Dynamic&#43;Slot&#43;Allocation">FLIP-56</a>
+is finished. If you have any suggestions or questions for the community, we encourage you to sign up to the Apache Flink
+<a href="https://flink.apache.org/community.html#mailing-lists">mailing lists</a> and join the discussion there.</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-08-06-external-resource.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#why-flink">Why Flink</a></li>
+    <li><a href="#example-mnist-inference-with-flink">Example: MNIST Inference with Flink</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

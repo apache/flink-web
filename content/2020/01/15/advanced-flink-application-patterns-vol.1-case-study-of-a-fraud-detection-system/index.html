@@ -1,0 +1,1163 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
+Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
+Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System" />
+<meta property="og:description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
+Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
+Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-01-15T12:00:00+00:00" />
+<meta property="article:modified_time" content="2020-01-15T12:00:00+00:00" />
+<title>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#fraud-detection-demo">Fraud Detection Demo</a></li>
+        <li><a href="#dynamic-data-partitioning">Dynamic Data Partitioning</a></li>
+        <li><a href="#summary">Summary:</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/">Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System</a>
+    </h1>
+    
+  January 15, 2020 -
+
+
+
+  Alexander Fedulov
+
+  <a href="https://twitter.com/alex_fedulov">(@alex_fedulov)</a>
+  
+
+
+
+    <p><p>In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:</p>
+<ul>
+<li><a href="/news/2020/03/24/demo-fraud-detection-2.html">Dynamic updates of application logic</a></li>
+<li>Dynamic data partitioning (shuffle), controlled at runtime</li>
+<li><a href="/news/2020/07/30/demo-fraud-detection-3.html">Low latency alerting</a> based on custom windowing logic (without using the window API)</li>
+</ul>
+<p>These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.</p>
+<p><strong>Dynamic updates of application logic</strong> allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.<br>
+<br>
+<strong>Dynamic data partitioning</strong> provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.<br>
+<br>
+<strong>Custom window management</strong> demonstrates how you can utilize the low level <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/stream/operators/process_function.html">process function API</a>, when the native <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/stream/operators/windows.html">window API</a> is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.</p>
+<p>These patterns build on top of core Flink functionality, however, they might not be immediately apparent from the framework&rsquo;s documentation as explaining and presenting the motivation behind them is not always trivial without a concrete use case. That is why we will showcase these patterns with a practical example that offers a real-world usage scenario for Apache Flink — a <em>Fraud Detection</em> engine.
+We hope that this series will place these powerful approaches into your tool belt and enable you to take on new and exciting tasks.</p>
+<p>In the first blog post of the series we will look at the high-level architecture of the demo application, describe its components and their interactions. We will then deep dive into the implementation details of the first pattern in the series - <strong>dynamic data partitioning</strong>.</p>
+<p>You will be able to run the full Fraud Detection Demo application locally and look into the details of the implementation by using the accompanying GitHub repository.</p>
+<h3 id="fraud-detection-demo">
+  Fraud Detection Demo
+  <a class="anchor" href="#fraud-detection-demo">#</a>
+</h3>
+<p>The full source code for our fraud detection demo is open source and available online. To run it locally, check out the following repository and follow the steps in the README:</p>
+<p><a href="https://github.com/afedulov/fraud-detection-demo">https://github.com/afedulov/fraud-detection-demo</a></p>
+<p>You will see the demo is a self-contained application - it only requires <code>docker</code> and <code>docker-compose</code> to be built from sources and includes the following components:</p>
+<ul>
+<li>Apache Kafka (message broker) with ZooKeeper</li>
+<li>Apache Flink (<a href="//nightlies.apache.org/flinkflink-docs-stable/concepts/glossary.html#flink-application-cluster">application cluster</a>)</li>
+<li>Fraud Detection Web App</li>
+</ul>
+<p>The high-level goal of the Fraud Detection engine is to consume a stream of financial transactions and evaluate them against a set of rules. These rules are subject to frequent changes and tweaks. In a real production system, it is important to be able to add and remove them at runtime, without incurring an expensive penalty of stopping and restarting the job.</p>
+<p>When you navigate to the demo URL in your browser, you will be presented with the following UI:</p>
+ <center>
+ <img src="/img/blog/2019-11-19-demo-fraud-detection/ui.png" width="800px" alt="Figure 1: Demo UI"/>
+ <br/>
+ <i><small>Figure 1: Fraud Detection Demo UI</small></i>
+ </center>
+ <br/>
+<p>On the left side, you can see a visual representation of financial transactions flowing through the system after you click the &ldquo;Start&rdquo; button. The slider at the top allows you to control the number of generated transactions per second. The middle section is devoted to managing the rules evaluated by Flink. From here, you can create new rules as well as issue control commands, such as clearing Flink&rsquo;s state.</p>
+<p>The demo out-of-the-box comes with a set of predefined sample rules. You can click the <em>Start</em> button and, after some time, will observe alerts displayed in the right section of the UI. These alerts are the result of Flink evaluating the generated transactions stream against the predefined rules.</p>
+<p>Our sample fraud detection system consists of three main components:</p>
+<ol>
+<li>Frontend (React)</li>
+<li>Backend (SpringBoot)</li>
+<li>Fraud Detection application (Apache Flink)</li>
+</ol>
+<p>Interactions between the main elements are depicted in <em>Figure 2</em>.</p>
+ <center>
+ <img src="/img/blog/2019-11-19-demo-fraud-detection/architecture.png" width="800px" alt="Figure 2: Demo Components"/>
+ <br/>
+ <i><small>Figure 2: Fraud Detection Demo Components</small></i>
+ </center>
+ <br/>
+<p>The Backend exposes a REST API to the Frontend for creating/deleting rules as well as issuing control commands for managing the demo execution. It then relays those Frontend actions to Flink by sending them via a &ldquo;Control&rdquo; Kafka topic. The Backend additionally includes a <em>Transactions Generator</em> component, which sends an emulated stream of money transfer events to Flink via a separate &ldquo;Transactions&rdquo; topic. Alerts generated by Flink are consumed by the Backend from &ldquo;Alerts&rdquo; topic and relayed to the UI via WebSockets.</p>
+<p>Now that you are familiar with the overall layout and the goal of our Fraud Detection engine, let&rsquo;s now go into the details of what is required to implement such a system.</p>
+<h3 id="dynamic-data-partitioning">
+  Dynamic Data Partitioning
+  <a class="anchor" href="#dynamic-data-partitioning">#</a>
+</h3>
+<p>The first pattern we will look into is Dynamic Data Partitioning.</p>
+<p>If you have used Flink&rsquo;s DataStream API in the past, you are undoubtedly familiar with the <strong>keyBy</strong> method. Keying a stream shuffles all the records such that elements with the same key are assigned to the same partition. This means all records with the same key are processed by the same physical instance of the next operator.</p>
+<p>In a typical streaming application, the choice of key is fixed, determined by some static field within the elements. For instance, when building a simple window-based aggregation of a stream of transactions, we might always group by the transactions account id.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;...&gt;</span> <span class="n">windowed</span> <span class="o">=</span> <span class="n">input</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="n">Transaction</span><span class="o">::</span><span class="n">getAccountId</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="cm">/*window specification*/</span><span class="o">);</span>
+</span></span></code></pre></div><p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
+To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:</p>
+<p><em>&ldquo;Whenever the <strong>sum</strong> of the accumulated <strong>payment amount</strong> from the same <strong>payer</strong> to the same <strong>beneficiary</strong> within the <strong>duration of a week</strong> is <strong>greater</strong> than <strong>1 000 000 $</strong> - fire an alert.&rdquo;</em></p>
+<p>In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:</p>
+<ol>
+<li>Aggregation field (payment amount)</li>
+<li>Grouping fields (payer + beneficiary)</li>
+<li>Aggregation function (sum)</li>
+<li>Window duration (1 week)</li>
+<li>Limit (1 000 000)</li>
+<li>Limit operator (greater)</li>
+</ol>
+<p>Accordingly, we will use the following simple JSON format to define the aforementioned parameters:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;ruleId&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;ruleState&#34;</span><span class="p">:</span> <span class="s2">&#34;ACTIVE&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;groupingKeyNames&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;payerId&#34;</span><span class="p">,</span> <span class="s2">&#34;beneficiaryId&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;aggregateFieldName&#34;</span><span class="p">:</span> <span class="s2">&#34;paymentAmount&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;aggregatorFunctionType&#34;</span><span class="p">:</span> <span class="s2">&#34;SUM&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;limitOperatorType&#34;</span><span class="p">:</span> <span class="s2">&#34;GREATER&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;limit&#34;</span><span class="p">:</span> <span class="mi">1000000</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;windowMinutes&#34;</span><span class="p">:</span> <span class="mi">10080</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink&rsquo;s API is realised by a <code>keyBy()</code> function.</p>
+<p>Most examples in Flink&rsquo;s <code>keyBy()</code><a href="//nightlies.apache.org/flinkflink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events&rsquo; fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
+<p>On a high level, our main processing pipeline looks like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicKeyFunction</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="cm">/* some key selector */</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="cm">/* actual calculations and alerting */</span><span class="o">)</span>
+</span></span></code></pre></div><p>We have previously established that each rule defines a <strong><code>groupingKeyNames</code></strong> parameter that specifies which combination of fields will be used for the incoming events&rsquo; grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of <code>DynamicKeyFunction()</code>.</p>
+<center>
+<img src="/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png" width="800px" alt="Figure 3: Forking events with Dynamic Key Function"/>
+<br/>
+<i><small>Figure 3: Forking events with Dynamic Key Function</small></i>
+</center>
+<br/>
+<p><code>DynamicKeyFunction</code> iterates over a set of defined rules and prepares every event to be processed by a <code>keyBy()</code> function by extracting the required grouping keys:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DynamicKeyFunction</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">extends</span> <span class="n">ProcessFunction</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">   <span class="o">...</span>
+</span></span><span class="line"><span class="cl">  <span class="cm">/* Simplified */</span>
+</span></span><span class="line"><span class="cl">  <span class="n">List</span><span class="o">&lt;</span><span class="n">Rule</span><span class="o">&gt;</span> <span class="n">rules</span> <span class="o">=</span> <span class="cm">/* Rules that are initialized somehow.
+</span></span></span><span class="line"><span class="cl"><span class="cm">                        Details will be discussed in a future blog post. */</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Transaction</span> <span class="n">event</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="k">for</span> <span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span> <span class="o">:</span><span class="n">rules</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">       <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">           <span class="k">new</span> <span class="n">Keyed</span><span class="o">&lt;&gt;(</span>
+</span></span><span class="line"><span class="cl">               <span class="n">event</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">KeysExtractor</span><span class="o">.</span><span class="na">getKey</span><span class="o">(</span><span class="n">rule</span><span class="o">.</span><span class="na">getGroupingKeyNames</span><span class="o">(),</span> <span class="n">event</span><span class="o">),</span>
+</span></span><span class="line"><span class="cl">               <span class="n">rule</span><span class="o">.</span><span class="na">getRuleId</span><span class="o">()));</span>
+</span></span><span class="line"><span class="cl">      <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>&quot;{payerId=25;beneficiaryId=12}&quot;</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
+<p>Notice that a wrapper class <code>Keyed</code> with the following signature was introduced as the output type of <code>DynamicKeyFunction</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Keyed</span><span class="o">&lt;</span><span class="n">IN</span><span class="o">,</span> <span class="n">KEY</span><span class="o">,</span> <span class="n">ID</span><span class="o">&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">IN</span> <span class="n">wrapped</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">KEY</span> <span class="n">key</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">ID</span> <span class="n">id</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">public</span> <span class="n">KEY</span> <span class="nf">getKey</span><span class="o">(){</span>
+</span></span><span class="line"><span class="cl">      <span class="k">return</span> <span class="n">key</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
+<p>Events of this type will be the input to the <code>keyBy()</code> function in the main processing pipeline and allow the use of a simple lambda-expression as a <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions"><code>KeySelector</code></a> for the final step of implementing dynamic data shuffle.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicKeyFunction</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">keyBy</span><span class="o">((</span><span class="n">keyed</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">keyed</span><span class="o">.</span><span class="na">getKey</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicAlertFunction</span><span class="o">())</span>
+</span></span></code></pre></div><p>By applying <code>DynamicKeyFunction</code> we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules&rsquo; processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same <code>groupingKeyNames</code>, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.</p>
+<h3 id="summary">
+  Summary:
+  <a class="anchor" href="#summary">#</a>
+</h3>
+<p>In this blog post, we have discussed the motivation behind supporting dynamic, runtime changes to a Flink application by looking at a sample use case - a Fraud Detection engine. We have described the overall architecture and interactions between its components as well as provided references for building and running a demo Fraud Detection application in a dockerized setup. We then showed the details of implementing a  <strong>dynamic data partitioning pattern</strong> as the first underlying building block to enable flexible runtime configurations.</p>
+<p>To remain focused on describing the core mechanics of the pattern, we kept the complexity of the DSL and the underlying rules engine to a minimum. Going forward, it is easy to imagine adding extensions such as allowing more sophisticated rule definitions, including filtering of certain events, logical rules chaining, and other more advanced functionality.</p>
+<p>In the second part of this series, we will describe how the rules make their way into the running Fraud Detection engine. Additionally, we will go over the implementation details of the main processing function of the pipeline - <em>DynamicAlertFunction()</em>.</p>
+<center>
+<img src="/img/blog/2019-11-19-demo-fraud-detection/end-to-end.png" width="800px" alt="Figure 4: End-to-end pipeline"/>
+<br/>
+<i><small>Figure 4: End-to-end pipeline</small></i>
+</center>
+<br/>
+<p>In the <a href="/news/2020/03/24/demo-fraud-detection-2.html">next article</a>, we will see how Flink&rsquo;s broadcast streams can be utilized to help steer the processing within the Fraud Detection engine at runtime (Dynamic Application Updates pattern).</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-01-15-demo-fraud-detection.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#fraud-detection-demo">Fraud Detection Demo</a></li>
+        <li><a href="#dynamic-data-partitioning">Dynamic Data Partitioning</a></li>
+        <li><a href="#summary">Summary:</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

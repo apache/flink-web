@@ -1,0 +1,1301 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The Flink community has been working for some time on making Flink a truly unified batch and stream processing system. Achieving this involves touching a lot of different components of the Flink stack, from the user-facing APIs all the way to low-level operator processes such as task scheduling. In this blogpost, we’ll take a closer look at how far the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the Flink 1.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Improvements in task scheduling for batch workloads in Apache Flink 1.12" />
+<meta property="og:description" content="The Flink community has been working for some time on making Flink a truly unified batch and stream processing system. Achieving this involves touching a lot of different components of the Flink stack, from the user-facing APIs all the way to low-level operator processes such as task scheduling. In this blogpost, we’ll take a closer look at how far the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the Flink 1." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2020/12/02/improvements-in-task-scheduling-for-batch-workloads-in-apache-flink-1.12/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-12-02T08:00:00+00:00" />
+<meta property="article:modified_time" content="2020-12-02T08:00:00+00:00" />
+<title>Improvements in task scheduling for batch workloads in Apache Flink 1.12 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Improvements in task scheduling for batch workloads in Apache Flink 1.12</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+        <li><a href="#scheduling-strategies-in-flink-before-112">Scheduling Strategies in Flink before 1.12</a></li>
+        <li><a href="#a-practical-example">A practical example</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#pipelined-regions">Pipelined regions</a></li>
+    <li><a href="#pipelined-region-scheduling-strategy">Pipelined region scheduling strategy</a></li>
+    <li><a href="#failover-strategy">Failover strategy</a></li>
+    <li><a href="#benefits">Benefits</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#what-is-scheduling">What is scheduling?</a>
+      <ul>
+        <li><a href="#executiongraph">ExecutionGraph</a></li>
+        <li><a href="#intermediate-results">Intermediate results</a></li>
+        <li><a href="#slots-and-resources">Slots and resources</a></li>
+        <li><a href="#scheduling-strategy">Scheduling strategy</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2020/12/02/improvements-in-task-scheduling-for-batch-workloads-in-apache-flink-1.12/">Improvements in task scheduling for batch workloads in Apache Flink 1.12</a>
+    </h1>
+    
+  December 2, 2020 -
+
+
+
+  Andrey Zagrebin
+
+
+
+
+    <p><p>The Flink community has been working for some time on making Flink a
+<a href="https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html">truly unified batch and stream processing system</a>.
+Achieving this involves touching a lot of different components of the Flink stack, from the user-facing APIs all the way
+to low-level operator processes such as task scheduling. In this blogpost, we’ll take a closer look at how far
+the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the
+Flink 1.12 release with the new <em>pipelined region scheduler</em>.</p>
+<p>{% toc %}</p>
+<h1 id="towards-unified-scheduling">
+  Towards unified scheduling
+  <a class="anchor" href="#towards-unified-scheduling">#</a>
+</h1>
+<p>Flink has an internal <a href="#what-is-scheduling">scheduler</a> to distribute work to all available cluster nodes, taking resource utilization, state locality and recovery into account.
+How do you write a scheduler for a unified batch and streaming system? To answer this question,
+let&rsquo;s first have a look into the high-level differences between batch and streaming scheduling requirements.</p>
+<h4 id="streaming">
+  Streaming
+  <a class="anchor" href="#streaming">#</a>
+</h4>
+<p><em>Streaming</em> jobs usually require that all <em><a href="#executiongraph">operator subtasks</a></em> are running in parallel at the same time, for an indefinite time.
+Therefore, all the required resources to run these jobs have to be provided upfront, and all <em>operator subtasks</em> must be deployed at once.</p>
+<center>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/streaming-job-example.png" width="400px" alt="Streaming job example:high"/>
+<br/>
+<i><small>Flink: Streaming job example</small></i>
+</center>
+<br/>
+<p>Because there are no finite intermediate results, a <em>streaming job</em> always has to be restarted fully from a checkpoint or a savepoint in case of failure.</p>
+<div class="alert alert-info" markdown="1">
+<span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
+A _streaming job_ may generally consist of multiple disjoint pipelines which can be restarted independently.
+Hence, the full job restart is not required in this case but you can think of each disjoint pipeline as if it were a separate job.
+</div>
+<h4 id="batch">
+  Batch
+  <a class="anchor" href="#batch">#</a>
+</h4>
+<p>In contrast to <em>streaming</em> jobs, <em>batch</em> jobs usually consist of one or more stages that can have dependencies between them.
+Each stage will only run for a finite amount of time and produce some finite output (i.e. at some point, the batch job will be <em>finished</em>).
+Independent stages can run in parallel to improve execution time, but for cases where there are dependencies between stages,
+a stage may have to wait for upstream results to be produced before it can run.
+These are called <em><a href="#intermediate-results">blocking results</a></em>, and in this case stages cannot run in parallel.</p>
+<center>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/batch-job-example.png" width="600px" alt="Batch job example:high"/>
+<br/>
+<i><small>Flink: Batch job example</small></i>
+</center>
+<br/>
+<p>As an example, in the figure above <strong>Stage 0</strong> and <strong>Stage 1</strong> can run simultaneously, as there is no dependency between them.
+<strong>Stage 3</strong>, on the other hand, can only be scheduled once both its inputs are available. There are a few implications from this:</p>
+<ul>
+<li>
+<p><strong>(a)</strong> You can use available resources more efficiently by only scheduling stages that have data to perform work;</p>
+</li>
+<li>
+<p><strong>(b)</strong> You can use this mechanism also for failover: if a stage fails, it can be restarted individually, without recomputing the results of other stages.</p>
+</li>
+</ul>
+<h3 id="scheduling-strategies-in-flink-before-112">
+  Scheduling Strategies in Flink before 1.12
+  <a class="anchor" href="#scheduling-strategies-in-flink-before-112">#</a>
+</h3>
+<p>Given these differences, a unified scheduler would have to be good at resource management for each individual stage,
+be it finite (<em>batch</em>) or infinite (<em>streaming</em>), and also across multiple stages.
+The existing <a href="#scheduling-strategy">scheduling strategies</a> in older Flink versions up to 1.11 have been largely designed to address these concerns separately.</p>
+<p><strong>“All at once (Eager)”</strong></p>
+<p>This strategy is the simplest: Flink just tries to allocate resources and deploy all <em>subtasks</em> at once.
+Up to Flink 1.11, this is the scheduling strategy used for all <em>streaming</em> jobs.
+For <em>batch</em> jobs, using “all at once” scheduling would lead to suboptimal resource utilization,
+since it’s unlikely that such jobs would require all resources upfront, and any resources allocated to subtasks
+that could not run at a given moment would be idle and therefore wasted.</p>
+<p><strong>“Lazy from sources”</strong></p>
+<p>To account for <em>blocking results</em> and make sure that no consumer is deployed before their respective producers are finished,
+Flink provides a different scheduling strategy for <em>batch</em> workloads.
+“Lazy from sources” scheduling deploys subtasks only once all their inputs are ready.
+This strategy operates on each <em>subtask</em> individually; it does not identify all <em>subtasks</em> which can (or have to) run at the same time.</p>
+<h3 id="a-practical-example">
+  A practical example
+  <a class="anchor" href="#a-practical-example">#</a>
+</h3>
+<p>Let’s take a closer look at the specific case of <em>batch</em> jobs, using as motivation a simple SQL query:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-SQL" data-lang="SQL"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">customerId</span><span class="w"> </span><span class="nb">int</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">name</span><span class="w"> </span><span class="nb">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">orderId</span><span class="w"> </span><span class="nb">int</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">orderCustomerId</span><span class="w"> </span><span class="nb">int</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">--fill tables with data
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">customerId</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">customers</span><span class="p">,</span><span class="w"> </span><span class="n">orders</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w"> </span><span class="n">customerId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orderCustomerId</span><span class="w">
+</span></span></span></code></pre></div><p>Assume that two tables were created in some database: the <code>customers</code> table is relatively small and fits into the local memory (or also on disk). The <code>orders</code> table is bigger, as it contains all orders created by customers, and doesn’t fit in memory. To enrich the orders with the customer name, you have to join these two tables. There are basically two stages in this <em>batch</em> job:</p>
+<ol>
+<li>Load the complete <code>customers</code> table into a local map: <code>(customerId, name)</code>; because this table is smaller,</li>
+<li>Process the <code>orders</code> table record by record, enriching it with the <code>name</code> value from the map.</li>
+</ol>
+<h4 id="executing-the-job">
+  Executing the job
+  <a class="anchor" href="#executing-the-job">#</a>
+</h4>
+<p>The batch job described above will have three operators. For simplicity, each operator is represented with a parallelism of 1,
+so the resulting <em><a href="#executiongraph">ExecutionGraph</a></em> will consist of three <em>subtasks</em>: A, B and C.</p>
+<ul>
+<li><strong>A</strong>: load full <code>customers</code> table</li>
+<li><strong>B</strong>: load <code>orders</code> table record by record in a <em>streaming</em> (pipelined) fashion</li>
+<li><strong>C</strong>: join order table records with the loaded customer table</li>
+</ul>
+<p>This translates into <strong>A</strong> and <strong>C</strong> being connected with a <em>blocking</em> data exchange,
+because the <code>customers</code> table needs to be loaded locally (<strong>A</strong>) before we start processing the order table (<strong>B</strong>).
+<strong>B</strong> and <strong>C</strong> are connected with a <em><a href="#intermediate-results">pipelined</a></em> data exchange,
+because the consumer (<strong>C</strong>) can run as soon as the first result records from <strong>B</strong> have been produced.
+You can think of <strong>B-&gt;C</strong> as a <em>finite streaming</em> job. It’s then possible to identify two separate stages within the <em>ExecutionGraph</em>: <strong>A</strong> and <strong>B-&gt;C</strong>.</p>
+<center>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/sql-join-job-example.png" width="450px" alt="SQL Join job example:high"/>
+<br/>
+<i><small>Flink: SQL Join job example</small></i>
+</center>
+<br/>
+<h4 id="scheduling-limitations">
+  Scheduling Limitations
+  <a class="anchor" href="#scheduling-limitations">#</a>
+</h4>
+<p>Imagine that the cluster this job will run in has only one <em><a href="#slots-and-resources">slot</a></em> and can therefore only execute one <em>subtask</em>.
+If Flink deploys <strong>B</strong> <em><a href="#slots-and-resources">chained</a></em> with <strong>C</strong> first into this one <em>slot</em> (as <strong>B</strong> and <strong>C</strong> are connected with a <em><a href="#intermediate-results">pipelined</a></em> edge),
+<strong>C</strong> cannot run because A has not produced its <em>blocking result</em> yet. Flink will try to deploy <strong>A</strong> and the job will fail, because there are no more <em>slots</em>.
+If there were two <em>slots</em> available, Flink would be able to deploy <strong>A</strong> and the job would eventually succeed.
+Nonetheless, the resources of the first <em>slot</em> occupied by <strong>B</strong> and <strong>C</strong> would be wasted while <strong>A</strong> was running.</p>
+<p>Both scheduling strategies available as of Flink 1.11 (<em>“all at once”</em> and <em>“lazy from source”</em>) would be affected by these limitations.
+What would be the optimal approach? In this case, if <strong>A</strong> was deployed first, then <strong>B</strong> and <strong>C</strong> could also complete afterwards using the same <em>slot</em>.
+The job would succeed even if only a single <em>slot</em> was available.</p>
+<div class="alert alert-info" markdown="1">
+<span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
+If we could load the `orders` table into local memory (making B -> C blocking), then the previous strategy would also succeed with one slot.
+Nonetheless, we would have to allocate a lot of resources to accommodate the table locally, which may not be required.
+</div>
+<p>Last but not least, let’s consider what happens in the case of <em>failover</em>: if the processing of the <code>orders</code> table fails (<strong>B-&gt;C</strong>),
+then we do not have to reload the customer table (<strong>A</strong>); we only need to restart <strong>B-&gt;C</strong>. This did not work prior to Flink 1.9.</p>
+<p>To satisfy the scheduling requirements for <em>batch</em> and <em>streaming</em> and overcome these limitations,
+the Flink community has worked on a new unified scheduling and failover strategy that is suitable for both types of workloads: <em>pipelined region scheduling</em>.</p>
+<h1 id="the-new-pipelined-region-scheduling">
+  The new pipelined region scheduling
+  <a class="anchor" href="#the-new-pipelined-region-scheduling">#</a>
+</h1>
+<p>As you read in the previous introductory sections, an optimal <a href="#what-is-scheduling">scheduler</a> should efficiently allocate resources
+for the sub-stages of the pipeline, finite or infinite, running in a <em>streaming</em> fashion. Those stages are called <em>pipelined regions</em> in Flink.
+In this section, we will take a deeper dive into <em>pipelined region scheduling and failover</em>.</p>
+<h2 id="pipelined-regions">
+  Pipelined regions
+  <a class="anchor" href="#pipelined-regions">#</a>
+</h2>
+<p>The new scheduling strategy analyses the <em><a href="#executiongraph">ExecutionGraph</a></em> before starting the <em>subtask</em> deployment in order to identify its <em>pipelined regions</em>.
+A <em>pipelined region</em> is a subset of <em>subtasks</em> in the <em>ExecutionGraph</em> connected by <em><a href="#intermediate-results">pipelined</a></em> data exchanges.
+<em>Subtasks</em> from different <em>pipelined regions</em> are connected only by <em><a href="#intermediate-results">blocking</a></em> data exchanges.
+The depicted example of an <em>ExecutionGraph</em> has four <em>pipelined regions</em> and <em>subtasks</em>, A to H:</p>
+<center>
+<img src="/img/blog/2020-12-02-pipelined-region-sheduling/pipelined-regions.png" width="250px" alt="Pipelined regions:high"/>
+<br/>
+<i><small>Flink: Pipelined regions</small></i>
+</center>
+<br/>
+<p>Why do we need the <em>pipelined region</em>? Within the <em>pipelined region</em> all consumers have to constantly consume the produced results
+to not block the producers and avoid backpressure. Hence, all <em>subtasks</em> of a <em>pipelined region</em> have to be scheduled, restarted in case of failure and run at the same time.</p>
+<div class="alert alert-info" markdown="1">
+<span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note (out of scope)</span>
+In certain cases the _subtasks_ can be connected by _[blocking](#intermediate-results)_ data exchanges within one region.
+Check [FLINK-17330](https://issues.apache.org/jira/browse/FLINK-17330) for details.
+</div>
+<h2 id="pipelined-region-scheduling-strategy">
+  Pipelined region scheduling strategy
+  <a class="anchor" href="#pipelined-region-scheduling-strategy">#</a>
+</h2>
+<p>Once the <em>pipelined regions</em> are identified, each region is scheduled only when all the regions it depends on (i.e. its inputs),
+have produced their <em><a href="#intermediate-results">blocking</a></em> results (for the depicted graph: R2 and R3 after R1; R4 after R2 and R3).
+If the <em>JobManager</em> has enough resources available, it will try to run as many schedulable <em>pipelined regions</em> in parallel as possible.
+The <em>subtasks</em> of a <em>pipelined region</em> are either successfully deployed all at once or none at all.
+The job fails if there are not enough resources to run any of its <em>pipelined regions</em>.
+You can read more about this effort in the original <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-119&#43;Pipelined&#43;Region&#43;Scheduling#FLIP119PipelinedRegionScheduling-BulkSlotAllocation">FLIP-119 proposal</a>.</p>
+<h2 id="failover-strategy">
+  Failover strategy
+  <a class="anchor" href="#failover-strategy">#</a>
+</h2>
+<p>As mentioned before, only certain regions are running at the same time. Others have already produced their <em><a href="#intermediate-results">blocking</a></em> results.
+The results are stored locally in <em>TaskManagers</em> where the corresponding <em>subtasks</em> run.
+If a currently running region fails, it gets restarted to consume its inputs again.
+If some input results got lost (e.g. the hosting <em>TaskManager</em> failed as well), Flink will rerun their producing regions.
+You can read more about this effort in the <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/task_failure_recovery.html#failover-strategies">user documentation</a>
+and the original <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-1&#43;%3A&#43;Fine&#43;Grained&#43;Recovery&#43;from&#43;Task&#43;Failures">FLIP-1 proposal</a>.</p>
+<h2 id="benefits">
+  Benefits
+  <a class="anchor" href="#benefits">#</a>
+</h2>
+<p><strong>Run any batch job, possibly with limited resources</strong></p>
+<p>The <em>subtasks</em> of a <em>pipelined region</em> are deployed only when all necessary conditions for their success are fulfilled:
+inputs are ready and all needed resources are allocated. Hence, the <em>batch</em> job never gets stuck without notifying the user.
+The job either eventually finishes or fails after a timeout.</p>
+<p>Depending on how the <em>subtasks</em> are allowed to <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/#task-chaining-and-resource-groups">share slots</a>,
+it is often the case that the whole <em>pipelined region</em> can run within one <em>slot</em>,
+making it generally possible to run the whole <em>batch</em> job with only a single <em>slot</em>.
+At the same time, if the cluster provides more resources, Flink will run as many regions as possible in parallel to improve the overall job performance.</p>
+<p><strong>No resource waste</strong></p>
+<p>As mentioned in the definition of <em>pipelined region</em>, all its <em>subtasks</em> have to run simultaneously.
+The <em>subtasks</em> of other regions either cannot or do not have to run at the same time.
+This means that a <em>pipelined region</em> is the minimum subgraph of a <em>batch</em> job’s <em>ExecutionGraph</em> that has to be scheduled at once.
+There is no way to run the job with fewer resources than needed to run the largest region, and so there can be no resource waste.</p>
+<div class="alert alert-info" markdown="1">
+<span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note (out of scope)</span>
+The amount of resources required to run a region can be further optimized separately.
+It depends on _co-location constraints_ and _slot sharing groups_ of the region’s _subtasks_.
+Check [FLINK-18689](https://issues.apache.org/jira/browse/FLINK-18689) for details.
+</div>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
+<p>Scheduling is a fundamental component of the Flink stack. In this blogpost, we recapped how scheduling affects resource utilization and failover as a part of the user experience.
+We described the limitations of Flink’s old scheduler and introduced a new approach to tackle them: the  <em>pipelined region scheduler</em>, which ships with Flink 1.12.
+The blogpost also explained how <em>pipelined region failover</em> (introduced in Flink 1.11) works.</p>
+<p>Stay tuned for more improvements to scheduling in upcoming releases. If you have any suggestions or questions for the community,
+we encourage you to sign up to the Apache Flink <a href="https://flink.apache.org/community.html#mailing-lists">mailing lists</a> and become part of the discussion.</p>
+<h1 id="appendix">
+  Appendix
+  <a class="anchor" href="#appendix">#</a>
+</h1>
+<h2 id="what-is-scheduling">
+  What is scheduling?
+  <a class="anchor" href="#what-is-scheduling">#</a>
+</h2>
+<h3 id="executiongraph">
+  ExecutionGraph
+  <a class="anchor" href="#executiongraph">#</a>
+</h3>
+<p>A Flink <em>job</em> is a pipeline of connected <em>operators</em> to process data.
+Together, the operators form a <em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures">JobGraph</a></em>.
+Each <em>operator</em> has a certain number of <em>subtasks</em> executed in parallel. The <em>subtask</em> is the actual execution unit in Flink.
+Each subtask can consume user records from other subtasks (inputs), process them and produce records for further consumption by other <em>subtasks</em> (outputs) down the stream.
+There are <em>source subtasks</em> without inputs and <em>sink subtasks</em> without outputs. Hence, the <em>subtasks</em> form the nodes of the
+<em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/internals/job_scheduling.html#jobmanager-data-structures">ExecutionGraph</a></em>.</p>
+<h3 id="intermediate-results">
+  Intermediate results
+  <a class="anchor" href="#intermediate-results">#</a>
+</h3>
+<p>There are also two major data-exchange types to produce and consume results by <em>operators</em> and their <em>subtasks</em>: <em>pipelined</em> and <em>blocking</em>.
+They are basically types of edges in the <em>ExecutionGraph</em>.</p>
+<p>A <em>pipelined</em> result can be consumed record by record. This means that the consumer can already run once the first result records have been produced.
+A <em>pipelined</em> result can be a never ending output of records, e.g. in case of a <em>streaming job</em>.</p>
+<p>A <em>blocking</em> result can be consumed only when its <em>production</em> is done. Hence, the <em>blocking</em> result is always finite
+and the consumer of the <em>blocking</em> result can run only when the producer has finished its execution.</p>
+<h3 id="slots-and-resources">
+  Slots and resources
+  <a class="anchor" href="#slots-and-resources">#</a>
+</h3>
+<p>A <em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/concepts/flink-architecture.html#anatomy-of-a-flink-cluster">TaskManager</a></em>
+instance has a certain number of virtual <em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/concepts/flink-architecture.html#task-slots-and-resources">slots</a></em>.
+Each <em>slot</em> represents a certain part of the <em>TaskManager’s physical resources</em> to run the operator <em>subtasks</em>, and each <em>subtask</em> is deployed into a <em>slot</em> of the <em>TaskManager</em>.
+A <em>slot</em> can run multiple <em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/internals/job_scheduling.html#scheduling">subtasks</a></em> from different <em>operators</em> at the same time, usually <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/concepts/flink-architecture.html#tasks-and-operator-chains">chained</a> together.</p>
+<h3 id="scheduling-strategy">
+  Scheduling strategy
+  <a class="anchor" href="#scheduling-strategy">#</a>
+</h3>
+<p><em><a href="//nightlies.apache.org/flinkflink-docs-release-1.11/internals/job_scheduling.html#scheduling">Scheduling</a></em>
+in Flink is a process of searching for and allocating appropriate resources (<em>slots</em>) from the <em>TaskManagers</em> to run the <em>subtasks</em> and produce results.
+The <em>scheduling strategy</em> reacts on scheduling events (like start job, <em>subtask</em> failed or finished etc) to decide which <em>subtask</em> to deploy next.</p>
+<p>For instance, it does not make sense to schedule <em>subtasks</em> whose inputs are not ready to consume yet to avoid wasting resources.
+Another example is to schedule <em>subtasks</em> which are connected with <em>pipelined</em> edges together, to avoid deadlocks caused by backpressure.</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-12-02-pipelined-region-sheduling.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+        <li><a href="#scheduling-strategies-in-flink-before-112">Scheduling Strategies in Flink before 1.12</a></li>
+        <li><a href="#a-practical-example">A practical example</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#pipelined-regions">Pipelined regions</a></li>
+    <li><a href="#pipelined-region-scheduling-strategy">Pipelined region scheduling strategy</a></li>
+    <li><a href="#failover-strategy">Failover strategy</a></li>
+    <li><a href="#benefits">Benefits</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#what-is-scheduling">What is scheduling?</a>
+      <ul>
+        <li><a href="#executiongraph">ExecutionGraph</a></li>
+        <li><a href="#intermediate-results">Intermediate results</a></li>
+        <li><a href="#slots-and-resources">Slots and resources</a></li>
+        <li><a href="#scheduling-strategy">Scheduling strategy</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

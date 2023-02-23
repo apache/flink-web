@@ -1,0 +1,1080 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL" />
+<meta property="og:description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-05-14T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-05-14T12:00:00+00:00" />
+<title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#modelling-temporal-data-with-flink">Modelling Temporal Data with Flink</a></li>
+    <li><a href="#streaming-joins-using-temporal-tables">Streaming Joins using Temporal Tables</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/">Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL</a>
+    </h1>
+    
+  May 14, 2019 -
+
+
+
+  Marta Paes
+
+  <a href="https://twitter.com/morsapaes">(@morsapaes)</a>
+  
+
+
+
+    <p><p>Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of <strong>temporal data</strong>, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?</p>
+<center>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables1.png" width="500px" alt="Taxi Fares and Conversion Rates"/>
+</center>
+<br>
+<p><strong>For example:</strong> given a stream with Taxi Fare events tied to the local currency of the ride location, we might want to convert the fare price to a common currency for further processing. As conversion rates excel at fluctuating over time, each Taxi Fare event would need to be matched to the rate that was valid at the time the event occurred in order to produce a reliable result.</p>
+<h2 id="modelling-temporal-data-with-flink">
+  Modelling Temporal Data with Flink
+  <a class="anchor" href="#modelling-temporal-data-with-flink">#</a>
+</h2>
+<p>In the 1.7 release, Flink has introduced the concept of <strong>temporal tables</strong> into its streaming SQL and Table API: parameterized views on append-only tables — or, any table that only allows records to be inserted, never updated or deleted — that are interpreted as a changelog and keep data closely tied to time context, so that it can be interpreted as valid only within a specific period of time. Transforming a stream into a temporal table requires:</p>
+<ul>
+<li>
+<p>Defining a <strong>primary key</strong> and a <strong>versioning field</strong> that can be used to keep track of the changes that happen over time;</p>
+</li>
+<li>
+<p>Exposing the stream as a <strong>temporal table function</strong> that maps each point in time to a static relation.</p>
+</li>
+</ul>
+<p>Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/dev/table/udfs.html#table-functions">table function</a> class and can be defined in the same straightforward way to be used with the Table API or SQL parser.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">org.apache.flink.table.functions.TemporalTableFunction</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="o">(...)</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Get the stream and table environments.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">StreamTableEnvironment</span> <span class="n">tEnv</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="na">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Provide a sample static data set of the rates history table.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">List</span> <span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span><span class="n">ratesHistoryData</span> <span class="o">=</span><span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="mi">102L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="mi">114L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;YEN&#34;</span><span class="o">,</span> <span class="mi">1L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="mi">116L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="mi">105L</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Create and register an example table using the sample data set.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span> <span class="n">ratesHistoryStream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">fromCollection</span><span class="o">(</span><span class="n">ratesHistoryData</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">Table</span> <span class="n">ratesHistory</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="na">fromDataStream</span><span class="o">(</span><span class="n">ratesHistoryStream</span><span class="o">,</span> <span class="s">&#34;r_currency, r_rate, r_proctime.proctime&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="o">.</span><span class="na">registerTable</span><span class="o">(</span><span class="s">&#34;RatesHistory&#34;</span><span class="o">,</span> <span class="n">ratesHistory</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Create and register the temporal table function &#34;rates&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Define &#34;r_proctime&#34; as the versioning field and &#34;r_currency&#34; as the primary key.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">TemporalTableFunction</span> <span class="n">rates</span> <span class="o">=</span> <span class="n">ratesHistory</span><span class="o">.</span><span class="na">createTemporalTableFunction</span><span class="o">(</span><span class="s">&#34;r_proctime&#34;</span><span class="o">,</span> <span class="s">&#34;r_currency&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="o">.</span><span class="na">registerFunction</span><span class="o">(</span><span class="s">&#34;Rates&#34;</span><span class="o">,</span> <span class="n">rates</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="o">(...)</span>
+</span></span></code></pre></div><p>What does this <strong>Rates</strong> function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">Rates</span><span class="p">(</span><span class="s1">&#39;11:00&#39;</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><center>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables2.png" width="650px" alt="Point-in-time Querying"/>
+</center>
+<br>
+<p>Even though Flink does not yet support querying temporal table functions with a constant time attribute parameter, these functions can be used to cover a much more interesting scenario: temporal table joins.</p>
+<h2 id="streaming-joins-using-temporal-tables">
+  Streaming Joins using Temporal Tables
+  <a class="anchor" href="#streaming-joins-using-temporal-tables">#</a>
+</h2>
+<p>Temporal tables reach their full potential when used in combination — erm, joined — with streaming data, for instance to power applications that must continuously whitelist against a reference dataset that changes over time for auditing or regulatory compliance. While efficient joins have long been an enduring challenge for query processors due to computational cost and resource consumption, joins over streaming data carry some additional challenges:</p>
+<ul>
+<li>The <strong>unbounded</strong> nature of streams means that inputs are continuously evaluated and intermediate join results can consume memory resources indefinitely. Flink gracefully manages its memory consumption out-of-the-box (even for heavier cases where joins require spilling to disk) and supports time-windowed joins to bound the amount of data that needs to be kept around as state;</li>
+<li>Streaming data might be <strong>out-of-order</strong> and <strong>late</strong>, so it is not possible to enforce an ordering upfront and time handling requires some thinking to avoid unnecessary outputs and retractions.</li>
+</ul>
+<p>In the particular case of temporal data, time-windowed joins are not enough (well, at least not without getting into some expensive tweaking): sooner or later, each reference record will fall outside of the window and be wiped from state, no longer being considered for future join results. To address this limitation, Flink has introduced support for temporal table joins to cover time-varying relations.</p>
+<center>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables3.png" width="500px" alt="Temporal Table Join between Taxi Fares and Conversion Rates"/>
+</center>
+<br>
+<p>Each record from the append-only table on the probe side (<code>Taxi Fare</code>) is joined with the version of the record from the temporal table on the build side (<code>Conversion Rate</code>) that most closely matches the probe side record time attribute (<code>time</code>) for the same value of the primary key (<code>currency</code>). Remember the temporal table function (<code>Rates</code>) we registered earlier? It can now be used to express this join as a simple SQL statement that would otherwise require a heavier statement with a subquery.</p>
+<center>
+<img src="/img/blog/2019-05-13-temporal-tables/TemporalTables4.png" width="700px" alt="Regular Join vs. Temporal Table Join"/>
+</center>
+<br>
+<p>Temporal table joins support both <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/dev/table/streaming/joins.html#processing-time-temporal-joins">processing</a> and <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/dev/table/streaming/joins.html#event-time-temporal-joins">event time</a> semantics and effectively limit the amount of data kept in state while also allowing records on the build side to be arbitrarily old, as opposed to time-windowed joins. Probe-side records only need to be kept in state for a very short time to ensure correct semantics in presence of out-of-order records. The challenges mentioned in the beginning of this section are overcome by:</p>
+<ul>
+<li>Narrowing the <strong>scope</strong> of the join: only the time-matching version of <code>ratesHistory</code> is visible for a given <code>taxiFare.time</code>;</li>
+<li>Pruning <strong>unneeded records</strong> from state: for cases using event time, records between current time and the <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks">watermark</a> delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.</li>
+</ul>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>All this means it is now possible to express continuous stream enrichment in relational and time-varying terms using Flink without dabbling into syntactic patchwork or compromising performance. In other words: stream time-travelling minus the flux capacitor. Extending this syntax to batch processing for enriching historic data with proper (event) time semantics is also part of the Flink roadmap!</p>
+<p>If you&rsquo;d like to get some <strong>hands-on practice in joining streams with Flink SQL</strong> (and Flink SQL in general), checkout this <a href="https://github.com/ververica/sql-training/wiki">free training for Flink SQL</a>. The training environment is based on Docker and set up in just a few minutes.</p>
+<p>Subscribe to the <a href="/community.html#mailing-lists">Apache Flink mailing lists</a> to stay up-to-date with the latest developments in this space.</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-05-14-temporal-tables.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#modelling-temporal-data-with-flink">Modelling Temporal Data with Flink</a></li>
+    <li><a href="#streaming-joins-using-temporal-tables">Streaming Joins using Temporal Tables</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

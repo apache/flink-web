@@ -1,0 +1,1110 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.
+{% toc %}
+Introduction # What are some of the latest requirements for your data warehouse and data infrastructure in 2020?
+We’ve came up with some for you.
+Firstly, today’s business is shifting to a more real-time fashion, and thus demands abilities to process online streaming data with low latency for near-real-time or even real-time analytics.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration" />
+<meta property="og:description" content="In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.
+{% toc %}
+Introduction # What are some of the latest requirements for your data warehouse and data infrastructure in 2020?
+We’ve came up with some for you.
+Firstly, today’s business is shifting to a more real-time fashion, and thus demands abilities to process online streaming data with low latency for near-real-time or even real-time analytics." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2020/03/27/flink-as-unified-engine-for-modern-data-warehousing-production-ready-hive-integration/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-03-27T02:30:00+00:00" />
+<meta property="article:modified_time" content="2020-03-27T02:30:00+00:00" />
+<title>Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#flink-and-its-integration-with-hive-comes-into-the-scene">Flink and Its Integration With Hive Comes into the Scene</a>
+      <ul>
+        <li><a href="#unified-metadata-management">Unified Metadata Management</a></li>
+        <li><a href="#stream-processing">Stream Processing</a></li>
+        <li><a href="#compatible-with-more-hive-versions">Compatible with More Hive Versions</a></li>
+        <li><a href="#reuse-hive-user-defined-functions-udfs">Reuse Hive User Defined Functions (UDFs)</a></li>
+        <li><a href="#enhanced-read-and-write-on-hive-data">Enhanced Read and Write on Hive Data</a></li>
+        <li><a href="#formats">Formats</a></li>
+        <li><a href="#more-data-types">More Data Types</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+      </ul>
+    </li>
+    <li><a href="#summary">Summary</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2020/03/27/flink-as-unified-engine-for-modern-data-warehousing-production-ready-hive-integration/">Flink as Unified Engine for Modern Data Warehousing: Production-Ready Hive Integration</a>
+    </h1>
+    
+  March 27, 2020 -
+
+
+
+  Bowen Li
+
+  <a href="https://twitter.com/Bowen__Li">(@Bowen__Li)</a>
+  
+
+
+
+    <p><p>In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.</p>
+<p>{% toc %}</p>
+<h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
+<p>What are some of the latest requirements for your data warehouse and data infrastructure in 2020?</p>
+<p>We’ve came up with some for you.</p>
+<p>Firstly, today’s business is shifting to a more real-time fashion, and thus demands abilities to process online streaming data with low latency for near-real-time or even real-time analytics. People become less and less tolerant of delays between when data is generated and when it arrives at their hands, ready to use. Hours or even days of delay is not acceptable anymore. Users are expecting minutes, or even seconds, of end-to-end latency for data in their warehouse, to get quicker-than-ever insights.</p>
+<p>Secondly, the infrastructure should be able to handle both offline batch data for offline analytics and exploration, and online streaming data for more timely analytics. Both are indispensable as they both have very valid use cases. Apart from the real time processing mentioned above, batch processing would still exist as it’s good for ad hoc queries and explorations, and full-size calculations. Your modern infrastructure should not force users to choose between one or the other, it should offer users both options for a world-class data infrastructure.</p>
+<p>Thirdly, the data players, including data engineers, data scientists, analysts, and operations, urge a more unified infrastructure than ever before for easier ramp-up and higher working efficiency. The big data landscape has been fragmented for years - companies may have one set of infrastructure for real time processing, one set for batch, one set for OLAP, etc. That, oftentimes, comes as a result of the legacy of lambda architecture, which was popular in the era when stream processors were not as mature as today and users had to periodically run batch processing as a way to correct streaming pipelines. Well, it&rsquo;s a different era now! As stream processing becomes mainstream and dominant, end users no longer want to learn shattered pieces of skills and maintain many moving parts with all kinds of tools and pipelines. Instead, what they really need is a unified analytics platform that can be mastered easily, and simplify any operational complexity.</p>
+<p>If any of these resonate with you, you just found the right post to read: we have never been this close to the vision by strengthening Flink’s integration with Hive to a production grade.</p>
+<h2 id="flink-and-its-integration-with-hive-comes-into-the-scene">
+  Flink and Its Integration With Hive Comes into the Scene
+  <a class="anchor" href="#flink-and-its-integration-with-hive-comes-into-the-scene">#</a>
+</h2>
+<p>Apache Flink has been a proven scalable system to handle extremely high workload of streaming data in super low latency in many giant tech companies.</p>
+<p>Despite its huge success in the real time processing domain, at its deep root, Flink has been faithfully following its inborn philosophy of being <a href="https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html">a unified data processing engine for both batch and streaming</a>, and taking a streaming-first approach in its architecture to do batch processing. By making batch a special case for streaming, Flink really leverages its cutting edge streaming capabilities and applies them to batch scenarios to gain the best offline performance. Flink’s batch performance has been quite outstanding in the early days and has become even more impressive, as the community started merging Blink, Alibaba’s fork of Flink, back to Flink in 1.9 and finished it in 1.10.</p>
+<p>On the other hand, Apache Hive has established itself as a focal point of the data warehousing ecosystem. It serves as not only a SQL engine for big data analytics and ETL, but also a data management platform, where data is discovered and defined. As business evolves, it puts new requirements on data warehouse.</p>
+<p>Thus we started integrating Flink and Hive as a beta version in Flink 1.9. Over the past few months, we have been listening to users’ requests and feedback, extensively enhancing our product, and running rigorous benchmarks (which will be published soon separately). I’m glad to announce that the integration between Flink and Hive is at production grade in <a href="https://flink.apache.org/news/2020/02/11/release-1.10.0.html">Flink 1.10</a> and we can’t wait to walk you through the details.</p>
+<h3 id="unified-metadata-management">
+  Unified Metadata Management
+  <a class="anchor" href="#unified-metadata-management">#</a>
+</h3>
+<p>Hive Metastore has evolved into the de facto metadata hub over the years in the Hadoop, or even the cloud, ecosystem. Many companies have a single Hive Metastore service instance in production to manage all of their schemas, either Hive or non-Hive metadata, as the single source of truth.</p>
+<p>In 1.9 we introduced Flink’s <a href="//nightlies.apache.org/flinkflink-docs-release-1.10/dev/table/hive/hive_catalog.html">HiveCatalog</a>, connecting Flink to users’ rich metadata pool. The meaning of <code>HiveCatalog</code> is two-fold here. First, it allows Apache Flink users to utilize Hive Metastore to store and manage Flink’s metadata, including tables, UDFs, and statistics of data. Second, it enables Flink to access Hive’s existing metadata, so that Flink itself can read and write Hive tables.</p>
+<p>In Flink 1.10, users can store Flink&rsquo;s own tables, views, UDFs, statistics in Hive Metastore on all of the compatible Hive versions mentioned above. <a href="//nightlies.apache.org/flinkflink-docs-release-1.10/dev/table/hive/hive_catalog.html#example">Here’s an end-to-end example</a> of how to store a Flink’s Kafka source table in Hive Metastore and later query the table in Flink SQL.</p>
+<h3 id="stream-processing">
+  Stream Processing
+  <a class="anchor" href="#stream-processing">#</a>
+</h3>
+<p>The Hive integration feature in Flink 1.10 empowers users to re-imagine what they can accomplish with their Hive data and unlock stream processing use cases:</p>
+<ul>
+<li>join real-time streaming data in Flink with offline Hive data for more complex data processing</li>
+<li>backfill Hive data with Flink directly in a unified fashion</li>
+<li>leverage Flink to move real-time data into Hive more quickly, greatly shortening the end-to-end latency between when data is generated and when it arrives at your data warehouse for analytics, from hours — or even days — to minutes</li>
+</ul>
+<h3 id="compatible-with-more-hive-versions">
+  Compatible with More Hive Versions
+  <a class="anchor" href="#compatible-with-more-hive-versions">#</a>
+</h3>
+<p>In Flink 1.10, we brought full coverage to most Hive versions including 1.0, 1.1, 1.2, 2.0, 2.1, 2.2, 2.3, and 3.1. Take a look <a href="//nightlies.apache.org/flinkflink-docs-release-1.10/dev/table/hive/#supported-hive-versions">here</a>.</p>
+<h3 id="reuse-hive-user-defined-functions-udfs">
+  Reuse Hive User Defined Functions (UDFs)
+  <a class="anchor" href="#reuse-hive-user-defined-functions-udfs">#</a>
+</h3>
+<p>Users can <a href="//nightlies.apache.org/flinkflink-docs-release-1.10/dev/table/hive/hive_functions.html#hive-user-defined-functions">reuse all kinds of Hive UDFs in Flink</a> since Flink 1.9.</p>
+<p>This is a great win for Flink users with past history with the Hive ecosystem, as they may have developed custom business logic in their Hive UDFs. Being able to run these functions without any rewrite saves users a lot of time and brings them a much smoother experience when they migrate to Flink.</p>
+<p>To take it a step further, Flink 1.10 introduces <a href="//nightlies.apache.org/flinkflink-docs-release-1.10/dev/table/hive/hive_functions.html#use-hive-built-in-functions-via-hivemodule">compatibility of Hive built-in functions via HiveModule</a>. Over the years, the Hive community has developed a few hundreds of built-in functions that are super handy for users. For those built-in functions that don&rsquo;t exist in Flink yet, users are now able to leverage the existing Hive built-in functions that they are familiar with and complete their jobs seamlessly.</p>
+<h3 id="enhanced-read-and-write-on-hive-data">
+  Enhanced Read and Write on Hive Data
+  <a class="anchor" href="#enhanced-read-and-write-on-hive-data">#</a>
+</h3>
+<p>Flink 1.10 extends its read and write capabilities on Hive data to all the common use cases with better performance.</p>
+<p>On the reading side, Flink now can read Hive regular tables, partitioned tables, and views. Lots of optimization techniques are developed around reading, including partition pruning and projection pushdown to transport less data from file storage, limit pushdown for faster experiment and exploration, and vectorized reader for ORC files.</p>
+<p>On the writing side, Flink 1.10 introduces “INSERT INTO” and “INSERT OVERWRITE” to its syntax, and can write to not only Hive’s regular tables, but also partitioned tables with either static or dynamic partitions.</p>
+<h3 id="formats">
+  Formats
+  <a class="anchor" href="#formats">#</a>
+</h3>
+<p>Your engine should be able to handle all common types of file formats to give you the freedom of choosing one over another in order to fit your business needs. It’s no exception for Flink. We have tested the following table storage formats: text, csv, SequenceFile, ORC, and Parquet.</p>
+<h3 id="more-data-types">
+  More Data Types
+  <a class="anchor" href="#more-data-types">#</a>
+</h3>
+<p>In Flink 1.10, we added support for a few more frequently-used Hive data types that were not covered by Flink 1.9. Flink users now should have a full, smooth experience to query and manipulate Hive data from Flink.</p>
+<h3 id="roadmap">
+  Roadmap
+  <a class="anchor" href="#roadmap">#</a>
+</h3>
+<p>Integration between any two systems is a never-ending story.</p>
+<p>We are constantly improving Flink itself and the Flink-Hive integration also gets improved by collecting user feedback and working with folks in this vibrant community.</p>
+<p>After careful consideration and prioritization of the feedback we received, we have prioritize many of the below requests for the next Flink release of 1.11.</p>
+<ul>
+<li>Hive streaming sink so that Flink can stream data into Hive tables, bringing a real streaming experience to Hive</li>
+<li>Native Parquet reader for better performance</li>
+<li>Additional interoperability - support creating Hive tables, views, functions in Flink</li>
+<li>Better out-of-box experience with built-in dependencies, including documentations</li>
+<li>JDBC driver so that users can reuse their existing toolings to run SQL jobs on Flink</li>
+<li>Hive syntax and semantic compatible mode</li>
+</ul>
+<p>If you have more feature requests or discover bugs, please reach out to the community through mailing list and JIRAs.</p>
+<h2 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h2>
+<p>Data warehousing is shifting to a more real-time fashion, and Apache Flink can make a difference for your organization in this space.</p>
+<p>Flink 1.10 brings production-ready Hive integration and empowers users to achieve more in both metadata management and unified/batch data processing.</p>
+<p>We encourage all our users to get their hands on Flink 1.10. You are very welcome to join the community in development, discussions, and all other kinds of collaborations in this topic.</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-03-27-flink-for-data-warehouse.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#flink-and-its-integration-with-hive-comes-into-the-scene">Flink and Its Integration With Hive Comes into the Scene</a>
+      <ul>
+        <li><a href="#unified-metadata-management">Unified Metadata Management</a></li>
+        <li><a href="#stream-processing">Stream Processing</a></li>
+        <li><a href="#compatible-with-more-hive-versions">Compatible with More Hive Versions</a></li>
+        <li><a href="#reuse-hive-user-defined-functions-udfs">Reuse Hive User Defined Functions (UDFs)</a></li>
+        <li><a href="#enhanced-read-and-write-on-hive-data">Enhanced Read and Write on Hive Data</a></li>
+        <li><a href="#formats">Formats</a></li>
+        <li><a href="#more-data-types">More Data Types</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+      </ul>
+    </li>
+    <li><a href="#summary">Summary</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

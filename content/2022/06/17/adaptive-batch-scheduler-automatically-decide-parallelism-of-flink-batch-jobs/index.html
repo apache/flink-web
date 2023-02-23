@@ -1,0 +1,1225 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.110.0">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="{% toc %}
+Introduction # Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
+To decide a proper parallelism, one needs to know how much data each operator needs to process.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs" />
+<meta property="og:description" content="{% toc %}
+Introduction # Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
+To decide a proper parallelism, one needs to know how much data each operator needs to process." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="//flink.apache.org/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-06-17T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-06-17T00:00:00+00:00" />
+<title>Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.71986c7a88761c1eaf97876a589a880afa76852c08c42e67b2a16a5113590622.js" integrity="sha256-cZhseoh2HB6vl4dqWJqICvp2hSwIxC5nsqFqURNZBiI="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//matomo.privacy.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+<p style="text-align:right">&#8203</p>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-496a3536cfaecabb74f84b14fe7e4dd5" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.16 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-00471cb64001e69481840d4b628e4e74" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.1 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-e9e531f4d1ec4e71d48416c7db95d964" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.3 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#configure-to-use-adaptive-batch-scheduler">Configure to use adaptive batch scheduler</a></li>
+    <li><a href="#set-the-parallelism-of-operators-to--1">Set the parallelism of operators to -1</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#collect-sizes-of-consumed-datasets">Collect sizes of consumed datasets</a></li>
+    <li><a href="#decide-proper-parallelisms-of-job-vertices">Decide proper parallelisms of job vertices</a>
+      <ul>
+        <li><a href="#limit-the-maximum-ratio-of-broadcast-bytes">Limit the maximum ratio of broadcast bytes</a></li>
+        <li><a href="#normalize-the-parallelism-to-the-closest-power-of-2">Normalize the parallelism to the closest power of 2</a></li>
+      </ul>
+    </li>
+    <li><a href="#build-up-execution-graph-dynamically">Build up execution graph dynamically</a>
+      <ul>
+        <li><a href="#create-execution-vertices-and-execution-edges-lazily">Create execution vertices and execution edges lazily</a></li>
+        <li><a href="#flexible-subpartition-mapping">Flexible subpartition mapping</a></li>
+      </ul>
+    </li>
+    <li><a href="#update-and-schedule-the-dynamic-execution-graph">Update and schedule the dynamic execution graph</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#auto-rebalancing-of-workloads">Auto-rebalancing of workloads</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/">Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs</a>
+    </h1>
+    
+  June 17, 2022 -
+
+
+
+  Lijie Wang
+
+
+  Zhu Zhu
+
+
+
+
+    <p><p>{% toc %}</p>
+<h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
+<p>Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.</p>
+<p>To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.</p>
+<p>To solve this problem, we introduced the adaptive batch scheduler in Flink 1.15. The adaptive batch scheduler can automatically decide parallelism of an operator according to the size of its consumed datasets. Here are the benefits the adaptive batch scheduler can bring:</p>
+<ol>
+<li>Batch job users can be relieved from parallelism tuning.</li>
+<li>Parallelism tuning is fine grained considering different operators. This is particularly beneficial for SQL jobs which can only be set with a global parallelism previously.</li>
+<li>Parallelism tuning can better fit consumed datasets which have a varying volume size every day.</li>
+</ol>
+<h1 id="get-started">
+  Get Started
+  <a class="anchor" href="#get-started">#</a>
+</h1>
+<p>To automatically decide parallelism of operators, you need to:</p>
+<ol>
+<li>Configure to use adaptive batch scheduler.</li>
+<li>Set the parallelism of operators to -1.</li>
+</ol>
+<h2 id="configure-to-use-adaptive-batch-scheduler">
+  Configure to use adaptive batch scheduler
+  <a class="anchor" href="#configure-to-use-adaptive-batch-scheduler">#</a>
+</h2>
+<p>To use adaptive batch scheduler, you need to set configurations as below:</p>
+<ul>
+<li>Set <code>jobmanager.scheduler: AdaptiveBatch</code>.</li>
+<li>Leave the <a href="//nightlies.apache.org/flinkflink-docs-release-1.15/docs/deployment/config/#execution-batch-shuffle-mode">execution.batch-shuffle-mode</a> unset or explicitly set it to <code>ALL-EXCHANGES-BLOCKING</code> (default value). Currently, the adaptive batch scheduler only supports batch jobs whose shuffle mode is <code>ALL-EXCHANGES-BLOCKING</code>.</li>
+</ul>
+<p>In addition, there are several related configuration options to control the upper bounds and lower bounds of tuned parallelisms, to specify expected data volume to process by each operator, and to specify the default parallelism of sources. More details can be found in the <a href="//nightlies.apache.org/flinkflink-docs-release-1.15/docs/deployment/elastic_scaling/#configure-to-use-adaptive-batch-scheduler">feature documentation page</a>.</p>
+<h2 id="set-the-parallelism-of-operators-to--1">
+  Set the parallelism of operators to -1
+  <a class="anchor" href="#set-the-parallelism-of-operators-to--1">#</a>
+</h2>
+<p>The adaptive batch scheduler only automatically decides parallelism of operators whose parallelism is not set (which means the parallelism is -1). To leave parallelism unset, you should configure as follows:</p>
+<ul>
+<li>Set <code>parallelism.default: -1</code> for all jobs.</li>
+<li>Set <code>table.exec.resource.default-parallelism: -1</code> for SQL jobs.</li>
+<li>Don&rsquo;t call <code>setParallelism()</code> for operators in DataStream/DataSet jobs.</li>
+<li>Don&rsquo;t call <code>setParallelism()</code> on <code>StreamExecutionEnvironment/ExecutionEnvironment</code> in DataStream/DataSet jobs.</li>
+</ul>
+<h1 id="implementation-details">
+  Implementation Details
+  <a class="anchor" href="#implementation-details">#</a>
+</h1>
+<p>In this section, we will elaborate the details of the implementation. Before that, we need to briefly introduce some concepts involved:</p>
+<ul>
+<li><a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobVertex.java">JobVertex</a> and <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java">JobGraph</a>: A job vertex is an operator chain formed by chaining several operators together for better performance. The job graph is a data flow consisting of job vertices.</li>
+<li><a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionVertex.java">ExecutionVertex</a> and <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java">ExecutionGraph</a>: An execution vertex represents a parallel subtask of a job vertex, which will eventually be instantiated as a physical task. For example, a job vertex with a parallelism of 100 will generate 100 execution vertices. The execution graph is the physical execution topology consisting of all execution vertices.</li>
+</ul>
+<p>More details about the above concepts can be found in the <a href="https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/internals/job_scheduling/#jobmanager-data-structures">Flink documentation</a>. Note that the adaptive batch scheduler decides the parallelism of operators by deciding the parallelism of the job vertices which consist of these operators. To automatically decide parallelism of job vertices, we introduced the following changes:</p>
+<ol>
+<li>Enabled the scheduler to collect sizes of finished datasets.</li>
+<li>Introduced a new component <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/VertexParallelismDecider.java">VertexParallelismDecider</a> to compute proper parallelisms of job vertices according to the sizes of their consumed results.</li>
+<li>Enabled to dynamically build up execution graph to allow the parallelisms of job vertices to be decided lazily. The execution graph starts with an empty execution topology and then gradually attaches the vertices during job execution.</li>
+<li>Introduced the adaptive batch scheduler to update and schedule the dynamic execution graph.</li>
+</ol>
+<p>The details will be introduced in the following sections.</p>
+<center>
+<br/>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/1-overall-structure.png" width="60%"/>
+<br/>
+Fig. 1 - The overall structure of automatically deciding parallelism
+</center>
+<br/>
+<h2 id="collect-sizes-of-consumed-datasets">
+  Collect sizes of consumed datasets
+  <a class="anchor" href="#collect-sizes-of-consumed-datasets">#</a>
+</h2>
+<p>The adaptive batch scheduler decides the parallelism of vertices by the size of input results, so the scheduler needs to know the sizes of result partitions produced by tasks. We introduced a numBytesProduced counter to record the size of each produced result partition, the accumulated result of the counter will be sent to the scheduler when tasks finish.</p>
+<h2 id="decide-proper-parallelisms-of-job-vertices">
+  Decide proper parallelisms of job vertices
+  <a class="anchor" href="#decide-proper-parallelisms-of-job-vertices">#</a>
+</h2>
+<p>We introduced a new component <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/VertexParallelismDecider.java">VertexParallelismDecider</a> to compute proper parallelisms of job vertices according to the sizes of their consumed results. The computation algorithm is as follows:</p>
+<p>Suppose</p>
+<ul>
+<li><em><strong>V</strong></em> is the bytes of data the user expects to be processed by each task.</li>
+<li><em><strong>totalBytes<sub>non-broadcast</sub></strong></em> is the sum of the non-broadcast result sizes consumed by this job vertex.</li>
+<li><em><strong>totalBytes<sub>broadcast</sub></strong></em> is the sum of the broadcast result sizes consumed by this job vertex.</li>
+<li><em><strong>maxBroadcastRatio</strong></em> is the maximum ratio of broadcast bytes that affects the parallelism calculation.</li>
+<li><em><strong>normalize(<em><strong>x</strong></em>)</strong></em> is a function that round <em><strong>x</strong></em> to the closest power of 2.</li>
+</ul>
+<p>then the parallelism of this job vertex <em><strong>P</strong></em> will be:</p>
+<center>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/parallelism-formula.png" width="60%"/>
+</center>
+<p>Note that we introduced two special treatment in the above formula :</p>
+<ul>
+<li><a href="#limit-the-maximum-ratio-of-broadcast-bytes">Limit the maximum ratio of broadcast bytes</a></li>
+<li><a href="#normalize-the-parallelism-to-the-closest-power-of-2">Normalize the parallelism to the closest power of 2</a></li>
+</ul>
+<p>However, the above formula cannot be used to decide the parallelism of the source vertices, because the source vertices have no input. To solve it, we introduced the configuration option <code>jobmanager.adaptive-batch-scheduler.default-source-parallelism</code> to allow users to manually configure the parallelism of source vertices. Note that not all data sources need this option, because some data sources can automatically infer parallelism (For example, HiveTableSource, see <a href="https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-hive/src/main/java/org/apache/flink/connectors/hive/HiveParallelismInference.java">HiveParallelismInference</a> for more detail). For these sources, it is recommended to decide parallelism by themselves.</p>
+<h3 id="limit-the-maximum-ratio-of-broadcast-bytes">
+  Limit the maximum ratio of broadcast bytes
+  <a class="anchor" href="#limit-the-maximum-ratio-of-broadcast-bytes">#</a>
+</h3>
+<p>As you can see, we limit the maximum ratio of broadcast bytes that affects the parallelism calculation to <em><strong>maxBroadcastRatio</strong></em>. That is, the non-broadcast bytes processed by each task is at least <em><strong>(1-maxBroadcastRatio) * V</strong></em>. If not so，when the total broadcast bytes is close to <em><strong>V</strong></em>, even if the total non-broadcast bytes is very small, it may cause a large parallelism, which is unnecessary and may lead to resource waste and large task deployment overhead.</p>
+<p>Generally, the broadcast dataset is usually relatively small against the other co-processed datasets, so we set the maximum ratio to 0.5 by default. The value is hard coded in the first version, and we may make it configurable later.</p>
+<h3 id="normalize-the-parallelism-to-the-closest-power-of-2">
+  Normalize the parallelism to the closest power of 2
+  <a class="anchor" href="#normalize-the-parallelism-to-the-closest-power-of-2">#</a>
+</h3>
+<p>The normalize is to avoid introducing data skew. To better understand this section, we suggest you read the <a href="#flexible-subpartition-mapping">Flexible subpartition mapping</a> section first.</p>
+<p>Taking Fig. 4 (b) as example, A1/A2 produces 4 subpartitions, and the decided parallelism of B is 3. In this case, B1 will consume 1 subpartition, B2 will consume 1 subpartition, and B3 will consume 2 subpartitions. We assume that subpartitions have the same amount of data, which means B3 will consume twice the data of other tasks, data skew is introduced due to the subpartition mapping.</p>
+<p>To solve this problem, we need to make the subpartitions evenly consumed by downstream tasks, which means the number of subpartitions should be a multiple of the number of downstream tasks. For simplicity, we require the user-specified max parallelism to be 2<sup>N</sup>, and then adjust the calculated parallelism to a closest 2<sup>M</sup> (M &lt;= N), so that we can guarantee that subpartitions will be evenly consumed by downstream tasks.</p>
+<p>Note that this is a temporary solution, the ultimate solution would be the <a href="#auto-rebalancing-of-workloads">Auto-rebalancing of workloads</a>, which may come soon.</p>
+<h2 id="build-up-execution-graph-dynamically">
+  Build up execution graph dynamically
+  <a class="anchor" href="#build-up-execution-graph-dynamically">#</a>
+</h2>
+<p>Before the adaptive batch scheduler was introduced to Flink, the execution graph was fully built in a static way before starting scheduling. To allow parallelisms of job vertices to be decided lazily, the execution graph must be able to be built up dynamically.</p>
+<h3 id="create-execution-vertices-and-execution-edges-lazily">
+  Create execution vertices and execution edges lazily
+  <a class="anchor" href="#create-execution-vertices-and-execution-edges-lazily">#</a>
+</h3>
+<p>A dynamic execution graph means that a Flink job starts with an empty execution topology, and then gradually attaches vertices during job execution, as shown in Fig. 2.</p>
+<p>The execution topology consists of execution vertices and execution edges. The execution vertices will be created and attached to the execution topology only when:</p>
+<ul>
+<li>The parallelism of the corresponding job vertex is decided.</li>
+<li>All upstream execution vertices are already attached.</li>
+</ul>
+<p>The parallelism of the job vertex needs to be decided first so that Flink knows how many execution vertices should be created. Upstream execution vertices need to be attached first so that Flink can connect the newly created execution vertices to the upstream vertices with execution edges.</p>
+<center>
+<br/>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/2-dynamic-graph.png" width="90%"/>
+<br/>
+Fig. 2 - Build up execution graph dynamically
+</center>
+<br/>
+<h3 id="flexible-subpartition-mapping">
+  Flexible subpartition mapping
+  <a class="anchor" href="#flexible-subpartition-mapping">#</a>
+</h3>
+<p>Before the adaptive batch scheduler was introduced to Flink, when deploying a task, Flink needed to know the parallelism of its consumer job vertex. This is because consumer vertex parallelism is used to decide the number of subpartitions produced by each upstream task. The reason behind that is, for one result partition, different subpartitions serve different consumer execution vertices. More specifically, one consumer execution vertex only consumes data from subpartition with the same index.</p>
+<p>Taking Fig. 3 as example, parallelism of the consumer B is 2, so the result partition produced by A1/A2 should contain 2 subpartitions, the subpartition with index 0 serves B1, and the subpartition with index 1 serves B2.</p>
+<center>
+<br/>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/3-static-graph-subpartition-mapping.png" width="30%"/>
+<br/>
+Fig. 3 - How subpartitions serve consumer execution vertices with static execution graph
+</center>
+<br/>
+<p>But obviously, this doesn&rsquo;t work for dynamic graphs, because when a job vertex is deployed, the parallelism of its consumer job vertices may not have been decided yet. To enable Flink to work in this case, we need a way to allow a job vertex to run without knowing the parallelism of its consumer job vertices.</p>
+<p>To achieve this goal, we can set the number of subpartitions to be the max parallelism of the consumer job vertex. Then when the consumer execution vertices are deployed, they should be assigned with a subpartition range to consume. Suppose N is the number of consumer execution vertices and P is the number of subpartitions. For the kth consumer execution vertex, the consumed subpartition range should be:</p>
+<center>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/range-formula.png" width="55%"/>
+</center>
+<p>Taking Fig. 4 as example, the max parallelism of B is 4, so A1/A2 have 4 subpartitions. And then if the decided parallelism of B is 2, then the subpartitions mapping will be Fig. 4 (a), if the decided parallelism of B is 3, then the subpartitions mapping will be  Fig. 4 (b).</p>
+<center>
+<br/>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/4-dynamic-graph-subpartition-mapping.png" width="75%"/>
+<br/>
+Fig. 4 - How subpartitions serve consumer execution vertices with dynamic graph
+</center>
+<br/>
+<h2 id="update-and-schedule-the-dynamic-execution-graph">
+  Update and schedule the dynamic execution graph
+  <a class="anchor" href="#update-and-schedule-the-dynamic-execution-graph">#</a>
+</h2>
+<p>The adaptive batch scheduler scheduling is similar to the default scheduler, the only difference is that an empty dynamic execution graph will be generated initially and vertices will be attached later. Before handling any scheduling event, the scheduler will try deciding the parallelisms of job vertices, and then initialize them to generate execution vertices, connecting execution edges, and update the execution graph.</p>
+<p>The scheduler will try to decide the parallelism of all job vertices before handling each scheduling event, and the parallelism decision will be made for each job vertex in topological order:</p>
+<ul>
+<li>For source vertices, the parallelism should have been decided before starting scheduling.</li>
+<li>For non-source vertices, the parallelism can be decided only when all its consumed results are fully produced.</li>
+</ul>
+<p>After deciding the parallelism, the scheduler will try to initialize the job vertices in topological order. A job vertex that can be initialized should meet the following conditions:</p>
+<ul>
+<li>The parallelism of the job vertex has been decided and the job vertex has not been initialized yet.</li>
+<li>All upstream job vertices have been initialized.</li>
+</ul>
+<h1 id="future-improvement">
+  Future improvement
+  <a class="anchor" href="#future-improvement">#</a>
+</h1>
+<h2 id="auto-rebalancing-of-workloads">
+  Auto-rebalancing of workloads
+  <a class="anchor" href="#auto-rebalancing-of-workloads">#</a>
+</h2>
+<p>When running batch jobs, data skew may occur (a task needs to process much larger data than other tasks), which leads to long-tail tasks and further slows down the finish of jobs. Users usually hope that the system can automatically solve this problem.
+One typical data skew case is that some subpartitions have a significantly larger amount of data than others. This case can be solved by finer grained subpartitions and auto-rebalancing of workload. The work of the adaptive batch scheduler can be considered as the first step towards it, because the requirements of auto-rebalancing are similar to adaptive batch scheduler, they both need the support of dynamic graphs and the collection of result partitions size.
+Based on the implementation of adaptive batch scheduler, we can solve the above problem by increasing max parallelism (for finer grained subpartitions) and simply changing the subpartition range division algorithm (for auto-rebalancing). In the current design, the subpartition range is divided according to the number of subpartitions, we can change it to divide according to the amount of data in subpartitions, so that the amount of data within each subpartition range can be approximately the same. In this way, workloads of downstream tasks can be balanced.</p>
+<center>
+<br/>
+<img src="/img/blog/2022-06-17-adaptive-batch-scheduler/5-auto-rebalance.png" width="75%"/>
+<br/>
+Fig. 5 - Auto-rebalance with finer grained subpartitions
+</center></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2022-06-17-adaptive-batch-scheduler.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#configure-to-use-adaptive-batch-scheduler">Configure to use adaptive batch scheduler</a></li>
+    <li><a href="#set-the-parallelism-of-operators-to--1">Set the parallelism of operators to -1</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#collect-sizes-of-consumed-datasets">Collect sizes of consumed datasets</a></li>
+    <li><a href="#decide-proper-parallelisms-of-job-vertices">Decide proper parallelisms of job vertices</a>
+      <ul>
+        <li><a href="#limit-the-maximum-ratio-of-broadcast-bytes">Limit the maximum ratio of broadcast bytes</a></li>
+        <li><a href="#normalize-the-parallelism-to-the-closest-power-of-2">Normalize the parallelism to the closest power of 2</a></li>
+      </ul>
+    </li>
+    <li><a href="#build-up-execution-graph-dynamically">Build up execution graph dynamically</a>
+      <ul>
+        <li><a href="#create-execution-vertices-and-execution-edges-lazily">Create execution vertices and execution edges lazily</a></li>
+        <li><a href="#flexible-subpartition-mapping">Flexible subpartition mapping</a></li>
+      </ul>
+    </li>
+    <li><a href="#update-and-schedule-the-dynamic-execution-graph">Update and schedule the dynamic execution graph</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#auto-rebalancing-of-workloads">Auto-rebalancing of workloads</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
