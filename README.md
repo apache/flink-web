@@ -2,7 +2,7 @@
 
 This repository contains the Flink project website: https://flink.apache.org/.
 
-You can find instructions for contributing to this repository here: https://flink.apache.org/docs/how-to-contribute/improve-website/
+You can find instructions for contributing to this repository here: https://flink.apache.org/how-to-contribute/improve-website/
 
 ## Testing changes locally
 
