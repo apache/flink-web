@@ -170,43 +170,7 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
 我们使用 Jira 进行所有代码相关的 issues 追踪 [https://issues.apache.org/jira/browse/FLINK](https://issues.apache.org/jira/browse/FLINK)。 
 所有 issue 必须使用英文。
 
-### 我已经有了一个 ASF JIRA 账号，希望将账号添加为贡献者
-
-如果您已经拥有 ASF JIRA 账号，则无需注册新账号。 请按照下述邮件模板向 [jira-requests@flink.apache.org](mailto:jira-requests@flink.apache.org) 地址发送电子邮件，以便我们将您的账号添加到 JIRA 中的贡献者列表：
-
-[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Add%20me%20as%20a%20contributor%20to%20JIRA&body=Hello%2C%0A%0APlease%20add%20me%20as%20a%20contributor%20to%20JIRA.%0AMy%20JIRA%20username%20is%3A%20%5BINSERT%20YOUR%20JIRA%20USERNAME%20HERE%5D%0A%0AThanks%2C%0A%5BINSERT%20YOUR%20NAME%20HERE%5D)
-
-```text
-Subject: Add me as a contributor to JIRA
-
-Hello,
-
-Please add me as a contributor to JIRA.
-My JIRA username is: [你的 JIRA 用户名]
-
-Thanks,
-[你的名字]
-```
-
-### 我没有 ASF JIRA 账号，想申请一个账号并将其添加为贡献者
-
-为了申请 ASF JIRA 账号，您需要按照下述邮件模板向 [jira-requests@flink.apache.org](mailto:jira-requests@flink.apache.org) 发送电子邮件：
-
-[在您的电子邮件客户端中打开模板](mailto:jira-requests@flink.apache.org?subject=Request%20for%20JIRA%20Account&body=Hello%2C%0A%0AI%20would%20like%20to%20request%20a%20JIRA%20account.%0AMy%20proposed%20JIRA%20username%3A%20%5BINSERT%20YOUR%20DESIRED%20JIRA%20USERNAME%20HERE%20(LOWERCASE%20LETTERS%20AND%20NUMBERS%20ONLY)%5D%0AMy%20full%20name%3A%20%5BINSERT%20YOUR%20FULL%20NAME%20HERE%5D%0AMy%20email%20address%3A%20%5BINSERT%20YOUR%20EMAIL%20ADDRESS%20HERE%5D%0A%0AThanks%2C%0A%5BINSERT%20YOUR%20NAME%20HERE%5D)
-
-```text
-Subject: Request for JIRA Account
-
-Hello,
-
-I would like to request a JIRA account.
-My proposed JIRA username: [ 填写你期望的 JIRA 用户名 (只能包含小写字母和数字)]
-My full name: [填写你的全名]
-My email address: [填写你的邮件地址]
-
-Thanks,
-[你的名字]
-```
+如果您没有ASF JIRA帐户，可以通过[ASF自助门户](https://selfserve.apache.org/jira-account.html)请求新的账户。
 
 所有 issue 的活动也会同步到 issue 邮件列表。
 
