@@ -191,11 +191,8 @@ Be respectful - This is the most important rule! All important decisions and con
 Stack Overflow # Committers are watching Stack Overflow for the apache-flink tag.
 Make sure to tag your questions there accordingly to get answers from the Flink community.
 Issue Tracker # We use Jira to track all code related issues: https://issues.apache.org/jira/browse/FLINK. You must have a JIRA account in order to log cases and issues.
-I already have an ASF JIRA account and want to be added as a contributor # If you already have an ASF JIRA account, you do not need to sign up for a new account. Please email jira-requests@flink.apache.org using the following template, so that we can add your account to the contributors list in JIRA:
-Open the template in your email client
-Subject: Add me as a contributor to JIRA Hello, Please add me as a contributor to JIRA. My JIRA username is: [INSERT YOUR JIRA USERNAME HERE] Thanks, [INSERT YOUR NAME HERE] I do not have an ASF JIRA account, want to request an account and be added as a contributor # In order to request an ASF JIRA account, you will need to email jira-requests@flink.apache.org using the following template:
-Open the template in your email client
-Subject: Request for JIRA Account Hello, I would like to request a JIRA account. My proposed JIRA username: [INSERT YOUR DESIRED JIRA USERNAME HERE (LOWERCASE LETTERS AND NUMBERS ONLY)] My full name: [INSERT YOUR FULL NAME HERE] My email address: [INSERT YOUR EMAIL ADDRESS HERE] Thanks, [INSERT YOUR NAME HERE] All issue activity is also mirrored to the issues mailing list.
+If you don\u0026rsquo;t have an ASF JIRA account, you can request one at the ASF Self-serve portal.
+All issue activity is also mirrored to the issues mailing list.
 Reporting Security Issues # If you wish to report a security vulnerability, please contact security@apache.org. Apache Flink follows the typical Apache vulnerability handling process for reporting vulnerabilities. Note that vulnerabilities should not be publicly disclosed until the project has responded.
 Meetups # There are plenty of meetups on meetup.com featuring Flink.
 Source Code # Main Repositories # Flink Core Repository

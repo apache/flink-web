@@ -192,11 +192,8 @@ Flink 主仓库的构建通知 订阅 订阅 退订 只读邮件列表 归档 is
 Stack Overflow # Committer 们会关注 Stack Overflow 上 apache-flink 相关标签的问题。
 请确认你为自己的问题打上了正确的标签，从而可以获得 Flink 社区的帮助。
 Issue 追踪 # 我们使用 Jira 进行所有代码相关的 issues 追踪 https://issues.apache.org/jira/browse/FLINK。 所有 issue 必须使用英文。
-我已经有了一个 ASF JIRA 账号，希望将账号添加为贡献者 # 如果您已经拥有 ASF JIRA 账号，则无需注册新账号。 请按照下述邮件模板向 jira-requests@flink.apache.org 地址发送电子邮件，以便我们将您的账号添加到 JIRA 中的贡献者列表：
-在您的电子邮件客户端中打开模板
-Subject: Add me as a contributor to JIRA Hello, Please add me as a contributor to JIRA. My JIRA username is: [你的 JIRA 用户名] Thanks, [你的名字] 我没有 ASF JIRA 账号，想申请一个账号并将其添加为贡献者 # 为了申请 ASF JIRA 账号，您需要按照下述邮件模板向 jira-requests@flink.apache.org 发送电子邮件：
-在您的电子邮件客户端中打开模板
-Subject: Request for JIRA Account Hello, I would like to request a JIRA account. My proposed JIRA username: [ 填写你期望的 JIRA 用户名 (只能包含小写字母和数字)] My full name: [填写你的全名] My email address: [填写你的邮件地址] Thanks, [你的名字] 所有 issue 的活动也会同步到 issue 邮件列表。
+如果您没有ASF JIRA帐户，可以通过ASF自助门户请求新的账户。
+所有 issue 的活动也会同步到 issue 邮件列表。
 报告安全漏洞 # 如果你希望报告安全漏洞, 请联系 security@apache.org。 Apache Flink 遵循标准的 Apache漏洞处理流程 来报告漏洞。请注意，在项目做出响应之前，请不要公开披露漏洞。
 Meetups # 在 meetup.com 上可以找到很多 Flink 相关的 meetup。
 源代码 # Main Repositories # Flink Core 仓库
