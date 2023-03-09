@@ -20,6 +20,8 @@
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 source "${SCRIPT_DIR}/_utils.sh"
 
+docker pull jakejarvis/hugo-extended:latest
+
 action=$1
 if [[ $action = "build" ]]
 then
