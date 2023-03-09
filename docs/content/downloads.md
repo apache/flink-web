@@ -161,6 +161,8 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 
 As of March 2017, the Flink community [decided](https://lists.apache.org/thread/qf4hot3gb1dgvh4csxv2317263b6omm4) to support the current and previous minor release with bugfixes. If 1.2.x is the current release, 1.1.y is the previous minor supported release. Both versions will receive bugfixes for critical issues.
 
+As of March 2023, the Flink community [decided](https://lists.apache.org/thread/9w99mgx3nw5tc0v26wcvlyqxrcrkpzdz) that upon release of a new Flink minor version, the community will perform one final bugfix release for resolved critical/blocker issues in the Flink minor version losing support. If 1.16.1 is the current release and 1.15.4 is the latest previous patch version, once 1.17.0 is released we will create a 1.15.5 to flush out any resolved critical/blocker issues. 
+
 Note that the community is always open to discussing bugfix releases for even older versions. Please get in touch with the developers for that on the dev@flink.apache.org mailing list.
 
 ## All stable releases

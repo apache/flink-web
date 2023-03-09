@@ -160,6 +160,8 @@ You can add the following dependencies to your `pom.xml` to include Apache Flink
 
 截至2017年3月，Flink 社区[决定](https://lists.apache.org/thread/qf4hot3gb1dgvh4csxv2317263b6omm4)使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的 bugfix。
 
+As of March 2023, the Flink community [decided](https://lists.apache.org/thread/9w99mgx3nw5tc0v26wcvlyqxrcrkpzdz) that upon release of a new Flink minor version, the community will perform one final bugfix release for resolved critical/blocker issues in the Flink minor version losing support. If 1.16.1 is the current release and 1.15.4 is the latest previous patch version, once 1.17.0 is released we will create a 1.15.5 to flush out any resolved critical/blocker issues. 
+
 请注意，社区始终愿意讨论旧版本的 bugfix 版本。请在 dev@flink.apache.org 邮件列表中与开发人员联系。
 
 ## 所有稳定版本
