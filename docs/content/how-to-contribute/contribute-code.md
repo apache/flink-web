@@ -15,7 +15,7 @@ Apache Flink is maintained, improved, and extended by code contributions of volu
 ## Looking for what to contribute
 
 If you have a good idea for the contribution, you can proceed to [the code contribution process](#code-contribution-process).
-If you are looking for what you could contribute, you can browse open Jira issues in [Flink's bug tracker](https://issues.apache.org/jira/projects/FLINK/issues),
+If you are looking for what you could contribute, you can browse open Jira issues in [Flink's bug tracker]({{< relref "community" >}}#issue-tracker),
 which are not assigned, and then follow [the code contribution process](#code-contribution-process). If you are very new
 to the Flink project and want to learn about it and its contribution process, you can check
 [the starter issues](https://issues.apache.org/jira/issues/?filter=12349196), which are annotated with a _starter_ label.
@@ -149,7 +149,7 @@ to the Flink project and want to learn about it and its contribution process, yo
 
 The first step for making a contribution to Apache Flink is to reach consensus with the Flink community. This means agreeing on the scope and implementation approach of a change.
 
-In most cases, the discussion should happen in [Flink's bug tracker: Jira](https://issues.apache.org/jira/projects/FLINK/issues).
+In most cases, the discussion should happen in [Flink's bug tracker: Jira]({{< relref "community" >}}#issue-tracker).
 
 The following types of changes require a `[DISCUSS]` thread on the [Flink Dev mailing list]({{< relref "community" >}}#mailing-lists):
 

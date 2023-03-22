@@ -20,7 +20,7 @@ one pull request. If you are not familiar with the Chinese language, make sure
 that your contribution is complemented by these additional steps:
 
 * Open a
-  [JIRA](https://issues.apache.org/jira/projects/FLINK/issues)
+[JIRA]({{< relref "community" >}}#issue-tracker)
   ticket for the translation, tagged with the chinese-translation component;
 * Link the ticket to the original contribution JIRA ticket.
 

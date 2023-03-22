@@ -13,7 +13,7 @@ weight: 21
 Flink 同时维护了 **英文** 和 **中文** 两种文档，当你拓展或者更新文档时，需要在 pull request 中包含两种语言版本。如果你不熟悉中文，确保本次贡献补充了如下额外操作：
 
 * 开一个翻译的
-  [JIRA](https://issues.apache.org/jira/projects/FLINK/issues)
+[JIRA]({{< relref "community" >}}#issue-追踪)
   请求单，并打上 chinese-translation 的标签；
 * 在此请求单上添加到原始 JIRA 请求单的链接。
 

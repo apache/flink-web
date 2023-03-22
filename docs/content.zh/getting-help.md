@@ -58,7 +58,7 @@ Flink 社区的许多成员都活跃在 [Stack Overflow](https://stackoverflow.c
 
 ## 发现 Bug?
 
-如果你发现一个意外行为可能是由 Bug 导致的，你可以在 [Flink's JIRA](https://issues.apache.org/jira/browse/FLINK) 中搜索已经上报的 Bug 或者发布该 Bug。
+如果你发现一个意外行为可能是由 Bug 导致的，你可以在 [Flink's JIRA]({{< relref "community" >}}#issue-追踪) 中搜索已经上报的 Bug 或者发布该 Bug。
 
 如果你不确定意外行为的发生是否由 Bug 引起的，请发送问题到 [用户邮件列表]({{< relref "community" >}}#user-mailing-list)。
 
