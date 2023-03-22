@@ -15,7 +15,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 ## 寻找可贡献的内容
 
 如果你已经有好的想法可以贡献，可以直接参考下面的 "代码贡献步骤"。
-如果你在寻找可贡献的内容，可以通过 [Flink 的问题跟踪列表](https://issues.apache.org/jira/projects/FLINK/issues) 浏览处于 open 状态且未被分配的 Jira 工单，然后根据 "代码贡献步骤" 中的描述来参与贡献。
+如果你在寻找可贡献的内容，可以通过 [Flink 的问题跟踪列表]({{< relref "community" >}}#issue-追踪) 浏览处于 open 状态且未被分配的 Jira 工单，然后根据 "代码贡献步骤" 中的描述来参与贡献。
 如果你是一个刚刚加入到 Flink 项目中的新人，并希望了解 Flink 及其贡献步骤，可以浏览 [适合新手的工单列表](https://issues.apache.org/jira/issues/?filter=12349196) 。
 这个列表中的工单都带有 _starter_ 标记，适合新手参与。
 
@@ -148,7 +148,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 
 向 Apache Flink 做出贡献的第一步是与 Flink 社区达成共识，这意味着需要一起商定更改的范围和实现的方法。
 
-在大多数情况下，我们应该在 [Flink 的 Bug 追踪器：Jira](https://issues.apache.org/jira/projects/FLINK/summary) 中进行讨论。
+在大多数情况下，我们应该在 [Flink 的 Bug 追踪器：Jira]({{< relref "community" >}}#issue-追踪) 中进行讨论。
 
 以下类型的更改需要向 Flink 的 dev@flink.apache.org 邮件列表发一封以 `[DISCUSS]` 开头的邮件:
 
