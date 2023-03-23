@@ -13,8 +13,6 @@ aliases:
 - /news/2021/01/11/batch-fine-grained-fault-tolerance.html
 ---
 
-
-
 Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
 
 Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.
@@ -22,6 +20,7 @@ Processing efficiency is not the only parameter users of data processing systems
 Apache Flink 1.9 introduced [fine-grained recovery](https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures) into its internal workload scheduler. The Flink APIs that are made for bounded workloads benefit from this change by individually recovering failed operators, re-using results from the previous processing step.
 
 In this blog post, we are going to give an overview over these changes, and we will experimentally validate their effectiveness.
+
 
 ## **How does fine-grained recovery work?** {#how-does-fine-grained-recovery-work}
 
