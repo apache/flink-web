@@ -23,7 +23,6 @@ Apache Flink 1.9 introduced [fine-grained recovery](https://cwiki.apache.org/con
 
 In this blog post, we are going to give an overview over these changes, and we will experimentally validate their effectiveness.
 
-
 ## **How does fine-grained recovery work?** {#how-does-fine-grained-recovery-work}
 
 For streaming jobs (and in [pipelined mode]({{< param DocsBaseUrl >}}flink-docs-master/api/java/org/apache/flink/api/common/ExecutionMode.html) for batch jobs), Flink is using a coarse-grained restart-strategy: upon failure, the entire job is restarted (but streaming jobs have an entirely different fault-tolerance model, using [checkpointing]({{< param DocsBaseUrl >}}flink-docs-release-1.12/concepts/stateful-stream-processing.html#checkpointing))
