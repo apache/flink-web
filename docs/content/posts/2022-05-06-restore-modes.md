@@ -23,7 +23,7 @@ snapshotting process. Snapshotting takes a global, consistent image of the state
 
 This post will outline the journey of improving snapshotting in past releases and the upcoming improvements in Flink 1.15, which includes making it possible to take savepoints in the native state backend specific format as well as clarifying snapshots ownership. 
 
-{% toc %}
+
 
 # Past improvements to the snapshotting process 
 

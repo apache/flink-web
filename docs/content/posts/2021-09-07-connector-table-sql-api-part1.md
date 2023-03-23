@@ -12,7 +12,7 @@ aliases:
 
 Part one of this tutorial will teach you how to build and run a custom source connector to be used with Table API and SQL, two high-level abstractions in Flink. The tutorial comes with a bundled [docker-compose](https://docs.docker.com/compose/) setup that lets you easily run the connector. You can then try it out with Flink’s SQL client.
 
-{% toc %}
+
 
 # Introduction
 

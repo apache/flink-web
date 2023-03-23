@@ -31,7 +31,7 @@ To remove Scala from the user-code classpath, remove this jar from the lib direc
 
 </div>
 
-{% toc %}
+
 
 ## The Classpath and Scala
 

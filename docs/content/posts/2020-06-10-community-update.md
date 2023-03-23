@@ -17,7 +17,7 @@ And suddenly it’s June. The previous month has been calm on the surface, but q
 
 To top it off, a piece of good news: [Flink Forward](https://www.flink-forward.org/global-2020) is back on October 19-22 as a free virtual event!
 
-{% toc %}
+
 
 # The Past Month in Flink
 

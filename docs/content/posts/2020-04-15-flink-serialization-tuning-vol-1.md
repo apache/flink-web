@@ -15,7 +15,7 @@ Almost every Flink job has to exchange data between its operators and since thes
 
 Since serialization is so crucial to your Flink job, we would like to highlight Flink’s serialization stack in a series of blog posts starting with looking at the different ways Flink can serialize your data types.
 
-{% toc %}
+
 
 # Recap: Flink Serialization
 

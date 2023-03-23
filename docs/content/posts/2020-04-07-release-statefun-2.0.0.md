@@ -18,7 +18,7 @@ Stateful Functions 2.0 makes it possible to combine StateFun’s powerful approa
 
 With these features, Stateful Functions 2.0 addresses [two of the most cited shortcomings](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf) of many FaaS setups today: consistent state and efficient messaging between functions.
 
-{% toc %}
+
 
 
 ## An Event-driven Database

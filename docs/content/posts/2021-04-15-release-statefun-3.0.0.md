@@ -23,7 +23,7 @@ separates the application logic from the StateFun cluster the default. It is now
 ergonomic to write applications that live in their own processes or containers. With the new Java SDK this is now also
 possible for all JVM languages, in addition to Python.
 
-{% toc %}
+
 
 ## Background
 

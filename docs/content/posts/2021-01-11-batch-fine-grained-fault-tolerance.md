@@ -13,7 +13,7 @@ aliases:
 - /news/2021/01/11/batch-fine-grained-fault-tolerance.html
 ---
 
-{% toc %}
+
 
 Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
 

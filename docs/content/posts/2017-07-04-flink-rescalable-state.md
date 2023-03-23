@@ -12,7 +12,7 @@ aliases:
  <br>
  <br>
 
-{% toc %}
+
 
 ## An Intro to Stateful Stream Processing
 

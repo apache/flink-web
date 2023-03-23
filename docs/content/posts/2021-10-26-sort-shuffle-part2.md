@@ -19,7 +19,7 @@ Like sort-merge shuffle implemented by other distributed data processing framewo
 
 In part two of this blog post, we will give you insight into some core design considerations and implementation details of the sort-based blocking shuffle in Flink and list several ideas for future improvement.
 
-{% toc %}
+
 
 # Design considerations
 

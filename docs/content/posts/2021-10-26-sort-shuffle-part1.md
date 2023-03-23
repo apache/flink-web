@@ -15,7 +15,7 @@ aliases:
 
 Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
 
-{% toc %}
+
 
 # How data gets passed around between operators
 

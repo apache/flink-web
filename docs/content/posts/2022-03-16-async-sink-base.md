@@ -22,7 +22,7 @@ The sink base is designed to participate in checkpointing to provide at-least-on
 
 In this post, we will go over the details of the AsyncSinkBase so that you can start using it to build your own concrete sink.
 
-{% toc %}
+
 
 # Adding the base sink as a dependency
 

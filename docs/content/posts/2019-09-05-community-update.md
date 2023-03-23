@@ -18,7 +18,7 @@ This has been an exciting, fast-paced year for the Apache Flink community. But w
 
 The first post in the series takes you on an little detour across the year, to freshen up and make sure you're all up to date.
 
-{% toc %}
+
 
 # The Year (so far) in Flink
 

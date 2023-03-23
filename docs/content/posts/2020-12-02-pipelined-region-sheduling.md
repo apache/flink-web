@@ -18,7 +18,7 @@ to low-level operator processes such as task scheduling. In this blogpost, we’
 the community has come in improving scheduling for batch workloads, why this matters and what you can expect in the
 Flink 1.12 release with the new _pipelined region scheduler_.
 
-{% toc %}
+
 
 # Towards unified scheduling
 
