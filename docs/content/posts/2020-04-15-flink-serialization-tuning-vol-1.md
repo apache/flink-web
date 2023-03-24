@@ -15,8 +15,6 @@ Almost every Flink job has to exchange data between its operators and since thes
 
 Since serialization is so crucial to your Flink job, we would like to highlight Flink’s serialization stack in a series of blog posts starting with looking at the different ways Flink can serialize your data types.
 
-{% toc %}
-
 # Recap: Flink Serialization
 
 Flink handles [data types and serialization]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html) with its own type descriptors, generic type extraction, and type serialization framework. We recommend reading through the [documentation]({{< param DocsBaseUrl >}}flink-docs-release-1.10/dev/types_serialization.html) first in order to be able to follow the arguments we present below. In essence, Flink tries to infer information about your job’s data types for wire and state serialization, and to be able to use grouping, joining, and aggregation operations by referring to individual field names, e.g. 

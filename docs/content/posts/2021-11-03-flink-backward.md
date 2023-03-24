@@ -11,8 +11,6 @@ aliases:
 
 It has now been a month since the community released [Apache Flink 1.14](https://flink.apache.org/downloads.html#apache-flink-1140) into the wild. We had a comprehensive look at the enhancements, additions, and fixups in the release announcement blog post, and now we will look at the development cycle from a different angle. Based on feedback collected from contributors involved in this release, we will explore the experiences and processes behind it all.
 
-{% toc %}
-
 # A retrospective on the release cycle
 
 From the team, we collected emotions that have been attributed to points in time of the 1.14 release cycle:

@@ -12,8 +12,6 @@ aliases:
 - /2021/07/07/backpressure.html
 ---
 
-{% toc %}
-
 <div class="row front-graphic">
   <img src="/img/blog/2021-07-07-backpressure/animated.png" alt="Backpressure monitoring in the web UI"/>
 	<p class="align-center">Backpressure monitoring in the web UI</p>

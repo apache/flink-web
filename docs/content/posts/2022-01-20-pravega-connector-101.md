@@ -25,8 +25,6 @@ These key features make streaming pipeline applications easier to develop withou
 
 In this blog post, we will discuss how to use this connector to read and write Pravega streams with the Flink DataStream API.  
 
-{% toc %}
-
 # Basic usages
 
 ## Dependency

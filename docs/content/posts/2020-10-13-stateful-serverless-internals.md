@@ -28,8 +28,6 @@ a popular FaaS platform among many others. The goal here is to allow readers to 
 the StateFun runtime and the functions, how that works cohesively to provide a Stateful Serverless experience, and how they can apply
 what they've learnt to deploy their StateFun applications on other public cloud offerings such as GCP or Microsoft Azure.
 
-{% toc %}
-
 ## Introducing the example: Shopping Cart
 
 <div class="alert alert-info" markdown="1">

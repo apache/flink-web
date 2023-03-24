@@ -12,8 +12,6 @@ aliases:
 
 In [part one](/2021/09/07/connector-table-sql-api-part1) of this tutorial, you learned how to build a custom source connector for Flink. In part two, you will learn how to integrate the connector with a test email inbox through the IMAP protocol and filter out emails using Flink SQL.
 
-{% toc %}
-
 # Goals
 
 Part two of the tutorial will teach you how to:

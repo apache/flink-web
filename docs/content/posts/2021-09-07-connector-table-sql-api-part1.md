@@ -12,8 +12,6 @@ aliases:
 
 Part one of this tutorial will teach you how to build and run a custom source connector to be used with Table API and SQL, two high-level abstractions in Flink. The tutorial comes with a bundled [docker-compose](https://docs.docker.com/compose/) setup that lets you easily run the connector. You can then try it out with Flink’s SQL client.
 
-{% toc %}
-
 # Introduction
 
 Apache Flink is a data processing engine that aims to keep [state](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/state/state_backends/) locally in order to do computations efficiently. However, Flink does not "own" the data but relies on external systems to ingest and persist data. Connecting to external data input (**sources**) and external data storage (**sinks**) is usually summarized under the term **connectors** in Flink.

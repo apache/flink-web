@@ -23,8 +23,6 @@ snapshotting process. Snapshotting takes a global, consistent image of the state
 
 This post will outline the journey of improving snapshotting in past releases and the upcoming improvements in Flink 1.15, which includes making it possible to take savepoints in the native state backend specific format as well as clarifying snapshots ownership. 
 
-{% toc %}
-
 # Past improvements to the snapshotting process 
 
 Flink 1.13 was the first release where we announced [unaligned checkpoints]({{< param DocsBaseUrl >}}flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing) to be production-ready. We

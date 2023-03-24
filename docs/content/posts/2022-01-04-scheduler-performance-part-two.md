@@ -21,8 +21,6 @@ aliases:
 
 [Part one](/2022/01/04/scheduler-performance-part-one) of this blog post briefly introduced the optimizations we’ve made to improve the performance of the scheduler; compared to Flink 1.12, the time cost and memory usage of scheduling large-scale jobs in Flink 1.14 is significantly reduced. In part two, we will elaborate on the details of these optimizations.
 
-{% toc %}
-
 # Reducing complexity with groups
 
 A distribution pattern describes how consumer tasks are connected to producer tasks. Currently, there are two distribution patterns in Flink: pointwise and all-to-all. When the distribution pattern is pointwise between two vertices, the [computational complexity](https://en.wikipedia.org/wiki/Big_O_notation) of traversing all edges is O(n). When the distribution pattern is all-to-all, the complexity of traversing all edges is O(n<sup>2</sup>), which means that complexity increases rapidly when the scale goes up.

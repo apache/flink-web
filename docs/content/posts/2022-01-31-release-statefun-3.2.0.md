@@ -26,8 +26,6 @@ and the [updated documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-rel
 We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists)
 or [JIRA](https://issues.apache.org/jira/browse/)!
 
-{% toc %}
-
 ## New Features
 
 ### A brand new JavaScript SDK for NodeJS

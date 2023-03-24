@@ -13,8 +13,6 @@ aliases:
 - /2021/05/06/reactive-mode.html
 ---
 
-{% toc %}
-
 ## Introduction
 
 Streaming jobs which run for several days or longer usually experience variations in workload during their lifetime. These variations can originate from seasonal spikes, such as day vs. night, weekdays vs. weekend or holidays vs. non-holidays, sudden events or simply the growing popularity of your product. Although some of these variations are more predictable than others, in all cases there is a change in job resource demand that needs to be addressed if you want to ensure the same quality of service for your customers.

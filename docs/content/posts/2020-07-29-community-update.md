@@ -18,8 +18,6 @@ As July draws to an end, we look back at a monthful of activity in the Flink com
 
 Also, events are starting to pick up again, so we've put together a list of some great ones you can (virtually) attend in August!
 
-{% toc %}
-
 # The Past Month in Flink
 
 ## Flink Releases

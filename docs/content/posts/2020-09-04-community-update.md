@@ -14,8 +14,6 @@ aliases:
 
 Ah, so much for a quiet August month. This time around, we bring you some new Flink Improvement Proposals (FLIPs), a preview of the upcoming [Flink Stateful Functions]({{< param DocsBaseUrl >}}flink-statefun-docs-master/) 2.2 release and a look into how far Flink has come in comparison to 2019.
 
-{% toc %}
-
 # The Past Month in Flink
 
 ## Flink Releases

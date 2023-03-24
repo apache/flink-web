@@ -12,8 +12,6 @@ aliases:
  <br>
  <br>
 
-{% toc %}
-
 ## An Intro to Stateful Stream Processing
 
 At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.

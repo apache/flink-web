@@ -17,8 +17,6 @@ Can you smell it? It’s release month! It took a while, but now that we’re [a
 
 Last month also marked the debut of Flink Forward Virtual Conference 2020: what did you think? If you missed it altogether or just want to recap some of the sessions, the [videos](https://www.youtube.com/playlist?list=PLDX4T_cnKjD0ngnBSU-bYGfgVv17MiwA7) and [slides](https://www.slideshare.net/FlinkForward) are now available!
 
-{% toc %}
-
 # The Past Month in Flink
 
 ## Flink Stateful Functions 2.0 is out!

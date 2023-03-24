@@ -12,9 +12,6 @@ aliases:
 
 In this blog post, you will learn our motivation behind the Flink-Hive integration, and how Flink 1.10 can help modernize your data warehouse.
 
-{% toc %}
-
-
 ## Introduction 
 
 What are some of the latest requirements for your data warehouse and data infrastructure in 2020?

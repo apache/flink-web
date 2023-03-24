@@ -26,8 +26,6 @@ aliases:
 
 In a [previous blog post](/2019/06/05/flink-network-stack.html), we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post. If you are unfamiliar with the network stack we highly recommend reading the [network stack deep-dive](/2019/06/05/flink-network-stack.html) first and then continuing here.
 
-{% toc %}
-
 ## Monitoring
 
 Probably the most important part of network monitoring is [monitoring backpressure]({{< param DocsBaseUrl >}}flink-docs-release-1.8/monitoring/back_pressure.html), a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:

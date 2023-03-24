@@ -14,8 +14,6 @@ aliases:
 - /2022/06/17/adaptive-batch-scheduler.html
 ---
 
-{% toc %}
-
 # Introduction
 
 Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling. 

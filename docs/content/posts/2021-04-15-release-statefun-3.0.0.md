@@ -23,8 +23,6 @@ separates the application logic from the StateFun cluster the default. It is now
 ergonomic to write applications that live in their own processes or containers. With the new Java SDK this is now also
 possible for all JVM languages, in addition to Python.
 
-{% toc %}
-
 ## Background
 
 Starting with the first StateFun release, before the project was donated to the Apache Software Foundation, our focus was: **making scalable stateful applications easy to build and run**. 

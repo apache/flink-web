@@ -26,8 +26,6 @@ Flink’s network stack is one of the core components that make up the `flink-ru
 
 This blog post is the first in a series of posts about the network stack. In the sections below, we will first have a high-level look at what abstractions are exposed to the stream operators and then go into detail on the physical implementation and various optimisations Flink did. We will briefly present the result of these optimisations and Flink’s trade-off between throughput and latency. Future blog posts in this series will elaborate more on monitoring and metrics, tuning parameters, and common anti-patterns.
 
-{% toc %}
-
 ## Logical View
 
 Flink’s network stack provides the following logical view to the subtasks when communicating with each other, for example during a network shuffle as required by a `keyBy()`.

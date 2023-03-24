@@ -18,8 +18,6 @@ This has been an exciting, fast-paced year for the Apache Flink community. But w
 
 The first post in the series takes you on an little detour across the year, to freshen up and make sure you're all up to date.
 
-{% toc %}
-
 # The Year (so far) in Flink
 
 Two major versions were released this year: [Flink 1.8](https://flink.apache.org/news/2019/04/09/release-1.8.0.html) and [Flink 1.9](https://flink.apache.org/news/2019/08/22/release-1.9.0.html); paving the way for the goal of making Flink the first framework to seamlessly support stream and batch processing with a single, unified runtime. The [contribution of Blink](https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html) to Apache Flink was key in accelerating the path to this vision and reduced the waiting time for long-pending user requests — such as Hive integration, (better) Python support, the rework of Flink's Machine Learning library and...fine-grained failure recovery ([FLIP-1](https://cwiki.apache.org/confluence/display/FLINK/FLIP-1+%3A+Fine+Grained+Recovery+from+Task+Failures)).

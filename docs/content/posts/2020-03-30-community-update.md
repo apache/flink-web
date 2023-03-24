@@ -17,8 +17,6 @@ While things slow down around us, the Apache Flink community is privileged to re
 
 And since now it's more important than ever to keep up the spirits, we’d like to invite you to join the [Flink Forward Virtual Conference](https://www.flink-forward.org/sf-2020), on April 22-24 (see [Upcoming Events](#upcoming-events)). Hope to see you there!
 
-{% toc %}
-
 # The Year (so far) in Flink
 
 ## Flink 1.10 Release

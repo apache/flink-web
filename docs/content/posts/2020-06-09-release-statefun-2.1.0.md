@@ -13,9 +13,6 @@ The Apache Flink community is happy to announce the release of Stateful Function
 
 The binary distribution and source artifacts are now available on the updated [Downloads](https://flink.apache.org/downloads.html) page of the Flink website, and the most recent Python SDK distribution is available on [PyPI](https://pypi.org/project/apache-flink-statefun/). For more details, check the complete [release changelog](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12347861) and the [updated documentation]({{< param DocsBaseUrl >}}flink-statefun-docs-release-2.1/). We encourage you to download the release and share your feedback with the community through the [Flink mailing lists](https://flink.apache.org/community.html#mailing-lists) or [JIRA](https://issues.apache.org/jira/browse/FLINK-18016?jql=project%20%3D%20FLINK%20AND%20component%20%3D%20%22Stateful%20Functions%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC)!
 
-{% toc %}
-
-
 ## New Features and Improvements
 
 ### Support for State Time-To-Live (TTL)

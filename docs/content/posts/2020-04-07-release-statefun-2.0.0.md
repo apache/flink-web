@@ -18,9 +18,6 @@ Stateful Functions 2.0 makes it possible to combine StateFun’s powerful approa
 
 With these features, Stateful Functions 2.0 addresses [two of the most cited shortcomings](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf) of many FaaS setups today: consistent state and efficient messaging between functions.
 
-{% toc %}
-
-
 ## An Event-driven Database
 
 When Stateful Functions joined Apache Flink at the beginning of this year, the project had started as a library on top of Flink to build general-purpose event-driven applications. Users would implement _functions_ that receive and send messages, and maintain state in persistent variables. Flink provided the runtime with efficient exactly-once state and messaging. Stateful Functions 1.0 was a FaaS-inspired mix between stream processing and actor programming — on steroids.

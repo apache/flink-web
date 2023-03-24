@@ -12,8 +12,6 @@ aliases:
 - /2021/03/11/batch-execution-mode.html
 ---
 
-{% toc %}
-
 Flink has been following the mantra that [Batch is a Special Case of Streaming](https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html) since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for _batch_ (DataSet API) and _streaming_ execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of _unification_. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient [batch execution in the DataStream API](https://cwiki.apache.org/confluence/x/4i94CQ).
 
 The idea behind making the DataStream API a unified abstraction for _batch_ and _streaming_ execution instead of maintaining separate APIs is two-fold:
