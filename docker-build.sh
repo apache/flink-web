@@ -23,7 +23,7 @@ source "${SCRIPT_DIR}/_utils.sh"
 hugo_docker_image="jakejarvis/hugo-extended:latest"
 docker pull "${hugo_docker_image}"
 
-run_hugo_in_docker="docker run -v $(pwd)/docs:/src -p 1313:1313 ${hugo_docker_image}"
+run_hugo_in_docker="docker run -u$(id -u "${USER}"):$(id -g "${USER}") -v $(pwd)/docs:/src -p 1313:1313 ${hugo_docker_image}"
 action=$1
 if [[ $action = "build" ]]
 then
