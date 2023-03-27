@@ -20,14 +20,16 @@
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 source "${SCRIPT_DIR}/_utils.sh"
 
-docker pull jakejarvis/hugo-extended:latest
+hugo_docker_image="jakejarvis/hugo-extended:latest"
+docker pull "${hugo_docker_image}"
 
+run_hugo_in_docker="docker run -v $(pwd)/docs:/src -p 1313:1313 ${hugo_docker_image}"
 action=$1
 if [[ $action = "build" ]]
 then
   prepareDocBuild
-  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --destination target
+  $run_hugo_in_docker --destination target
   finalizeDocBuild
 else
-  docker run -v $(pwd)/docs:/src -p 1313:1313 jakejarvis/hugo-extended:latest --buildDrafts --buildFuture --bind 0.0.0.0 server
+  $run_hugo_in_docker --buildDrafts --buildFuture --bind 0.0.0.0 server
 fi
