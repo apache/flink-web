@@ -1,5 +1,5 @@
 ---
-title: How to Contribute
+title: 如何参与贡献
 bookCollapseSection: true
 weight: 16
 menu_weight: 3

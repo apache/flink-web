@@ -1,5 +1,5 @@
 ---
-title: Downloads
+title: 下载
 bookCollapseSection: false
 weight: 8
 menu_weight: 2

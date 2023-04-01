@@ -1,5 +1,5 @@
 ---
-title: 教程
+title: 入门教程
 bookCollapseSection: true
 weight: 9
 menu_weight: 2
