@@ -583,7 +583,7 @@ are being used.
 
 <div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>  Tip:</span>
-you can quickly determine which serializer is going to be
+You can quickly determine which serializer is going to be
 used for your classes by setting a breakpoint and verifying the type of
 the returned TypeInformation.
 <br/>
@@ -594,7 +594,7 @@ the returned TypeInformation.
     <td class="tg-topcenter">
       <img src="/img/blog/patterns-blog-3/type-pojo.png" alt="POJO"/></td>
     <td class="tg-topcenter">
-      <i>PojoTypeInfo</i> indicates that that an efficient Flink POJO serializer will be used.</td>
+      <i>PojoTypeInfo</i> indicates that an efficient Flink POJO serializer will be used.</td>
   </tr>
   <tr>
     <td class="tg-top">
@@ -610,7 +610,7 @@ the returned TypeInformation.
 
 
 
-**Event pruning**: instead of storing complete events and putting
+**Event pruning**: Instead of storing complete events and putting
 additional stress on the ser/de machinery, we can reduce individual
 events data to only relevant information. This would potentially require
 "unpacking" individual events as fields, and storing those fields into a
