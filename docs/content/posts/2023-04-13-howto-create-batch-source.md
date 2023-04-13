@@ -46,7 +46,7 @@ here along with user configuration validation.
 
 As shown in the graphic above, the instances of the [SourceReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html) (which we will call simply readers
 in the continuation of this article) run in parallel in task managers to read the actual data which
-is divided into [Splits](#Split and SplitState). Readers request splits from the [SplitEnumerator](https://echauchot.blogspot.com/#splitEnumerator-and-splitEnumeratorState) and the resulting splits are
+is divided into [Splits](#Split and SplitState). Readers request splits from the [SplitEnumerator](#SplitEnumerator and SplitEnumeratorState) and the resulting splits are
 assigned to them in return.
 
 Luckily for us Flink provides the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html) implementation that takes care of the
@@ -57,8 +57,8 @@ specify the threading model as it is already configured to read splits with one 
 parallel among the task managers.
 
 What we have left to do in the SourceReader class is:
-* Provide a [SplitReader](https://echauchot.blogspot.com/#splitReader) supplier
-* Create a [RecordEmitter](https://echauchot.blogspot.com/#recordEmitter)
+* Provide a [SplitReader](#SplitReader) supplier
+* Create a [RecordEmitter](#RecordEmitter)
 * Create the shared resources for the SplitReaders (sessions, etc...). As the SplitReader supplier is
 created in the SourceReader constructor in a super() call, using a SourceReader factory to create
 the shared resources and pass them to the supplier seems a good idea.
@@ -166,7 +166,7 @@ That way, in case of interrupted fetch, nothing will be output and the split cou
 from the beginning at next fetch call leading to no duplicates. But if the split is read entirely,
 there are points to consider:
 * We should ensure that the total split content (records from the source) fits in memory for example
-by specifying a max split size in bytes (see [SplitEnumarator](https://echauchot.blogspot.com/#splitEnumerator-and-splitEnumeratorState))
+by specifying a max split size in bytes (see [SplitEnumarator](#SplitEnumerator and SplitEnumeratorState))
 * The split state becomes useless, only a Split class is needed
 
 ### RecordEmitter
