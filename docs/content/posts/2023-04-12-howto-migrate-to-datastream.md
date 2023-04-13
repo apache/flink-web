@@ -4,6 +4,7 @@ date: "2023-04-12T08:00:00.000Z"
 authors:
 - echauchot:
   name: "Etienne Chauchot"
+  twitter: "echauchot"
 aliases:
 - /news/2023/04/12/2023-04-12-howto-migrate-to-datastream.html
 ---
