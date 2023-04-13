@@ -46,7 +46,7 @@ here along with user configuration validation.
 
 As shown in the graphic above, the instances of the [SourceReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html) (which we will call simply readers
 in the continuation of this article) run in parallel in task managers to read the actual data which
-is divided into [Splits](#Split and SplitState). Readers request splits from the [SplitEnumerator](#SplitEnumerator and SplitEnumeratorState) and the resulting splits are
+is divided into [Splits](#split-and-splitstate). Readers request splits from the [SplitEnumerator](#splitenumerator-and-splitenumeratorstate) and the resulting splits are
 assigned to them in return.
 
 Luckily for us Flink provides the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html) implementation that takes care of the
@@ -57,15 +57,15 @@ specify the threading model as it is already configured to read splits with one 
 parallel among the task managers.
 
 What we have left to do in the SourceReader class is:
-* Provide a [SplitReader](#SplitReader) supplier
-* Create a [RecordEmitter](#RecordEmitter)
+* Provide a [SplitReader](#splitreader) supplier
+* Create a [RecordEmitter](#recordemitter)
 * Create the shared resources for the SplitReaders (sessions, etc...). As the SplitReader supplier is
 created in the SourceReader constructor in a super() call, using a SourceReader factory to create
 the shared resources and pass them to the supplier seems a good idea.
 * Implement [start()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--): here we should ask the enumerator for our first split
 * Override [close()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--) in SourceReaderBase parent class to free up any created resources (the shared
 resources for example)
-* Implement [initializedState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-) to create a mutable [SplitState](#Split and SplitState) from a Split
+* Implement [initializedState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-) to create a mutable [SplitState](#split-and-splitstate) from a Split
 * Implement [toSplitType()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#toSplitType-java.lang.String-SplitStateT-) to create a Split from the mutable SplitState
 * Implement [onSplitFinished()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#onSplitFinished-java.util.Map-): here, as it is a batch source (finite data), we should ask the
 Enumerator for next split
@@ -166,7 +166,7 @@ That way, in case of interrupted fetch, nothing will be output and the split cou
 from the beginning at next fetch call leading to no duplicates. But if the split is read entirely,
 there are points to consider:
 * We should ensure that the total split content (records from the source) fits in memory for example
-by specifying a max split size in bytes (see [SplitEnumarator](#SplitEnumerator and SplitEnumeratorState))
+by specifying a max split size in bytes (see [SplitEnumarator](#splitenumerator-and-splitenumeratorstate))
 * The split state becomes useless, only a Split class is needed
 
 ### RecordEmitter
