@@ -6,7 +6,7 @@ authors:
   name: "Etienne Chauchot"
   twitter: "echauchot"
 aliases:
-- /news/2023/04/13/howto-create-batch-source.html
+- /2023/04/13/howto-create-batch-source.html
 ---
 
 ## Introduction
