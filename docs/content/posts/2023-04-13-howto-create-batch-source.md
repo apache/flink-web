@@ -201,7 +201,6 @@ For both, we need to implement [SimpleVersionedSerializer](https://nightlies.apa
   the object converted to byte[]. Similar method is used to serialize collections. First write the
   number of elements of the collection, then serialize all the contained objects. Of course, for
   deserialization we do the exact same reading with the same order.
-* Flink provides a helpful utility for serde: [IOUtils](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/util/IOUtils.html).
 * There can be a lot of splits, so we should cache the OuputStream used in SplitSerializer. We can
   do so by using.
 
