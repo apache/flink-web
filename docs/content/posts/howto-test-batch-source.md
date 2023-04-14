@@ -2,11 +2,10 @@
 title:  "Howto test a batch source with the new Source framework"
 date: "2023-04-14T08:00:00.000Z"
 authors:
-
 - echauchot:
   name: "Etienne Chauchot"
   twitter: "echauchot"
-  aliases:
+aliases:
 - /2023/04/14/howto-test-batch-source.html
 
 ---
