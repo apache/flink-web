@@ -159,6 +159,7 @@ It is linked to the ITCase through a factory of TestContext as shown below.
 `@TestContext
 TestContextFactory contextFactory = new TestContextFactory(testEnvironment);
 `
+
 TestContext
 implements [DataStreamSourceExternalContext](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/external/source/DataStreamSourceExternalContext.html):
 
