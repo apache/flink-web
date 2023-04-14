@@ -29,13 +29,9 @@ to give field feedback on how to implement the different components.
 
 The source architecture is depicted in the diagrams below:
 
-<p align="center">
-<img src="/img/blog/2023-04-13-howto-create-batch-source/source_components.svg">
-</p>
+![](/img/blog/2023-04-13-howto-create-batch-source/source_components.svg)
 
-<p align="center">
-<img src="/img/blog/2023-04-13-howto-create-batch-source/source_reader.svg">
-</p>
+![](/img/blog/2023-04-13-howto-create-batch-source/source_reader.svg)
 
 ### Source
 [example Cassandra Source](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/CassandraSource.java)
