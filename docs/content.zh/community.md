@@ -145,7 +145,7 @@ under the License.
 
 ## Slack
 
-你可以通过 [此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1ta0su2np-lCCV6xD7XeKjwQuHMOTBIA)
+你可以通过 [此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-1thin01ch-tYuj6Zwu8qf0QsivHY0anw)
 加入 Apache Flink 社区专属的 Slack 工作空间。 在成功加入后，不要忘记在 #introductions 频道介绍你自己。 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。 
 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 
