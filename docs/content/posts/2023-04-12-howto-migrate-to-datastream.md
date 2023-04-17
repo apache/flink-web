@@ -51,7 +51,7 @@ LIMIT 100`
 The pipeline we are migrating
 is [this one](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java)
 , it is a batch pipeline that implements the above query using the DataSet API
-and [Row](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/types/Row.html)
+and [Row](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/types/Row.html)
 as dataset element type.
 
 ## Migrating the DataSet pipeline to a DataStream pipeline
@@ -72,7 +72,7 @@ operations.
 
 We start by moving
 from [ExecutionEnvironment](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/ExecutionEnvironment.html)
-to [StreamExecutionEnvironment](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html)
+to [StreamExecutionEnvironment](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html)
 . Then, as the source in this pipeline is bounded, we can use either the default
 streaming [execution mode](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/execution_mode/)
 or the batch mode. In batch mode the tasks of the job can be separated into stages that can be
@@ -86,13 +86,13 @@ allow to run the same pipeline with no change on an unbounded source.
 
 **
 Sources**: [DataSource<T>](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/operators/DataSource.html)
-becomes [DataStreamSource<T>](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/datastream/DataStreamSource.html)
+becomes [DataStreamSource<T>](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStreamSource.html)
 after the call to _env.createInput()_.
 
 **
 Datasets**: [DataSet<T>](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/DataSet.html)
 are
-now [DataStream<T>](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/datastream/DataStream.html)
+now [DataStream<T>](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStream.html)
 and subclasses.
 
 ### [Migrating the join operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L131-L137)
@@ -100,11 +100,11 @@ and subclasses.
 The DataStream join operator does not yet support aggregations in batch mode (
 see [FLINK-22587](https://issues.apache.org/jira/browse/FLINK-22587) for details). Basically, the
 problem is with the trigger of the
-default [GlobalWindow](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/windowing/windows/GlobalWindow.html)
+default [GlobalWindow](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/windowing/windows/GlobalWindow.html)
 which never fires so the records are never output. We will workaround this problem by applying a
 custom [EndOfStream](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L254-L295)
 window. It is a window assigner that assigns all the records to a
-single [TimeWindow](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/windowing/windows/TimeWindow.html)
+single [TimeWindow](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/windowing/windows/TimeWindow.html)
 . So, like for the GlobalWindow, all the records are assigned to the same window except that this
 window's trigger is based on the end of the window (which is set to _Long.MAX_VALUE_). As we are on
 a bounded source, at some point the watermark will advance to +INFINITY (Long.MAX_VALUE) and will
@@ -118,12 +118,12 @@ function.
 DataStream API has no
 more [groupBy()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/DataSet.html#groupBy-org.apache.flink.api.java.functions.KeySelector-)
 method, we now use
-the [keyBy()](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/datastream/DataStream.html#keyBy-org.apache.flink.api.java.functions.KeySelector-)
+the [keyBy()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStream.html#keyBy-org.apache.flink.api.java.functions.KeySelector-)
 method. An aggregation downstream will be applied on elements with the same key exactly as
 a [GroupReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/common/functions/GroupReduceFunction.html)
 would have done on a DataSet unless it will not materialize the collection of data. The summing
 operation downstream is still done through
-a [ReduceFunction](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/common/functions/ReduceFunction.html)
+a [ReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/functions/ReduceFunction.html)
 but this time the operator reduces the elements incrementally instead of receiving the rows as a
 Collection. So we store in the reduced row the partially aggregated sum. Due to incremental reduce,
 we also need to distinguish if we received an already reduced row (in that case, we read the
@@ -132,7 +132,7 @@ partially aggregated sum) or a fresh row (in that case we just read the correspo
 ### [Migrating the order by operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L172-L199)
 
 The sort of the datastream is done by applying
-a [KeyedProcessFunction](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html)
+a [KeyedProcessFunction](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html)
 .
 
 But, as said above, the DataStream semantics are the ones of a streaming pipeline. The arriving data
@@ -143,9 +143,9 @@ and [set a timer to fire at Long.MAX_VALUE timestamp](https://github.com/echauch
 meaning that the timer will fire at the end of the batch.
 
 To sort the data, we store the incoming rows inside
-a [ListState](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/common/state/ListState.html)
+a [ListState](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/state/ListState.html)
 and sort them at output time, when the timer fires in
-the [onTimer()](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html#onTimer-long-org.apache.flink.streaming.api.functions.KeyedProcessFunction.OnTimerContext-org.apache.flink.util.Collector-)
+the [onTimer()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html#onTimer-long-org.apache.flink.streaming.api.functions.KeyedProcessFunction.OnTimerContext-org.apache.flink.util.Collector-)
 callback.
 
 Another thing: to be able to use Flink state, we need to key the datastream beforehand, even if there
@@ -157,7 +157,7 @@ that there is a single state.
 Like for the order by migration, here also we need to adapt to the streaming semantics in which we
 don't have the whole data at hand. Once again, we use the state API. We apply a mapper that stores
 the incoming rows into
-a [ValueState](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/common/state/ValueState.html)
+a [ValueState](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/state/ValueState.html)
 to count them and stop at the set limit. Here also we need to key by a static key to be able to use
 the state API.
 The code resides in
@@ -167,11 +167,11 @@ class.
 ### [Migrating the sink operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L206-L217)
 
 As with sources, there were big changes in sinks with recent versions of Flink. We now use
-the [Sink interface](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/connector/sink2/Sink.html)
+the [Sink interface](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/connector/sink2/Sink.html)
 that requires
-an [Encoder](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/common/serialization/Encoder.html)
+an [Encoder](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/serialization/Encoder.html)
 . But the resulting code is very similar to the one using the DataSet API. It's only
-that [Encoder#encode()](https://javadoc.io/static/org.apache.flink/flink-core/1.16.0/org/apache/flink/api/common/serialization/Encoder.html#encode-IN-java.io.OutputStream-)
+that [Encoder#encode()](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/serialization/Encoder.html#encode-IN-java.io.OutputStream-)
 method writes bytes
 when [TextOutputFormat.TextFormatter#format()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/io/TextOutputFormat.TextFormatter.html#format-IN-)
 wrote Strings.
