@@ -148,7 +148,7 @@ and sort them at output time, when the timer fires in
 the [onTimer()](https://javadoc.io/static/org.apache.flink/flink-streaming-java/1.16.0/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html#onTimer-long-org.apache.flink.streaming.api.functions.KeyedProcessFunction.OnTimerContext-org.apache.flink.util.Collector-)
 callback.
 
-Another thing: to be able to use Flink state, we need to key the datastream beforeward even if there
+Another thing: to be able to use Flink state, we need to key the datastream beforehand, even if there
 is no group by key because Flink state is designed per-key. Thus, we key by a fake static key so
 that there is a single state.
 
