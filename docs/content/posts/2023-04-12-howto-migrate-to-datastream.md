@@ -74,7 +74,7 @@ We start by moving
 from [ExecutionEnvironment](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/ExecutionEnvironment.html)
 to [StreamExecutionEnvironment](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html)
 . Then, as the source in this pipeline is bounded, we can use either the default
-streaming [execution mode](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/execution_mode/)
+streaming [execution mode](https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/execution_mode//)
 or the batch mode. In batch mode the tasks of the job can be separated into stages that can be
 executed one after another. In streaming mode all tasks need to be running all the time and records
 are sent to downstream tasks as soon as they are available.
@@ -161,7 +161,7 @@ a [ValueState](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/ja
 to count them and stop at the set limit. Here also we need to key by a static key to be able to use
 the state API.
 The code resides in
-the [LimitMapper](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java)
+the [LimitMapper](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L232)
 class.
 
 ### [Migrating the sink operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L206-L217)
@@ -184,7 +184,7 @@ and requires the help of the Flink state API for the migration. For all these re
 community recommends to use Flink SQL for batch pipelines. It results in much simpler code, good
 performance and out-of-the-box analytics capabilities. You could find the equivalent Query3 code
 that uses
-the [Flink SQL/Table API](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/overview/)
+the [Flink SQL/Table API](https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/overview/)
 in
 the [Query3ViaFlinkSQLCSV class](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkSQLCSV.java)
 .
