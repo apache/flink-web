@@ -56,9 +56,9 @@ as dataset element type.
 
 ## Migrating the DataSet pipeline to a DataStream pipeline
 
-There is no point in going through all of the code which is
+Instead of going through all of the code which is
 available [here](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java)
-. We will rather focus on some key areas of the migration. The code is based on the latest release
+ we will rather focus on some key areas of the migration. The code is based on the latest release
 of Flink at the time this article was written: version 1.16.0.
 
 DataStream is a unified API that allows to run pipelines in both batch and streaming modes. To
