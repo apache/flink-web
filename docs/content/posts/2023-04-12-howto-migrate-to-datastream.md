@@ -110,7 +110,7 @@ window's trigger is based on the end of the window (which is set to _Long.MAX_VA
 a bounded source, at some point the watermark will advance to +INFINITY (Long.MAX_VALUE) and will
 thus cross the end of the time window and consequently fire the trigger and output the records.
 
-Now that we have a working triggering, we just need to call a standard join with the  _Row::join_
+Now that we have a working triggering, we need to call a standard join with the  _Row::join_
 function.
 
 ### [Migrating the group by and reduce (sum) operations](https://github.com/echauchot/tpcds-benchmark-flink/blob/master/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L147-L170)
