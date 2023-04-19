@@ -48,7 +48,7 @@ in the continuation of this article) run in parallel in task managers to read th
 is divided into [Splits](#split-and-splitstate). Readers request splits from the [SplitEnumerator](#splitenumerator-and-splitenumeratorstate) and the resulting splits are
 assigned to them in return.
 
-Luckily for us Flink provides the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html) implementation that takes care of the
+Flink provides the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html) implementation that takes care of the
 synchronization between the readers and the main thread. Flink also provides a useful extension to
 this class for most cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html). This class avoids having to
 specify the threading model as it is already configured to read splits with one thread using one
