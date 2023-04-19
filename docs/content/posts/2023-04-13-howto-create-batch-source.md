@@ -201,7 +201,7 @@ For both, we need to implement [SimpleVersionedSerializer](https://nightlies.apa
   the object converted to byte[]. Similar method is used to serialize collections. First write the
   number of elements of the collection, then serialize all the contained objects. Of course, for
   deserialization we do the exact same reading with the same order.
-* There can be a lot of splits, so we should cache the OuputStream used in SplitSerializer. We can
+* There can be a lot of splits, so we should cache the OutputStream used in SplitSerializer. We can
   do so by using.
 
 `  ThreadLocal<DataOutputSerializer> SERIALIZER_CACHE =
