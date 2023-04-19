@@ -109,7 +109,7 @@ maximum memory a split will take. That way he can configure this parameter accor
 available on the task managers. Of course, the size of the source data needs to be evaluated without
 reading the actual data. For the Cassandra connector it was done [like this](https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html). The general rule of thumb
 regarding splitting is to let the user some freedom but protect him from unwanted behavior: if they
-wants to process a 1GB table in 1MB splits with 1 subtask he should be free to do so. But, as we
+want to process a 1GB table in 1MB splits with 1 subtask they should be free to do so. But, as we
 allow the user to set a max split size, we should still ensure it is not too small to avoid having
 too many splits, we must also provide a default maximum. For these safety measures, rigid thresholds
 don't work well as the source my start to fail when the thresholds are suddenly exceeded.
