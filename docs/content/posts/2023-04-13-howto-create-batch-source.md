@@ -15,7 +15,7 @@ The Flink community has
 designed [a new Source framework](https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/sources/)
 based
 on [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface)
-lately. Some connectors have migrated to this new framework. This article is an howto create a batch
+lately. Some connectors have migrated to this new framework. This article is a how-to for creating a batch
 source using this new framework. It was built while implementing
 the [Flink batch source](https://github.com/apache/flink-connector-cassandra/commit/72e3bef1fb9ee6042955b5e9871a9f70a8837cca)
 for [Cassandra](https://cassandra.apache.org/_/index.html). I felt it could be useful to people
