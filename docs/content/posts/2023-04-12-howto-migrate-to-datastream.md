@@ -121,7 +121,7 @@ method, we now use
 the [keyBy()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStream.html#keyBy-org.apache.flink.api.java.functions.KeySelector-)
 method. An aggregation downstream will be applied on elements with the same key exactly as
 a [GroupReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/common/functions/GroupReduceFunction.html)
-would have done on a DataSet unless it will not materialize the collection of data. The summing
+would have done on a DataSet except it will not materialize the collection of data. The summing
 operation downstream is still done through
 a [ReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/functions/ReduceFunction.html)
 but this time the operator reduces the elements incrementally instead of receiving the rows as a
