@@ -66,7 +66,8 @@ this class for most
 cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html)
 . This class has the threading model already configured:
 each [SplitReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html)
-instance reads splits using one thread (but there are several SplitReader instances that live among task
+instance reads splits using one thread (but there are several SplitReader instances that live among
+task
 managers).
 
 What we have left to do in the SourceReader class is:
@@ -78,19 +79,28 @@ What we have left to do in the SourceReader class is:
   created in the SourceReader constructor in a super() call, using a SourceReader factory to create
   the shared resources and pass them to the supplier is a good idea.
 *
+
 Implement [start()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--):
 here we should ask the enumerator for our first split
+
 *
+
 Override [close()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--)
 in SourceReaderBase parent class to free up any created resources (the shared
 resources for example)
+
 *
+
 Implement [initializedState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-)
 to create a mutable [SplitState](#split-and-splitstate) from a Split
+
 *
+
 Implement [toSplitType()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#toSplitType-java.lang.String-SplitStateT-)
 to create a Split from the mutable SplitState
+
 *
+
 Implement [onSplitFinished()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#onSplitFinished-java.util.Map-):
 here, as it is a batch source (finite data), we should ask the
 Enumerator for next split
@@ -140,20 +150,25 @@ batch (not all) of splits to amortize this cost. The number/size of batched spli
 into account to avoid consuming too much memory.
 
 Long story short, the tricky part of the source implementation is splitting the source data. The
-good equilibrium to find is not to have to many splits (which could lead to too much memory
+good equilibrium to find is not to have too many splits (which could lead to too much memory
 consumption) nor too few (which could lead to sub-optimal parallelism). One good way to meet this
 equilibrium is to evaluate the size of the source data upfront and allow the user to specify the
-maximum memory a split will take. That way he can configure this parameter accordingly to the memory
-available on the task managers. Of course, the size of the source data needs to be evaluated without
+maximum memory a split will take. That way they can configure this parameter accordingly to the
+memory
+available on the task managers. This parameter is optional so the source needs to provide a default
+value. Also, the source needs to control that the user provided max split size is not too little
+which would
+lead to too many splits. The general rule of thumb is to let the user some freedom but protect him
+from unwanted behavior.
+For these safety measures, rigid thresholds
+don't work well as the source may start to fail when the thresholds are suddenly exceeded for
+example if we enforce the number of splits is below twice the parallelism with a max split size and
+the job is regularly run on a growing table. At some point when the table is bigger, there will be
+more and more splits of max-size and the threshold will be exeeded.
+
+Of course, the size of the source data needs to be evaluated without
 reading the actual data. For the Cassandra connector it was
 done [like this](https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html).
-The general rule of thumb
-regarding splitting is to let the user some freedom but protect him from unwanted behavior: if they
-want to process a 1GB table in 1MB splits with 1 subtask they should be free to do so. But, as we
-allow the user to set a max split size, we should still ensure it is not too small to avoid having
-too many splits, we must also provide a default maximum. For these safety measures, rigid thresholds
-don't work well as the source may start to fail when the thresholds are suddenly exceeded for
-example if the job is regularly run on a growing table.
 
 Another important topic is state. If the job manager fails, the split enumerator needs to recover.
 For that, as for the split, we need to provide a state for the enumerator (that will be part of a
