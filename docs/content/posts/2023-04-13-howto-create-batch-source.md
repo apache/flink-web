@@ -120,7 +120,7 @@ checkpoint) and return it when [SplitEnumerator#snapshotState()](https://nightli
 SplitEnumerator is to be considered immutable. Any update to the state of the SplitEnumerator, must
 be done in the associated [SplitEnumeratorState](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html). So, we don't create the state when snapshotState()
 is called but rather in the enumerator's constructor and return it in snapshotState(). The state
-must contain everything needed to resume where the enumerator was left off after failover . In lazy
+must contain everything needed to resume where the enumerator was left off after failover. In lazy
 split generation scenario, the state will contain everything needed to generate the next split
 whenever asked to. It can be for example the start offset of next split, split size, number of
 splits still to generate etc... But the SplitEnumeratorState must also contain a list of splits, not
