@@ -60,7 +60,7 @@ What we have left to do in the SourceReader class is:
 * Create a [RecordEmitter](#recordemitter)
 * Create the shared resources for the SplitReaders (sessions, etc...). As the SplitReader supplier is
 created in the SourceReader constructor in a super() call, using a SourceReader factory to create
-the shared resources and pass them to the supplier seems a good idea.
+the shared resources and pass them to the supplier is a good idea.
 * Implement [start()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--): here we should ask the enumerator for our first split
 * Override [close()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--) in SourceReaderBase parent class to free up any created resources (the shared
 resources for example)
