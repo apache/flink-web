@@ -108,7 +108,7 @@ equilibrium is to evaluate the size of the source data upfront and allow the use
 maximum memory a split will take. That way he can configure this parameter accordingly to the memory
 available on the task managers. Of course, the size of the source data needs to be evaluated without
 reading the actual data. For the Cassandra connector it was done [like this](https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html). The general rule of thumb
-regarding splitting is to let the user some freedom but protect him from unwanted behavior: if he
+regarding splitting is to let the user some freedom but protect him from unwanted behavior: if they
 wants to process a 1GB table in 1MB splits with 1 subtask he should be free to do so. But, as we
 allow the user to set a max split size, we should still ensure it is not too small to avoid having
 too many splits, we must also provide a default maximum. For these safety measures, rigid thresholds
