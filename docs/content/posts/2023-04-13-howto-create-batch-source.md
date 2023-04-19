@@ -112,7 +112,7 @@ regarding splitting is to let the user some freedom but protect him from unwante
 want to process a 1GB table in 1MB splits with 1 subtask they should be free to do so. But, as we
 allow the user to set a max split size, we should still ensure it is not too small to avoid having
 too many splits, we must also provide a default maximum. For these safety measures, rigid thresholds
-don't work well as the source my start to fail when the thresholds are suddenly exceeded.
+don't work well as the source may start to fail when the thresholds are suddenly exceeded.
 
 Another important topic is state. If the job manager fails, the split enumerator needs to recover.
 For that, as for the split, we need to provide a state for the enumerator (that will be part of a
