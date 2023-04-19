@@ -11,7 +11,7 @@ aliases:
 
 ## Introduction
 
-Flink community has
+The Flink community has
 designed [a new Source framework](https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/sources/)
 based
 on [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refactor+Source+Interface)
