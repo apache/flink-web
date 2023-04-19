@@ -18,8 +18,8 @@ on [FLIP-27](https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A+Refact
 lately. Some connectors have migrated to this new framework. This article is a how-to for creating a batch
 source using this new framework. It was built while implementing
 the [Flink batch source](https://github.com/apache/flink-connector-cassandra/commit/72e3bef1fb9ee6042955b5e9871a9f70a8837cca)
-for [Cassandra](https://cassandra.apache.org/_/index.html). I felt it could be useful to people
-interested in contributing or migrating connectors.
+for [Cassandra](https://cassandra.apache.org/_/index.html).
+If you are interested in contributing or migrating connectors, this blog post is for you!.
 
 ## Implementing the source components
 
