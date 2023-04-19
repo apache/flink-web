@@ -217,4 +217,4 @@ For the sake of concision of this article, testing the source will be the object
 
 This article gathering the implementation field feedback was needed as the javadocs cannot cover all
 the implementation details for high-performance and maintainable sources. I hope you enjoyed reading
-and that it gave you the envy to contribute a new connector to the Flink project !
+and that it gave you the desire to contribute a new connector to the Flink project !
