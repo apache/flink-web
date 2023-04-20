@@ -168,21 +168,18 @@ reading the actual data. For the Cassandra connector it was
 done [like this](https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html).
 
 Another important topic is state. If the job manager fails, the split enumerator needs to recover.
-For that, as for the split, we need to provide a state for the enumerator (that will be part of a
-checkpoint) and return it
-when [SplitEnumerator#snapshotState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#snapshotState-long-)
-is called. Here also the
-SplitEnumerator is to be considered immutable. Any update to the state of the SplitEnumerator, must
-be done in the
-associated [SplitEnumeratorState](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html)
-. So, we don't create the state when snapshotState()
-is called but rather in the enumerator's constructor and return it in snapshotState(). The state
+For that, as for the split, we need to provide a state for the enumerator that will be part of a
+checkpoint. Upon recovery, the enumerator is reconstructed and
+receives [an enumerator state](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html)
+for recovering its previous state. Upon checkpointing, the
+enumerator returns its state when [SplitEnumerator#snapshotState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#snapshotState-long-)
+is called. The state
 must contain everything needed to resume where the enumerator was left off after failover. In lazy
 split generation scenario, the state will contain everything needed to generate the next split
 whenever asked to. It can be for example the start offset of next split, split size, number of
 splits still to generate etc... But the SplitEnumeratorState must also contain a list of splits, not
 the list of discovered splits, but a list of splits to reassign. Indeed, whenever a reader fails, if
-it was assigned splits after last chekpoint, then the checkpoint will not contain those splits.
+it was assigned splits after last checkpoint, then the checkpoint will not contain those splits.
 Consequently, upon restoration, the reader won't have the splits assigned anymore. There is a
 callback to deal with that
 case: [addSplitsBack()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#addSplitsBack-java.util.List-int-)
