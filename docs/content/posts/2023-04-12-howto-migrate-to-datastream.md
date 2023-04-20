@@ -47,7 +47,7 @@ LIMIT 100`
 ## The initial DataSet pipeline
 
 The pipeline we are migrating
-is [this](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java)
+is [this](https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java)
 batch pipeline that implements the above query using the DataSet API
 and [Row](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/types/Row.html)
 as dataset element type.
@@ -55,7 +55,7 @@ as dataset element type.
 ## Migrating the DataSet pipeline to a DataStream pipeline
 
 Instead of going through all of the code which is
-available [here](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java)
+available [here](https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java)
 we will rather focus on some key areas of the migration. The code is based on the latest release
 of Flink at the time this article was written: version 1.16.0.
 
@@ -66,7 +66,7 @@ semantics are the ones of a streaming pipeline. The arriving data is thus consid
 compared to the DataSet API which operates on finite data, there are adaptations to be made on some
 operations.
 
-### [Setting the execution environment](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L92-L98)
+### [Setting the execution environment](https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L90-L96)
 
 We start by moving
 from [ExecutionEnvironment](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/ExecutionEnvironment.html)
@@ -91,14 +91,14 @@ are
 now [DataStream<T>](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStream.html)
 and subclasses.
 
-### [Migrating the join operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L131-L137)
+### [Migrating the join operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L129-L135)
 
 The DataStream join operator does not yet support aggregations in batch mode (
 see [FLINK-22587](https://issues.apache.org/jira/browse/FLINK-22587) for details). Basically, the
 problem is with the trigger of the
 default [GlobalWindow](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/windowing/windows/GlobalWindow.html)
 which never fires so the records are never output. We will workaround this problem by applying a
-custom [EndOfStream](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L254-L295)
+custom [EndOfStream](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L246-L280)
 window. It is a window assigner that assigns all the records to a
 single [TimeWindow](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/windowing/windows/TimeWindow.html)
 . So, like for the GlobalWindow, all the records are assigned to the same window except that this
@@ -109,7 +109,7 @@ thus cross the end of the time window and consequently fire the trigger and outp
 Now that we have a working triggering, we need to call a standard join with the  _Row::join_
 function.
 
-### [Migrating the group by and reduce (sum) operations](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L147-L170)
+### [Migrating the group by and reduce (sum) operations](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L145-L169)
 
 DataStream API has no
 more [groupBy()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/java/DataSet.html#groupBy-org.apache.flink.api.java.functions.KeySelector-)
@@ -124,8 +124,9 @@ but this time the operator reduces the elements incrementally instead of receivi
 Collection. To make the sum we store in the reduced row the partially aggregated sum. Due to incremental reduce,
 we also need to distinguish if we received an already reduced row (in that case, we read the
 partially aggregated sum) or a fresh row (in that case we just read the corresponding price field).
+Also, please note that, as in the join case, we need to specify windowing for the aggregation.
 
-### [Migrating the order by operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L172-L199)
+### [Migrating the order by operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L171-L211)
 
 The sort of the datastream is done by applying
 a [KeyedProcessFunction](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html)
@@ -133,9 +134,7 @@ a [KeyedProcessFunction](https://nightlies.apache.org/flink/flink-docs-release-1
 
 But, as said above, the DataStream semantics are the ones of a streaming pipeline. The arriving data
 is thus considered infinite. As such we need to "divide" the data to have output times. For that we
-need to set a timer to output the resulting data. As we are in batch mode we work in processing
-time (and not in event time)
-and [set a timer to fire at Long.MAX_VALUE timestamp](https://github.com/echauchot/tpcds-benchmark-flink/blob/9c65e535bbd7f9c7f507e499c31c9280be2993ca/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L179)
+need to set a timer to output the resulting data. We [set a timer to fire at the end of the EndOfStream window](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L188)
 meaning that the timer will fire at the end of the batch.
 
 To sort the data, we store the incoming rows inside
@@ -149,19 +148,14 @@ there
 is no group by key because Flink state is designed per-key. Thus, we key by a fake static key so
 that there is a single state.
 
-### [Migrating the limit operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L201-L204)
+### [Migrating the limit operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L213-L223)
 
-Like for the order by migration, here also we need to adapt to the streaming semantics in which we
-don't have the whole data at hand. Once again, we use the state API. We apply a mapper that stores
-the incoming rows into
-a [ValueState](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/state/ValueState.html)
-to count them and stop at the set limit. Here also we need to key by a static key to be able to use
-the state API.
-The code resides in
-the [LimitMapper](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L232)
-class.
+As all the elements of the DataStream were keyed by the same "0" key, they are kept in the same "
+group". So we can implement the SQL LIMIT with
+a [ProcessFunction](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/functions/ProcessFunction.html)
+with a counter that will output only the first 100 elements.
 
-### [Migrating the sink operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L206-L217)
+### [Migrating the sink operation](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L225-L236)
 
 As with sources, there were big changes in sinks with recent versions of Flink. We now use
 the [Sink interface](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/connector/sink2/Sink.html)
@@ -183,5 +177,5 @@ performance and out-of-the-box analytics capabilities. You could find the equiva
 that uses
 the [Flink SQL/Table API](https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/table/overview/)
 in
-the [Query3ViaFlinkSQLCSV class](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkSQLCSV.java)
+the [Query3ViaFlinkSQLCSV class](https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkSQLCSV.java)
 .
