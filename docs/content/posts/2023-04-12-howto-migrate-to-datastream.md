@@ -56,7 +56,7 @@ as dataset element type.
 
 Instead of going through all of the code which is
 available [here](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java)
- we will rather focus on some key areas of the migration. The code is based on the latest release
+we will rather focus on some key areas of the migration. The code is based on the latest release
 of Flink at the time this article was written: version 1.16.0.
 
 DataStream is a unified API that allows to run pipelines in both batch and streaming modes. To
@@ -119,11 +119,11 @@ method, we now use
 the [keyBy()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/datastream/DataStream.html#keyBy-org.apache.flink.api.java.functions.KeySelector-)
 method. An aggregation downstream will be applied on elements with the same key exactly as
 a [GroupReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/api/common/functions/GroupReduceFunction.html)
-would have done on a DataSet except it will not materialize the collection of data. The summing
-operation downstream is still done through
+would have done on a DataSet except it will not need to materialize the collection of data. Indeed, the following
+operator is a reducer: the summing operation downstream is still done through
 a [ReduceFunction](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/common/functions/ReduceFunction.html)
 but this time the operator reduces the elements incrementally instead of receiving the rows as a
-Collection. So we store in the reduced row the partially aggregated sum. Due to incremental reduce,
+Collection. To make the sum we store in the reduced row the partially aggregated sum. Due to incremental reduce,
 we also need to distinguish if we received an already reduced row (in that case, we read the
 partially aggregated sum) or a fresh row (in that case we just read the corresponding price field).
 
@@ -146,7 +146,8 @@ and sort them at output time, when the timer fires in
 the [onTimer()](https://nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html#onTimer-long-org.apache.flink.streaming.api.functions.KeyedProcessFunction.OnTimerContext-org.apache.flink.util.Collector-)
 callback.
 
-Another thing: to be able to use Flink state, we need to key the datastream beforehand, even if there
+Another thing: to be able to use Flink state, we need to key the datastream beforehand, even if
+there
 is no group by key because Flink state is designed per-key. Thus, we key by a fake static key so
 that there is a single state.
 
