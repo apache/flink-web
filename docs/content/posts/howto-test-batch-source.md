@@ -5,8 +5,6 @@ authors:
 - echauchot:
   name: "Etienne Chauchot"
   twitter: "echauchot"
-aliases:
-- /2023/04/14/howto-test-batch-source.html
 
 ---
 
