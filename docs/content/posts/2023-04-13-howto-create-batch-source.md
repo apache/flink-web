@@ -154,15 +154,15 @@ equilibrium is to evaluate the size of the source data upfront and allow the use
 maximum memory a split will take. That way they can configure this parameter accordingly to the
 memory
 available on the task managers. This parameter is optional so the source needs to provide a default
-value. Also, the source needs to control that the user provided max split size is not too little
+value. Also, the source needs to control that the user provided max-split-size is not too little
 which would
 lead to too many splits. The general rule of thumb is to let the user some freedom but protect him
 from unwanted behavior.
 For these safety measures, rigid thresholds
-don't work well as the source may start to fail when the thresholds are suddenly exceeded for
-example if we enforce the number of splits is below twice the parallelism with a max split size and
-the job is regularly run on a growing table. At some point when the table is bigger, there will be
-more and more splits of max-size and the threshold will be exeeded.
+don't work well as the source may start to fail when the thresholds are suddenly exceeded. For
+example if we enforce the number of splits is below twice the parallelism, if 
+the job is regularly run on a growing table, at some point there will be
+more and more splits of max-split-size and the threshold will be exceeded.
 
 Of course, the size of the source data needs to be evaluated without
 reading the actual data. For the Cassandra connector it was
