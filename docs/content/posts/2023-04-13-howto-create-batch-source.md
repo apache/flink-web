@@ -58,10 +58,10 @@ assigned to them in return.
 
 Flink provides
 the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html)
-implementation that takes care of the
-synchronization between the readers and the main thread. Flink also provides a useful extension to
+implementation that takes care of all the threading. Flink also provides a useful extension to
 this class for most
-cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html). This class has the threading model already configured:
+cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html)
+. This class has the threading model already configured:
 each [SplitReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html)
 instance reads splits using one thread (but there are several SplitReader instances that live among
 task
