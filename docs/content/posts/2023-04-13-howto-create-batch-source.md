@@ -61,8 +61,7 @@ the [SourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/
 implementation that takes care of the
 synchronization between the readers and the main thread. Flink also provides a useful extension to
 this class for most
-cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html)
-. This class has the threading model already configured:
+cases: [SingleThreadMultiplexSourceReaderBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html). This class has the threading model already configured:
 each [SplitReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html)
 instance reads splits using one thread (but there are several SplitReader instances that live among
 task
@@ -76,30 +75,16 @@ What we have left to do in the SourceReader class is:
   is
   created in the SourceReader constructor in a super() call, using a SourceReader factory to create
   the shared resources and pass them to the supplier is a good idea.
-*
-
-Implement [start()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--):
+* Implement [start()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--):
 here we should ask the enumerator for our first split
-
-*
-
-Override [close()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--)
+* Override [close()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--)
 in SourceReaderBase parent class to free up any created resources (the shared
 resources for example)
-
-*
-
-Implement [initializedState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-)
+* Implement [initializedState()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-)
 to create a mutable [SplitState](#split-and-splitstate) from a Split
-
-*
-
-Implement [toSplitType()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#toSplitType-java.lang.String-SplitStateT-)
+* Implement [toSplitType()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#toSplitType-java.lang.String-SplitStateT-)
 to create a Split from the mutable SplitState
-
-*
-
-Implement [onSplitFinished()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#onSplitFinished-java.util.Map-):
+* Implement [onSplitFinished()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#onSplitFinished-java.util.Map-):
 here, as it is a batch source (finite data), we should ask the
 Enumerator for next split
 
