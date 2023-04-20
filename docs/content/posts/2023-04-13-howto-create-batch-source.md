@@ -160,11 +160,10 @@ lead to too many splits. The general rule of thumb is to let the user some freed
 from unwanted behavior.
 For these safety measures, rigid thresholds
 don't work well as the source may start to fail when the thresholds are suddenly exceeded. For
-example if we enforce the number of splits is below twice the parallelism, if 
+example if we enforce the number of splits is below twice the parallelism, if
 the job is regularly run on a growing table, at some point there will be
-more and more splits of max-split-size and the threshold will be exceeded.
-
-Of course, the size of the source data needs to be evaluated without
+more and more splits of max-split-size and the threshold will be exceeded. Of course, the size of
+the source data needs to be evaluated without
 reading the actual data. For the Cassandra connector it was
 done [like this](https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html).
 
