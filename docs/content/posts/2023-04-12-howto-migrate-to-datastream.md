@@ -49,8 +49,8 @@ LIMIT 100`
 ## The initial DataSet pipeline
 
 The pipeline we are migrating
-is [this one](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java)
-, it is a batch pipeline that implements the above query using the DataSet API
+is [this](https://github.com/echauchot/tpcds-benchmark-flink/blob/f342c1983ec340e52608eb1835e85c82c8ece1d2/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java)
+batch pipeline that implements the above query using the DataSet API
 and [Row](https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/types/Row.html)
 as dataset element type.
 
