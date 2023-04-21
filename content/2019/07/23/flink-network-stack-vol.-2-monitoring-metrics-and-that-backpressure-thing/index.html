@@ -3,21 +3,22 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="In a previous blog post, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post.">
+<meta name="description" content=".tg {border-collapse:collapse;border-spacing:0;} .tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;} .tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;} .tg .tg-wide{padding:10px 30px;} .tg .tg-top{vertical-align:top} .tg .tg-topcenter{text-align:center;vertical-align:top} .tg .tg-center{text-align:center;vertical-align:center}  In a previous blog post, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure Thing" />
-<meta property="og:description" content="In a previous blog post, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post." />
+<meta property="og:description" content=".tg {border-collapse:collapse;border-spacing:0;} .tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;} .tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;} .tg .tg-wide{padding:10px 30px;} .tg .tg-top{vertical-align:top} .tg .tg-topcenter{text-align:center;vertical-align:top} .tg .tg-center{text-align:center;vertical-align:center}  In a previous blog post, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://flink.apache.org/2019/07/23/flink-network-stack-vol.-2-monitoring-metrics-and-that-backpressure-thing/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2019-07-23T15:30:00+00:00" />
 <meta property="article:modified_time" content="2019-07-23T15:30:00+00:00" />
+
 <title>Flink Network Stack Vol. 2: Monitoring, Metrics, and that Backpressure Thing | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -851,7 +852,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -964,7 +965,7 @@ If backpressure occurs, it will bubble upstream and eventually reach your source
   Backpressure Monitor
   <a class="anchor" href="#backpressure-monitor">#</a>
 </h3>
-<p>The <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/back_pressure.html">backpressure monitor</a> is only exposed via Flink’s web UI². Since it&rsquo;s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks&rsquo; threads on all TaskManagers via <code>Thread.getStackTrace()</code> and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of</p>
+<p>The <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/back_pressure.html">backpressure monitor</a> is only exposed via Flink’s web UI². Since it&rsquo;s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks' threads on all TaskManagers via <code>Thread.getStackTrace()</code> and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of</p>
 <ul>
 <li><span style="color:green">OK</span> for <code>ratio ≤ 0.10</code>,</li>
 <li><span style="color:orange">LOW</span> for <code>0.10 &lt; Ratio ≤ 0.5</code>, and</li>
@@ -1190,7 +1191,7 @@ Please note that, as of Flink 1.8 and 1.9, <code>numBuffersOut</code> only incre
   CPU/Thread Bottleneck
   <a class="anchor" href="#cputhread-bottleneck">#</a>
 </h4>
-<p>Sometimes a CPU bottleneck might not be visible at first glance if one or a couple of threads are causing the CPU bottleneck while the CPU usage of the overall machine remains relatively low. For instance, a single CPU-bottlenecked thread on a 48-core machine would result in only 2% CPU use. Consider using code profilers for this as they can identify hot threads by showing each threads&rsquo; CPU usage, for example.</p>
+<p>Sometimes a CPU bottleneck might not be visible at first glance if one or a couple of threads are causing the CPU bottleneck while the CPU usage of the overall machine remains relatively low. For instance, a single CPU-bottlenecked thread on a 48-core machine would result in only 2% CPU use. Consider using code profilers for this as they can identify hot threads by showing each threads' CPU usage, for example.</p>
 <h4 id="thread-contention">
   Thread Contention
   <a class="anchor" href="#thread-contention">#</a>

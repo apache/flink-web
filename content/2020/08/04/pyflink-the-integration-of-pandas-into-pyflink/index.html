@@ -3,23 +3,24 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Python has evolved into one of the most important programming languages for many fields of data processing. So big has been Python’s popularity, that it has pretty much become the default data processing language for data scientists. On top of that, there is a plethora of Python-based data processing tools such as NumPy, Pandas, and Scikit-learn that have gained additional popularity due to their flexibility or powerful functionalities.
-Pic source: VanderPlas 2017, slide 52.">
+   Pic source: VanderPlas 2017, slide 52.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="PyFlink: The integration of Pandas into PyFlink" />
 <meta property="og:description" content="Python has evolved into one of the most important programming languages for many fields of data processing. So big has been Python’s popularity, that it has pretty much become the default data processing language for data scientists. On top of that, there is a plethora of Python-based data processing tools such as NumPy, Pandas, and Scikit-learn that have gained additional popularity due to their flexibility or powerful functionalities.
-Pic source: VanderPlas 2017, slide 52." />
+   Pic source: VanderPlas 2017, slide 52." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://flink.apache.org/2020/08/04/pyflink-the-integration-of-pandas-into-pyflink/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-08-04T00:00:00+00:00" />
 <meta property="article:modified_time" content="2020-08-04T00:00:00+00:00" />
+
 <title>PyFlink: The integration of Pandas into PyFlink | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -853,7 +854,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -975,133 +976,141 @@ Currently, only Scalar Pandas UDFs are supported in PyFlink.
   <a class="anchor" href="#examples">#</a>
 </h1>
 <p>Using Python in Apache Flink requires installing PyFlink, which is available on <a href="https://pypi.org/project/apache-flink/">PyPI</a> and can be easily installed using <code>pip</code>. Before installing PyFlink, check the working version of Python running in your system using:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ python --version
-</span></span><span class="line"><span class="cl">Python 3.7.6
-</span></span></code></pre></div><div class="alert alert-info" markdown="1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ python --version
+Python 3.7.6
+</code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
 Please note that Python 3.5 or higher is required to install and run PyFlink
 </div>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ python -m pip install apache-flink
-</span></span></code></pre></div><h2 id="using-pandas-udf">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">
+$ python -m pip install apache-flink
+
+</code></pre></div><h2 id="using-pandas-udf">
   Using Pandas UDF
   <a class="anchor" href="#using-pandas-udf">#</a>
 </h2>
 <p>Pandas UDFs take <code>pandas.Series</code> as the input and return a <code>pandas.Series</code> of the same length as the output. Pandas UDFs can be used at the exact same place where non-Pandas functions are currently being utilized. To mark a UDF as a Pandas UDF, you only need to add an extra parameter udf_type=&ldquo;pandas&rdquo; in the udf decorator:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">()],</span>
-</span></span><span class="line"><span class="cl">     <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">(),</span> <span class="n">udf_type</span><span class="o">=</span><span class="s1">&#39;pandas&#39;</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># takes id: pandas.Series and temperature: pandas.Series as input</span>
-</span></span><span class="line"><span class="cl">    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">temperature</span><span class="p">})</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="c1"># use interpolate() to interpolate the missing temperature</span>
-</span></span><span class="line"><span class="cl">    <span class="n">interpolated_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">        <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit_direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">))</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="c1"># output temperature: pandas.Series</span>
-</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">interpolated_df</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
-</span></span></code></pre></div><p>The Pandas UDF above uses the Pandas <code>dataframe.interpolate()</code> function to interpolate the missing temperature data for each equipment id. This is a common IoT scenario whereby each equipment/device reports it’s id and temperature to be analyzed, but the temperature field may be null due to various reasons.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
+<span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">()],</span>
+     <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">(),</span> <span class="n">udf_type</span><span class="o">=</span><span class="s1">&#39;pandas&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+    <span class="c1"># takes id: pandas.Series and temperature: pandas.Series as input</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">temperature</span><span class="p">})</span>
+
+    <span class="c1"># use interpolate() to interpolate the missing temperature</span>
+    <span class="n">interpolated_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit_direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">))</span>
+
+    <span class="c1"># output temperature: pandas.Series</span>
+    <span class="k">return</span> <span class="n">interpolated_df</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
+
+</code></pre></div><p>The Pandas UDF above uses the Pandas <code>dataframe.interpolate()</code> function to interpolate the missing temperature data for each equipment id. This is a common IoT scenario whereby each equipment/device reports it’s id and temperature to be analyzed, but the temperature field may be null due to various reasons.
 With the function, you can register and use it in the same way as the <a href="https://flink.apache.org/2020/04/09/pyflink-udf-support-flink.html">normal Python UDF</a>. Below is a complete example of how to use the Pandas UDF in PyFlink.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
-</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span><span class="p">,</span> <span class="n">DataTypes</span>
-</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table.udf</span> <span class="kn">import</span> <span class="n">udf</span>
-</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
-</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="n">set_parallelism</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span><span class="o">.</span><span class="n">get_configuration</span><span class="p">()</span><span class="o">.</span><span class="n">set_boolean</span><span class="p">(</span><span class="s2">&#34;python.fn-execution.memory.managed&#34;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">()],</span>
-</span></span><span class="line"><span class="cl">     <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">(),</span> <span class="n">udf_type</span><span class="o">=</span><span class="s1">&#39;pandas&#39;</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># takes id: pandas.Series and temperature: pandas.Series as input</span>
-</span></span><span class="line"><span class="cl">    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">temperature</span><span class="p">})</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="c1"># use interpolate() to interpolate the missing temperature</span>
-</span></span><span class="line"><span class="cl">    <span class="n">interpolated_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">        <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit_direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">))</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="c1"># output temperature: pandas.Series</span>
-</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">interpolated_df</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;interpolate&#34;</span><span class="p">,</span> <span class="n">interpolate</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">my_source_ddl</span> <span class="o">=</span> <span class="s2">&#34;&#34;&#34;
-</span></span></span><span class="line"><span class="cl"><span class="s2">    create table mySource (
-</span></span></span><span class="line"><span class="cl"><span class="s2">        id INT,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        temperature FLOAT 
-</span></span></span><span class="line"><span class="cl"><span class="s2">    ) with (
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;connector.type&#39; = &#39;filesystem&#39;,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;format.type&#39; = &#39;csv&#39;,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;connector.path&#39; = &#39;/tmp/input&#39;
-</span></span></span><span class="line"><span class="cl"><span class="s2">    )
-</span></span></span><span class="line"><span class="cl"><span class="s2">&#34;&#34;&#34;</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">my_sink_ddl</span> <span class="o">=</span> <span class="s2">&#34;&#34;&#34;
-</span></span></span><span class="line"><span class="cl"><span class="s2">    create table mySink (
-</span></span></span><span class="line"><span class="cl"><span class="s2">        id INT,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        temperature FLOAT 
-</span></span></span><span class="line"><span class="cl"><span class="s2">    ) with (
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;connector.type&#39; = &#39;filesystem&#39;,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;format.type&#39; = &#39;csv&#39;,
-</span></span></span><span class="line"><span class="cl"><span class="s2">        &#39;connector.path&#39; = &#39;/tmp/output&#39;
-</span></span></span><span class="line"><span class="cl"><span class="s2">    )
-</span></span></span><span class="line"><span class="cl"><span class="s2">&#34;&#34;&#34;</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">execute_sql</span><span class="p">(</span><span class="n">my_source_ddl</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">execute_sql</span><span class="p">(</span><span class="n">my_sink_ddl</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>\
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;id, interpolate(id, temperature) as temperature&#34;</span><span class="p">)</span> \
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">insert_into</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&#34;pandas_udf_demo&#34;</span><span class="p">)</span>
-</span></span></code></pre></div><p>To submit the job:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
+<span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
+<span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span><span class="p">,</span> <span class="n">DataTypes</span>
+<span class="kn">from</span> <span class="nn">pyflink.table.udf</span> <span class="kn">import</span> <span class="n">udf</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
+<span class="n">env</span><span class="o">.</span><span class="n">set_parallelism</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+<span class="n">t_env</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span><span class="o">.</span><span class="n">get_configuration</span><span class="p">()</span><span class="o">.</span><span class="n">set_boolean</span><span class="p">(</span><span class="s2">&#34;python.fn-execution.memory.managed&#34;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">STRING</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">()],</span>
+     <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">(),</span> <span class="n">udf_type</span><span class="o">=</span><span class="s1">&#39;pandas&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+    <span class="c1"># takes id: pandas.Series and temperature: pandas.Series as input</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">temperature</span><span class="p">})</span>
+
+    <span class="c1"># use interpolate() to interpolate the missing temperature</span>
+    <span class="n">interpolated_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">limit_direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">))</span>
+
+    <span class="c1"># output temperature: pandas.Series</span>
+    <span class="k">return</span> <span class="n">interpolated_df</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
+
+<span class="n">t_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;interpolate&#34;</span><span class="p">,</span> <span class="n">interpolate</span><span class="p">)</span>
+
+<span class="n">my_source_ddl</span> <span class="o">=</span> <span class="s2">&#34;&#34;&#34;
+</span><span class="s2">    create table mySource (
+</span><span class="s2">        id INT,
+</span><span class="s2">        temperature FLOAT 
+</span><span class="s2">    ) with (
+</span><span class="s2">        &#39;connector.type&#39; = &#39;filesystem&#39;,
+</span><span class="s2">        &#39;format.type&#39; = &#39;csv&#39;,
+</span><span class="s2">        &#39;connector.path&#39; = &#39;/tmp/input&#39;
+</span><span class="s2">    )
+</span><span class="s2">&#34;&#34;&#34;</span>
+
+<span class="n">my_sink_ddl</span> <span class="o">=</span> <span class="s2">&#34;&#34;&#34;
+</span><span class="s2">    create table mySink (
+</span><span class="s2">        id INT,
+</span><span class="s2">        temperature FLOAT 
+</span><span class="s2">    ) with (
+</span><span class="s2">        &#39;connector.type&#39; = &#39;filesystem&#39;,
+</span><span class="s2">        &#39;format.type&#39; = &#39;csv&#39;,
+</span><span class="s2">        &#39;connector.path&#39; = &#39;/tmp/output&#39;
+</span><span class="s2">    )
+</span><span class="s2">&#34;&#34;&#34;</span>
+
+<span class="n">t_env</span><span class="o">.</span><span class="n">execute_sql</span><span class="p">(</span><span class="n">my_source_ddl</span><span class="p">)</span>
+<span class="n">t_env</span><span class="o">.</span><span class="n">execute_sql</span><span class="p">(</span><span class="n">my_sink_ddl</span><span class="p">)</span>
+
+<span class="n">t_env</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>\
+    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;id, interpolate(id, temperature) as temperature&#34;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">insert_into</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
+
+<span class="n">t_env</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&#34;pandas_udf_demo&#34;</span><span class="p">)</span>
+
+</code></pre></div><p>To submit the job:</p>
 <ul>
 <li>Firstly, you need to prepare the input data in the &ldquo;/tmp/input&rdquo; file. For example,</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ <span class="nb">echo</span> -e  <span class="s2">&#34;1,98.0\n1,\n1,100.0\n2,99.0&#34;</span> &gt; /tmp/input
-</span></span></code></pre></div><ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">
+$ <span class="nb">echo</span> -e  <span class="s2">&#34;1,98.0\n1,\n1,100.0\n2,99.0&#34;</span> &gt; /tmp/input
+
+</code></pre></div><ul>
 <li>Next, you can run this example on the command line,</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ python pandas_udf_demo.py
-</span></span></code></pre></div><p>The command builds and runs the Python Table API program in a local mini-cluster. You can also submit the Python Table API program to a remote cluster using different command lines, see more details <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/ops/cli.html#job-submission-examples">here</a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">
+$ python pandas_udf_demo.py
+
+</code></pre></div><p>The command builds and runs the Python Table API program in a local mini-cluster. You can also submit the Python Table API program to a remote cluster using different command lines, see more details <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/ops/cli.html#job-submission-examples">here</a>.</p>
 <ul>
 <li>Finally, you can see the execution result on the command line. As you can see, all the temperature data with an empty value has been interpolated:</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$  cat /tmp/output
-</span></span><span class="line"><span class="cl">1,98.0
-</span></span><span class="line"><span class="cl">1,99.0
-</span></span><span class="line"><span class="cl">1,100.0
-</span></span><span class="line"><span class="cl">2,99.0
-</span></span></code></pre></div><h2 id="conversion-between-pyflink-table-and-pandas-dataframe-1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">
+$  cat /tmp/output
+1,98.0
+1,99.0
+1,100.0
+2,99.0
+
+</code></pre></div><h2 id="conversion-between-pyflink-table-and-pandas-dataframe-1">
   Conversion between PyFlink Table and Pandas DataFrame
   <a class="anchor" href="#conversion-between-pyflink-table-and-pandas-dataframe-1">#</a>
 </h2>
 <p>You can use the <code>from_pandas()</code> method to create a PyFlink Table from a Pandas DataFrame or use the <code>to_pandas()</code> method to convert a PyFlink Table to a Pandas DataFrame.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
-</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span>
-</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
-</span></span><span class="line"><span class="cl"><span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Create a PyFlink Table</span>
-</span></span><span class="line"><span class="cl"><span class="n">pdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-</span></span><span class="line"><span class="cl"><span class="n">table</span> <span class="o">=</span> <span class="n">t_env</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="p">[</span><span class="s2">&#34;a&#34;</span><span class="p">,</span> <span class="s2">&#34;b&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&#34;a &gt; 0.5&#34;</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Convert the PyFlink Table to a Pandas DataFrame</span>
-</span></span><span class="line"><span class="cl"><span class="n">pdf</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
-</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span>
-</span></span></code></pre></div><h1 id="conclusion--upcoming-work">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python">
+<span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
+<span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
+<span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+<span class="c1"># Create a PyFlink Table</span>
+<span class="n">pdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">t_env</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">pdf</span><span class="p">,</span> <span class="p">[</span><span class="s2">&#34;a&#34;</span><span class="p">,</span> <span class="s2">&#34;b&#34;</span><span class="p">])</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&#34;a &gt; 0.5&#34;</span><span class="p">)</span>
+
+<span class="c1"># Convert the PyFlink Table to a Pandas DataFrame</span>
+<span class="n">pdf</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span>
+
+
+</code></pre></div><h1 id="conclusion--upcoming-work">
   Conclusion &amp; Upcoming work
   <a class="anchor" href="#conclusion--upcoming-work">#</a>
 </h1>

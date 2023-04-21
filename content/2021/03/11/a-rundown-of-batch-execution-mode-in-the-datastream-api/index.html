@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.">
@@ -13,11 +13,12 @@
 <meta property="og:url" content="https://flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-03-11T00:00:00+00:00" />
 <meta property="article:modified_time" content="2021-03-11T00:00:00+00:00" />
+
 <title>A Rundown of Batch Execution Mode in the DataStream API | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -851,7 +852,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -966,66 +967,66 @@ If the DataStream API sounds like the best fit for your use cases, the next deci
 <li><code>AUTOMATIC</code>: Let the system decide based on the boundedness of the sources</li>
 </ul>
 <p>This can be configured via command line parameters of <code>bin/flink run ...</code> when submitting a job:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
-</span></span></code></pre></div><p>, or programmatically when creating/configuring the <code>StreamExecutionEnvironment</code></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="na">setRuntimeMode</span><span class="o">(</span><span class="n">RuntimeExecutionMode</span><span class="o">.</span><span class="na">BATCH</span><span class="o">);</span>
-</span></span></code></pre></div><p>We recommend passing the execution mode when submitting the job, in order to keep your code configuration-free and potentially be able to execute the same application in different execution modes.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</code></pre></div><p>, or programmatically when creating/configuring the <code>StreamExecutionEnvironment</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+<span class="n">env</span><span class="o">.</span><span class="na">setRuntimeMode</span><span class="o">(</span><span class="n">RuntimeExecutionMode</span><span class="o">.</span><span class="na">BATCH</span><span class="o">);</span>
+</code></pre></div><p>We recommend passing the execution mode when submitting the job, in order to keep your code configuration-free and potentially be able to execute the same application in different execution modes.</p>
 <h3 id="hello-_batch_-mode">
   Hello <em>batch</em> mode
   <a class="anchor" href="#hello-_batch_-mode">#</a>
 </h3>
 <p>Now that you know how to set the execution mode, let&rsquo;s try to write a simple word count program and see how it behaves depending on the chosen mode. The program is a variation of a standard word count, where we count number of orders placed
 in a given currency. We derive the number in 1-day windows. We read the input data from a new <a href="//nightlies.apache.org/flinkflink-docs-release-1.12/api/java/org/apache/flink/connector/file/src/FileSource.html">unified file source</a> and then apply a <a href="//nightlies.apache.org/flinkflink-docs-release-1.12/dev/stream/operators/windows.html#windows">window aggregation</a>. Notice that we will be checking the side output for late arriving data, which can illustrate how watermarks behave differently in the two execution modes.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">WindowWordCount</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">	<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">OutputTag</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">LATE_DATA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OutputTag</span><span class="o">&lt;&gt;(</span>
-</span></span><span class="line"><span class="cl">		<span class="s">&#34;late-data&#34;</span><span class="o">,</span>
-</span></span><span class="line"><span class="cl">		<span class="n">BasicArrayTypeInfo</span><span class="o">.</span><span class="na">STRING_ARRAY_TYPE_INFO</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">		<span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl">		<span class="n">ParameterTool</span> <span class="n">config</span> <span class="o">=</span> <span class="n">ParameterTool</span><span class="o">.</span><span class="na">fromArgs</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">		<span class="n">Path</span> <span class="n">path</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;path&#34;</span><span class="o">));</span>
-</span></span><span class="line"><span class="cl">		<span class="n">SingleOutputStreamOperator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">env</span>
-</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">				<span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">path</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
-</span></span><span class="line"><span class="cl">				<span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">forBoundedOutOfOrderness</span><span class="o">(</span><span class="n">Duration</span><span class="o">.</span><span class="na">ofDays</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
-</span></span><span class="line"><span class="cl">					<span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">(</span><span class="k">new</span> <span class="n">OrderTimestampAssigner</span><span class="o">()),</span>
-</span></span><span class="line"><span class="cl">				<span class="s">&#34;Text file&#34;</span>
-</span></span><span class="line"><span class="cl">			<span class="o">)</span>
-</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="n">value</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="o">[</span><span class="mi">4</span><span class="o">])</span> <span class="c1">// group by currency
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">TumblingEventTimeWindows</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">days</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
-</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">sideOutputLateData</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">			<span class="o">.</span><span class="na">aggregate</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">				<span class="k">new</span> <span class="n">CountFunction</span><span class="o">(),</span> <span class="c1">// count number of orders in a given currency
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>				<span class="k">new</span> <span class="n">CombineWindow</span><span class="o">());</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">		<span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
-</span></span><span class="line"><span class="cl">		<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">lateData</span> <span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">getSideOutput</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">results</span> <span class="o">=</span> <span class="n">lateData</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">				<span class="n">String</span><span class="o">[]</span> <span class="n">late</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl">				<span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">					<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">toString</span><span class="o">(</span><span class="n">late</span><span class="o">));</span>
-</span></span><span class="line"><span class="cl">				<span class="o">}</span>
-</span></span><span class="line"><span class="cl">				<span class="n">i</span><span class="o">++;</span>
-</span></span><span class="line"><span class="cl">			<span class="o">}</span>
-</span></span><span class="line"><span class="cl">		<span class="o">}</span>
-</span></span><span class="line"><span class="cl">		<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&#34;Number of late records: &#34;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">results</span> 
-</span></span><span class="line"><span class="cl">				<span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">				<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">());</span>
-</span></span><span class="line"><span class="cl">			<span class="o">}</span>
-</span></span><span class="line"><span class="cl">		<span class="o">}</span>
-</span></span><span class="line"><span class="cl">	<span class="o">}</span>
-</span></span><span class="line"><span class="cl"><span class="o">}</span>
-</span></span></code></pre></div><p>If we simply execute the above program with:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run examples/streaming/WindowWordCount.jar
-</span></span></code></pre></div><p>it will be executed in a <em>streaming</em> mode by default. Because of that, it will use the given watermarking strategy and produce windows based on it. In real-time scenarios, it might happen that records do not adhere to watermarks and
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">WindowWordCount</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">OutputTag</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">LATE_DATA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OutputTag</span><span class="o">&lt;&gt;(</span>
+		<span class="s">&#34;late-data&#34;</span><span class="o">,</span>
+		<span class="n">BasicArrayTypeInfo</span><span class="o">.</span><span class="na">STRING_ARRAY_TYPE_INFO</span><span class="o">);</span>
+
+	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+
+		<span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+		<span class="n">ParameterTool</span> <span class="n">config</span> <span class="o">=</span> <span class="n">ParameterTool</span><span class="o">.</span><span class="na">fromArgs</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>
+
+		<span class="n">Path</span> <span class="n">path</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;path&#34;</span><span class="o">));</span>
+		<span class="n">SingleOutputStreamOperator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">env</span>
+			<span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+				<span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">path</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+				<span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">forBoundedOutOfOrderness</span><span class="o">(</span><span class="n">Duration</span><span class="o">.</span><span class="na">ofDays</span><span class="o">(</span><span class="n">1</span><span class="o">))</span>
+					<span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">(</span><span class="k">new</span> <span class="n">OrderTimestampAssigner</span><span class="o">()),</span>
+				<span class="s">&#34;Text file&#34;</span>
+			<span class="o">)</span>
+			<span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="n">value</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="o">[</span><span class="n">4</span><span class="o">])</span> <span class="c1">// group by currency
+</span><span class="c1"></span>			<span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">TumblingEventTimeWindows</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">days</span><span class="o">(</span><span class="n">1</span><span class="o">)))</span>
+			<span class="o">.</span><span class="na">sideOutputLateData</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">aggregate</span><span class="o">(</span>
+				<span class="k">new</span> <span class="n">CountFunction</span><span class="o">(),</span> <span class="c1">// count number of orders in a given currency
+</span><span class="c1"></span>				<span class="k">new</span> <span class="n">CombineWindow</span><span class="o">());</span>
+
+		<span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>
+		<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">lateData</span> <span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">getSideOutput</span><span class="o">(</span><span class="n">LATE_DATA</span><span class="o">);</span>
+		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">results</span> <span class="o">=</span> <span class="n">lateData</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
+			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+				<span class="n">String</span><span class="o">[]</span> <span class="n">late</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
+				<span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">100</span><span class="o">)</span> <span class="o">{</span>
+					<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">toString</span><span class="o">(</span><span class="n">late</span><span class="o">));</span>
+				<span class="o">}</span>
+				<span class="n">i</span><span class="o">++;</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+		<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&#34;Number of late records: &#34;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
+
+		<span class="k">try</span> <span class="o">(</span><span class="n">CloseableIterator</span><span class="o">&lt;</span><span class="n">Tuple4</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">results</span> 
+				<span class="o">=</span> <span class="n">dataStream</span><span class="o">.</span><span class="na">executeAndCollect</span><span class="o">())</span> <span class="o">{</span>
+			<span class="k">while</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+				<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="na">next</span><span class="o">());</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div><p>If we simply execute the above program with:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ bin/flink run examples/streaming/WindowWordCount.jar
+</code></pre></div><p>it will be executed in a <em>streaming</em> mode by default. Because of that, it will use the given watermarking strategy and produce windows based on it. In real-time scenarios, it might happen that records do not adhere to watermarks and
 some records might actually be considered late, so you&rsquo;ll get results like:</p>
 <pre tabindex="0"><code>...
 [1431681, 130936, F, 135996.21, NOK, 2020-04-11 07:53:02.674, 2-HIGH, Clerk#000000922, 0, quests. slyly regular platelets cajole ironic deposits: blithely even depos]
@@ -1047,8 +1048,8 @@ Number of late records: 1514
 (RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 ...
 </code></pre><p>However, if you execute the exact same code using the <em>batch</em> execution mode:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
-</span></span></code></pre></div><p>you&rsquo;ll see that there won&rsquo;t be any late records.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</code></pre></div><p>you&rsquo;ll see that there won&rsquo;t be any late records.</p>
 <pre tabindex="0"><code>Number of late records: 0
 (GBP,374,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (HKD,401,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
@@ -1068,29 +1069,29 @@ Number of late records: 1514
 </h3>
 <p>Operators that process data from multiple inputs can be executed in both execution modes as well. Let&rsquo;s see how we may implement a join of two data sets on a common key. (Disclaimer: Make sure to think first if you <a href="#which-api-and-execution-mode-should-i-use">should use the Table API/SQL</a> for your join!). We will enrich a stream of orders with information about the customer and we will make it run either of the two modes.</p>
 <p>For this particular use case, the DataStream API provides a <code>DataStream#join</code> method that requires a window in which the join must happen; since we&rsquo;ll process the data in bulk, we can use a <code>GlobalWindow</code> (that would otherwise not be very useful on its own in an <em>unbounded</em> case due to state size concerns):</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="n">env</span>
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">ordersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
-</span></span><span class="line"><span class="cl">        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
-</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="o">),</span>
-</span></span><span class="line"><span class="cl">        <span class="s">&#34;Text file&#34;</span>
-</span></span><span class="line"><span class="cl">    <span class="o">);</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">Path</span> <span class="n">customersPath</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">));</span>
-</span></span><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">customers</span> <span class="o">=</span> <span class="n">env</span>
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">customersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
-</span></span><span class="line"><span class="cl">        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
-</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="o">),</span>
-</span></span><span class="line"><span class="cl">        <span class="s">&#34;Text file&#34;</span>
-</span></span><span class="line"><span class="cl">    <span class="o">);</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">orders</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">customers</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="n">order</span> <span class="o">-&gt;</span> <span class="n">order</span><span class="o">[</span><span class="mi">1</span><span class="o">]).</span><span class="na">equalTo</span><span class="o">(</span><span class="n">customer</span> <span class="o">-&gt;</span> <span class="n">customer</span><span class="o">[</span><span class="mi">0</span><span class="o">])</span> <span class="c1">// join on customer id
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">GlobalWindows</span><span class="o">.</span><span class="na">create</span><span class="o">())</span>
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">trigger</span><span class="o">(</span><span class="n">ContinuousProcessingTimeTrigger</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">seconds</span><span class="o">(</span><span class="mi">5</span><span class="o">)))</span>
-</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="k">new</span> <span class="n">ProjectFunction</span><span class="o">());</span>
-</span></span></code></pre></div><p>You might notice the <code>ContinuousProcessingTimeTrigger</code>. It is there for the application to produce results in a <em>streaming</em> mode. In a <em>streaming</em> application the <code>GlobalWindow</code> never finishes so we need to add a processing time trigger to emit results from time to time. We believe triggers are a way to control when to emit results, but are not part of the logic what to emit. Therefore we think it is safe to ignore those in case of <em>batch</em> mode and that&rsquo;s what we do. In <em>batch</em> mode you will just get one final result for the join.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">ordersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
+            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="n">1</span><span class="o">),</span>
+        <span class="s">&#34;Text file&#34;</span>
+    <span class="o">);</span>
+
+<span class="n">Path</span> <span class="n">customersPath</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">));</span>
+<span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span> <span class="n">customers</span> <span class="o">=</span> <span class="n">env</span>
+    <span class="o">.</span><span class="na">fromSource</span><span class="o">(</span>
+        <span class="n">FileSource</span><span class="o">.</span><span class="na">forRecordStreamFormat</span><span class="o">(</span><span class="k">new</span> <span class="n">TsvFormat</span><span class="o">(),</span> <span class="n">customersPath</span><span class="o">).</span><span class="na">build</span><span class="o">(),</span>
+        <span class="n">WatermarkStrategy</span><span class="o">.&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="o">()</span>
+            <span class="o">.</span><span class="na">withTimestampAssigner</span><span class="o">((</span><span class="n">record</span><span class="o">,</span> <span class="n">previous</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">-</span><span class="n">1</span><span class="o">),</span>
+        <span class="s">&#34;Text file&#34;</span>
+    <span class="o">);</span>
+
+<span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">dataStream</span> <span class="o">=</span> <span class="n">orders</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">customers</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">where</span><span class="o">(</span><span class="n">order</span> <span class="o">-&gt;</span> <span class="n">order</span><span class="o">[</span><span class="n">1</span><span class="o">]).</span><span class="na">equalTo</span><span class="o">(</span><span class="n">customer</span> <span class="o">-&gt;</span> <span class="n">customer</span><span class="o">[</span><span class="n">0</span><span class="o">])</span> <span class="c1">// join on customer id
+</span><span class="c1"></span>    <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="n">GlobalWindows</span><span class="o">.</span><span class="na">create</span><span class="o">())</span>
+    <span class="o">.</span><span class="na">trigger</span><span class="o">(</span><span class="n">ContinuousProcessingTimeTrigger</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">Time</span><span class="o">.</span><span class="na">seconds</span><span class="o">(</span><span class="n">5</span><span class="o">)))</span>
+    <span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="k">new</span> <span class="n">ProjectFunction</span><span class="o">());</span>
+</code></pre></div><p>You might notice the <code>ContinuousProcessingTimeTrigger</code>. It is there for the application to produce results in a <em>streaming</em> mode. In a <em>streaming</em> application the <code>GlobalWindow</code> never finishes so we need to add a processing time trigger to emit results from time to time. We believe triggers are a way to control when to emit results, but are not part of the logic what to emit. Therefore we think it is safe to ignore those in case of <em>batch</em> mode and that&rsquo;s what we do. In <em>batch</em> mode you will just get one final result for the join.</p>
 <h2 id="looking-into-the-future">
   Looking into the future
   <a class="anchor" href="#looking-into-the-future">#</a>
@@ -1100,7 +1101,7 @@ Number of late records: 1514
 <p>We are also thinking how the two modes can be brought closer together and benefit from each other. A common pattern that we hear from users is bootstrapping state of a streaming job from a batch one. There are two somewhat different approaches we are considering here:</p>
 <ol>
 <li>
-<p>Having a mixed graph, where one of the branches would have only bounded sources and the other would reflect the unbounded part — you can think of such a graph as effectively two separate jobs. The bounded part would be executed first and sink into the state of a common vertex of the two parts. This jobs&rsquo; purpose would be to populate the state of the common operator. Once that job is done, we could proceed to running the unbounded part.</p>
+<p>Having a mixed graph, where one of the branches would have only bounded sources and the other would reflect the unbounded part — you can think of such a graph as effectively two separate jobs. The bounded part would be executed first and sink into the state of a common vertex of the two parts. This jobs' purpose would be to populate the state of the common operator. Once that job is done, we could proceed to running the unbounded part.</p>
 </li>
 <li>
 <p>Another approach is to run the exact same program first on the <em>bounded</em> data. However, this time we wouldn&rsquo;t assume completeness of the job; instead, we would produce the state of all operators up to a certain point in time and store it as a savepoint. Later on, we could use the savepoint to start the application on the <em>unbounded</em> data.</p>

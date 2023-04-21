@@ -3,23 +3,24 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Analyzing Data Streams with SQL # More and more companies are adopting stream processing and are migrating existing batch applications to streaming or implementing streaming solutions for new use cases. Many of those applications focus on analyzing streaming data. The data streams that are analyzed come from a wide variety of sources such as database transactions, clicks, sensor measurements, or IoT devices.
-Apache Flink is very well suited to power streaming analytics applications because it provides support for event-time semantics, stateful exactly-once processing, and achieves high throughput and low latency at the same time.">
+<meta name="description" content="Analyzing Data Streams with SQL #  More and more companies are adopting stream processing and are migrating existing batch applications to streaming or implementing streaming solutions for new use cases. Many of those applications focus on analyzing streaming data. The data streams that are analyzed come from a wide variety of sources such as database transactions, clicks, sensor measurements, or IoT devices.
+  Apache Flink is very well suited to power streaming analytics applications because it provides support for event-time semantics, stateful exactly-once processing, and achieves high throughput and low latency at the same time.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Continuous Queries on Dynamic Tables" />
-<meta property="og:description" content="Analyzing Data Streams with SQL # More and more companies are adopting stream processing and are migrating existing batch applications to streaming or implementing streaming solutions for new use cases. Many of those applications focus on analyzing streaming data. The data streams that are analyzed come from a wide variety of sources such as database transactions, clicks, sensor measurements, or IoT devices.
-Apache Flink is very well suited to power streaming analytics applications because it provides support for event-time semantics, stateful exactly-once processing, and achieves high throughput and low latency at the same time." />
+<meta property="og:description" content="Analyzing Data Streams with SQL #  More and more companies are adopting stream processing and are migrating existing batch applications to streaming or implementing streaming solutions for new use cases. Many of those applications focus on analyzing streaming data. The data streams that are analyzed come from a wide variety of sources such as database transactions, clicks, sensor measurements, or IoT devices.
+  Apache Flink is very well suited to power streaming analytics applications because it provides support for event-time semantics, stateful exactly-once processing, and achieves high throughput and low latency at the same time." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2017-03-30T12:00:00+00:00" />
 <meta property="article:modified_time" content="2017-03-30T12:00:00+00:00" />
+
 <title>Continuous Queries on Dynamic Tables | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -853,7 +854,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -955,29 +956,29 @@ https://github.com/alex-shpak/hugo-book
 <p><em><strong>a query produces exactly the same result regardless whether its input is static batch data or streaming data.</strong></em></p>
 <p>Unified APIs for stream and batch processing are important for several reasons. First of all, users only need to learn a single API to process static and streaming data. Moreover, the same query can be used to analyze batch and streaming data, which allows to jointly analyze historic and live data in the same query. At the current state we haven&rsquo;t achieved complete unification of batch and streaming semantics yet, but the community is making very good progress towards this goal.</p>
 <p>The following code snippet shows two equivalent Table API and SQL queries that compute a simple windowed aggregate on a stream of temperature sensor measurements. The syntax of the SQL query is based on <a href="https://calcite.apache.org">Apache Calcite&rsquo;s</a> syntax for <a href="https://calcite.apache.org/docs/reference.html#grouped-window-functions">grouped window functions</a> and will be supported in version 1.3.0 of Flink.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
-</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="n">setStreamTimeCharacteristic</span><span class="o">(</span><span class="nc">TimeCharacteristic</span><span class="o">.</span><span class="nc">EventTime</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">tEnv</span> <span class="k">=</span> <span class="nc">TableEnvironment</span><span class="o">.</span><span class="n">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">// define a table source to read sensor data (sensorId, time, room, temp)
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">sensorTable</span> <span class="k">=</span> <span class="o">???</span> <span class="c1">// can be a CSV file, Kafka topic, database, or ...
-</span></span></span><span class="line"><span class="cl"><span class="c1">// register the table source
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">tEnv</span><span class="o">.</span><span class="n">registerTableSource</span><span class="o">(</span><span class="s">&#34;sensors&#34;</span><span class="o">,</span> <span class="n">sensorTable</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">// Table API
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">tapiResult</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;sensors&#34;</span><span class="o">)</span>   <span class="c1">// scan sensors table
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;w<span class="o">)</span> <span class="c1">// define 1-hour window
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;w<span class="o">,</span> &#39;room<span class="o">)</span>                           <span class="c1">// group by window and room
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span> <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;room<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">end</span><span class="o">,</span> &#39;temp<span class="o">.</span><span class="n">avg</span> <span class="n">as</span> &#39;avgTemp<span class="o">)</span> <span class="c1">// compute average temperature
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
-</span></span><span class="line"><span class="cl"><span class="c1">// SQL
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">sqlResult</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&#34;&#34;&#34;
-</span></span></span><span class="line"><span class="cl"><span class="s"> |SELECT room, TUMBLE_END(rowtime, INTERVAL &#39;1&#39; HOUR), AVG(temp) AS avgTemp
-</span></span></span><span class="line"><span class="cl"><span class="s"> |FROM sensors
-</span></span></span><span class="line"><span class="cl"><span class="s"> |GROUP BY TUMBLE(rowtime, INTERVAL &#39;1&#39; HOUR), room
-</span></span></span><span class="line"><span class="cl"><span class="s"> |&#34;&#34;&#34;</span><span class="o">.</span><span class="n">stripMargin</span><span class="o">)</span>
-</span></span></code></pre></div><p>As you can see, both APIs are tightly integrated with each other and Flink&rsquo;s primary <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/datastream_api.html">DataStream</a> and <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/batch/index.html">DataSet</a> APIs. A <code>Table</code> can be generated from and converted to a <code>DataSet</code> or <code>DataStream</code>. Hence, it is easily possible to scan an external table source such as a database or <a href="https://parquet.apache.org">Parquet</a> file, do some preprocessing with a Table API query, convert the result into a <code>DataSet</code> and run a <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/libs/gelly/index.html">Gelly</a> graph algorithm on it. The queries defined in the example above can also be used to process batch data by changing the execution environment.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+<span class="n">env</span><span class="o">.</span><span class="n">setStreamTimeCharacteristic</span><span class="o">(</span><span class="nc">TimeCharacteristic</span><span class="o">.</span><span class="nc">EventTime</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">tEnv</span> <span class="k">=</span> <span class="nc">TableEnvironment</span><span class="o">.</span><span class="n">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
+
+<span class="c1">// define a table source to read sensor data (sensorId, time, room, temp)
+</span><span class="c1"></span><span class="k">val</span> <span class="n">sensorTable</span> <span class="k">=</span> <span class="o">???</span> <span class="c1">// can be a CSV file, Kafka topic, database, or ...
+</span><span class="c1">// register the table source
+</span><span class="c1"></span><span class="n">tEnv</span><span class="o">.</span><span class="n">registerTableSource</span><span class="o">(</span><span class="s">&#34;sensors&#34;</span><span class="o">,</span> <span class="n">sensorTable</span><span class="o">)</span>
+
+<span class="c1">// Table API
+</span><span class="c1"></span><span class="k">val</span> <span class="n">tapiResult</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;sensors&#34;</span><span class="o">)</span>   <span class="c1">// scan sensors table
+</span><span class="c1"></span> <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;w<span class="o">)</span> <span class="c1">// define 1-hour window
+</span><span class="c1"></span> <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;w<span class="o">,</span> &#39;room<span class="o">)</span>                           <span class="c1">// group by window and room
+</span><span class="c1"></span> <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;room<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">end</span><span class="o">,</span> &#39;temp<span class="o">.</span><span class="n">avg</span> <span class="n">as</span> &#39;avgTemp<span class="o">)</span> <span class="c1">// compute average temperature
+</span><span class="c1"></span>
+<span class="c1">// SQL
+</span><span class="c1"></span><span class="k">val</span> <span class="n">sqlResult</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&#34;&#34;&#34;
+</span><span class="s"> |SELECT room, TUMBLE_END(rowtime, INTERVAL &#39;1&#39; HOUR), AVG(temp) AS avgTemp
+</span><span class="s"> |FROM sensors
+</span><span class="s"> |GROUP BY TUMBLE(rowtime, INTERVAL &#39;1&#39; HOUR), room
+</span><span class="s"> |&#34;&#34;&#34;</span><span class="o">.</span><span class="n">stripMargin</span><span class="o">)</span>
+</code></pre></div><p>As you can see, both APIs are tightly integrated with each other and Flink&rsquo;s primary <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/datastream_api.html">DataStream</a> and <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/batch/index.html">DataSet</a> APIs. A <code>Table</code> can be generated from and converted to a <code>DataSet</code> or <code>DataStream</code>. Hence, it is easily possible to scan an external table source such as a database or <a href="https://parquet.apache.org">Parquet</a> file, do some preprocessing with a Table API query, convert the result into a <code>DataSet</code> and run a <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/libs/gelly/index.html">Gelly</a> graph algorithm on it. The queries defined in the example above can also be used to process batch data by changing the execution environment.</p>
 <p>Internally, both APIs are translated into the same logical representation, optimized by Apache Calcite, and compiled into DataStream or DataSet programs. In fact, the optimization and translation process does not know whether a query was defined using the Table API or SQL. If you are curious about the details of the optimization process, have a look at <a href="http://flink.apache.org/news/2016/05/24/stream-sql.html">a blog post</a> that we published last year. Since the Table API and SQL are equivalent in terms of semantics and only differ in syntax, we always refer to both APIs when we talk about SQL in this post.</p>
 <p>In its current state (version 1.2.0), Flink&rsquo;s relational APIs support a limited set of relational operators on data streams, including projections, filters, and windowed aggregates. All supported operators have in common that they never update result records which have been emitted. This is clearly not an issue for record-at-a-time operators such as projection and filter. However, it affects operators that collect and process multiple records as for instance windowed aggregates. Since emitted results cannot be updated, input records, which arrive after a result has been emitted, have to be discarded in Flink 1.2.0.</p>
 <p>The limitations of the current version are acceptable for applications that emit data to storage systems such as Kafka topics, message queues, or files which only support append operations and no updates or deletes. Common use cases that follow this pattern are for example continuous ETL and stream archiving applications that persist streams to an archive or prepare data for further online (streaming) analysis or later offline analysis. Since it is not possible to update previously emitted results, these kinds of applications have to make sure that the emitted results are correct and will not need to be corrected in the future. The following figure illustrates such applications.</p>

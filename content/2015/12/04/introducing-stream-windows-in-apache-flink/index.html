@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="The data analysis space is witnessing an evolution from batch to stream processing for many use cases. Although batch can be handled as a special case of stream processing, analyzing never-ending streaming data often requires a shift in the mindset and comes with its own terminology (for example, “windowing” and “at-least-once”/”exactly-once” processing). This shift and the new terminology can be quite confusing for people being new to the space of stream processing.">
@@ -13,11 +13,12 @@
 <meta property="og:url" content="https://flink.apache.org/2015/12/04/introducing-stream-windows-in-apache-flink/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2015-12-04T10:00:00+00:00" />
 <meta property="article:modified_time" content="2015-12-04T10:00:00+00:00" />
+
 <title>Introducing Stream Windows in Apache Flink | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -851,7 +852,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -946,23 +947,23 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p>As their name suggests, time windows group stream elements by time. For example, a tumbling time window of one minute collects elements for one minute and applies a function on all elements in the window after one minute passed.</p>
 <p>Defining tumbling and sliding time windows in Apache Flink is very easy:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// Stream of (sensorId, carCnt)
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">vehicleCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="o">...</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">tumblingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// key stream by sensorId
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> 
-</span></span><span class="line"><span class="cl">  <span class="c1">// tumbling time window of 1 minute length
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">minutes</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// compute sum over carCnt
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> 
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">slidingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> 
-</span></span><span class="line"><span class="cl">  <span class="c1">// sliding time window of 1 minute length and 30 secs trigger interval
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">minutes</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-</span></span></code></pre></div><p>There is one aspect that we haven&rsquo;t discussed yet, namely the exact meaning of &ldquo;<em>collects elements for one minute</em>&rdquo; which boils down to the question, &ldquo;<em>How does the stream processor interpret time?</em>&rdquo;.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// Stream of (sensorId, carCnt)
+</span><span class="c1"></span><span class="k">val</span> <span class="n">vehicleCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="o">...</span>
+
+<span class="k">val</span> <span class="n">tumblingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
+  <span class="c1">// key stream by sensorId
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> 
+  <span class="c1">// tumbling time window of 1 minute length
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">minutes</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+  <span class="c1">// compute sum over carCnt
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> 
+
+<span class="k">val</span> <span class="n">slidingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
+  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> 
+  <span class="c1">// sliding time window of 1 minute length and 30 secs trigger interval
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">minutes</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">30</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+</code></pre></div><p>There is one aspect that we haven&rsquo;t discussed yet, namely the exact meaning of &ldquo;<em>collects elements for one minute</em>&rdquo; which boils down to the question, &ldquo;<em>How does the stream processor interpret time?</em>&rdquo;.</p>
 <p>Apache Flink features three different notions of time, namely <em>processing time</em>, <em>event time</em>, and <em>ingestion time</em>.</p>
 <ol>
 <li>In <strong>processing time</strong>, windows are defined with respect to the wall clock of the machine that builds and processes a window, i.e., a one minute processing time window collects elements for exactly one minute.</li>
@@ -975,23 +976,23 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p>Apache Flink also features count windows. A tumbling count window of 100 will collect 100 events in a window and evaluate the window when the 100th element has been added.</p>
 <p>In Flink&rsquo;s DataStream API, tumbling and sliding count windows are defined as follows:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// Stream of (sensorId, carCnt)
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">vehicleCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="o">...</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">tumblingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// key stream by sensorId
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// tumbling count window of 100 elements size
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">countWindow</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// compute the carCnt sum 
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">slidingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">  <span class="c1">// sliding count window of 100 elements size and 10 elements trigger interval
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">.</span><span class="n">countWindow</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="mi">10</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-</span></span></code></pre></div><h2 id="dissecting-flinks-windowing-mechanics">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// Stream of (sensorId, carCnt)
+</span><span class="c1"></span><span class="k">val</span> <span class="n">vehicleCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="o">...</span>
+
+<span class="k">val</span> <span class="n">tumblingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
+  <span class="c1">// key stream by sensorId
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+  <span class="c1">// tumbling count window of 100 elements size
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">countWindow</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span>
+  <span class="c1">// compute the carCnt sum 
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">slidingCnts</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">vehicleCnts</span>
+  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+  <span class="c1">// sliding count window of 100 elements size and 10 elements trigger interval
+</span><span class="c1"></span>  <span class="o">.</span><span class="n">countWindow</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="mi">10</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+</code></pre></div><h2 id="dissecting-flinks-windowing-mechanics">
   Dissecting Flink&rsquo;s windowing mechanics
   <a class="anchor" href="#dissecting-flinks-windowing-mechanics">#</a>
 </h2>
@@ -1005,28 +1006,28 @@ https://github.com/alex-shpak/hugo-book
 <p>When a Trigger fires, the list of window elements can be given to an optional <code>Evictor</code>. The evictor can iterate through the list and decide to cut off some elements from the start of the list, i.e., remove some of the elements that entered the window first. The remaining elements are given to an evaluation function. If no Evictor was defined, the Trigger hands all the window elements directly to the evaluation function.</p>
 <p>The evaluation function receives the elements of a window (possibly filtered by an Evictor) and computes one or more result elements for the window. The DataStream API accepts different types of evaluation functions, including predefined aggregation functions such as <code>sum()</code>, <code>min()</code>, <code>max()</code>, as well as a <code>ReduceFunction</code>, <code>FoldFunction</code>, or <code>WindowFunction</code>. A WindowFunction is the most generic evaluation function and receives the window object (i.e, the meta data of the window), the list of window elements, and the window key (in case of a keyed window) as parameters.</p>
 <p>These are the components that constitute Flink&rsquo;s windowing mechanics. We now show step-by-step how to implement custom windowing logic with the DataStream API. We start with a stream of type <code>DataStream[IN]</code> and key it using a key selector function that extracts a key of type <code>KEY</code> to obtain a <code>KeyedStream[IN, KEY]</code>.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">val</span> <span class="n">input</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[</span><span class="kt">IN</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">// created a keyed stream using a key selector function
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">keyed</span><span class="k">:</span> <span class="kt">KeyedStream</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">KEY</span><span class="o">]</span> <span class="k">=</span> <span class="n">input</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="n">myKeySel</span><span class="k">:</span> <span class="o">(</span><span class="kt">IN</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="nc">KEY</span><span class="o">)</span>
-</span></span></code></pre></div><p>We apply a <code>WindowAssigner[IN, WINDOW]</code> that creates windows of type <code>WINDOW</code> resulting in a <code>WindowedStream[IN, KEY, WINDOW]</code>. In addition, a <code>WindowAssigner</code> also provides a default <code>Trigger</code> implementation.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// create windowed stream using a WindowAssigner
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">var</span> <span class="n">windowed</span><span class="k">:</span> <span class="kt">WindowedStream</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">KEY</span>, <span class="kt">WINDOW</span><span class="o">]</span> <span class="k">=</span> <span class="n">keyed</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="n">myAssigner</span><span class="k">:</span> <span class="kt">WindowAssigner</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
-</span></span></code></pre></div><p>We can explicitly specify a <code>Trigger</code> to overwrite the default <code>Trigger</code> provided by the <code>WindowAssigner</code>. Note that specifying a triggers does not add an additional trigger condition but replaces the current trigger.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// override the default trigger of the WindowAssigner
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">windowed</span> <span class="k">=</span> <span class="n">windowed</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">trigger</span><span class="o">(</span><span class="n">myTrigger</span><span class="k">:</span> <span class="kt">Trigger</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
-</span></span></code></pre></div><p>We may want to specify an optional <code>Evictor</code> as follows.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// specify an optional evictor
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">windowed</span> <span class="k">=</span> <span class="n">windowed</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">evictor</span><span class="o">(</span><span class="n">myEvictor</span><span class="k">:</span> <span class="kt">Evictor</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
-</span></span></code></pre></div><p>Finally, we apply a <code>WindowFunction</code> that returns elements of type <code>OUT</code> to obtain a <code>DataStream[OUT]</code>.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// apply window function to windowed stream
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">output</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[</span><span class="kt">OUT</span><span class="o">]</span> <span class="k">=</span> <span class="n">windowed</span>
-</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">apply</span><span class="o">(</span><span class="n">myWinFunc</span><span class="k">:</span> <span class="kt">WindowFunction</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">OUT</span>, <span class="kt">KEY</span>, <span class="kt">WINDOW</span><span class="o">])</span>
-</span></span></code></pre></div><p>With Flink&rsquo;s internal windowing mechanics and its exposure through the DataStream API it is possible to implement very custom windowing logic such as session windows or windows that emit early results if the values exceed a certain threshold.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">input</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[</span><span class="kt">IN</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+
+<span class="c1">// created a keyed stream using a key selector function
+</span><span class="c1"></span><span class="k">val</span> <span class="n">keyed</span><span class="k">:</span> <span class="kt">KeyedStream</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">KEY</span><span class="o">]</span> <span class="k">=</span> <span class="n">input</span>
+  <span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="n">myKeySel</span><span class="k">:</span> <span class="o">(</span><span class="kt">IN</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="nc">KEY</span><span class="o">)</span>
+</code></pre></div><p>We apply a <code>WindowAssigner[IN, WINDOW]</code> that creates windows of type <code>WINDOW</code> resulting in a <code>WindowedStream[IN, KEY, WINDOW]</code>. In addition, a <code>WindowAssigner</code> also provides a default <code>Trigger</code> implementation.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// create windowed stream using a WindowAssigner
+</span><span class="c1"></span><span class="k">var</span> <span class="n">windowed</span><span class="k">:</span> <span class="kt">WindowedStream</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">KEY</span>, <span class="kt">WINDOW</span><span class="o">]</span> <span class="k">=</span> <span class="n">keyed</span>
+  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="n">myAssigner</span><span class="k">:</span> <span class="kt">WindowAssigner</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
+</code></pre></div><p>We can explicitly specify a <code>Trigger</code> to overwrite the default <code>Trigger</code> provided by the <code>WindowAssigner</code>. Note that specifying a triggers does not add an additional trigger condition but replaces the current trigger.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// override the default trigger of the WindowAssigner
+</span><span class="c1"></span><span class="n">windowed</span> <span class="k">=</span> <span class="n">windowed</span>
+  <span class="o">.</span><span class="n">trigger</span><span class="o">(</span><span class="n">myTrigger</span><span class="k">:</span> <span class="kt">Trigger</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
+</code></pre></div><p>We may want to specify an optional <code>Evictor</code> as follows.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// specify an optional evictor
+</span><span class="c1"></span><span class="n">windowed</span> <span class="k">=</span> <span class="n">windowed</span>
+  <span class="o">.</span><span class="n">evictor</span><span class="o">(</span><span class="n">myEvictor</span><span class="k">:</span> <span class="kt">Evictor</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">WINDOW</span><span class="o">])</span>
+</code></pre></div><p>Finally, we apply a <code>WindowFunction</code> that returns elements of type <code>OUT</code> to obtain a <code>DataStream[OUT]</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// apply window function to windowed stream
+</span><span class="c1"></span><span class="k">val</span> <span class="n">output</span><span class="k">:</span> <span class="kt">DataStream</span><span class="o">[</span><span class="kt">OUT</span><span class="o">]</span> <span class="k">=</span> <span class="n">windowed</span>
+  <span class="o">.</span><span class="n">apply</span><span class="o">(</span><span class="n">myWinFunc</span><span class="k">:</span> <span class="kt">WindowFunction</span><span class="o">[</span><span class="kt">IN</span>, <span class="kt">OUT</span>, <span class="kt">KEY</span>, <span class="kt">WINDOW</span><span class="o">])</span>
+</code></pre></div><p>With Flink&rsquo;s internal windowing mechanics and its exposure through the DataStream API it is possible to implement very custom windowing logic such as session windows or windows that emit early results if the values exceed a certain threshold.</p>
 <h2 id="conclusion">
   Conclusion
   <a class="anchor" href="#conclusion">#</a>
