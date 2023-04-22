@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Apache Storm was one of the first distributed and scalable stream processing systems available in the open source space offering (near) real-time tuple-by-tuple processing semantics. Initially released by the developers at Backtype in 2011 under the Eclipse open-source license, it became popular very quickly. Only shortly afterwards, Twitter acquired Backtype. Since then, Storm has been growing in popularity, is used in production at many big companies, and is the de-facto industry standard for big data stream processing.">
@@ -13,12 +13,11 @@
 <meta property="og:url" content="https://flink.apache.org/2015/12/11/storm-compatibility-in-apache-flink-how-to-run-existing-storm-topologies-on-flink/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2015-12-11T10:00:00+00:00" />
 <meta property="article:modified_time" content="2015-12-11T10:00:00+00:00" />
-
 <title>Storm Compatibility in Apache Flink: How to run existing Storm topologies on Flink | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -852,7 +851,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -947,36 +946,36 @@ However, it is powerful enough to cover many use cases.</p>
 For this, you only need to replace the dependency <code>storm-core</code> by <code>flink-storm</code> in your Storm project and <strong>change two lines of code</strong> in your original Storm program.</p>
 <p>The following example shows a simple Storm-Word-Count-Program that can be executed in Flink.
 First, the program is assembled the Storm way without any code change to Spouts, Bolts, or the topology itself.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="c1">// assemble topology, the Storm way
-</span><span class="c1"></span><span class="n">TopologyBuilder</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TopologyBuilder</span><span class="o">();</span>
-<span class="n">builder</span><span class="o">.</span><span class="na">setSpout</span><span class="o">(</span><span class="s">&#34;source&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormFileSpout</span><span class="o">(</span><span class="n">inputFilePath</span><span class="o">));</span>
-<span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;tokenizer&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltTokenizer</span><span class="o">())</span>
-       <span class="o">.</span><span class="na">shuffleGrouping</span><span class="o">(</span><span class="s">&#34;source&#34;</span><span class="o">);</span>
-<span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;counter&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltCounter</span><span class="o">())</span>
-       <span class="o">.</span><span class="na">fieldsGrouping</span><span class="o">(</span><span class="s">&#34;tokenizer&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">Fields</span><span class="o">(</span><span class="s">&#34;word&#34;</span><span class="o">));</span>
-<span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;sink&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltFileSink</span><span class="o">(</span><span class="n">outputFilePath</span><span class="o">))</span>
-       <span class="o">.</span><span class="na">shuffleGrouping</span><span class="o">(</span><span class="s">&#34;counter&#34;</span><span class="o">);</span>
-</code></pre></div><p>In order to execute the topology, we need to translate it to a <code>FlinkTopology</code> and submit it to a local or remote Flink cluster, very similar to submitting the application to a Storm cluster.<sup><a href="#fn1" id="ref1">1</a></sup></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="c1">// transform Storm topology to Flink program
-</span><span class="c1">// replaces: StormTopology topology = builder.createTopology();
-</span><span class="c1"></span><span class="n">FlinkTopology</span> <span class="n">topology</span> <span class="o">=</span> <span class="n">FlinkTopology</span><span class="o">.</span><span class="na">createTopology</span><span class="o">(</span><span class="n">builder</span><span class="o">);</span>
-
-<span class="n">Config</span> <span class="n">conf</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Config</span><span class="o">();</span>
-<span class="k">if</span><span class="o">(</span><span class="n">runLocal</span><span class="o">)</span> <span class="o">{</span>
-	<span class="c1">// use FlinkLocalCluster instead of LocalCluster
-</span><span class="c1"></span>	<span class="n">FlinkLocalCluster</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">FlinkLocalCluster</span><span class="o">.</span><span class="na">getLocalCluster</span><span class="o">();</span>
-	<span class="n">cluster</span><span class="o">.</span><span class="na">submitTopology</span><span class="o">(</span><span class="s">&#34;WordCount&#34;</span><span class="o">,</span> <span class="n">conf</span><span class="o">,</span> <span class="n">topology</span><span class="o">);</span>
-<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-	<span class="c1">// use FlinkSubmitter instead of StormSubmitter
-</span><span class="c1"></span>	<span class="n">FlinkSubmitter</span><span class="o">.</span><span class="na">submitTopology</span><span class="o">(</span><span class="s">&#34;WordCount&#34;</span><span class="o">,</span> <span class="n">conf</span><span class="o">,</span> <span class="n">topology</span><span class="o">);</span>
-<span class="o">}</span>
-</code></pre></div><p>As a shorter Flink-style alternative that replaces the Storm-style submission code, you can also use context-based job execution:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="c1">// transform Storm topology to Flink program (as above)
-</span><span class="c1"></span><span class="n">FlinkTopology</span> <span class="n">topology</span> <span class="o">=</span> <span class="n">FlinkTopology</span><span class="o">.</span><span class="na">createTopology</span><span class="o">(</span><span class="n">builder</span><span class="o">);</span>
-
-<span class="c1">// executes locally by default or remotely if submitted with Flink&#39;s command-line client
-</span><span class="c1"></span><span class="n">topology</span><span class="o">.</span><span class="na">execute</span><span class="o">()</span>
-</code></pre></div><p>After the code is packaged in a jar file (e.g., <code>StormWordCount.jar</code>), it can be easily submitted to Flink via</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// assemble topology, the Storm way
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">TopologyBuilder</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TopologyBuilder</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">builder</span><span class="o">.</span><span class="na">setSpout</span><span class="o">(</span><span class="s">&#34;source&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormFileSpout</span><span class="o">(</span><span class="n">inputFilePath</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl"><span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;tokenizer&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltTokenizer</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">       <span class="o">.</span><span class="na">shuffleGrouping</span><span class="o">(</span><span class="s">&#34;source&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;counter&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltCounter</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">       <span class="o">.</span><span class="na">fieldsGrouping</span><span class="o">(</span><span class="s">&#34;tokenizer&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">Fields</span><span class="o">(</span><span class="s">&#34;word&#34;</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl"><span class="n">builder</span><span class="o">.</span><span class="na">setBolt</span><span class="o">(</span><span class="s">&#34;sink&#34;</span><span class="o">,</span> <span class="k">new</span> <span class="n">StormBoltFileSink</span><span class="o">(</span><span class="n">outputFilePath</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">       <span class="o">.</span><span class="na">shuffleGrouping</span><span class="o">(</span><span class="s">&#34;counter&#34;</span><span class="o">);</span>
+</span></span></code></pre></div><p>In order to execute the topology, we need to translate it to a <code>FlinkTopology</code> and submit it to a local or remote Flink cluster, very similar to submitting the application to a Storm cluster.<sup><a href="#fn1" id="ref1">1</a></sup></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// transform Storm topology to Flink program
+</span></span></span><span class="line"><span class="cl"><span class="c1">// replaces: StormTopology topology = builder.createTopology();
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">FlinkTopology</span> <span class="n">topology</span> <span class="o">=</span> <span class="n">FlinkTopology</span><span class="o">.</span><span class="na">createTopology</span><span class="o">(</span><span class="n">builder</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Config</span> <span class="n">conf</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Config</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span><span class="o">(</span><span class="n">runLocal</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// use FlinkLocalCluster instead of LocalCluster
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">FlinkLocalCluster</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">FlinkLocalCluster</span><span class="o">.</span><span class="na">getLocalCluster</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">	<span class="n">cluster</span><span class="o">.</span><span class="na">submitTopology</span><span class="o">(</span><span class="s">&#34;WordCount&#34;</span><span class="o">,</span> <span class="n">conf</span><span class="o">,</span> <span class="n">topology</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// use FlinkSubmitter instead of StormSubmitter
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="n">FlinkSubmitter</span><span class="o">.</span><span class="na">submitTopology</span><span class="o">(</span><span class="s">&#34;WordCount&#34;</span><span class="o">,</span> <span class="n">conf</span><span class="o">,</span> <span class="n">topology</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>As a shorter Flink-style alternative that replaces the Storm-style submission code, you can also use context-based job execution:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// transform Storm topology to Flink program (as above)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">FlinkTopology</span> <span class="n">topology</span> <span class="o">=</span> <span class="n">FlinkTopology</span><span class="o">.</span><span class="na">createTopology</span><span class="o">(</span><span class="n">builder</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// executes locally by default or remotely if submitted with Flink&#39;s command-line client
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">topology</span><span class="o">.</span><span class="na">execute</span><span class="o">()</span>
+</span></span></code></pre></div><p>After the code is packaged in a jar file (e.g., <code>StormWordCount.jar</code>), it can be easily submitted to Flink via</p>
 <pre tabindex="0"><code>bin/flink run StormWordCount.jar
 </code></pre><p>The used Spouts and Bolts as well as the topology assemble code is not changed at all!
 Only the translation and submission step have to be changed to the Storm-API compatible Flink pendants.
@@ -989,35 +988,35 @@ This allows for minimal code changes and easy adaption to Flink.</p>
 The compatibility package provides wrapper classes for Spouts and Bolts which are implemented as a Flink <code>SourceFunction</code> and <code>StreamOperator</code> respectively.
 Those wrappers automatically translate incoming Flink POJO and <code>TupleXX</code> records into Storm&rsquo;s <code>Tuple</code> type and emitted <code>Values</code> back into either POJOs or <code>TupleXX</code> types for further processing by Flink operators.
 As Storm is type agnostic, it is required to specify the output type of embedded Spouts/Bolts manually to get a fully typed Flink streaming program.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="c1">// use regular Flink streaming environment
-</span><span class="c1"></span><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
-
-<span class="c1">// use Spout as source
-</span><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">source</span> <span class="o">=</span> 
-  <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="c1">// Flink provided wrapper including original Spout
-</span><span class="c1"></span>                <span class="k">new</span> <span class="n">SpoutWrapper</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;(</span><span class="k">new</span> <span class="n">FileSpout</span><span class="o">(</span><span class="n">localFilePath</span><span class="o">)),</span> 
-                <span class="c1">// specify output type manually
-</span><span class="c1"></span>                <span class="n">TypeExtractor</span><span class="o">.</span><span class="na">getForObject</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;(</span><span class="s">&#34;&#34;</span><span class="o">)));</span>
-<span class="c1">// FileSpout cannot be parallelized
-</span><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">text</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="na">setParallelism</span><span class="o">(</span><span class="n">1</span><span class="o">);</span>
-
-<span class="c1">// further processing with Flink
-</span><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="n">Tokenizer</span><span class="o">()).</span><span class="na">keyBy</span><span class="o">(</span><span class="n">0</span><span class="o">);</span>
-
-<span class="c1">// use Bolt for counting
-</span><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">counts</span> <span class="o">=</span>
-  <span class="n">tokens</span><span class="o">.</span><span class="na">transform</span><span class="o">(</span><span class="s">&#34;Counter&#34;</span><span class="o">,</span>
-                   <span class="c1">// specify output type manually
-</span><span class="c1"></span>                   <span class="n">TypeExtractor</span><span class="o">.</span><span class="na">getForObject</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;(</span><span class="s">&#34;&#34;</span><span class="o">,</span><span class="n">0</span><span class="o">))</span>
-                   <span class="c1">// Flink provided wrapper including original Bolt
-</span><span class="c1"></span>                   <span class="k">new</span> <span class="n">BoltWrapper</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;&gt;(</span><span class="k">new</span> <span class="n">BoltCounter</span><span class="o">()));</span>
-
-<span class="c1">// write result to file via Flink sink
-</span><span class="c1"></span><span class="n">counts</span><span class="o">.</span><span class="na">writeAsText</span><span class="o">(</span><span class="n">outputPath</span><span class="o">);</span>
-
-<span class="c1">// start Flink job
-</span><span class="c1"></span><span class="n">env</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">&#34;WordCount with Spout source and Bolt counter&#34;</span><span class="o">);</span>
-</code></pre></div><p>Although some boilerplate code is needed (we plan to address this soon!), the actual embedded Spout and Bolt code can be used unmodified.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// use regular Flink streaming environment
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// use Spout as source
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">source</span> <span class="o">=</span> 
+</span></span><span class="line"><span class="cl">  <span class="n">env</span><span class="o">.</span><span class="na">addSource</span><span class="o">(</span><span class="c1">// Flink provided wrapper including original Spout
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="k">new</span> <span class="n">SpoutWrapper</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;(</span><span class="k">new</span> <span class="n">FileSpout</span><span class="o">(</span><span class="n">localFilePath</span><span class="o">)),</span> 
+</span></span><span class="line"><span class="cl">                <span class="c1">// specify output type manually
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="n">TypeExtractor</span><span class="o">.</span><span class="na">getForObject</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;(</span><span class="s">&#34;&#34;</span><span class="o">)));</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// FileSpout cannot be parallelized
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple1</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">text</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="na">setParallelism</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// further processing with Flink
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="n">Tokenizer</span><span class="o">()).</span><span class="na">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// use Bolt for counting
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">counts</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">  <span class="n">tokens</span><span class="o">.</span><span class="na">transform</span><span class="o">(</span><span class="s">&#34;Counter&#34;</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">                   <span class="c1">// specify output type manually
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                   <span class="n">TypeExtractor</span><span class="o">.</span><span class="na">getForObject</span><span class="o">(</span><span class="k">new</span> <span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;(</span><span class="s">&#34;&#34;</span><span class="o">,</span><span class="mi">0</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">                   <span class="c1">// Flink provided wrapper including original Bolt
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                   <span class="k">new</span> <span class="n">BoltWrapper</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Integer</span><span class="o">&gt;&gt;(</span><span class="k">new</span> <span class="n">BoltCounter</span><span class="o">()));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// write result to file via Flink sink
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">counts</span><span class="o">.</span><span class="na">writeAsText</span><span class="o">(</span><span class="n">outputPath</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// start Flink job
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">env</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="s">&#34;WordCount with Spout source and Bolt counter&#34;</span><span class="o">);</span>
+</span></span></code></pre></div><p>Although some boilerplate code is needed (we plan to address this soon!), the actual embedded Spout and Bolt code can be used unmodified.
 We also note that the resulting program is fully typed, and type errors will be found by Flink&rsquo;s type extractor even if the original Spouts and Bolts are not.</p>
 <h2 id="outlook">
   Outlook

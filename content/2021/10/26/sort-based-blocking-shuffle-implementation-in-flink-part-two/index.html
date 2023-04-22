@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Part one of this blog post explained the motivation behind introducing sort-based blocking shuffle, presented benchmark results, and provided guidelines on how to use this new feature.
@@ -15,12 +15,11 @@ Like sort-merge shuffle implemented by other distributed data processing framewo
 <meta property="og:url" content="https://flink.apache.org/2021/10/26/sort-based-blocking-shuffle-implementation-in-flink-part-two/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2021-10-26T00:00:00+00:00" />
 <meta property="article:modified_time" content="2021-10-26T00:00:00+00:00" />
-
 <title>Sort-Based Blocking Shuffle Implementation in Flink - Part Two | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -854,7 +853,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -978,29 +977,29 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#in-memory-sort">#</a>
 </h2>
 <p>In the sort-spill phase, data records are serialized to the in-memory sort buffer first. When the sort buffer is full or all output has been finished, the data in the sort buffer will be copied and spilled into the target data file in the specific order. The following is the sort buffer interface in Flink:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">SortBuffer</span> <span class="o">{</span>
-
-    <span class="cm">/** Appends data of the specified channel to this SortBuffer. */</span>
-    <span class="kt">boolean</span> <span class="nf">append</span><span class="o">(</span><span class="n">ByteBuffer</span> <span class="n">source</span><span class="o">,</span> <span class="kt">int</span> <span class="n">targetChannel</span><span class="o">,</span> <span class="n">Buffer</span><span class="o">.</span><span class="na">DataType</span> <span class="n">dataType</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="o">;</span>
-
-    <span class="cm">/** Copies data in this SortBuffer to the target MemorySegment. */</span>
-    <span class="n">BufferWithChannel</span> <span class="nf">copyIntoSegment</span><span class="o">(</span><span class="n">MemorySegment</span> <span class="n">target</span><span class="o">);</span>
-
-    <span class="kt">long</span> <span class="nf">numRecords</span><span class="o">();</span>
-
-    <span class="kt">long</span> <span class="nf">numBytes</span><span class="o">();</span>
-
-    <span class="kt">boolean</span> <span class="nf">hasRemaining</span><span class="o">();</span>
-
-    <span class="kt">void</span> <span class="nf">finish</span><span class="o">();</span>
-
-    <span class="kt">boolean</span> <span class="nf">isFinished</span><span class="o">();</span>
-
-    <span class="kt">void</span> <span class="nf">release</span><span class="o">();</span>
-
-    <span class="kt">boolean</span> <span class="nf">isReleased</span><span class="o">();</span>
-<span class="o">}</span>
-</code></pre></div><p>Currently, Flink does not need to sort records by key on the data producer side, so the default implementation of sort buffer only sorts data by subpartition index, which is achieved by binary bucket sort. More specifically, each data record will be serialized and attached a 16 bytes binary header. Among the 16 bytes, 4 bytes is for the record length, 4 bytes is for the data type (event or data buffer) and 8 bytes is for pointers to the next records belonging to the same subpartition to be consumed by the same downstream data consumer. When reading data from the sort buffer, all records of the same subpartition will be copied one by one following the pointer in the record header, which guarantees that for each subpartition, the order of record reading/spilling is the same order as when the record is emitted by the producer task. The following picture shows the internal structure of the in-memory binary sort buffer:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">SortBuffer</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/** Appends data of the specified channel to this SortBuffer. */</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">boolean</span> <span class="nf">append</span><span class="o">(</span><span class="n">ByteBuffer</span> <span class="n">source</span><span class="o">,</span> <span class="kt">int</span> <span class="n">targetChannel</span><span class="o">,</span> <span class="n">Buffer</span><span class="o">.</span><span class="na">DataType</span> <span class="n">dataType</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="cm">/** Copies data in this SortBuffer to the target MemorySegment. */</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BufferWithChannel</span> <span class="nf">copyIntoSegment</span><span class="o">(</span><span class="n">MemorySegment</span> <span class="n">target</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span> <span class="nf">numRecords</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">long</span> <span class="nf">numBytes</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">boolean</span> <span class="nf">hasRemaining</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="nf">finish</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">boolean</span> <span class="nf">isFinished</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="nf">release</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">boolean</span> <span class="nf">isReleased</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Currently, Flink does not need to sort records by key on the data producer side, so the default implementation of sort buffer only sorts data by subpartition index, which is achieved by binary bucket sort. More specifically, each data record will be serialized and attached a 16 bytes binary header. Among the 16 bytes, 4 bytes is for the record length, 4 bytes is for the data type (event or data buffer) and 8 bytes is for pointers to the next records belonging to the same subpartition to be consumed by the same downstream data consumer. When reading data from the sort buffer, all records of the same subpartition will be copied one by one following the pointer in the record header, which guarantees that for each subpartition, the order of record reading/spilling is the same order as when the record is emitted by the producer task. The following picture shows the internal structure of the in-memory binary sort buffer:</p>
 <center>
 <img src="/img/blog/2021-10-26-sort-shuffle/1.jpg" width="70%"/>
 </center>
@@ -1022,18 +1021,18 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#io-scheduling">#</a>
 </h2>
 <p>Based on the storage structure described above, we introduced the IO scheduling technique to achieve more sequential reads for the sort-based blocking shuffle in Flink. The core idea behind IO scheduling is pretty simple. Just like the <a href="https://en.wikipedia.org/wiki/Elevator_algorithm">elevator algorithm</a> for disk scheduling, the IO scheduling for sort-based blocking shuffle always tries to serve data read requests in the file offset order. More formally, we have n data regions indexed from 0 to n-1 in a result partition file. In each data region, there are m data subpartitions to be consumed by m downstream data consumers. These data consumers read data concurrently.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="c1">// let data_regions as the data region list indexed from 0 to n - 1
-</span><span class="c1">// let data_readers as the concurrent downstream data readers queue indexed from 0 to m - 1
-</span><span class="c1"></span><span class="k">for</span> <span class="o">(</span><span class="n">data_region</span> <span class="n">in</span> <span class="n">data_regions</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">data_reader</span> <span class="o">=</span> <span class="n">poll_reader_of_the_smallest_file_offset</span><span class="o">(</span><span class="n">data_readers</span><span class="o">);</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">data_reader</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
-        <span class="k">break</span><span class="o">;</span>
-    <span class="n">reading_buffers</span> <span class="o">=</span> <span class="n">request_reading_buffers</span><span class="o">();</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">reading_buffers</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span>
-        <span class="k">break</span><span class="o">;</span>
-    <span class="n">read_data</span><span class="o">(</span><span class="n">data_region</span><span class="o">,</span> <span class="n">data_reader</span><span class="o">,</span> <span class="n">reading_buffers</span><span class="o">);</span>
-<span class="o">}</span> 
-</code></pre></div><h2 id="broadcast-optimization">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// let data_regions as the data region list indexed from 0 to n - 1
+</span></span></span><span class="line"><span class="cl"><span class="c1">// let data_readers as the concurrent downstream data readers queue indexed from 0 to m - 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="o">(</span><span class="n">data_region</span> <span class="n">in</span> <span class="n">data_regions</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">data_reader</span> <span class="o">=</span> <span class="n">poll_reader_of_the_smallest_file_offset</span><span class="o">(</span><span class="n">data_readers</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="o">(</span><span class="n">data_reader</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">break</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">reading_buffers</span> <span class="o">=</span> <span class="n">request_reading_buffers</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="o">(</span><span class="n">reading_buffers</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">        <span class="k">break</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">read_data</span><span class="o">(</span><span class="n">data_region</span><span class="o">,</span> <span class="n">data_reader</span><span class="o">,</span> <span class="n">reading_buffers</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span> 
+</span></span></code></pre></div><h2 id="broadcast-optimization">
   Broadcast optimization
   <a class="anchor" href="#broadcast-optimization">#</a>
 </h2>

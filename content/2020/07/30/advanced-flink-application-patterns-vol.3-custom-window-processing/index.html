@@ -3,22 +3,21 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=".tg {border-collapse:collapse;border-spacing:0;} .tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;} .tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;} .tg .tg-wide{padding:10px 30px;} .tg .tg-top{vertical-align:top} .tg .tg-topcenter{text-align:center;vertical-align:top} .tg .tg-center{text-align:center;vertical-align:center}  Introduction #  In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements.">
+<meta name="description" content="Introduction # In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Advanced Flink Application Patterns Vol.3: Custom Window Processing" />
-<meta property="og:description" content=".tg {border-collapse:collapse;border-spacing:0;} .tg td{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;} .tg th{padding:10px 10px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#eff0f1;} .tg .tg-wide{padding:10px 30px;} .tg .tg-top{vertical-align:top} .tg .tg-topcenter{text-align:center;vertical-align:top} .tg .tg-center{text-align:center;vertical-align:center}  Introduction #  In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements." />
+<meta property="og:description" content="Introduction # In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-07-30T12:00:00+00:00" />
 <meta property="article:modified_time" content="2020-07-30T12:00:00+00:00" />
-
 <title>Advanced Flink Application Patterns Vol.3: Custom Window Processing | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -852,7 +851,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -974,7 +973,7 @@ it easier to follow along.</p>
 would like to support:</p>
 <p><em>&ldquo;Whenever the <strong>sum</strong> of  <strong>payments</strong> from the same <strong>payer</strong> to the
 same <strong>beneficiary</strong> within <strong>a 24 hour
-period</strong> is <strong>greater</strong> than <strong>200 000 $</strong> - trigger an alert.&quot;</em></p>
+period</strong> is <strong>greater</strong> than <strong>200 000 $</strong> - trigger an alert.&rdquo;</em></p>
 <p>In other words, given a stream of transactions partitioned by a key that
 combines the payer and the beneficiary fields, we would like to look
 back in time and determine, for each incoming transaction, if the sum of
@@ -1007,7 +1006,7 @@ over all of the available types of supported windows, you will realize
 that none of them exactly match our main requirement for this use case -
 the low-latency evaluation of <em>each</em> incoming transaction. There is
 no type of window in Flink that can express the <em>&ldquo;x minutes/hours/days
-back from the <u>current event</u>&quot;</em> semantic. In the Window API, events
+back from the <u>current event</u>&rdquo;</em> semantic. In the Window API, events
 fall into windows (as defined by the window
 <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/windows.html#window-assigners">assigners</a>),
 but they cannot themselves individually control the creation and
@@ -1036,15 +1035,15 @@ approach unfeasible under any moderately high load conditions.</p>
 low-latency window implementation. Luckily, Flink gives us all the tools
 required to do so. <code>ProcessFunction</code> is a low-level, but powerful
 building block in Flink's API. It has a simple contract:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SomeProcessFunction</span> <span class="kd">extends</span> <span class="n">KeyedProcessFunction</span><span class="o">&lt;</span><span class="n">KeyType</span><span class="o">,</span> <span class="n">InputType</span><span class="o">,</span> <span class="n">OutputType</span><span class="o">&gt;</span> <span class="o">{</span>
-
-	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span><span class="n">InputType</span> <span class="n">event</span><span class="o">,</span> <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">OutputType</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){}</span>
-
-	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTimer</span><span class="o">(</span><span class="kt">long</span> <span class="n">timestamp</span><span class="o">,</span> <span class="n">OnTimerContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">OutputType</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{}</span>
-
-	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">open</span><span class="o">(</span><span class="n">Configuration</span> <span class="n">parameters</span><span class="o">){}</span>
-<span class="o">}</span>
-</code></pre></div><ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SomeProcessFunction</span> <span class="kd">extends</span> <span class="n">KeyedProcessFunction</span><span class="o">&lt;</span><span class="n">KeyType</span><span class="o">,</span> <span class="n">InputType</span><span class="o">,</span> <span class="n">OutputType</span><span class="o">&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span><span class="n">InputType</span> <span class="n">event</span><span class="o">,</span> <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">OutputType</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTimer</span><span class="o">(</span><span class="kt">long</span> <span class="n">timestamp</span><span class="o">,</span> <span class="n">OnTimerContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">OutputType</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">open</span><span class="o">(</span><span class="n">Configuration</span> <span class="n">parameters</span><span class="o">){}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><ul>
 <li>
 <p><code>processElement()</code> receives input events one by one. You can react to
 each input by producing one or more output events to the next
@@ -1103,8 +1102,8 @@ timestamps as the <code>MapState</code> keys.</p>
 <p>In a general case, we have to take into account the fact that there
 might be different events with exactly the same timestamp, therefore
 instead of individual Transaction per key(timestamp) we will store sets.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span> <span class="n">windowState</span><span class="o">;</span>
-</code></pre></div><div class="alert alert-info" markdown="1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span> <span class="n">windowState</span><span class="o">;</span>
+</span></span></code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Side Note </span>
 when any Flink-managed state is used inside a
 `KeyedProcessFunction`, the data returned by the `state.value()` call is
@@ -1140,25 +1139,25 @@ will determine if its time window has the largest span and store it in
 the broadcast state under the special reserved <code>WIDEST_RULE_KEY</code>. This
 information will later be used during the state clean-up procedure, as
 described later in this section.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="nd">@Override</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">processBroadcastElement</span><span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span><span class="o">,</span> <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){</span>
-  <span class="o">...</span>
-  <span class="n">updateWidestWindowRule</span><span class="o">(</span><span class="n">rule</span><span class="o">,</span> <span class="n">broadcastState</span><span class="o">);</span>
-<span class="o">}</span>
-
-<span class="kd">private</span> <span class="kt">void</span> <span class="nf">updateWidestWindowRule</span><span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span><span class="o">,</span> <span class="n">BroadcastState</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Rule</span><span class="o">&gt;</span> <span class="n">broadcastState</span><span class="o">){</span>
-  <span class="n">Rule</span> <span class="n">widestWindowRule</span> <span class="o">=</span> <span class="n">broadcastState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">);</span>
-
-  <span class="k">if</span> <span class="o">(</span><span class="n">widestWindowRule</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">broadcastState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
-    <span class="k">return</span><span class="o">;</span>
-  <span class="o">}</span>
-
-  <span class="k">if</span> <span class="o">(</span><span class="n">widestWindowRule</span><span class="o">.</span><span class="na">getWindowMillis</span><span class="o">()</span> <span class="o">&lt;</span> <span class="n">rule</span><span class="o">.</span><span class="na">getWindowMillis</span><span class="o">())</span> <span class="o">{</span>
-    <span class="n">broadcastState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div><p>Let&rsquo;s now look at the implementation of the main method,
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">processBroadcastElement</span><span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span><span class="o">,</span> <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl">  <span class="n">updateWidestWindowRule</span><span class="o">(</span><span class="n">rule</span><span class="o">,</span> <span class="n">broadcastState</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">updateWidestWindowRule</span><span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span><span class="o">,</span> <span class="n">BroadcastState</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Rule</span><span class="o">&gt;</span> <span class="n">broadcastState</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">  <span class="n">Rule</span> <span class="n">widestWindowRule</span> <span class="o">=</span> <span class="n">broadcastState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="o">(</span><span class="n">widestWindowRule</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">broadcastState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="o">(</span><span class="n">widestWindowRule</span><span class="o">.</span><span class="na">getWindowMillis</span><span class="o">()</span> <span class="o">&lt;</span> <span class="n">rule</span><span class="o">.</span><span class="na">getWindowMillis</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">broadcastState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Let&rsquo;s now look at the implementation of the main method,
 <code>processElement()</code>, in some detail.</p>
 <p>In the <a href="/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning">previous blog post</a>, we described how <code>DynamicKeyFunction</code> allowed
 us to perform dynamic data partitioning based on the <code>groupingKeyNames</code>
@@ -1178,64 +1177,64 @@ series, our alerting process function receives events of type
 Figure 1), and <code>Integer</code> is the ID of the rule that caused the dispatch of
 this event. This rule was previously <a href="/news/2020/03/24/demo-fraud-detection-2.html#broadcast-state-pattern">stored in the broadcast state</a> and has to be retrieved from that state by the ID. Here is the
 outline of the implementation:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DynamicAlertFunction</span>
-    <span class="kd">extends</span> <span class="n">KeyedBroadcastProcessFunction</span><span class="o">&lt;</span>
-        <span class="n">String</span><span class="o">,</span> <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Rule</span><span class="o">,</span> <span class="n">Alert</span><span class="o">&gt;</span> <span class="o">{</span>
-
-  <span class="kd">private</span> <span class="kd">transient</span> <span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span> <span class="n">windowState</span><span class="o">;</span>
-
-  <span class="nd">@Override</span>
-  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span>
-      <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">value</span><span class="o">,</span> <span class="n">ReadOnlyContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){</span>
-
-    <span class="c1">// Add Transaction to state
-</span><span class="c1"></span>    <span class="kt">long</span> <span class="n">currentEventTime</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">().</span><span class="na">getEventTime</span><span class="o">();</span>                            <span class="c1">// &lt;--- (1)
-</span><span class="c1"></span>    <span class="n">addToStateValuesSet</span><span class="o">(</span><span class="n">windowState</span><span class="o">,</span> <span class="n">currentEventTime</span><span class="o">,</span> <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">());</span>
-
-    <span class="c1">// Calculate the aggregate value
-</span><span class="c1"></span>    <span class="n">Rule</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getBroadcastState</span><span class="o">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="na">rulesDescriptor</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="n">value</span><span class="o">.</span><span class="na">getId</span><span class="o">());</span>    <span class="c1">// &lt;--- (2)
-</span><span class="c1"></span>    <span class="n">Long</span> <span class="n">windowStartTimestampForEvent</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="na">getWindowStartTimestampFor</span><span class="o">(</span><span class="n">currentEventTime</span><span class="o">);</span><span class="c1">// &lt;--- (3)
-</span><span class="c1"></span>
-    <span class="n">SimpleAccumulator</span><span class="o">&lt;</span><span class="n">BigDecimal</span><span class="o">&gt;</span> <span class="n">aggregator</span> <span class="o">=</span> <span class="n">RuleHelper</span><span class="o">.</span><span class="na">getAggregator</span><span class="o">(</span><span class="n">rule</span><span class="o">);</span>            <span class="c1">// &lt;--- (4)
-</span><span class="c1"></span>    <span class="k">for</span> <span class="o">(</span><span class="n">Long</span> <span class="n">stateEventTime</span> <span class="o">:</span> <span class="n">windowState</span><span class="o">.</span><span class="na">keys</span><span class="o">())</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="n">isStateValueInWindow</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">,</span> <span class="n">windowStartForEvent</span><span class="o">,</span> <span class="n">currentEventTime</span><span class="o">))</span> <span class="o">{</span>
-        <span class="n">aggregateValuesInState</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">,</span> <span class="n">aggregator</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
-      <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="c1">// Evaluate the rule and trigger an alert if violated
-</span><span class="c1"></span>    <span class="n">BigDecimal</span> <span class="n">aggregateResult</span> <span class="o">=</span> <span class="n">aggregator</span><span class="o">.</span><span class="na">getLocalValue</span><span class="o">();</span>                              <span class="c1">// &lt;--- (5)
-</span><span class="c1"></span>    <span class="kt">boolean</span> <span class="n">isRuleViolated</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="n">aggregateResult</span><span class="o">);</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">isRuleViolated</span><span class="o">)</span> <span class="o">{</span>
-      <span class="kt">long</span> <span class="n">decisionTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
-      <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Alert</span><span class="o">&lt;&gt;(</span><span class="n">rule</span><span class="o">.</span><span class="na">getRuleId</span><span class="o">(),</span>
-                              <span class="n">rule</span><span class="o">,</span>
-                              <span class="n">value</span><span class="o">.</span><span class="na">getKey</span><span class="o">(),</span>
-                              <span class="n">decisionTime</span><span class="o">,</span>
-                              <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">(),</span>
-                              <span class="n">aggregateResult</span><span class="o">));</span>
-    <span class="o">}</span>
-
-    <span class="c1">// Register timers to ensure state cleanup
-</span><span class="c1"></span>    <span class="kt">long</span> <span class="n">cleanupTime</span> <span class="o">=</span> <span class="o">(</span><span class="n">currentEventTime</span> <span class="o">/</span> <span class="n">1000</span><span class="o">)</span> <span class="o">*</span> <span class="n">1000</span><span class="o">;</span>                                  <span class="c1">// &lt;--- (6)
-</span><span class="c1"></span>    <span class="n">ctx</span><span class="o">.</span><span class="na">timerService</span><span class="o">().</span><span class="na">registerEventTimeTimer</span><span class="o">(</span><span class="n">cleanupTime</span><span class="o">);</span>
-  <span class="o">}</span>
-</code></pre></div><br/>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DynamicAlertFunction</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">extends</span> <span class="n">KeyedBroadcastProcessFunction</span><span class="o">&lt;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">String</span><span class="o">,</span> <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Rule</span><span class="o">,</span> <span class="n">Alert</span><span class="o">&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="kd">transient</span> <span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span> <span class="n">windowState</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">value</span><span class="o">,</span> <span class="n">ReadOnlyContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">){</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Add Transaction to state
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">long</span> <span class="n">currentEventTime</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">().</span><span class="na">getEventTime</span><span class="o">();</span>                            <span class="c1">// &lt;--- (1)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">addToStateValuesSet</span><span class="o">(</span><span class="n">windowState</span><span class="o">,</span> <span class="n">currentEventTime</span><span class="o">,</span> <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Calculate the aggregate value
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Rule</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getBroadcastState</span><span class="o">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="na">rulesDescriptor</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="n">value</span><span class="o">.</span><span class="na">getId</span><span class="o">());</span>    <span class="c1">// &lt;--- (2)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Long</span> <span class="n">windowStartTimestampForEvent</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="na">getWindowStartTimestampFor</span><span class="o">(</span><span class="n">currentEventTime</span><span class="o">);</span><span class="c1">// &lt;--- (3)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="n">SimpleAccumulator</span><span class="o">&lt;</span><span class="n">BigDecimal</span><span class="o">&gt;</span> <span class="n">aggregator</span> <span class="o">=</span> <span class="n">RuleHelper</span><span class="o">.</span><span class="na">getAggregator</span><span class="o">(</span><span class="n">rule</span><span class="o">);</span>            <span class="c1">// &lt;--- (4)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="o">(</span><span class="n">Long</span> <span class="n">stateEventTime</span> <span class="o">:</span> <span class="n">windowState</span><span class="o">.</span><span class="na">keys</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="k">if</span> <span class="o">(</span><span class="n">isStateValueInWindow</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">,</span> <span class="n">windowStartForEvent</span><span class="o">,</span> <span class="n">currentEventTime</span><span class="o">))</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">aggregateValuesInState</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">,</span> <span class="n">aggregator</span><span class="o">,</span> <span class="n">rule</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">      <span class="o">}</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Evaluate the rule and trigger an alert if violated
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">BigDecimal</span> <span class="n">aggregateResult</span> <span class="o">=</span> <span class="n">aggregator</span><span class="o">.</span><span class="na">getLocalValue</span><span class="o">();</span>                              <span class="c1">// &lt;--- (5)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">boolean</span> <span class="n">isRuleViolated</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="n">aggregateResult</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="o">(</span><span class="n">isRuleViolated</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="kt">long</span> <span class="n">decisionTime</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">      <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span><span class="k">new</span> <span class="n">Alert</span><span class="o">&lt;&gt;(</span><span class="n">rule</span><span class="o">.</span><span class="na">getRuleId</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">                              <span class="n">rule</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">                              <span class="n">value</span><span class="o">.</span><span class="na">getKey</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">                              <span class="n">decisionTime</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">                              <span class="n">value</span><span class="o">.</span><span class="na">getWrapped</span><span class="o">(),</span>
+</span></span><span class="line"><span class="cl">                              <span class="n">aggregateResult</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Register timers to ensure state cleanup
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">long</span> <span class="n">cleanupTime</span> <span class="o">=</span> <span class="o">(</span><span class="n">currentEventTime</span> <span class="o">/</span> <span class="mi">1000</span><span class="o">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="o">;</span>                                  <span class="c1">// &lt;--- (6)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">ctx</span><span class="o">.</span><span class="na">timerService</span><span class="o">().</span><span class="na">registerEventTimeTimer</span><span class="o">(</span><span class="n">cleanupTime</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span></code></pre></div><br/>
 Here are the details of the steps:  
 1)  We first add each new event to our window state:
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">static</span> <span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span> <span class="nf">addToStateValuesSet</span><span class="o">(</span><span class="n">MapState</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;&gt;</span> <span class="n">mapState</span><span class="o">,</span> <span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">)</span>
-      <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-    <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span> <span class="n">valuesSet</span> <span class="o">=</span> <span class="n">mapState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">valuesSet</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">valuesSet</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
-    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-      <span class="n">valuesSet</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;&gt;();</span>
-      <span class="n">valuesSet</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
-    <span class="o">}</span>
-    <span class="n">mapState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">valuesSet</span><span class="o">);</span>
-    <span class="k">return</span> <span class="n">valuesSet</span><span class="o">;</span>
-<span class="o">}</span>
-</code></pre></div><ol start="2">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">static</span> <span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span> <span class="nf">addToStateValuesSet</span><span class="o">(</span><span class="n">MapState</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;&gt;</span> <span class="n">mapState</span><span class="o">,</span> <span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">      <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span> <span class="n">valuesSet</span> <span class="o">=</span> <span class="n">mapState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="o">(</span><span class="n">valuesSet</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">valuesSet</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">valuesSet</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;&gt;();</span>
+</span></span><span class="line"><span class="cl">      <span class="n">valuesSet</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">mapState</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">valuesSet</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">valuesSet</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><ol start="2">
 <li>
 <p>Next, we retrieve the previously-broadcasted rule, according to
 which the incoming transaction needs to be evaluated.</p>
@@ -1252,21 +1251,21 @@ max, min</em> or, as in the example rule from the beginning of this
 section, a <em>sum</em>.</p>
 </li>
 </ol>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isStateValueInWindow</span><span class="o">(</span>
-    <span class="n">Long</span> <span class="n">stateEventTime</span><span class="o">,</span> <span class="n">Long</span> <span class="n">windowStartForEvent</span><span class="o">,</span> <span class="kt">long</span> <span class="n">currentEventTime</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="n">stateEventTime</span> <span class="o">&gt;=</span> <span class="n">windowStartForEvent</span> <span class="o">&amp;&amp;</span> <span class="n">stateEventTime</span> <span class="o">&lt;=</span> <span class="n">currentEventTime</span><span class="o">;</span>
-<span class="o">}</span>
-
-<span class="kd">private</span> <span class="kt">void</span> <span class="nf">aggregateValuesInState</span><span class="o">(</span>
-    <span class="n">Long</span> <span class="n">stateEventTime</span><span class="o">,</span> <span class="n">SimpleAccumulator</span><span class="o">&lt;</span><span class="n">BigDecimal</span><span class="o">&gt;</span> <span class="n">aggregator</span><span class="o">,</span> <span class="n">Rule</span> <span class="n">rule</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-  <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span> <span class="n">inWindow</span> <span class="o">=</span> <span class="n">windowState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">);</span>
-  <span class="k">for</span> <span class="o">(</span><span class="n">Transaction</span> <span class="n">event</span> <span class="o">:</span> <span class="n">inWindow</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">BigDecimal</span> <span class="n">aggregatedValue</span> <span class="o">=</span>
-        <span class="n">FieldsExtractor</span><span class="o">.</span><span class="na">getBigDecimalByName</span><span class="o">(</span><span class="n">rule</span><span class="o">.</span><span class="na">getAggregateFieldName</span><span class="o">(),</span> <span class="n">event</span><span class="o">);</span>
-    <span class="n">aggregator</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">aggregatedValue</span><span class="o">);</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div><ol start="5">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isStateValueInWindow</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Long</span> <span class="n">stateEventTime</span><span class="o">,</span> <span class="n">Long</span> <span class="n">windowStartForEvent</span><span class="o">,</span> <span class="kt">long</span> <span class="n">currentEventTime</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="n">stateEventTime</span> <span class="o">&gt;=</span> <span class="n">windowStartForEvent</span> <span class="o">&amp;&amp;</span> <span class="n">stateEventTime</span> <span class="o">&lt;=</span> <span class="n">currentEventTime</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">aggregateValuesInState</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Long</span> <span class="n">stateEventTime</span><span class="o">,</span> <span class="n">SimpleAccumulator</span><span class="o">&lt;</span><span class="n">BigDecimal</span><span class="o">&gt;</span> <span class="n">aggregator</span><span class="o">,</span> <span class="n">Rule</span> <span class="n">rule</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span> <span class="n">inWindow</span> <span class="o">=</span> <span class="n">windowState</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">stateEventTime</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="k">for</span> <span class="o">(</span><span class="n">Transaction</span> <span class="n">event</span> <span class="o">:</span> <span class="n">inWindow</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">BigDecimal</span> <span class="n">aggregatedValue</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">        <span class="n">FieldsExtractor</span><span class="o">.</span><span class="na">getBigDecimalByName</span><span class="o">(</span><span class="n">rule</span><span class="o">.</span><span class="na">getAggregateFieldName</span><span class="o">(),</span> <span class="n">event</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">aggregator</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">aggregatedValue</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><ol start="5">
 <li>
 <p>Having an aggregate value, we can compare it to the threshold value
 that is specified in the rule definition and fire an alert, if
@@ -1302,34 +1301,34 @@ the state which is out of scope of this widest window.</p>
 </center>
 <br/>
 <p>This is how the clean-up procedure can be implemented:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="nd">@Override</span>
-<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTimer</span><span class="o">(</span><span class="kd">final</span> <span class="kt">long</span> <span class="n">timestamp</span><span class="o">,</span> <span class="kd">final</span> <span class="n">OnTimerContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span>
-    <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-
-  <span class="n">Rule</span> <span class="n">widestWindowRule</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getBroadcastState</span><span class="o">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="na">rulesDescriptor</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">);</span>
-
-  <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">cleanupEventTimeWindow</span> <span class="o">=</span>
-      <span class="n">Optional</span><span class="o">.</span><span class="na">ofNullable</span><span class="o">(</span><span class="n">widestWindowRule</span><span class="o">).</span><span class="na">map</span><span class="o">(</span><span class="n">Rule</span><span class="o">::</span><span class="n">getWindowMillis</span><span class="o">);</span>
-  <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">cleanupEventTimeThreshold</span> <span class="o">=</span>
-      <span class="n">cleanupEventTimeWindow</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="n">window</span> <span class="o">-&gt;</span> <span class="n">timestamp</span> <span class="o">-</span> <span class="n">window</span><span class="o">);</span>
-  <span class="c1">// Remove events that are older than (timestamp - widestWindowSpan)ms
-</span><span class="c1"></span>  <span class="n">cleanupEventTimeThreshold</span><span class="o">.</span><span class="na">ifPresent</span><span class="o">(</span><span class="k">this</span><span class="o">::</span><span class="n">evictOutOfScopeElementsFromWindow</span><span class="o">);</span>
-<span class="o">}</span>
-
-<span class="kd">private</span> <span class="kt">void</span> <span class="nf">evictOutOfScopeElementsFromWindow</span><span class="o">(</span><span class="n">Long</span> <span class="n">threshold</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">try</span> <span class="o">{</span>
-    <span class="n">Iterator</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">windowState</span><span class="o">.</span><span class="na">keys</span><span class="o">().</span><span class="na">iterator</span><span class="o">();</span>
-    <span class="k">while</span> <span class="o">(</span><span class="n">keys</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
-      <span class="n">Long</span> <span class="n">stateEventTime</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
-      <span class="k">if</span> <span class="o">(</span><span class="n">stateEventTime</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">keys</span><span class="o">.</span><span class="na">remove</span><span class="o">();</span>
-      <span class="o">}</span>
-    <span class="o">}</span>
-  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div><div class="alert alert-info" markdown="1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onTimer</span><span class="o">(</span><span class="kd">final</span> <span class="kt">long</span> <span class="n">timestamp</span><span class="o">,</span> <span class="kd">final</span> <span class="n">OnTimerContext</span> <span class="n">ctx</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">out</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">Rule</span> <span class="n">widestWindowRule</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="na">getBroadcastState</span><span class="o">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="na">rulesDescriptor</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="n">WIDEST_RULE_KEY</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">cleanupEventTimeWindow</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Optional</span><span class="o">.</span><span class="na">ofNullable</span><span class="o">(</span><span class="n">widestWindowRule</span><span class="o">).</span><span class="na">map</span><span class="o">(</span><span class="n">Rule</span><span class="o">::</span><span class="n">getWindowMillis</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="n">Optional</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">cleanupEventTimeThreshold</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">      <span class="n">cleanupEventTimeWindow</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="n">window</span> <span class="o">-&gt;</span> <span class="n">timestamp</span> <span class="o">-</span> <span class="n">window</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// Remove events that are older than (timestamp - widestWindowSpan)ms
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">cleanupEventTimeThreshold</span><span class="o">.</span><span class="na">ifPresent</span><span class="o">(</span><span class="k">this</span><span class="o">::</span><span class="n">evictOutOfScopeElementsFromWindow</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">evictOutOfScopeElementsFromWindow</span><span class="o">(</span><span class="n">Long</span> <span class="n">threshold</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">try</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Iterator</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">windowState</span><span class="o">.</span><span class="na">keys</span><span class="o">().</span><span class="na">iterator</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="o">(</span><span class="n">keys</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Long</span> <span class="n">stateEventTime</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">      <span class="k">if</span> <span class="o">(</span><span class="n">stateEventTime</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">keys</span><span class="o">.</span><span class="na">remove</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">      <span class="o">}</span>
+</span></span><span class="line"><span class="cl">    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>  Note</span>
 You might be wondering why we did not use `ListState` , as we are always
 iterating over all of the values of the window state? This is actually

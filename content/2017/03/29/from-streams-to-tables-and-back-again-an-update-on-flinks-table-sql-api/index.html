@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Stream processing can deliver a lot of value. Many organizations have recognized the benefit of managing large volumes of data in real-time, reacting quickly to trends, and providing customers with live services at scale. Streaming applications with well-defined business logic can deliver a competitive advantage.
@@ -15,12 +15,11 @@ Flink&rsquo;s DataStream abstraction is a powerful API which lets you flexibly d
 <meta property="og:url" content="https://flink.apache.org/2017/03/29/from-streams-to-tables-and-back-again-an-update-on-flinks-table-sql-api/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2017-03-29T12:00:00+00:00" />
 <meta property="article:modified_time" content="2017-03-29T12:00:00+00:00" />
-
 <title>From Streams to Tables and Back Again: An Update on Flink&#39;s Table & SQL API | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -854,7 +853,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -931,125 +930,125 @@ The following paragraphs are not only supposed to give you a general overview of
 <pre><code>42|Bob Smith|2016-07-23 16:10:11|color=12,length=200,size=200
 </code></pre>
 <p>The following example illustrates how to read a CSV file and perform some data cleansing before converting it to a regular DataStream program.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// set up execution environment
-</span><span class="c1"></span><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
-<span class="k">val</span> <span class="n">tEnv</span> <span class="k">=</span> <span class="nc">TableEnvironment</span><span class="o">.</span><span class="n">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
-
-<span class="c1">// configure table source
-</span><span class="c1"></span><span class="k">val</span> <span class="n">customerSource</span> <span class="k">=</span> <span class="nc">CsvTableSource</span><span class="o">.</span><span class="n">builder</span><span class="o">()</span>
-  <span class="o">.</span><span class="n">path</span><span class="o">(</span><span class="s">&#34;/path/to/customer_data.csv&#34;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">ignoreFirstLine</span><span class="o">()</span>
-  <span class="o">.</span><span class="n">fieldDelimiter</span><span class="o">(</span><span class="s">&#34;|&#34;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;id&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">LONG</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;name&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;last_update&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">TIMESTAMP</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;prefs&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">build</span><span class="o">()</span>
-
-<span class="c1">// name your table source
-</span><span class="c1"></span><span class="n">tEnv</span><span class="o">.</span><span class="n">registerTableSource</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">,</span> <span class="n">customerSource</span><span class="o">)</span>
-
-<span class="c1">// define your table program
-</span><span class="c1"></span><span class="k">val</span> <span class="n">table</span> <span class="k">=</span> <span class="n">tEnv</span>
-  <span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">filter</span><span class="o">(</span>&#39;name<span class="o">.</span><span class="n">isNotNull</span> <span class="o">&amp;&amp;</span> &#39;last_update <span class="o">&gt;</span> <span class="s">&#34;2016-01-01 00:00:00&#34;</span><span class="o">.</span><span class="n">toTimestamp</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;name<span class="o">.</span><span class="n">lowerCase</span><span class="o">(),</span> &#39;prefs<span class="o">)</span>
-
-<span class="c1">// convert it to a data stream
-</span><span class="c1"></span><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">table</span><span class="o">.</span><span class="n">toDataStream</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span>
-
-<span class="n">ds</span><span class="o">.</span><span class="n">print</span><span class="o">()</span>
-<span class="n">env</span><span class="o">.</span><span class="n">execute</span><span class="o">()</span>
-</code></pre></div><p>The Table API comes with a large set of built-in functions that make it easy to specify  business logic using a language integrated query (LINQ) syntax. In the example above, we filter out customers with invalid names and only select those that updated their preferences recently. We convert names to lowercase for normalization. For debugging purposes, we convert the table into a DataStream and print it.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// set up execution environment
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">tEnv</span> <span class="k">=</span> <span class="nc">TableEnvironment</span><span class="o">.</span><span class="n">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// configure table source
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">customerSource</span> <span class="k">=</span> <span class="nc">CsvTableSource</span><span class="o">.</span><span class="n">builder</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">path</span><span class="o">(</span><span class="s">&#34;/path/to/customer_data.csv&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">ignoreFirstLine</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">fieldDelimiter</span><span class="o">(</span><span class="s">&#34;|&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;id&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">LONG</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;name&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;last_update&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">TIMESTAMP</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">field</span><span class="o">(</span><span class="s">&#34;prefs&#34;</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">build</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// name your table source
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">tEnv</span><span class="o">.</span><span class="n">registerTableSource</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">,</span> <span class="n">customerSource</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// define your table program
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">table</span> <span class="k">=</span> <span class="n">tEnv</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">filter</span><span class="o">(</span>&#39;name<span class="o">.</span><span class="n">isNotNull</span> <span class="o">&amp;&amp;</span> &#39;last_update <span class="o">&gt;</span> <span class="s">&#34;2016-01-01 00:00:00&#34;</span><span class="o">.</span><span class="n">toTimestamp</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;name<span class="o">.</span><span class="n">lowerCase</span><span class="o">(),</span> &#39;prefs<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// convert it to a data stream
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">table</span><span class="o">.</span><span class="n">toDataStream</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">ds</span><span class="o">.</span><span class="n">print</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="n">execute</span><span class="o">()</span>
+</span></span></code></pre></div><p>The Table API comes with a large set of built-in functions that make it easy to specify  business logic using a language integrated query (LINQ) syntax. In the example above, we filter out customers with invalid names and only select those that updated their preferences recently. We convert names to lowercase for normalization. For debugging purposes, we convert the table into a DataStream and print it.</p>
 <p>The <code>CsvTableSource</code> supports both batch and stream environments. If the programmer wants to execute the program above in a batch application, all he or she has to do is to replace the environment via <code>ExecutionEnvironment</code> and change the output conversion from <code>DataStream</code> to <code>DataSet</code>. The Table API program itself doesn’t change.</p>
 <p>In the example, we converted the table program to a data stream of <code>Row</code> objects. However, we are not limited to row data types. The Table API supports all types from the underlying APIs such as Java and Scala Tuples, Case Classes, POJOs, or generic types that are serialized using Kryo. Let’s assume that we want to have regular object (POJO) with the following format instead of generic rows:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">Customer</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="n">id</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="k">_</span>
-  <span class="k">var</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">_</span>
-  <span class="k">var</span> <span class="n">update</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="k">_</span>
-  <span class="k">var</span> <span class="n">prefs</span><span class="k">:</span> <span class="kt">java.util.Properties</span> <span class="o">=</span> <span class="k">_</span>
-<span class="o">}</span>
-</code></pre></div><p>We can use the following table program to convert the CSV file into Customer objects. Flink takes care of creating objects and mapping fields for us.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">tEnv</span>
-  <span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;name<span class="o">,</span> &#39;last_update <span class="n">as</span> &#39;update<span class="o">,</span> <span class="n">parseProperties</span><span class="o">(</span>&#39;prefs<span class="o">)</span> <span class="n">as</span> &#39;prefs<span class="o">)</span>
-  <span class="o">.</span><span class="n">toDataStream</span><span class="o">[</span><span class="kt">Customer</span><span class="o">]</span>
-</code></pre></div><p>You might have noticed that the query above uses a function to parse the preferences field. Even though Flink’s Table API is shipped with a large set of built-in functions, is often necessary to define custom user-defined scalar functions. In the above example we use a user-defined function <code>parseProperties</code>. The following code snippet shows how easily we can implement a scalar function.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">parseProperties</span> <span class="k">extends</span> <span class="nc">ScalarFunction</span> <span class="o">{</span>
-  <span class="k">def</span> <span class="n">eval</span><span class="o">(</span><span class="n">str</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Properties</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Properties</span><span class="o">()</span>
-    <span class="n">str</span>
-      <span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;,&#34;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;=&#34;</span><span class="o">))</span>
-      <span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">split</span> <span class="k">=&gt;</span> <span class="n">props</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
-    <span class="n">props</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div><p>Scalar functions can be used to deserialize, extract, or convert values (and more). By overwriting the <code>open()</code> method we can even have access to runtime information such as distributed cached files or metrics. Even the <code>open()</code> method is only called once during the runtime’s <a href="//nightlies.apache.org/flinkflink-docs-release-1.3/internals/task_lifecycle.html">task lifecycle</a>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Customer</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">var</span> <span class="n">id</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="k">_</span>
+</span></span><span class="line"><span class="cl">  <span class="k">var</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">_</span>
+</span></span><span class="line"><span class="cl">  <span class="k">var</span> <span class="n">update</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="k">_</span>
+</span></span><span class="line"><span class="cl">  <span class="k">var</span> <span class="n">prefs</span><span class="k">:</span> <span class="kt">java.util.Properties</span> <span class="o">=</span> <span class="k">_</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>We can use the following table program to convert the CSV file into Customer objects. Flink takes care of creating objects and mapping fields for us.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">tEnv</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">scan</span><span class="o">(</span><span class="s">&#34;customers&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;name<span class="o">,</span> &#39;last_update <span class="n">as</span> &#39;update<span class="o">,</span> <span class="n">parseProperties</span><span class="o">(</span>&#39;prefs<span class="o">)</span> <span class="n">as</span> &#39;prefs<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">toDataStream</span><span class="o">[</span><span class="kt">Customer</span><span class="o">]</span>
+</span></span></code></pre></div><p>You might have noticed that the query above uses a function to parse the preferences field. Even though Flink’s Table API is shipped with a large set of built-in functions, is often necessary to define custom user-defined scalar functions. In the above example we use a user-defined function <code>parseProperties</code>. The following code snippet shows how easily we can implement a scalar function.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">object</span> <span class="nc">parseProperties</span> <span class="k">extends</span> <span class="nc">ScalarFunction</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">def</span> <span class="n">eval</span><span class="o">(</span><span class="n">str</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Properties</span> <span class="o">=</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Properties</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">    <span class="n">str</span>
+</span></span><span class="line"><span class="cl">      <span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;,&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;=&#34;</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">      <span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">split</span> <span class="k">=&gt;</span> <span class="n">props</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
+</span></span><span class="line"><span class="cl">    <span class="n">props</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Scalar functions can be used to deserialize, extract, or convert values (and more). By overwriting the <code>open()</code> method we can even have access to runtime information such as distributed cached files or metrics. Even the <code>open()</code> method is only called once during the runtime’s <a href="//nightlies.apache.org/flinkflink-docs-release-1.3/internals/task_lifecycle.html">task lifecycle</a>.</p>
 <h2 id="unified-windowing-for-static-and-streaming-data">
   Unified Windowing for Static and Streaming Data
   <a class="anchor" href="#unified-windowing-for-static-and-streaming-data">#</a>
 </h2>
 <p>Another very common task, especially when working with continuous data, is the definition of windows to split a stream into pieces of finite size, over which we can apply computations. At the moment, the Table API supports three types of windows: sliding windows, tumbling windows, and session windows (for general definitions of the different types of windows, we recommend <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/windows.html">Flink’s documentation</a>). All three window types work on <a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/event_time.html">event or processing time</a>. Session windows can be defined over time intervals, sliding and tumbling windows can be defined over time intervals or a number of rows.</p>
 <p>Let’s assume that our customer data from the example above is an event stream of updates generated whenever the customer updated his or her preferences. We assume that events come from a TableSource that has assigned timestamps and watermarks. The definition of a window happens again in a LINQ-style fashion. The following example could be used to count the updates to the preferences during one day.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="n">table</span>
-  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">1.d</span><span class="n">ay</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;w<span class="o">)</span>
-  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;w<span class="o">)</span>
-  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">start</span> <span class="n">as</span> &#39;from<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">end</span> <span class="n">as</span> &#39;to<span class="o">,</span> &#39;prefs<span class="o">.</span><span class="n">count</span> <span class="n">as</span> &#39;updates<span class="o">)</span>
-</code></pre></div><p>By using the <code>on()</code> parameter, we can specify whether the window is supposed to work on event-time or not. The Table API assumes that timestamps and watermarks are assigned correctly when using event-time. Elements with timestamps smaller than the last received watermark are dropped. Since the extraction of timestamps and generation of watermarks depends on the data source and requires some deeper knowledge of their origin, the TableSource or the upstream DataStream is usually responsible for assigning these properties.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="n">table</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">1.d</span><span class="n">ay</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;w<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;w<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">start</span> <span class="n">as</span> &#39;from<span class="o">,</span> &#39;w<span class="o">.</span><span class="n">end</span> <span class="n">as</span> &#39;to<span class="o">,</span> &#39;prefs<span class="o">.</span><span class="n">count</span> <span class="n">as</span> &#39;updates<span class="o">)</span>
+</span></span></code></pre></div><p>By using the <code>on()</code> parameter, we can specify whether the window is supposed to work on event-time or not. The Table API assumes that timestamps and watermarks are assigned correctly when using event-time. Elements with timestamps smaller than the last received watermark are dropped. Since the extraction of timestamps and generation of watermarks depends on the data source and requires some deeper knowledge of their origin, the TableSource or the upstream DataStream is usually responsible for assigning these properties.</p>
 <p>The following code shows how to define other types of windows:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// using processing-time
-</span><span class="c1"></span><span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">100.</span><span class="n">rows</span> <span class="n">as</span> &#39;manyRowWindow<span class="o">)</span>
-<span class="c1">// using event-time
-</span><span class="c1"></span><span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Session</span> <span class="n">withGap</span> <span class="mf">15.</span><span class="n">minutes</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;sessionWindow<span class="o">)</span>
-<span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Slide</span> <span class="n">over</span> <span class="mf">1.d</span><span class="n">ay</span> <span class="n">every</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;dailyWindow<span class="o">)</span>
-</code></pre></div><p>Since batch is just a special case of streaming (where a batch happens to have a defined start and end point), it is also possible to apply all of these windows in a batch execution environment. Without any modification of the table program itself, we can run the code on a DataSet given that we specified a column named “rowtime”. This is particularly interesting if we want to compute exact results from time-to-time, so that late events that are heavily out-of-order can be included in the computation.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// using processing-time
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Tumble</span> <span class="n">over</span> <span class="mf">100.</span><span class="n">rows</span> <span class="n">as</span> &#39;manyRowWindow<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// using event-time
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Session</span> <span class="n">withGap</span> <span class="mf">15.</span><span class="n">minutes</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;sessionWindow<span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">table</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Slide</span> <span class="n">over</span> <span class="mf">1.d</span><span class="n">ay</span> <span class="n">every</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">on</span> &#39;rowtime <span class="n">as</span> &#39;dailyWindow<span class="o">)</span>
+</span></span></code></pre></div><p>Since batch is just a special case of streaming (where a batch happens to have a defined start and end point), it is also possible to apply all of these windows in a batch execution environment. Without any modification of the table program itself, we can run the code on a DataSet given that we specified a column named “rowtime”. This is particularly interesting if we want to compute exact results from time-to-time, so that late events that are heavily out-of-order can be included in the computation.</p>
 <p>At the moment, the Table API only supports so-called “group windows” that also exist in the DataStream API. Other windows such as SQL’s OVER clause windows are in development and <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-11%3A&#43;Table&#43;API&#43;Stream&#43;Aggregations">planned for Flink 1.3</a>.</p>
 <p>In order to demonstrate the expressiveness and capabilities of the API, here’s a snippet with a more advanced example of an exponentially decaying moving average over a sliding window of one hour which returns aggregated results every second. The table program weighs recent orders more heavily than older orders. This example is borrowed from <a href="https://calcite.apache.org/docs/stream.html#hopping-windows">Apache Calcite</a> and shows what will be possible in future Flink releases for both the Table API and SQL.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="n">table</span>
-  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Slide</span> <span class="n">over</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">every</span> <span class="mf">1.</span><span class="n">second</span> <span class="n">as</span> &#39;w<span class="o">)</span>
-  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;productId<span class="o">,</span> &#39;w<span class="o">)</span>
-  <span class="o">.</span><span class="n">select</span><span class="o">(</span>
-    &#39;w<span class="o">.</span><span class="n">end</span><span class="o">,</span>
-    &#39;productId<span class="o">,</span>
-    <span class="o">(</span>&#39;unitPrice <span class="o">*</span> <span class="o">(</span>&#39;rowtime <span class="o">-</span> &#39;w<span class="o">.</span><span class="n">start</span><span class="o">).</span><span class="n">exp</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1.</span><span class="n">hour</span><span class="o">).</span><span class="n">sum</span> <span class="o">/</span> <span class="o">((</span>&#39;rowtime <span class="o">-</span> &#39;w<span class="o">.</span><span class="n">start</span><span class="o">).</span><span class="n">exp</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1.</span><span class="n">hour</span><span class="o">).</span><span class="n">sum</span><span class="o">)</span>
-</code></pre></div><h2 id="user-defined-table-functions">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="n">table</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">Slide</span> <span class="n">over</span> <span class="mf">1.</span><span class="n">hour</span> <span class="n">every</span> <span class="mf">1.</span><span class="n">second</span> <span class="n">as</span> &#39;w<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>&#39;productId<span class="o">,</span> &#39;w<span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">select</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">    &#39;w<span class="o">.</span><span class="n">end</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">    &#39;productId<span class="o">,</span>
+</span></span><span class="line"><span class="cl">    <span class="o">(</span>&#39;unitPrice <span class="o">*</span> <span class="o">(</span>&#39;rowtime <span class="o">-</span> &#39;w<span class="o">.</span><span class="n">start</span><span class="o">).</span><span class="n">exp</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1.</span><span class="n">hour</span><span class="o">).</span><span class="n">sum</span> <span class="o">/</span> <span class="o">((</span>&#39;rowtime <span class="o">-</span> &#39;w<span class="o">.</span><span class="n">start</span><span class="o">).</span><span class="n">exp</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1.</span><span class="n">hour</span><span class="o">).</span><span class="n">sum</span><span class="o">)</span>
+</span></span></code></pre></div><h2 id="user-defined-table-functions">
   User-defined Table Functions
   <a class="anchor" href="#user-defined-table-functions">#</a>
 </h2>
 <p><a href="//nightlies.apache.org/flinkflink-docs-release-1.2/dev/table_api.html#user-defined-table-functions">User-defined table functions</a> were added in Flink 1.2. These can be quite useful for table columns containing non-atomic values which need to be extracted and mapped to separate fields before processing. Table functions take an arbitrary number of scalar values and allow for returning an arbitrary number of rows as output instead of a single value, similar to a flatMap function in the DataStream or DataSet API. The output of a table function can then be joined with the original row in the table by using either a left-outer join or cross join.</p>
 <p>Using the previously-mentioned customer table, let’s assume we want to produce a table that contains the color and size preferences as separate columns. The table program would look like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// create an instance of the table function
-</span><span class="c1"></span><span class="k">val</span> <span class="n">extractPrefs</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PropertiesExtractor</span><span class="o">()</span>
-
-<span class="c1">// derive rows and join them with original row
-</span><span class="c1"></span><span class="n">table</span>
-  <span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">extractPrefs</span><span class="o">(</span>&#39;prefs<span class="o">)</span> <span class="n">as</span> <span class="o">(</span>&#39;color<span class="o">,</span> &#39;size<span class="o">))</span>
-  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;username<span class="o">,</span> &#39;color<span class="o">,</span> &#39;size<span class="o">)</span>
-</code></pre></div><p>The <code>PropertiesExtractor</code> is a user-defined table function that extracts the color and size. We are not interested in customers that haven’t set these preferences and thus don’t emit anything if both properties are not present in the string value. Since we are using a (cross) join in the program, customers without a result on the right side of the join will be filtered out.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">PropertiesExtractor</span> <span class="k">extends</span> <span class="nc">TableFunction</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="o">{</span>
-  <span class="k">def</span> <span class="n">eval</span><span class="o">(</span><span class="n">prefs</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="c1">// split string into (key, value) pairs
-</span><span class="c1"></span>    <span class="k">val</span> <span class="n">pairs</span> <span class="k">=</span> <span class="n">prefs</span>
-      <span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;,&#34;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">kv</span> <span class="k">=&gt;</span>
-        <span class="k">val</span> <span class="n">split</span> <span class="k">=</span> <span class="n">kv</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;=&#34;</span><span class="o">)</span>
-        <span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
-      <span class="o">}</span>
-
-    <span class="k">val</span> <span class="n">color</span> <span class="k">=</span> <span class="n">pairs</span><span class="o">.</span><span class="n">find</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_1</span> <span class="o">==</span> <span class="s">&#34;color&#34;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_2</span><span class="o">)</span>
-    <span class="k">val</span> <span class="n">size</span> <span class="k">=</span> <span class="n">pairs</span><span class="o">.</span><span class="n">find</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_1</span> <span class="o">==</span> <span class="s">&#34;size&#34;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_2</span><span class="o">)</span>
-
-    <span class="c1">// emit a row if color and size are specified
-</span><span class="c1"></span>    <span class="o">(</span><span class="n">color</span><span class="o">,</span> <span class="n">size</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">c</span><span class="o">),</span> <span class="nc">Some</span><span class="o">(</span><span class="n">s</span><span class="o">))</span> <span class="k">=&gt;</span> <span class="n">collect</span><span class="o">(</span><span class="nc">Row</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">s</span><span class="o">))</span>
-      <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// skip
-</span><span class="c1"></span>    <span class="o">}</span>
-  <span class="o">}</span>
-
-  <span class="k">override</span> <span class="k">def</span> <span class="n">getResultType</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RowTypeInfo</span><span class="o">(</span><span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
-<span class="o">}</span>
-</code></pre></div><h2 id="conclusion">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// create an instance of the table function
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">extractPrefs</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PropertiesExtractor</span><span class="o">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// derive rows and join them with original row
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">table</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">extractPrefs</span><span class="o">(</span>&#39;prefs<span class="o">)</span> <span class="n">as</span> <span class="o">(</span>&#39;color<span class="o">,</span> &#39;size<span class="o">))</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="n">select</span><span class="o">(</span>&#39;id<span class="o">,</span> &#39;username<span class="o">,</span> &#39;color<span class="o">,</span> &#39;size<span class="o">)</span>
+</span></span></code></pre></div><p>The <code>PropertiesExtractor</code> is a user-defined table function that extracts the color and size. We are not interested in customers that haven’t set these preferences and thus don’t emit anything if both properties are not present in the string value. Since we are using a (cross) join in the program, customers without a result on the right side of the join will be filtered out.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">PropertiesExtractor</span> <span class="k">extends</span> <span class="nc">TableFunction</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">def</span> <span class="n">eval</span><span class="o">(</span><span class="n">prefs</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// split string into (key, value) pairs
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">val</span> <span class="n">pairs</span> <span class="k">=</span> <span class="n">prefs</span>
+</span></span><span class="line"><span class="cl">      <span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;,&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">      <span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">kv</span> <span class="k">=&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">val</span> <span class="n">split</span> <span class="k">=</span> <span class="n">kv</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&#34;=&#34;</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="o">(</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">split</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">      <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">val</span> <span class="n">color</span> <span class="k">=</span> <span class="n">pairs</span><span class="o">.</span><span class="n">find</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_1</span> <span class="o">==</span> <span class="s">&#34;color&#34;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_2</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">val</span> <span class="n">size</span> <span class="k">=</span> <span class="n">pairs</span><span class="o">.</span><span class="n">find</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_1</span> <span class="o">==</span> <span class="s">&#34;size&#34;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">\_</span><span class="o">.</span><span class="nc">\_2</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// emit a row if color and size are specified
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="o">(</span><span class="n">color</span><span class="o">,</span> <span class="n">size</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">      <span class="k">case</span> <span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">c</span><span class="o">),</span> <span class="nc">Some</span><span class="o">(</span><span class="n">s</span><span class="o">))</span> <span class="k">=&gt;</span> <span class="n">collect</span><span class="o">(</span><span class="nc">Row</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">s</span><span class="o">))</span>
+</span></span><span class="line"><span class="cl">      <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// skip
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="k">override</span> <span class="k">def</span> <span class="n">getResultType</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RowTypeInfo</span><span class="o">(</span><span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">,</span> <span class="nc">Types</span><span class="o">.</span><span class="nc">STRING</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><h2 id="conclusion">
   Conclusion
   <a class="anchor" href="#conclusion">#</a>
 </h2>

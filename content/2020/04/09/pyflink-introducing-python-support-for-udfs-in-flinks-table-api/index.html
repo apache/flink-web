@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Flink 1.9 introduced the Python Table API, allowing developers and data engineers to write Python Table API jobs for Table transformations and analysis, such as Python ETL or aggregate jobs. However, Python users faced some limitations when it came to support for Python UDFs in Flink 1.9, preventing them from extending the system’s built-in functionality.
@@ -15,12 +15,11 @@ In Flink 1.10, the community further extended the support for Python by adding P
 <meta property="og:url" content="https://flink.apache.org/2020/04/09/pyflink-introducing-python-support-for-udfs-in-flinks-table-api/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-04-09T12:00:00+00:00" />
 <meta property="article:modified_time" content="2020-04-09T12:00:00+00:00" />
-
 <title>PyFlink: Introducing Python Support for UDFs in Flink&#39;s Table API | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -854,7 +853,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -951,8 +950,8 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#install-pyflink">#</a>
 </h2>
 <p>Using Python in Apache Flink requires installing PyFlink. PyFlink is available through PyPI and can be easily installed using pip:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ python -m pip install apache-flink
-</code></pre></div><div class="alert alert-info" markdown="1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ python -m pip install apache-flink
+</span></span></code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Note</span>
 Please note that Python 3.5 or higher is required to install and run PyFlink
 </div>
@@ -962,82 +961,82 @@ Please note that Python 3.5 or higher is required to install and run PyFlink
   <a class="anchor" href="#define-a-python-udf">#</a>
 </h2>
 <p>There are many ways to define a Python scalar function, besides extending the base class <code>ScalarFunction</code>. The following example shows the different ways of defining a Python scalar function that takes two columns of <code>BIGINT</code> as input parameters and returns the sum of them as the result.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># option 1: extending the base class `ScalarFunction`</span>
-<span class="k">class</span> <span class="nc">Add</span><span class="p">(</span><span class="n">ScalarFunction</span><span class="p">):</span>
-  <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
-
-<span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-
-<span class="c1"># option 2: Python function</span>
-<span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-<span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
-  <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
-
-<span class="c1"># option 3: lambda function</span>
-<span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-
-<span class="c1"># option 4: callable function</span>
-<span class="k">class</span> <span class="nc">CallableAdd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-  <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
-
-<span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">CallableAdd</span><span class="p">(),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-
-<span class="c1"># option 5: partial function</span>
-<span class="k">def</span> <span class="nf">partial_add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-  <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span>
-
-<span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">partial_add</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span>
-          <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-</code></pre></div><h2 id="register-a-python-udf">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># option 1: extending the base class `ScalarFunction`</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Add</span><span class="p">(</span><span class="n">ScalarFunction</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">  <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">Add</span><span class="p">(),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># option 2: Python function</span>
+</span></span><span class="line"><span class="cl"><span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># option 3: lambda function</span>
+</span></span><span class="line"><span class="cl"><span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># option 4: callable function</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">CallableAdd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">  <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">CallableAdd</span><span class="p">(),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># option 5: partial function</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">partial_add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">partial_add</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span>
+</span></span><span class="line"><span class="cl">          <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span></code></pre></div><h2 id="register-a-python-udf">
   Register a Python UDF
   <a class="anchor" href="#register-a-python-udf">#</a>
 </h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># register the Python function</span>
-<span class="n">table_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;add&#34;</span><span class="p">,</span> <span class="n">add</span><span class="p">)</span>
-</code></pre></div><h2 id="invoke-a-python-udf">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># register the Python function</span>
+</span></span><span class="line"><span class="cl"><span class="n">table_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;add&#34;</span><span class="p">,</span> <span class="n">add</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="invoke-a-python-udf">
   Invoke a Python UDF
   <a class="anchor" href="#invoke-a-python-udf">#</a>
 </h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># use the function in Python Table API</span>
-<span class="n">my_table</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;add(a, b)&#34;</span><span class="p">)</span>
-</code></pre></div><p>Below, you can find a complete example of using Python UDF.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
-<span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span><span class="p">,</span> <span class="n">DataTypes</span>
-<span class="kn">from</span> <span class="nn">pyflink.table.descriptors</span> <span class="kn">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">OldCsv</span><span class="p">,</span> <span class="n">FileSystem</span>
-<span class="kn">from</span> <span class="nn">pyflink.table.udf</span> <span class="kn">import</span> <span class="n">udf</span>
-
-<span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
-<span class="n">env</span><span class="o">.</span><span class="n">set_parallelism</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-
-<span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-
-<span class="n">t_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;add&#34;</span><span class="p">,</span> <span class="n">add</span><span class="p">)</span>
-
-<span class="n">t_env</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FileSystem</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;/tmp/input&#39;</span><span class="p">))</span> \
-    <span class="o">.</span><span class="n">with_format</span><span class="p">(</span><span class="n">OldCsv</span><span class="p">()</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
-    <span class="o">.</span><span class="n">with_schema</span><span class="p">(</span><span class="n">Schema</span><span class="p">()</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
-    <span class="o">.</span><span class="n">create_temporary_table</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>
-
-<span class="n">t_env</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FileSystem</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;/tmp/output&#39;</span><span class="p">))</span> \
-    <span class="o">.</span><span class="n">with_format</span><span class="p">(</span><span class="n">OldCsv</span><span class="p">()</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
-    <span class="o">.</span><span class="n">with_schema</span><span class="p">(</span><span class="n">Schema</span><span class="p">()</span>
-                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
-    <span class="o">.</span><span class="n">create_temporary_table</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
-
-<span class="n">t_env</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>\
-    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;add(a, b)&#34;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">insert_into</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
-
-<span class="n">t_env</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&#34;tutorial_job&#34;</span><span class="p">)</span>
-</code></pre></div><h2 id="submit-the-job">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># use the function in Python Table API</span>
+</span></span><span class="line"><span class="cl"><span class="n">my_table</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;add(a, b)&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>Below, you can find a complete example of using Python UDF.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.datastream</span> <span class="kn">import</span> <span class="n">StreamExecutionEnvironment</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table</span> <span class="kn">import</span> <span class="n">StreamTableEnvironment</span><span class="p">,</span> <span class="n">DataTypes</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table.descriptors</span> <span class="kn">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">OldCsv</span><span class="p">,</span> <span class="n">FileSystem</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pyflink.table.udf</span> <span class="kn">import</span> <span class="n">udf</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">get_execution_environment</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">env</span><span class="o">.</span><span class="n">set_parallelism</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">add</span> <span class="o">=</span> <span class="n">udf</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&#34;add&#34;</span><span class="p">,</span> <span class="n">add</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FileSystem</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;/tmp/input&#39;</span><span class="p">))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">with_format</span><span class="p">(</span><span class="n">OldCsv</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">with_schema</span><span class="p">(</span><span class="n">Schema</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">create_temporary_table</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">FileSystem</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;/tmp/output&#39;</span><span class="p">))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">with_format</span><span class="p">(</span><span class="n">OldCsv</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">with_schema</span><span class="p">(</span><span class="n">Schema</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                 <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()))</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">create_temporary_table</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="s1">&#39;mySource&#39;</span><span class="p">)</span>\
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&#34;add(a, b)&#34;</span><span class="p">)</span> \
+</span></span><span class="line"><span class="cl">    <span class="o">.</span><span class="n">insert_into</span><span class="p">(</span><span class="s1">&#39;mySink&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&#34;tutorial_job&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="submit-the-job">
   Submit the job
   <a class="anchor" href="#submit-the-job">#</a>
 </h2>
@@ -1054,16 +1053,16 @@ Please note that Python 3.5 or higher is required to install and run PyFlink
 </h2>
 <p>In many cases, you would like to import third-party dependencies in the Python UDF. The example below provides detailed guidance on how to manage such dependencies.</p>
 <p>Suppose you want to use the <code>mpmath</code> to perform the sum of the example above. The Python UDF may look like:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
-<span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">mpmath</span> <span class="kn">import</span> <span class="n">fadd</span> <span class="c1"># add third-party dependency</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">fadd</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
-</code></pre></div><p>To make it available on the worker node that does not contain the dependency, you can specify the dependencies with the following commands and API:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nb">cd</span> /tmp
-$ <span class="nb">echo</span> <span class="nv">mpmath</span><span class="o">==</span>1.1.0 &gt; requirements.txt
-$ pip download -d cached_dir -r requirements.txt --no-binary :all:
-</code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">t_env</span><span class="o">.</span><span class="n">set_python_requirements</span><span class="p">(</span><span class="s2">&#34;/tmp/requirements.txt&#34;</span><span class="p">,</span> <span class="s2">&#34;/tmp/cached_dir&#34;</span><span class="p">)</span>
-</code></pre></div><p>A <code>requirements.txt</code> file that defines the third-party dependencies is used. If the dependencies cannot be accessed in the cluster, then you can specify a directory containing the installation packages of these dependencies by using the parameter &ldquo;<code>requirements_cached_dir</code>&rdquo;, as illustrated in the example above. The dependencies will be uploaded to the cluster and installed offline.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@udf</span><span class="p">(</span><span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">(),</span> <span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">()],</span> <span class="n">result_type</span><span class="o">=</span><span class="n">DataTypes</span><span class="o">.</span><span class="n">BIGINT</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="kn">from</span> <span class="nn">mpmath</span> <span class="kn">import</span> <span class="n">fadd</span> <span class="c1"># add third-party dependency</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">fadd</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+</span></span></code></pre></div><p>To make it available on the worker node that does not contain the dependency, you can specify the dependencies with the following commands and API:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">cd</span> /tmp
+</span></span><span class="line"><span class="cl">$ <span class="nb">echo</span> <span class="nv">mpmath</span><span class="o">==</span>1.1.0 &gt; requirements.txt
+</span></span><span class="line"><span class="cl">$ pip download -d cached_dir -r requirements.txt --no-binary :all:
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">t_env</span><span class="o">.</span><span class="n">set_python_requirements</span><span class="p">(</span><span class="s2">&#34;/tmp/requirements.txt&#34;</span><span class="p">,</span> <span class="s2">&#34;/tmp/cached_dir&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>A <code>requirements.txt</code> file that defines the third-party dependencies is used. If the dependencies cannot be accessed in the cluster, then you can specify a directory containing the installation packages of these dependencies by using the parameter &ldquo;<code>requirements_cached_dir</code>&rdquo;, as illustrated in the example above. The dependencies will be uploaded to the cluster and installed offline.</p>
 <h1 id="conclusion--upcoming-work">
   Conclusion &amp; Upcoming work
   <a class="anchor" href="#conclusion--upcoming-work">#</a>

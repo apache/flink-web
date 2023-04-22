@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code.">
@@ -13,12 +13,11 @@
 <meta property="og:url" content="https://flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2019-05-14T12:00:00+00:00" />
 <meta property="article:modified_time" content="2019-05-14T12:00:00+00:00" />
-
 <title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -852,7 +851,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -937,40 +936,40 @@ https://github.com/alex-shpak/hugo-book
 </li>
 </ul>
 <p>Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/dev/table/udfs.html#table-functions">table function</a> class and can be defined in the same straightforward way to be used with the Table API or SQL parser.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">org.apache.flink.table.functions.TemporalTableFunction</span><span class="o">;</span>
- 
-<span class="o">(...)</span>
- 
-<span class="c1">// Get the stream and table environments.
-</span><span class="c1"></span><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
-<span class="n">StreamTableEnvironment</span> <span class="n">tEnv</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="na">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">);</span>
- 
-<span class="c1">// Provide a sample static data set of the rates history table.
-</span><span class="c1"></span><span class="n">List</span> <span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span><span class="n">ratesHistoryData</span> <span class="o">=</span><span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
- 
-<span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="n">102L</span><span class="o">));</span> 
-<span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="n">114L</span><span class="o">));</span> 
-<span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;YEN&#34;</span><span class="o">,</span> <span class="n">1L</span><span class="o">));</span> 
-<span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="n">116L</span><span class="o">));</span> 
-<span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="n">105L</span><span class="o">));</span>
- 
-<span class="c1">// Create and register an example table using the sample data set.
-</span><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span> <span class="n">ratesHistoryStream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">fromCollection</span><span class="o">(</span><span class="n">ratesHistoryData</span><span class="o">);</span>
- 
-<span class="n">Table</span> <span class="n">ratesHistory</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="na">fromDataStream</span><span class="o">(</span><span class="n">ratesHistoryStream</span><span class="o">,</span> <span class="s">&#34;r_currency, r_rate, r_proctime.proctime&#34;</span><span class="o">);</span>
- 
-<span class="n">tEnv</span><span class="o">.</span><span class="na">registerTable</span><span class="o">(</span><span class="s">&#34;RatesHistory&#34;</span><span class="o">,</span> <span class="n">ratesHistory</span><span class="o">);</span>
- 
-<span class="c1">// Create and register the temporal table function &#34;rates&#34;.
-</span><span class="c1">// Define &#34;r_proctime&#34; as the versioning field and &#34;r_currency&#34; as the primary key.
-</span><span class="c1"></span><span class="n">TemporalTableFunction</span> <span class="n">rates</span> <span class="o">=</span> <span class="n">ratesHistory</span><span class="o">.</span><span class="na">createTemporalTableFunction</span><span class="o">(</span><span class="s">&#34;r_proctime&#34;</span><span class="o">,</span> <span class="s">&#34;r_currency&#34;</span><span class="o">);</span>
- 
-<span class="n">tEnv</span><span class="o">.</span><span class="na">registerFunction</span><span class="o">(</span><span class="s">&#34;Rates&#34;</span><span class="o">,</span> <span class="n">rates</span><span class="o">);</span>
- 
-<span class="o">(...)</span>
-</code></pre></div><p>What does this <strong>Rates</strong> function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">Rates</span><span class="p">(</span><span class="s1">&#39;11:00&#39;</span><span class="p">);</span><span class="w">
-</span></code></pre></div><center>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">org.apache.flink.table.functions.TemporalTableFunction</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="o">(...)</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Get the stream and table environments.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">StreamExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">StreamExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl"><span class="n">StreamTableEnvironment</span> <span class="n">tEnv</span> <span class="o">=</span> <span class="n">StreamTableEnvironment</span><span class="o">.</span><span class="na">getTableEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Provide a sample static data set of the rates history table.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">List</span> <span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span><span class="n">ratesHistoryData</span> <span class="o">=</span><span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="mi">102L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="mi">114L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;YEN&#34;</span><span class="o">,</span> <span class="mi">1L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;EUR&#34;</span><span class="o">,</span> <span class="mi">116L</span><span class="o">));</span> 
+</span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">Tuple2</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&#34;USD&#34;</span><span class="o">,</span> <span class="mi">105L</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Create and register an example table using the sample data set.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Long</span><span class="o">&gt;&gt;</span> <span class="n">ratesHistoryStream</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">fromCollection</span><span class="o">(</span><span class="n">ratesHistoryData</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">Table</span> <span class="n">ratesHistory</span> <span class="o">=</span> <span class="n">tEnv</span><span class="o">.</span><span class="na">fromDataStream</span><span class="o">(</span><span class="n">ratesHistoryStream</span><span class="o">,</span> <span class="s">&#34;r_currency, r_rate, r_proctime.proctime&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="o">.</span><span class="na">registerTable</span><span class="o">(</span><span class="s">&#34;RatesHistory&#34;</span><span class="o">,</span> <span class="n">ratesHistory</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="c1">// Create and register the temporal table function &#34;rates&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Define &#34;r_proctime&#34; as the versioning field and &#34;r_currency&#34; as the primary key.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">TemporalTableFunction</span> <span class="n">rates</span> <span class="o">=</span> <span class="n">ratesHistory</span><span class="o">.</span><span class="na">createTemporalTableFunction</span><span class="o">(</span><span class="s">&#34;r_proctime&#34;</span><span class="o">,</span> <span class="s">&#34;r_currency&#34;</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="o">.</span><span class="na">registerFunction</span><span class="o">(</span><span class="s">&#34;Rates&#34;</span><span class="o">,</span> <span class="n">rates</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl"><span class="o">(...)</span>
+</span></span></code></pre></div><p>What does this <strong>Rates</strong> function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">Rates</span><span class="p">(</span><span class="s1">&#39;11:00&#39;</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><center>
 <img src="/img/blog/2019-05-13-temporal-tables/TemporalTables2.png" width="650px" alt="Point-in-time Querying"/>
 </center>
 <br>

@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.92.2" />
+  <meta name="generator" content="Hugo 0.111.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="A common use case for Apache Flink is streaming data analytics together with Apache Kafka, which provides a pub/sub model and durability for data streams. To achieve elastic scalability, both are typically deployed in clustered environments, and increasingly on top of container orchestration platforms like Kubernetes. The Operator pattern provides an extension mechanism to Kubernetes that captures human operator knowledge about an application, like Flink, in software to automate its operation.">
@@ -13,12 +13,11 @@
 <meta property="og:url" content="https://flink.apache.org/2019/11/06/running-apache-flink-on-kubernetes-with-kudo/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2019-11-06T12:00:00+00:00" />
 <meta property="article:modified_time" content="2019-11-06T12:00:00+00:00" />
-
 <title>Running Apache Flink on Kubernetes with KUDO | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
-<script defer src="/en.search.min.069123ef70eb5a313a1a8ba877092ebbe3e8ff1540b613f6c3c0bdd7a30c0733.js" integrity="sha256-BpEj73DrWjE6Gouodwkuu&#43;Po/xVAthP2w8C916MMBzM="></script>
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -852,7 +851,7 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-  <script>(function(){var a=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
 
 
  
@@ -956,9 +955,9 @@ $ kubectl kudo install repository/flink/docs/demo/financial-fraud/demo-operator 
 instance.kudo.dev/v1beta1/flink-demo created
 </code></pre><p>This time we didn’t include the &ndash;skip-instance flag, so KUDO will actually deploy all the components, including Flink, Kafka, and ZooKeeper. KUDO orchestrates deployments and other lifecycle operations using <a href="https://kudo.dev/docs/concepts.html#plan">plans</a> that were defined by the Operator developer. Plans are similar to <a href="https://en.wikipedia.org/wiki/Runbook">runbooks</a> and encapsulate all the procedures required to operate the software. We can track the status of the deployment using this KUDO command:</p>
 <pre tabindex="0"><code>$ kubectl kudo plan status --instance flink-demo
-Plan(s) for &quot;flink-demo&quot; in namespace &quot;default&quot;:
+Plan(s) for &#34;flink-demo&#34; in namespace &#34;default&#34;:
 .
-└── flink-demo (Operator-Version: &quot;flink-demo-0.1.4&quot; Active-Plan: &quot;deploy&quot;)
+└── flink-demo (Operator-Version: &#34;flink-demo-0.1.4&#34; Active-Plan: &#34;deploy&#34;)
 	└── Plan deploy (serial strategy) [IN_PROGRESS]
     	├── Phase dependencies [IN_PROGRESS]
     	│   ├── Step zookeeper (COMPLETE)
@@ -972,9 +971,9 @@ Plan(s) for &quot;flink-demo&quot; in namespace &quot;default&quot;:
         	└── Step submit (PENDING)
 </code></pre><p>The output shows that the “deploy” plan is in progress and that it consists of 4 phases: “dependencies”, “flink-cluster”, “demo” and “flink-job”. The “dependencies” phase includes steps for “zookeeper” and “kafka”. This is where both dependencies get installed, before KUDO continues to install the Flink cluster and the demo itself. We also see that ZooKeeper installation completed, and that Kafka installation is currently in progress. We can view details about Kafka’s deployment plan via:</p>
 <pre tabindex="0"><code>$ kubectl kudo plan status --instance flink-demo-kafka
-Plan(s) for &quot;flink-demo-kafka&quot; in namespace &quot;default&quot;:
+Plan(s) for &#34;flink-demo-kafka&#34; in namespace &#34;default&#34;:
 .
-└── flink-demo-kafka (Operator-Version: &quot;kafka-1.2.0&quot; Active-Plan: &quot;deploy&quot;)
+└── flink-demo-kafka (Operator-Version: &#34;kafka-1.2.0&#34; Active-Plan: &#34;deploy&#34;)
 	├── Plan deploy (serial strategy) [IN_PROGRESS]
 	│   └── Phase deploy-kafka [IN_PROGRESS]
 	│   	└── Step deploy (IN_PROGRESS)
@@ -991,15 +990,15 @@ Plan(s) for &quot;flink-demo-kafka&quot; in namespace &quot;default&quot;:
 	<img src="/img/blog/2019-11-06-flink-kubernetes-kudo/flink-dashboard-ui.png" width="600px" alt="Application: My App"/>
 </p>
 <p>The job is up and running and we should now be able to see fraudulent transaction in the logs of the actor pod:</p>
-<pre tabindex="0"><code>$ kubectl logs $(kubectl get pod -l actor=flink-demo -o jsonpath=&quot;{.items[0].metadata.name}&quot;)
+<pre tabindex="0"><code>$ kubectl logs $(kubectl get pod -l actor=flink-demo -o jsonpath=&#34;{.items[0].metadata.name}&#34;)
 Broker:   flink-demo-kafka-kafka-0.flink-demo-kafka-svc:9093
 Topic:   fraud
 
 Detected Fraud:   TransactionAggregate {startTimestamp=0, endTimestamp=1563395831000, totalAmount=19895:
-Transaction{timestamp=1563395778000, origin=1, target='3', amount=8341}
-Transaction{timestamp=1563395813000, origin=1, target='3', amount=8592}
-Transaction{timestamp=1563395817000, origin=1, target='3', amount=2802}
-Transaction{timestamp=1563395831000, origin=1, target='3', amount=160}}
+Transaction{timestamp=1563395778000, origin=1, target=&#39;3&#39;, amount=8341}
+Transaction{timestamp=1563395813000, origin=1, target=&#39;3&#39;, amount=8592}
+Transaction{timestamp=1563395817000, origin=1, target=&#39;3&#39;, amount=2802}
+Transaction{timestamp=1563395831000, origin=1, target=&#39;3&#39;, amount=160}}
 </code></pre><p>If you add the “-f” flag to the previous command, you can follow along as more transactions are streaming in and are evaluated by our Flink job.</p>
 <h2 id="conclusion">
   Conclusion
