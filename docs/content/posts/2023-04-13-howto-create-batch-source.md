@@ -20,7 +20,7 @@ batch
 source using this new framework. It was built while implementing
 the [Flink batch source](https://github.com/apache/flink-connector-cassandra/commit/72e3bef1fb9ee6042955b5e9871a9f70a8837cca)
 for [Cassandra](https://cassandra.apache.org/_/index.html).
-If you are interested in contributing or migrating connectors, this blog post is for you!.
+If you are interested in contributing or migrating connectors, this blog post is for you!
 
 ## Implementing the source components
 
