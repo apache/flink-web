@@ -1,0 +1,1278 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta name="generator" content="Hugo 0.111.3">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # The Flink community has designed a new Source framework based on FLIP-27 lately. Some connectors have migrated to this new framework. This article is a how-to for creating a batch source using this new framework. It was built while implementing the Flink batch source for Cassandra. If you are interested in contributing or migrating connectors, this blog post is for you!
+Implementing the source components # The source architecture is depicted in the diagrams below:">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Howto create a batch source with the new Source framework" />
+<meta property="og:description" content="Introduction # The Flink community has designed a new Source framework based on FLIP-27 lately. Some connectors have migrated to this new framework. This article is a how-to for creating a batch source using this new framework. It was built while implementing the Flink batch source for Cassandra. If you are interested in contributing or migrating connectors, this blog post is for you!
+Implementing the source components # The source architecture is depicted in the diagrams below:" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2023/05/03/howto-create-a-batch-source-with-the-new-source-framework/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-05-03T08:00:00+00:00" />
+<meta property="article:modified_time" content="2023-05-03T08:00:00+00:00" />
+<title>Howto create a batch source with the new Source framework | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e3b33391dbc1f4b2cc47778e2f4b86c744ded3ccc82fdfb6f08caf91d8607f9a.css" integrity="sha256-47MzkdvB9LLMR3eOL0uGx0Te08zIL9&#43;28Iyvkdhgf5o=">
+<script defer src="/en.search.min.8592fd2e43835d2ef6fab8eb9b8969ee6ad1bdb888a636e37e28032f8bd9887d.js" integrity="sha256-hZL9LkODXS72&#43;rjrm4lp7mrRvbiIpjbjfigDL4vZiH0="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2023/05/03/howto-create-a-batch-source-with-the-new-source-framework/">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  
+
+<nav>
+
+
+<a id="logo" href="/">
+    <img width="70%" src="/flink-header-logo.svg">
+</a>
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-4117fb24454a2c30ee86e524839e77ec" class="toggle"  />
+  <label for="section-4117fb24454a2c30ee86e524839e77ec" class="flex justify-between flink-menu-item">What is Apache Flink?<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ffd5922da551e96e0481423fab94c463" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-architecture/" class="">Architecture</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-fc28f08b67476edb77e00e03b6c7c2e0" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-applications/" class="">Applications</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-612df33a02d5d4ee78d718abaab5b5b4" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/what-is-flink/flink-operations/" class="">Operations</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-f1ecec07350bd6810050d40158878749" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">What is Stateful Functions? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-4113a4c3072cb35f6fd7a0d4e098ee70" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">What is Flink ML? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-b39c70259d0abbe2bf1d8d645425f84d" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">What is the Flink Kubernetes Operator? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-53e0b1afcb9ccaf779dc285aa272a014" class="flex justify-between flink-menu-item">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">What is Flink Table Store? <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f4973f06a66f063045b4ebdacaf3127d" class="flex justify-between flink-menu-item">
+    <a href="/use-cases/" class="">Use Cases</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-0f1863835376e859ac438ae9529daff2" class="flex justify-between flink-menu-item">
+    <a href="/powered-by/" class="">Powered By</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-f383f23a96a43d8d0cc66aeb0237e26a" class="flex justify-between flink-menu-item">
+    <a href="/downloads/" class="">Downloads</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-c727fab97b4d77e5b28ce8c448fb9000" class="toggle"  />
+  <label for="section-c727fab97b4d77e5b28ce8c448fb9000" class="flex justify-between flink-menu-item">Getting Started<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-f45abaa99ab076108b9a5b94edbc6647" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/" style="color:black" class="">With Flink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-efe2166e9dce6f72e126dcc2396b4402" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html" style="color:black" class="">With Flink Stateful Functions <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-7e268d0a469b1093bb33d71d093eb7b9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/" style="color:black" class="">With Flink ML <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-cc7147cd0441503127bfaf6f219d4fbb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/" style="color:black" class="">With Flink Kubernetes Operator <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-660ca694e416d8ca9176dda52a60d637" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/" style="color:black" class="">With Flink Table Store <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-75db0b47bf4ae9c247aadbba5fbd720d" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/" style="color:black" class="">Training Course <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-6318075fef29529089951a49d413d083" class="toggle"  />
+  <label for="section-6318075fef29529089951a49d413d083" class="flex justify-between flink-menu-item">Documentation<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9a8122d8912450484d1c25394ad40229" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-stable/" style="color:black" class="">Flink 1.17 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-8b2fd3efb702be3783ba98d650707e3c" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-docs-master/" style="color:black" class="">Flink Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-5317a079cddb964c59763c27607f43d9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/" style="color:black" class="">Stateful Functions 3.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-25b72f108b7156e94d91b04853d8813a" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-statefun-docs-master" style="color:black" class="">Stateful Functions Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-13a02f969904a2455a39ed90e287593f" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-stable/" style="color:black" class="">ML 2.2 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-6d895ec5ad127a29a6a9ce101328ccdf" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-ml-docs-master" style="color:black" class="">ML Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-c83ad0caf34e364bf3729badd233a350" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/" style="color:black" class="">Kubernetes Operator 1.4 (latest) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-a2c75d90005425982ba8f26ae0e160a3" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main" style="color:black" class="">Kubernetes Operator Main (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-07b85e4b2f61b1526bf202c64460abcd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-stable/" style="color:black" class="">Table Store 0.3 (stable) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    
+    
+    
+<label for="section-9b9a0032b1e858a34c125d828d1a0718" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="https://nightlies.apache.org/flink/flink-table-store-docs-master/" style="color:black" class="">Table Store Master (snapshot) <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-63d6a565d79aa2895f70806a46021c07" class="flex justify-between flink-menu-item">
+    <a href="/getting-help/" class="">Getting Help</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    
+    
+    
+<label for="section-1d5066022b83f4732dc80f4e9eaa069a" class="flex justify-between flink-menu-item">
+    <a href="https://flink-packages.org/" style="color:black" class="">flink-packages.org <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+  
+
+  
+
+  
+  <br/>
+
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-7821b78a97db9e919426e86121a7be9c" class="flex justify-between flink-menu-item">
+    <a href="/community/" class="">Community & Project Info</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-8c042831df4e371c4ef9375f1df06f35" class="flex justify-between flink-menu-item">
+    <a href="/roadmap/" class="">Roadmap</a>
+    </label>
+  
+
+  
+
+  
+    
+  
+    
+  
+  
+
+  <input type="checkbox" id="section-73117efde5302fddcb193307d582b588" class="toggle"  />
+  <label for="section-73117efde5302fddcb193307d582b588" class="flex justify-between flink-menu-item">How to Contribute<span>▾</span>
+  </label>
+
+    <ul>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-6646b26b23a3e79b8de9c552ee76f6dd" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/overview/" class="">Overview</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-e6ab9538b82cd5f94103b971adb7c1a9" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-code/" class="">Contribute Code</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-1c09e1358485e82d9b3f5f689d4ced65" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/reviewing-prs/" class="">Review Pull Requests</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ed01e0defd235498fa3c9a2a0b3302fb" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/code-style-and-quality-preamble/" class="">Code Style and Quality Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-4e8d5e9924cf15f397711b0d82e15650" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/contribute-documentation/" class="">Contribute Documentation</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-ddaa8307917e5ba7f60ba3316711e492" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/documentation-style-guide/" class="">Documentation Style Guide</a>
+    </label>
+  
+
+      </li>
+    
+      <li>
+      
+  
+
+  
+  
+    <label for="section-390a72c171cc82f180a308b95fc3aa72" class="flex justify-between flink-menu-item flink-menu-child">
+    <a href="/how-to-contribute/improve-website/" class="">Contribute to the Website</a>
+    </label>
+  
+
+      </li>
+    
+    </ul>
+  
+
+  
+    
+  
+    
+  
+
+  
+  
+    <label for="section-9d3ddfd487223d5a199ba301f25c88c6" class="flex justify-between flink-menu-item">
+    <a href="/security/" class="">Security</a>
+    </label>
+  
+
+  
+
+  
+  <br/>
+
+
+
+  
+    
+  
+
+  
+  
+    <label for="section-a07783f405300745807d39eacf150420" class="flex justify-between flink-menu-item">
+    <a href="/posts/" class="">Flink Blog</a>
+    </label>
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<hr class="menu-break">
+
+  
+<label for="section-f71a7070dbb7b669824a6441408ded70" class="flex justify-between flink-menu-item">
+    <a href="https://github.com/apache/flink" style="color:black" class="">Flink on GitHub <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+  
+<label for="section-2ccaaab8c67f3105bbf7df75faca8027" class="flex justify-between flink-menu-item">
+    <a href="https://twitter.com/apacheflink" style="color:black" class="">@ApacheFlink <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label>
+
+
+
+<hr class="menu-break">
+<table>
+  <tr>
+    <th colspan="2">
+<label for="section-78c2028200542d78f8c1a8f6b4cbb36b" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/" style="color:black" class="">Apache Software Foundation <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></th>
+  </tr>
+  <tr>
+    <td>
+<label for="section-794df3791a8c800841516007427a2aa3" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/licenses/" style="color:black" class="">License <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-2fae32629d4ef4fc6341f1751b405e45" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/security/" style="color:black" class="">Security <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+  <tr>
+    <td>
+<label for="section-0584e445d656b83b431227bb80ff0c30" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/sponsorship.html" style="color:black" class="">Donate <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+    <td>
+<label for="section-00d06796e489999226fb5bb27fe1b3b2" class="flex justify-between flink-menu-item">
+    <a href="https://www.apache.org/foundation/thanks.html" style="color:black" class="">Thanks <i class="link fa fa-external-link title" aria-hidden="true"></i></a>
+</label></td>
+  </tr>
+</table>
+
+<hr class="menu-break">
+
+
+
+  
+
+  
+
+
+
+
+
+
+
+<a  href="/zh/" class="flex align-center">
+  <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;&nbsp;
+  中文版
+</a>
+
+<script src="/js/track-search-terms.js"></script>
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Howto create a batch source with the new Source framework</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#implementing-the-source-components">Implementing the source components</a>
+      <ul>
+        <li><a href="#source">Source</a></li>
+        <li><a href="#sourcereader">SourceReader</a></li>
+        <li><a href="#split-and-splitstate">Split and SplitState</a></li>
+        <li><a href="#splitenumerator-and-splitenumeratorstate">SplitEnumerator and SplitEnumeratorState</a></li>
+        <li><a href="#splitreader">SplitReader</a></li>
+        <li><a href="#recordemitter">RecordEmitter</a></li>
+        <li><a href="#serializers">Serializers</a></li>
+      </ul>
+    </li>
+    <li><a href="#testing-the-source">Testing the source</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+
+
+
+
+      
+<article class="markdown">
+    <h1>
+        <a href="/2023/05/03/howto-create-a-batch-source-with-the-new-source-framework/">Howto create a batch source with the new Source framework</a>
+    </h1>
+    
+  May 3, 2023 -
+
+
+
+  Etienne Chauchot
+
+  <a href="https://twitter.com/echauchot">(@echauchot)</a>
+  
+
+
+
+    <p><h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
+<p>The Flink community has
+designed <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/sources/">a new Source framework</a>
+based
+on <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A&#43;Refactor&#43;Source&#43;Interface">FLIP-27</a>
+lately. Some connectors have migrated to this new framework. This article is a how-to for creating a
+batch
+source using this new framework. It was built while implementing
+the <a href="https://github.com/apache/flink-connector-cassandra/commit/72e3bef1fb9ee6042955b5e9871a9f70a8837cca">Flink batch source</a>
+for <a href="https://cassandra.apache.org/_/index.html">Cassandra</a>.
+If you are interested in contributing or migrating connectors, this blog post is for you!</p>
+<h2 id="implementing-the-source-components">
+  Implementing the source components
+  <a class="anchor" href="#implementing-the-source-components">#</a>
+</h2>
+<p>The source architecture is depicted in the diagrams below:</p>
+<p><img src="/img/blog/2023-05-03-howto-create-batch-source/source_components.svg" alt="" /></p>
+<p><img src="/img/blog/2023-05-03-howto-create-batch-source/source_reader.svg" alt="" /></p>
+<h3 id="source">
+  Source
+  <a class="anchor" href="#source">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/CassandraSource.java">Example Cassandra Source</a></p>
+<p>The source interface only does the &ldquo;glue&rdquo; between all the other components. Its role is to
+instantiate all of them and to define the
+source <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/Boundedness.html">Boundedness</a>
+. We also do the source configuration
+here along with user configuration validation.</p>
+<h3 id="sourcereader">
+  SourceReader
+  <a class="anchor" href="#sourcereader">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/reader/CassandraSourceReader.java">Example Cassandra SourceReader</a></p>
+<p>As shown in the graphic above, the instances of
+the <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html">SourceReader</a>
+(which we will call simply readers
+in the continuation of this article) run in parallel in task managers to read the actual data which
+is divided into <a href="#split-and-splitstate">Splits</a>. Readers request splits from
+the <a href="#splitenumerator-and-splitenumeratorstate">SplitEnumerator</a> and the resulting splits are
+assigned to them in return.</p>
+<p>Flink provides
+the <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html">SourceReaderBase</a>
+implementation that takes care of all the threading. Flink also provides a useful extension to
+this class for most
+cases: <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SingleThreadMultiplexSourceReaderBase.html">SingleThreadMultiplexSourceReaderBase</a>
+. This class has the threading model already configured:
+each <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html">SplitReader</a>
+instance reads splits using one thread (but there are several SplitReader instances that live among
+task
+managers).</p>
+<p>What we have left to do in the SourceReader class is:</p>
+<ul>
+<li>Provide a <a href="#splitreader">SplitReader</a> supplier</li>
+<li>Create a <a href="#recordemitter">RecordEmitter</a></li>
+<li>Create the shared resources for the SplitReaders (sessions, etc&hellip;). As the SplitReader supplier
+is
+created in the SourceReader constructor in a super() call, using a SourceReader factory to create
+the shared resources and pass them to the supplier is a good idea.</li>
+<li>Implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html#start--">start()</a>:
+here we should ask the enumerator for our first split</li>
+<li>Override <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#close--">close()</a>
+in SourceReaderBase parent class to free up any created resources (the shared
+resources for example)</li>
+<li>Implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#initializedState-SplitT-">initializedState()</a>
+to create a mutable <a href="#split-and-splitstate">SplitState</a> from a Split</li>
+<li>Implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#toSplitType-java.lang.String-SplitStateT-">toSplitType()</a>
+to create a Split from the mutable SplitState</li>
+<li>Implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html#onSplitFinished-java.util.Map-">onSplitFinished()</a>:
+here, as it is a batch source (finite data), we should ask the
+Enumerator for next split</li>
+</ul>
+<h3 id="split-and-splitstate">
+  Split and SplitState
+  <a class="anchor" href="#split-and-splitstate">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/split/CassandraSplit.java">Example Cassandra Split</a></p>
+<p>The <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceSplit.html">SourceSplit</a>
+represents a partition of the source data. What defines a split depends on the
+backend we are reading from. It could be a <em>(partition start, partition end)</em> tuple or an <em>(offset,
+split size)</em> tuple for example.</p>
+<p>In any case, the Split object should be seen as an immutable object: any update to it should be done
+on the
+associated <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html">SplitState</a>.
+The split state is the one that will be stored inside the Flink
+<a href="https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#checkpointing">checkpoints</a>
+. A checkpoint may happen between 2 fetches for 1 split. So, if we&rsquo;re reading a split, we
+must store in the split state the current state of the reading process. This current state needs to
+be something serializable (because it will be part of a checkpoint) and something that the backend
+source can resume from. That way, in case of failover, the reading could be resumed from where it
+was left off. Thus we ensure there will be no duplicates or lost data.<br>
+For example, if the records
+reading order is deterministic in the backend, then the split state can store the number <em>n</em> of
+already read records to restart at <em>n+1</em> after failover.</p>
+<h3 id="splitenumerator-and-splitenumeratorstate">
+  SplitEnumerator and SplitEnumeratorState
+  <a class="anchor" href="#splitenumerator-and-splitenumeratorstate">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/enumerator/CassandraSplitEnumerator.java">Example Cassandra SplitEnumerator</a>
+and <a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/enumerator/CassandraEnumeratorState.java">SplitEnumeratorState</a></p>
+<p>The <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html">SplitEnumerator</a>
+is responsible for creating the splits and serving them to the readers. Whenever
+possible, it is preferable to generate the splits lazily, meaning that each time a reader asks the
+enumerator for a split, the enumerator generates one on demand and assigns it to the reader. For
+that we
+implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#handleSplitRequest-int-java.lang.String-">SplitEnumerator#handleSplitRequest()</a>
+. Lazy splits generation is preferable to
+splits discovery, in which we pre-generate all the splits and store them waiting to assign them to
+the readers. Indeed, in some situations, the number of splits can be enormous and consume a lot a
+memory which could be problematic in case of straggling readers. The framework offers the ability to
+act upon reader registration by
+implementing <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#addReader-int-">addReader()</a>
+but, as we do lazy splits generation, we
+have nothing to do there. In some cases, generating a split is too costly, so we can pre-generate a
+batch (not all) of splits to amortize this cost. The number/size of batched splits need to be taken
+into account to avoid consuming too much memory.</p>
+<p>Long story short, the tricky part of the source implementation is splitting the source data. The
+good equilibrium to find is not to have too many splits (which could lead to too much memory
+consumption) nor too few (which could lead to sub-optimal parallelism). One good way to meet this
+equilibrium is to evaluate the size of the source data upfront and allow the user to specify the
+maximum memory a split will take. That way they can configure this parameter accordingly to the
+memory
+available on the task managers. This parameter is optional so the source needs to provide a default
+value. Also, the source needs to control that the user provided max-split-size is not too little
+which would
+lead to too many splits. The general rule of thumb is to let the user some freedom but protect him
+from unwanted behavior.
+For these safety measures, rigid thresholds
+don&rsquo;t work well as the source may start to fail when the thresholds are suddenly exceeded.<br>
+For example if we enforce that the number of splits is below twice the parallelism, if
+the job is regularly run on a growing table, at some point there will be
+more and more splits of max-split-size and the threshold will be exceeded. Of course, the size of
+the source data needs to be evaluated without
+reading the actual data. For the Cassandra connector it was
+done <a href="https://echauchot.blogspot.com/2023/03/cassandra-evaluate-table-size-without.html">like this</a>.</p>
+<p>Another important topic is state. If the job manager fails, the split enumerator needs to recover.
+For that, as for the split, we need to provide a state for the enumerator that will be part of a
+checkpoint. Upon recovery, the enumerator is reconstructed and
+receives <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html">an enumerator state</a>
+for recovering its previous state. Upon checkpointing, the
+enumerator returns its state when <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#snapshotState-long-">SplitEnumerator#snapshotState()</a>
+is called. The state
+must contain everything needed to resume where the enumerator was left off after failover. In lazy
+split generation scenario, the state will contain everything needed to generate the next split
+whenever asked to. It can be for example the start offset of next split, split size, number of
+splits still to generate etc&hellip; But the SplitEnumeratorState must also contain a list of splits, not
+the list of discovered splits, but a list of splits to reassign. Indeed, whenever a reader fails, if
+it was assigned splits after last checkpoint, then the checkpoint will not contain those splits.
+Consequently, upon restoration, the reader won&rsquo;t have the splits assigned anymore. There is a
+callback to deal with that
+case: <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#addSplitsBack-java.util.List-int-">addSplitsBack()</a>
+. There, the splits that were assigned to the
+failing reader, can be put back into the enumerator state for later re-assignment to readers. There
+is no memory size risk here as the number of splits to reassign is pretty low.</p>
+<p>The above topics are the more important regarding splitting. There are 2 methods left to implement:
+the
+usual <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#start--">start()</a>
+/<a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#close--">close()</a>
+methods for resources creation/disposal. Regarding implementing start(),
+the Flink connector framework
+provides <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumeratorContext.html#callAsync-java.util.concurrent.Callable-java.util.function.BiConsumer-long-long-">enumeratorContext#callAsync()</a>
+utility to run long processing
+asynchronously such as splits preparation or splits discovery (if lazy splits generation is
+impossible). Indeed, the start() method runs in the source coordinator thread,
+we don&rsquo;t want to block it for a long time.</p>
+<h3 id="splitreader">
+  SplitReader
+  <a class="anchor" href="#splitreader">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/reader/CassandraSplitReader.java">Example Cassandra SplitReader</a></p>
+<p>This class is responsible for reading the actual splits that it receives when the framework
+calls <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html#handleSplitsChanges-org.apache.flink.connector.base.source.reader.splitreader.SplitsChange-">handleSplitsChanges()</a>
+. The main part of the split reader is
+the <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html#fetch--">fetch()</a>
+implementation where we read all the splits received and return the read records as
+a <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/RecordsBySplits.html">RecordsBySplits</a>
+object. This object contains a map of the split ids to the belonging records and also the ids of the
+finished splits. Important points need to be considered:</p>
+<ul>
+<li>The fetch call must be non-blocking. If any call in its code is synchronous and potentially long,
+an
+escape from the fetch() must be provided. When the framework
+calls <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html#wakeUp--">wakeUp()</a>
+we should interrupt the
+fetch for example by setting an AtomicBoolean.</li>
+<li>Fetch call needs to be re-entrant: an already read split must not be re-read. We should remove it
+from the list of splits to read and add its id to the finished splits (along with empty splits) in
+the RecordsBySplits that we return.</li>
+</ul>
+<p>It is totally fine for the implementer to exit the fetch() method early. Also a failure could
+interrupt the fetch. In both cases the framework will call fetch() again later on. In that case, the
+fetch method must resume the reading from where it was left off using the split state already
+discussed. If resuming the read of a split is impossible because of backend constraints, then the
+only solution is to read splits atomically (either not read the split at all, or read it entirely).
+That way, in case of interrupted fetch, nothing will be output and the split could be read again
+from the beginning at next fetch call leading to no duplicates. But if the split is read entirely,
+there are points to consider:</p>
+<ul>
+<li>We should ensure that the total split content (records from the source) fits in memory for example
+by specifying a max split size in bytes (
+see <a href="#splitenumerator-and-splitenumeratorstate">SplitEnumarator</a>)</li>
+<li>The split state becomes useless, only a Split class is needed</li>
+</ul>
+<h3 id="recordemitter">
+  RecordEmitter
+  <a class="anchor" href="#recordemitter">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/reader/CassandraRecordEmitter.java">Example Cassandra RecordEmitter</a></p>
+<p>The SplitReader reads records in the form
+of <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/splitreader/SplitReader.html">an intermediary record format</a>
+that the implementer
+provides for each record. It can be the raw format returned by the backend or any format allowing to
+extract the actual record afterwards. This format is not the final output format expected by the
+source. It contains anything needed to do the conversion to the record output format. We need to
+implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/RecordEmitter.html#emitRecord-E-org.apache.flink.api.connector.source.SourceOutput-SplitStateT-">RecordEmitter#emitRecord()</a>
+to do this conversion. A good pattern here is to initialize the
+RecordEmitter with a mapping Function. The implementation must be idempotent. Indeed the method
+maybe interrupted in the middle. In that case, the same set of records will be passed to the record
+emitter again later.</p>
+<h3 id="serializers">
+  Serializers
+  <a class="anchor" href="#serializers">#</a>
+</h3>
+<p><a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/split/CassandraSplitSerializer.java">Example Cassandra SplitSerializer</a>
+and <a href="https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/enumerator/CassandraEnumeratorStateSerializer.java">SplitEnumeratorStateSerializer</a></p>
+<p>We need to provide singleton serializers for:</p>
+<ul>
+<li>Split: splits are serialized when sending them from enumerator to reader, and when checkpointing
+the reader&rsquo;s current state</li>
+<li>SplitEnumeratorState:  the serializer is used for the result of the
+SplitEnumerator#snapshotState()</li>
+</ul>
+<p>For both, we need to
+implement <a href="https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/core/io/SimpleVersionedSerializer.html">SimpleVersionedSerializer</a>
+. Care needs to be taken at some important points:</p>
+<ul>
+<li>Using Java serialization
+is <a href="https://flink.apache.org/contributing/code-style-and-quality-java.html#java-serialization">forbidden</a>
+in Flink mainly for migration concerns. We should rather manually write the fields of the objects
+using ObjectOutputStream. When a class is not supported by the ObjectOutputStream (not String,
+Integer, Long&hellip;), we should write the size of the object in bytes as an Integer and then write
+the object converted to byte[]. Similar method is used to serialize collections. First write the
+number of elements of the collection, then serialize all the contained objects. Of course, for
+deserialization we do the exact same reading with the same order.</li>
+<li>There can be a lot of splits, so we should cache the OutputStream used in SplitSerializer. We can
+do so by using.</li>
+</ul>
+<p><code>  ThreadLocal&lt;DataOutputSerializer&gt; SERIALIZER_CACHE = ThreadLocal.withInitial(() -&gt; new DataOutputSerializer(64));</code></p>
+<p>The initial stream size depends on the size of a split.</p>
+<h2 id="testing-the-source">
+  Testing the source
+  <a class="anchor" href="#testing-the-source">#</a>
+</h2>
+<p>For the sake of concision of this article, testing the source will be the object of the next
+article. Stay tuned !</p>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>This article gathering the implementation field feedback was needed as the javadocs cannot cover all
+the implementation details for high-performance and maintainable sources. I hope you enjoyed reading
+and that it gave you the desire to contribute a new connector to the Flink project !</p>
+</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  
+
+
+
+
+
+<a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+<br><br>
+<a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2023-05-03-howto-create-batch-source.md" style="color:black"><i class="fa fa-edit fa-fw"></i>Edit This Page</a>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+
+
+<nav id="TableOfContents"><h3>On This Page <button class="toc" onclick="collapseToc()"><i class="fa fa-compress" aria-hidden="true"></i></button></h3>
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#implementing-the-source-components">Implementing the source components</a>
+      <ul>
+        <li><a href="#source">Source</a></li>
+        <li><a href="#sourcereader">SourceReader</a></li>
+        <li><a href="#split-and-splitstate">Split and SplitState</a></li>
+        <li><a href="#splitenumerator-and-splitenumeratorstate">SplitEnumerator and SplitEnumeratorState</a></li>
+        <li><a href="#splitreader">SplitReader</a></li>
+        <li><a href="#recordemitter">RecordEmitter</a></li>
+        <li><a href="#serializers">Serializers</a></li>
+      </ul>
+    </li>
+    <li><a href="#testing-the-source">Testing the source</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    <aside class="expand-toc">
+      <button class="toc" onclick="expandToc()">
+        <i class="fa fa-expand" aria-hidden="true"></i>
+      </button>
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
