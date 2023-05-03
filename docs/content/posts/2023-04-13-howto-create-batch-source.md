@@ -125,7 +125,7 @@ memory which could be problematic in case of straggling readers. The framework o
 act upon reader registration by
 implementing [addReader()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#addReader-int-)
 but, as we do lazy splits generation, we
-have nothing to do there. In some case, generating a split is too costly, so we can pre-generate a
+have nothing to do there. In some cases, generating a split is too costly, so we can pre-generate a
 batch (not all) of splits to amortize this cost. The number/size of batched splits need to be taken
 into account to avoid consuming too much memory.
 
