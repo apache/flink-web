@@ -45,8 +45,8 @@ here along with user configuration validation.
 [example Cassandra SourceReader](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/reader/CassandraSourceReader.java)
 
 As shown in the graphic above, the instances of
-the [SourceReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html) (
-which we will call simply readers
+the [SourceReader](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SourceReader.html) 
+(which we will call simply readers
 in the continuation of this article) run in parallel in task managers to read the actual data which
 is divided into [Splits](#split-and-splitstate). Readers request splits from
 the [SplitEnumerator](#splitenumerator-and-splitenumeratorstate) and the resulting splits are
