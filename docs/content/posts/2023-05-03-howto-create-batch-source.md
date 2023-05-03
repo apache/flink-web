@@ -1,6 +1,6 @@
 ---
 title:  "Howto create a batch source with the new Source framework"
-date: "2023-04-13T08:00:00.000Z"
+date: "2023-05-03T08:00:00.000Z"
 authors:
 
 - echauchot:
@@ -26,9 +26,9 @@ If you are interested in contributing or migrating connectors, this blog post is
 
 The source architecture is depicted in the diagrams below:
 
-![](/img/blog/2023-04-13-howto-create-batch-source/source_components.svg)
+![](/img/blog/2023-05-03-howto-create-batch-source/source_components.svg)
 
-![](/img/blog/2023-04-13-howto-create-batch-source/source_reader.svg)
+![](/img/blog/2023-05-03-howto-create-batch-source/source_reader.svg)
 
 ### Source
 
