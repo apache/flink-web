@@ -102,7 +102,8 @@ associated [SplitState](https://nightlies.apache.org/flink/flink-docs-master/api
 must store in the split state the current state of the reading process. This current state needs to
 be something serializable (because it will be part of a checkpoint) and something that the backend
 source can resume from. That way, in case of failover, the reading could be resumed from where it
-was left off. Thus we ensure there will be no duplicates or lost data. For example, if the records
+was left off. Thus we ensure there will be no duplicates or lost data.  
+For example, if the records
 reading order is deterministic in the backend, then the split state can store the number _n_ of
 already read records to restart at _n+1_ after failover.
 
