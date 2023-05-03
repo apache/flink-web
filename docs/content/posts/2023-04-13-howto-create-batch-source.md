@@ -24,10 +24,6 @@ If you are interested in contributing or migrating connectors, this blog post is
 
 ## Implementing the source components
 
-The aim here is not to duplicate the official documentation. For details you should read the
-documentation, the javadocs or the Cassandra connector code. The links are above. The goal here is
-to give field feedback on how to implement the different components.
-
 The source architecture is depicted in the diagrams below:
 
 ![](/img/blog/2023-04-13-howto-create-batch-source/source_components.svg)
