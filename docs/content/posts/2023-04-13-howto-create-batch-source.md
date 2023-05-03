@@ -178,7 +178,8 @@ the Flink connector framework
 provides [enumeratorContext#callAsync()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumeratorContext.html#callAsync-java.util.concurrent.Callable-java.util.function.BiConsumer-long-long-)
 utility to run long processing
 asynchronously such as splits preparation or splits discovery (if lazy splits generation is
-impossible). 
+impossible). Indeed, the start() method runs in the source coordinator thread, 
+we don't want to block it for a long time.
 
 ### SplitReader
 
