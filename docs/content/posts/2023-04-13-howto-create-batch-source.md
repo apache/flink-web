@@ -120,7 +120,7 @@ that we
 implement [SplitEnumerator#handleSplitRequest()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#handleSplitRequest-int-java.lang.String-)
 . Lazy splits generation is preferable to
 splits discovery, in which we pre-generate all the splits and store them waiting to assign them to
-the readers. Indeed, in some situations, the number of splits can be enormous at consume a lot a
+the readers. Indeed, in some situations, the number of splits can be enormous and consume a lot a
 memory which could be problematic in case of straggling readers. The framework offers the ability to
 act upon reader registration by
 implementing [addReader()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/connector/source/SplitEnumerator.html#addReader-int-)
