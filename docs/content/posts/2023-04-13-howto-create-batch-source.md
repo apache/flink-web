@@ -95,8 +95,8 @@ split size)_ tuple for example.
 
 In any case, the Split object should be seen as an immutable object: any update to it should be done
 on the
-associated [SplitState](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html)
-. The split state is the one that will be stored inside the Flink
+associated [SplitState](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/base/source/reader/SourceReaderBase.html).
+The split state is the one that will be stored inside the Flink
 [checkpoints](https://nightlies.apache.org/flink/flink-docs-master/docs/concepts/stateful-stream-processing/#checkpointing)
 . A checkpoint may happen between 2 fetches for 1 split. So, if we're reading a split, we
 must store in the split state the current state of the reading process. This current state needs to
