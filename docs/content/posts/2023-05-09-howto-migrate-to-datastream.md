@@ -1,6 +1,6 @@
 ---
 title:  "Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API"
-date: "2023-04-12T08:00:00.000Z"
+date: "2023-05-09T08:00:00.000Z"
 authors:
 
 - echauchot:
