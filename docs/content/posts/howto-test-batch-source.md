@@ -26,7 +26,7 @@ for [Cassandra](https://cassandra.apache.org/_/index.html).
 
 ### Testing the serializers
 
-[example Cassandra SplitSerializer](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/split/CassandraSplitSerializer.java)
+[Example Cassandra SplitSerializer](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/split/CassandraSplitSerializer.java)
 and [SplitEnumeratorStateSerializer](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/main/java/org/apache/flink/connector/cassandra/source/enumerator/CassandraEnumeratorStateSerializer.java)
 
 In the previous article, we
@@ -43,7 +43,7 @@ processing that does not require a running backend.
 
 ## Integration testing the source
 
-[example Cassandra SourceITCase
+[Example Cassandra SourceITCase
 ](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraSourceITCase.java)
 
 For tests that require a running backend, Flink provides a JUnit5 source test framework. To use it
@@ -75,7 +75,7 @@ MiniClusterTestEnvironment flinkTestEnvironment = new MiniClusterTestEnvironment
 
 ### Backend runtime environment
 
-[example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
+[Example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
 
 We add this annotated field to our ITCase
 
@@ -147,7 +147,7 @@ replaced by _CollectIteratorAssertions.assertUnordered()_.
 
 ### Test context
 
-[example Cassandra TestContext](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestContext.java)
+[Example Cassandra TestContext](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestContext.java)
 
 The test context is scoped to the test case. So it is where we do things like creating test table,
 creating the source or writing test data.
