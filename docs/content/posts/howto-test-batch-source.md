@@ -66,7 +66,7 @@ Of course we can add our own integration tests cases for example tests on limits
 splitting or any test that requires a running backend. But for most cases we only need to provide
 Flink test environment classes to configure the ITCase:
 
-### Flink runtime environment
+### Flink environment
 
 We add this annotated field to our ITCase and we're done
 
@@ -74,7 +74,7 @@ We add this annotated field to our ITCase and we're done
 MiniClusterTestEnvironment flinkTestEnvironment = new MiniClusterTestEnvironment();
 `
 
-### Backend runtime environment
+### Backend environment
 
 To test the connector we need a backend to run the connector against. This TestEnvironment 
 provides everything related to the backend: the container, its configuration, the session to connect to it, 
@@ -90,8 +90,7 @@ MyBackendTestEnvironment backendTestEnvironment = new MyBackendTestEnvironment()
 
 To integrate with JUnit5 BackendTestEnvironment
 implements [TestResource](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html)
-. This environment is scoped to the test suite so it is where we setup the backend runtime and
-shared resources (session, tablespace, etc...) by
+. This environment is scoped to the test suite, so it is where we setup the backend and shared resources (session, tablespace, etc...) by
 implementing [startup()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html#startUp--)
 and [tearDown()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html#tearDown--)
 methods. For
