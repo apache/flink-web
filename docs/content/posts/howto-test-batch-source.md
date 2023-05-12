@@ -85,7 +85,7 @@ and all the elements bound to the whole test case (table space, initialization r
 We add this annotated field to our ITCase
 
 `@TestExternalSystem
-BackendTestEnvironment backendTestEnvironment = new BackendTestEnvironment();
+MyBackendTestEnvironment backendTestEnvironment = new MyBackendTestEnvironment();
 `
 
 To integrate with JUnit5 BackendTestEnvironment
