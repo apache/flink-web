@@ -154,8 +154,9 @@ replaced by _CollectIteratorAssertions.assertUnordered()_.
 
 [Example Cassandra TestContext](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestContext.java)
 
-The test context is scoped to the test case. So it is where we do things like creating test table,
-creating the source or writing test data.
+The test context provides Flink with means to interact with the backend, like inserting test
+data, creating tables or constructing the source. It is scoped to the test case (and not to the test
+suite).
 
 It is linked to the ITCase through a factory of TestContext as shown below.
 
