@@ -32,7 +32,7 @@ and [SplitEnumeratorStateSerializer](https://github.com/apache/flink-connector-c
 In the previous article, we
 created [serializers](https://flink.apache.org/2023/04/14/howto-create-batch-source/#serializers)
 for Split and SplitEnumeratorState. We should now test them in unit tests. As usual, to test serde
-we just create an object, serialize it using the serializer and then deserialize it using the same
+we create an object, serialize it using the serializer and then deserialize it using the same
 serializer and finally assert on the equality of the two objects. Thus, hascode() and equals() need
 to be implemented for the serialized objects.
 
