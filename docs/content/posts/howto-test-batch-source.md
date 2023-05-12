@@ -147,7 +147,7 @@ CollectIteratorAssertions.assertUnordered(resultIterator)
 
 }`
 
-This is simply a copy-paste of the parent method where _CollectIteratorAssertions.assertOrdered()_
+This is a copy-paste of the parent method where _CollectIteratorAssertions.assertOrdered()_
 is
 replaced by _CollectIteratorAssertions.assertUnordered()_.
 
