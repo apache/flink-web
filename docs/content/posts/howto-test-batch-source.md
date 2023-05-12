@@ -46,9 +46,10 @@ processing that does not require a running backend.
 [Example Cassandra SourceITCase
 ](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraSourceITCase.java)
 
-For tests that require a running backend, Flink provides a JUnit5 source test framework. To use it
-we create an *ITCase named class that
-extends [SourceTestSuiteBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/testsuites/SourceTestSuiteBase.html)
+For tests that require a running backend, Flink provides a JUnit5 source test framework. For the
+test to be integrated to Flink CI, the test class must be called *ITCAse. But it can be called
+differently if the test belongs to somewhere else.
+The class extends [SourceTestSuiteBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/testsuites/SourceTestSuiteBase.html)
 . This test suite provides all
 the necessary tests already (single split, multiple splits, idle reader, etc...). It is targeted for
 batch and streaming sources, so for our batch source case here, the tests below need to be disabled
