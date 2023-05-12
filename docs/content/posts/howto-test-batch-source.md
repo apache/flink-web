@@ -112,7 +112,8 @@ In big data execution engines, there are 2 levels of guarantee regarding source 
   will
   be lost
 * Exactly once: upon failure and recovery, every record will be reflected exactly once
-  By the following code we verify that the source supports exactly once semantics:
+
+By the following code we verify that the source supports exactly once semantics:
 
 `@TestSemantics
 CheckpointingMode[] semantics = new CheckpointingMode[] {CheckpointingMode.EXACTLY_ONCE};
