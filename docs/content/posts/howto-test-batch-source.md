@@ -43,11 +43,17 @@ processing that does not require a running backend.
 
 ## Integration testing the source
 
+For tests that require a running backend, Flink provides a JUnit5 source test framework. It is composed of different parts gathered in a test suite:
+
+* [The Flink environment](#flink-environment)
+* [The backend environment](#backend-environment)
+* [The checkpointing semantics](#checkpointing-semantics)
+* [The test context](#test-context)
+
 [Example Cassandra SourceITCase
 ](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraSourceITCase.java)
 
-For tests that require a running backend, Flink provides a JUnit5 source test framework. For the
-test to be integrated to Flink CI, the test class must be called *ITCAse. But it can be called
+For the test to be integrated to Flink CI, the test class must be called *ITCAse. But it can be called
 differently if the test belongs to somewhere else.
 The class extends [SourceTestSuiteBase](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/testsuites/SourceTestSuiteBase.html)
 . This test suite provides all
@@ -75,12 +81,11 @@ MiniClusterTestEnvironment flinkTestEnvironment = new MiniClusterTestEnvironment
 `
 
 ### Backend environment
+[Example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
 
 To test the connector we need a backend to run the connector against. This TestEnvironment 
 provides everything related to the backend: the container, its configuration, the session to connect to it, 
 and all the elements bound to the whole test case (table space, initialization requests ...)  
-
-[Example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
 
 We add this annotated field to our ITCase
 
@@ -151,7 +156,6 @@ is
 replaced by _CollectIteratorAssertions.assertUnordered()_.
 
 ### Test context
-
 [Example Cassandra TestContext](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestContext.java)
 
 The test context provides Flink with means to interact with the backend, like inserting test
@@ -164,8 +168,7 @@ It is linked to the ITCase through a factory of TestContext as shown below.
 TestContextFactory contextFactory = new TestContextFactory(testEnvironment);
 `
 
-TestContext
-implements [DataStreamSourceExternalContext](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/external/source/DataStreamSourceExternalContext.html):
+TestContext implements [DataStreamSourceExternalContext](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/external/source/DataStreamSourceExternalContext.html):
 
 * We don't connect to the backend at each test case, so the shared resources such as session are
   created by the backend test environment (test suite scoped). They are then passed to the test
@@ -195,7 +198,7 @@ implements [DataStreamSourceExternalContext](https://nightlies.apache.org/flink/
 
 ## Contributing the source to Flink
 
-Lately, Flink community has externalized all the connectors to external repositories that are
+Lately, the Flink community has externalized all the connectors to external repositories that are
 sub-repositories of the official Apache Flink repository. This is mainly to decouple the release of
 Flink to the release of the connectors. To distribute the created source, we need to
 follow [this official wiki page](https://cwiki.apache.org/confluence/display/FLINK/Externalized+Connector+development)
