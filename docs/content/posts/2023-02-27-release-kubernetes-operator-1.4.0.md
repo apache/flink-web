@@ -80,9 +80,9 @@ We rely on users to share feedback so we can improve and make this a very robust
  - The autoscaler currently requires Flink 1.17
  - Source scaling requires the standard connector metrics, currently works best with Kafka sources
 
-## Zookeeper HA Support
+## ZooKeeper HA Support
 
-Until now the operator only integrated with the Flink Kubernetes HA mechanism for last-state and other types of application upgrades. 1.4.0 adds support for the Zookeeper HA storage as well.
+Until now the operator only integrated with the Flink Kubernetes HA mechanism for last-state and other types of application upgrades. 1.4.0 adds support for the ZooKeeper HA storage as well.
 
 While ZooKeeper is a slightly older solution, many users are still using it for HA metadata even in the Kubernetes world.
 
