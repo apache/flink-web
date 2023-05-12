@@ -54,7 +54,7 @@ The class extends [SourceTestSuiteBase](https://nightlies.apache.org/flink/flink
 the necessary tests already (single split, multiple splits, idle reader, etc...). It is targeted for
 batch and streaming sources, so for our batch source case here, the tests below need to be disabled
 as they are targeted for streaming sources. They can be disabled by overriding them in the ITCase
-and annotating them with @Disabled:
+and annotating them with `@Disabled`:
 
 * testSourceMetrics
 * testSavepoint
@@ -76,6 +76,10 @@ MiniClusterTestEnvironment flinkTestEnvironment = new MiniClusterTestEnvironment
 
 ### Backend runtime environment
 
+To test the connector we need a backend to run the connector against. This TestEnvironment 
+provides everything related to the backend: the container, its configuration, the session to connect to it, 
+and all the elements bound to the whole test case (table space, initialization requests ...)  
+
 [Example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
 
 We add this annotated field to our ITCase
@@ -84,14 +88,14 @@ We add this annotated field to our ITCase
 BackendTestEnvironment backendTestEnvironment = new BackendTestEnvironment();
 `
 
-BackendTestEnvironment
+To integrate with JUnit5 BackendTestEnvironment
 implements [TestResource](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html)
 . This environment is scoped to the test suite so it is where we setup the backend runtime and
 shared resources (session, tablespace, etc...) by
 implementing [startup()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html#startUp--)
 and [tearDown()](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html#tearDown--)
 methods. For
-that we advice the use of [testContainers](https://www.testcontainers.org/) that relies on docker
+that we advise the use of [testContainers](https://www.testcontainers.org/) that relies on docker
 images to provide a real backend
 instance (not a mock) that is representative for integration tests. Several backends are supported
 out of the box by testContainers. We need to configure test containers that way:
