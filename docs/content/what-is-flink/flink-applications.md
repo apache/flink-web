@@ -39,13 +39,13 @@ Application state is a first-class citizen in Flink. You can see that by looking
 
 ### Time
 
-Time is another important ingredient of streaming applications. Most event streams have inherent time semantics because each event is produced at a specific point in time. Moreover, many common stream computations are based on time, such as windows aggregations, sessionization, pattern detection, and time-based joins. An important aspect of stream processing is how an application measures time, i.e., the difference of event-time and processing-time.
+Time is another important ingredient of streaming applications. Most event streams have inherent time semantics because each event is produced at a specific point in time. Moreover, many common stream computations are based on time, such as windows aggregations, sessionization, pattern detection, and time-based joins. An important aspect of stream processing is how an application measures time, i.e., the difference between event-time and processing-time.
 
 Flink provides a rich set of time-related features.
 
 * **Event-time Mode**: Applications that process streams with event-time semantics compute results based on timestamps of the events. Thereby, event-time processing allows for accurate and consistent results regardless whether recorded or real-time events are processed.
 * **Watermark Support**: Flink employs watermarks to reason about time in event-time applications. Watermarks are also a flexible mechanism to trade-off the latency and completeness of results.
-* **Late Data Handling**: When processing streams in event-time mode with watermarks, it can happen that a computation has been completed before all associated events have arrived. Such events are called late events. Flink features multiple options to handle late events, such as rerouting them via side outputs and updating previously completed results.
+* **Late Data Handling**: When processing streams in event-time mode with watermarks, it can happen that a computation was considered completed before all associated events have arrived. Such events are called late events. Flink features multiple options to handle late events, such as rerouting them via side outputs and updating previously completed results.
 * **Processing-time Mode**: In addition to its event-time mode, Flink also supports processing-time semantics which performs computations as triggered by the wall-clock time of the processing machine. The processing-time mode can be suitable for certain applications with strict low-latency requirements that can tolerate approximate results.
 
 ## Layered APIs
@@ -69,8 +69,8 @@ The following example shows a `KeyedProcessFunction` that operates on a `KeyedSt
 * Matches keyed START and END events and computes the difference between
 * both elements' timestamps. The first String field is the key attribute,
 * the second String attribute marks START and END events.
-  */
-  public static class StartEndDuration
+*/
+public static class StartEndDuration
   extends KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Long>> {
 
   private ValueState<Long> startTime;
@@ -173,6 +173,6 @@ Flink features several libraries for common data processing use cases. The libra
 
 * **{{< docs_link file="flink-docs-stable/docs/libs/cep/" name="Complex Event Processing (CEP)">}}**: Pattern detection is a very common use case for event stream processing. Flink's CEP library provides an API to specify patterns of events (think of regular expressions or state machines). The CEP library is integrated with Flink's DataStream API, such that patterns are evaluated on DataStreams. Applications for the CEP library include network intrusion detection, business process monitoring, and fraud detection.
   
-* **{{< docs_link file="flink-docs-stable/docs/dev/dataset/overview/" name="DataSet API">}}**: The DataSet API is Flink's core API for batch processing applications. The primitives of the DataSet API include *map*, *reduce*, *(outer) join*, *co-group*, and *iterate*. All operations are backed by algorithms and data structures that operate on serialized data in memory and spill to disk if the data size exceed the memory budget. The data processing algorithms of Flink's DataSet API are inspired by traditional database operators, such as hybrid hash-join or external merge-sort.
+* **{{< docs_link file="flink-docs-stable/docs/dev/dataset/overview/" name="DataSet API">}}**: The DataSet API is Flink's core API for batch processing applications. The primitives of the DataSet API include *map*, *reduce*, *(outer) join*, *co-group*, and *iterate*. All operations are backed by algorithms and data structures that operate on serialized data in memory and spill to disk if the data size exceed the memory budget. The data processing algorithms of Flink's DataSet API are inspired by traditional database operators, such as hybrid hash-join or external merge-sort. Starting with Flink 1.12 the DataSet API has been soft deprecated.
   
 * **{{< docs_link file="flink-docs-stable/docs/libs/gelly/overview/" name="Gelly">}}**: Gelly is a library for scalable graph processing and analysis. Gelly is implemented on top of and integrated with the DataSet API. Hence, it benefits from its scalable and robust operators. Gelly features {{< docs_link file="flink-docs-stable/dev/libs/gelly/library_methods.html" name="built-in algorithms">}}, such as label propagation, triangle enumeration, and page rank, but provides also a {{< docs_link file="flink-docs-stable/dev/libs/gelly/graph_api.html" name="Graph API">}} that eases the implementation of custom graph algorithms.

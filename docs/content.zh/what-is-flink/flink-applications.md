@@ -69,8 +69,8 @@ Flink 根据抽象程度分层，提供了三种不同的 API。每一种 API �
 * Matches keyed START and END events and computes the difference between
 * both elements' timestamps. The first String field is the key attribute,
 * the second String attribute marks START and END events.
-  */
-  public static class StartEndDuration
+*/
+public static class StartEndDuration
   extends KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Long>> {
 
   private ValueState<Long> startTime;
