@@ -76,9 +76,10 @@ Flink test environment classes to configure the ITCase:
 
 We add this annotated field to our ITCase and we're done
 
-`@TestEnv
+```java
+@TestEnv
 MiniClusterTestEnvironment flinkTestEnvironment = new MiniClusterTestEnvironment();
-`
+```
 
 ### Backend environment
 [Example Cassandra TestEnvironment](https://github.com/apache/flink-connector-cassandra/blob/d92dc8d891098a9ca6a7de6062b4630079beaaef/flink-connector-cassandra/src/test/java/org/apache/flink/connector/cassandra/source/CassandraTestEnvironment.java)
@@ -89,9 +90,10 @@ and all the elements bound to the whole test case (table space, initialization r
 
 We add this annotated field to our ITCase
 
-`@TestExternalSystem
+```java
+@TestExternalSystem
 MyBackendTestEnvironment backendTestEnvironment = new MyBackendTestEnvironment();
-`
+```
 
 To integrate with JUnit5 BackendTestEnvironment
 implements [TestResource](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/TestResource.html)
@@ -119,9 +121,10 @@ In big data execution engines, there are 2 levels of guarantee regarding source 
 
 By the following code we verify that the source supports exactly once semantics:
 
-`@TestSemantics
+```java
+@TestSemantics
 CheckpointingMode[] semantics = new CheckpointingMode[] {CheckpointingMode.EXACTLY_ONCE};
-`
+```
 
 That being said, we could encounter a problem while running the tests : the default assertions in
 the Flink source test framework assume that the data is read in the same order it was written. This
@@ -130,26 +133,25 @@ unordered checks and still use all the framework provided tests, we need to over
 [SourceTestSuiteBase#checkResultWithSemantic](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/testsuites/SourceTestSuiteBase.html#checkResultWithSemantic-org.apache.flink.util.CloseableIterator-java.util.List-org.apache.flink.streaming.api.CheckpointingMode-java.lang.Integer-)
 in out ITCase:
 
-`@Override
+```java
+@Override
 protected void checkResultWithSemantic(
-CloseableIterator<Pojo> resultIterator,
-List<List<Pojo>> testData,
-CheckpointingMode semantic,
-Integer limit) {
-if (limit != null) {
-Runnable runnable =
-() ->
-CollectIteratorAssertions.assertUnordered(resultIterator)
-.withNumRecordsLimit(limit)
-.matchesRecordsFromSource(testData, semantic);
-
-        assertThat(runAsync(runnable)).succeedsWithin(DEFAULT_COLLECT_DATA_TIMEOUT);
+  CloseableIterator<Pojo> resultIterator,
+  List<List<Pojo>> testData,
+  CheckpointingMode semantic,
+  Integer limit) {
+    if (limit != null) {
+      Runnable runnable =
+      () -> CollectIteratorAssertions.assertUnordered(resultIterator)
+        .withNumRecordsLimit(limit)
+        .matchesRecordsFromSource(testData, semantic);
+      assertThat(runAsync(runnable)).succeedsWithin(DEFAULT_COLLECT_DATA_TIMEOUT);
     } else {
         CollectIteratorAssertions.assertUnordered(resultIterator)
                 .matchesRecordsFromSource(testData, semantic);
     }
-
-}`
+}
+```
 
 This is a copy-paste of the parent method where _CollectIteratorAssertions.assertOrdered()_
 is
@@ -164,9 +166,10 @@ suite).
 
 It is linked to the ITCase through a factory of TestContext as shown below.
 
-`@TestContext
+```java
+@TestContext
 TestContextFactory contextFactory = new TestContextFactory(testEnvironment);
-`
+```
 
 TestContext implements [DataStreamSourceExternalContext](https://nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/connector/testframe/external/source/DataStreamSourceExternalContext.html):
 
