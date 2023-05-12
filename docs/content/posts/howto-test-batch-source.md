@@ -106,7 +106,7 @@ out of the box by testContainers. We need to configure test containers that way:
 
 ### Checkpointing semantics
 
-In big data execution engines, there are 2 levels of guaranty regarding source and sinks:
+In big data execution engines, there are 2 levels of guarantee regarding source and sinks:
 
 * At least once: upon failure and recovery, some records may be reflected multiple times but none
   will
