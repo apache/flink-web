@@ -33,6 +33,7 @@ Fig. 1 - Two distribution patterns in Flink
 </center>
 
 <br/>
+
 In Flink 1.12, the [ExecutionEdge]({{< param DocsBaseUrl >}}flink-docs-release-1.12/api/java/org/apache/flink/runtime/executiongraph/ExecutionEdge.html) class is used to store the information of connections between tasks. This means that for the all-to-all distribution pattern, there would be O(n<sup>2</sup>) ExecutionEdges, which would take up a lot of memory for large-scale jobs. For two [JobVertices]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/jobgraph/JobVertex.html) connected with an all-to-all edge and a parallelism of 10K, it would take more than 4 GiB memory to store 100M ExecutionEdges. Since there can be multiple all-to-all connections between vertices in production jobs, the amount of memory required would increase rapidly.
 
 As we can see in Fig. 1, for two JobVertices connected with the all-to-all distribution pattern, all [IntermediateResultPartitions]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/executiongraph/IntermediateResultPartition.html) produced by upstream [ExecutionVertices]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/executiongraph/ExecutionVertex.html) are [isomorphic](https://en.wikipedia.org/wiki/Isomorphism), which means that the downstream ExecutionVertices they connect to are exactly the same. The downstream ExecutionVertices belonging to the same JobVertex are also isomorphic, as the upstream IntermediateResultPartitions they connect to are the same too. Since every [JobEdge]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/jobgraph/JobEdge.html) has exactly one distribution type, we can divide vertices and result partitions into groups according to the distribution type of the JobEdge.
@@ -49,6 +50,7 @@ Fig. 2 - How partitions and vertices are grouped w.r.t. distribution patterns
 </center>
 
 <br/>
+
 When scheduling tasks, Flink needs to iterate over all the connections between result partitions and consumer vertices. In the past, since there were O(n<sup>2</sup>) edges in total, the overall complexity of the iteration was O(n<sup>2</sup>). Now ExecutionEdge is replaced with ConsumerVertexGroup and ConsumedPartitionGroup. As all the isomorphic result partitions are connected to the same downstream ConsumerVertexGroup, when the scheduler iterates over all the connections, it just needs to iterate over the group once. The computational complexity decreases from O(n<sup>2</sup>) to O(n).
 
 For the pointwise distribution pattern, one ConsumedPartitionGroup is connected to one ConsumerVertexGroup point-to-point. The number of groups is the same as the number of ExecutionEdges. Thus, the computational complexity of iterating over the groups is still O(n).
@@ -100,6 +102,7 @@ Fig. 3 - How ShuffleDescriptors are distributed
 </center>
 
 <br/>
+
 To avoid running out of space on the local disk, the cache will be cleared when the related partitions are no longer valid and a size limit is added for ShuffleDescriptors in the blob cache on TaskManagers. If the overall size exceeds the limit, the least recently used cached value will be removed. This ensures that the local disks on the JobManager and TaskManagers won't be filled up with ShuffleDescriptors, especially in session mode.
 
 # Optimizations when building pipelined regions
@@ -116,6 +119,7 @@ Fig. 4 - The LogicalPipelinedRegion and the SchedulingPipelinedRegion
 </center>
 
 <br/>
+
 Currently, there are two types of pipelined regions in the scheduler: [LogicalPipelinedRegion]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/jobgraph/topology/LogicalPipelinedRegion.html) and [SchedulingPipelinedRegion]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/scheduler/strategy/SchedulingPipelinedRegion.html). The LogicalPipelinedRegion denotes the pipelined regions on the logical level. It consists of JobVertices and forms the [JobGraph]({{< param DocsBaseUrl >}}flink-docs-release-1.14/api/java/org/apache/flink/runtime/jobgraph/JobGraph.html). The SchedulingPipelinedRegion denotes the pipelined regions on the execution level. It consists of ExecutionVertices and forms the ExecutionGraph. Like ExecutionVertices are derived from a JobVertex, SchedulingPipelinedRegions are derived from a LogicalPipelinedRegion, as Fig. 4 shows.
 
 During the construction of pipelined regions, a problem arises: There may be cyclic dependencies between pipelined regions. A pipelined region can be scheduled if and only if all its dependencies have finished. However, if there are two pipelined regions with cyclic dependencies between each other, there will be a scheduling [deadlock](https://en.wikipedia.org/wiki/Deadlock). They are both waiting for the other one to be scheduled first, and none of them can be scheduled. Therefore, [Tarjan's strongly connected components algorithm](https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm) is adopted to discover the cyclic dependencies between regions and merge them into one pipelined region. It will traverse all the edges in the topology. For the all-to-all distribution pattern, the number of edges is O(n<sup>2</sup>). Thus, the computational complexity of this algorithm is O(n<sup>2</sup>), and it significantly slows down the initialization of the scheduler.
@@ -128,6 +132,7 @@ Fig. 5 - The topology with scheduling deadlock
 </center>
 
 <br/>
+
 To speed up the construction of pipelined regions, the relevance between the logical topology and the scheduling topology can be leveraged. Since a SchedulingPipelinedRegion is derived from just one LogicalPipelinedRegion, Flink traverses all LogicalPipelinedRegions and converts them into SchedulingPipelinedRegions one by one. The conversion varies based on the distribution patterns of edges that connect vertices in the LogicalPipelinedRegion.
 
 If there are any all-to-all distribution patterns inside the region, the entire region can just be converted into one SchedulingPipelinedRegion directly. That's because for the all-to-all edge with the pipelined data exchange, all the regions connected to this edge must execute simultaneously, which means they are merged into one region. For the all-to-all edge with a blocking data exchange, it will introduce cyclic dependencies, as Fig. 5 shows. All the regions it connects must be merged into one region to avoid scheduling deadlock, as Fig. 6 shows. Since there's no need to use Tarjan's algorithm, the computational complexity in this case is O(n).
@@ -142,6 +147,7 @@ Fig. 6 - How to convert a LogicalPipelinedRegion to ScheduledPipelinedRegions
 </center>
 
 <br/>
+
 After the optimization, the overall computational complexity of building pipelined regions decreases from O(n<sup>2</sup>) to O(n). In our experiments, for the job which contains two vertices connected with a blocking all-to-all edge, when their parallelisms are both 10K, the time of building pipelined regions decreases by 99%, from 8,257 ms to 120 ms.
 
 # Summary
