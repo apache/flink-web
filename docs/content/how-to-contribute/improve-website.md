@@ -43,7 +43,7 @@ The files and directories in the website git repository have the following roles
 - The `docs` directory contains all documentation, themes and other content that's needed to render and/or generate the website.
 - The `docs/content/docs` folder contains all English content. The `docs/content.zh/docs` contains all Chinese content.
 - The `docs/content/posts` contains all blog posts. 
-- The `content/` directory contains the generated HTML files from Hugo. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
+- The `content/` directory contains the generated HTML files from Hugo. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from this directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
 
 ## Update or extend the documentation
 
