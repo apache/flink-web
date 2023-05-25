@@ -55,6 +55,18 @@ You can update and extend the website by modifying or adding Markdown files or a
 
 The script compiles the Markdown files into HTML and starts a local webserver. Open your browser at `http://localhost:1313` to view the website including your changes. The Chinese translation is located at `http://localhost:1313/zh/`. The served website is automatically re-compiled and updated when you modify and save any file and refresh your browser.
 
+To add an external hyperlink to the official documentation of Flink in your documentations or blog posts, please use the following syntax:
+
+```markdown
+{{</* docs_link file="relative_path/" name="Title"*/>}}
+```
+
+For example:
+
+```markdown
+{{</* docs_link file="flink-docs-stable/docs/dev/datastream/side_output/" name="Side Output"*/>}}
+```
+
 Please feel free to ask any questions you have on the developer mailing list.
 
 ## Submit your contribution

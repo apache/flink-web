@@ -55,6 +55,18 @@ The files and directories in the website git repository have the following roles
 
 The script compiles the Markdown files into HTML and starts a local webserver. Open your browser at `http://localhost:1313` to view the website including your changes. The Chinese translation is located at `http://localhost:1313/zh/`. The served website is automatically re-compiled and updated when you modify and save any file and refresh your browser.
 
+如果要在文档或者博客文章中添加 Flink 官方文档的外链引用，请使用以下语法：
+
+```markdown
+{{</* docs_link file="relative_path/" name="Title"*/>}}
+```
+
+例如：
+
+```markdown
+{{</* docs_link file="flink-docs-stable/docs/dev/datastream/side_output/" name="Side Output"*/>}}
+```
+
 如果有任何疑问，欢迎在开发者邮件列表中咨询。
 
 ## 提交你的贡献
