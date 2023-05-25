@@ -35,15 +35,15 @@ git checkout asf-site
 
 ## 目录结构和文件
 
-Flink 的官网是用 [Markdown](http://daringfireball.net/projects/markdown/). Markdown is a lightweight markup language which can be translated to HTML. We use [Hugo](https://gohugo.io/) to generate static HTML files from Markdown.
+Flink 官网使用 [Markdown](http://daringfireball.net/projects/markdown/) 语言。Markdown 是一种轻量级标记语言，可以转换为 HTML。我们使用 [Hugo](https://gohugo.io/) 从 Markdown 生成静态 HTML 文件。
 
-The files and directories in the website git repository have the following roles:
+`flink-web` git 仓库中的文件和目录具有以下作用：
 
-- All files ending with `.md` are Markdown files. These files are translated into static HTML files.
-- The `docs` directory contains all documentation, themes and other content that's needed to render and/or generate the website.
-- The `docs/content/docs` folder contains all English content. The `docs/content.zh/docs` contains all Chinese content.
-- The `docs/content/posts` contains all blog posts. 
-- The `content/` directory contains the generated HTML files from Hugo. It is important to place the files in this directory since the Apache Infrastructure to host the Flink website is pulling the HTML content from his directory. (For committers: When pushing changes to the website git, push also the updates in the `content/` directory!)
+- 所有以 `.md` 结尾的文件都是 Markdown 文件。这些文件将被转换为静态 HTML 文件。
+- `docs` 目录包含所有文档、主题和其他用于渲染和生成网站的内容。
+- `docs/content/docs` 文件夹包含所有英文内容。`docs/content.zh/docs` 文件夹包含所有中文内容。
+- `docs/content/posts` 文件夹包含所有博客文章。
+- `content/` 目录包含 Hugo 生成的 HTML 文件。鉴于托管 Flink 官网的 Apache Infrastructure 从该目录中拉取 HTML 网页内容，因此将生成文件放置在此目录中这一步至关重要。（ Committer 注意：在向 git 仓库推送更改的同时，需要同时更新 `content/` 目录中的内容！）
 
 ## 更新文档
 
@@ -53,7 +53,7 @@ The files and directories in the website git repository have the following roles
 ./build.sh
 ```
 
-The script compiles the Markdown files into HTML and starts a local webserver. Open your browser at `http://localhost:1313` to view the website including your changes. The Chinese translation is located at `http://localhost:1313/zh/`. The served website is automatically re-compiled and updated when you modify and save any file and refresh your browser.
+该脚本将 Markdown 文件编译为 HTML 并启动本地 Web 服务器。在浏览器中打开 `http://localhost:1313` 以查看包括修改后的网站。中文版本位于 `http://localhost:1313/zh/` 。当您做出修改、保存任何文件并刷新浏览器时，网站内容会自动重新编译和更新。
 
 如果要在文档或者博客文章中添加 Flink 官方文档的外链引用，请使用以下语法：
 
@@ -71,7 +71,7 @@ The script compiles the Markdown files into HTML and starts a local webserver. O
 
 ## 提交你的贡献
 
-Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提交 [Pull Requests](https://help.github.com/articles/using-pull-requests)方式接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
+Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提交 [Pull Requests](https://help.github.com/articles/using-pull-requests) 方式接受网站贡献。Pull requests 是一种通过向特定代码分支提交补丁的简单方法。
 
 请按以下步骤操作准备并提交 pull request。
 
@@ -83,11 +83,11 @@ Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提�
    git push origin myBranch
    ```
 
-3. 打开你镜像的仓库 (`https://github.com/<your-user-name>/flink-web`) 并使用 “Create Pull Request” 按钮开始创建 pull request 取请求。 确保基础分支是 `apache/flink-web asf-site` ，并且 head fork 选择带有更改内容的分支。 为 pull request 提供有意义的描述并提交。
+3. 打开你镜像的仓库 (`https://github.com/<your-user-name>/flink-web`) 并使用 “Create Pull Request” 按钮开始创建新的 pull request。确保基础分支是 `apache/flink-web asf-site` ，并且 head fork 选择带有更改内容的分支。 为 pull request 提供有意义的描述并提交。
 
 ## Committer 章节
 
-**本节仅适用于提交者。**
+**本章节仅适用于 Committer。**
 
 ### ASF 网站的 git 仓库
 
@@ -97,11 +97,11 @@ Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提�
 
 ### 合并 pull request
 
-默认所有的修改仅在源文件上完成（对content/目录中自动生成的文件没有修改）。 在推送网站更改之前，请运行构建脚本。
+默认所有的修改仅在源文件上完成（对 `content/` 目录中自动生成的文件没有修改）。 在推送网站更改之前，请运行构建脚本。
 
 ```
 ./build.sh
 ```
 
-将更改添加到content/ 目录作为附加提交，并将更改推送到 ASF 基本仓库。
+将更改添加到 `content/` 目录作为附加提交，并将更改推送到 ASF 基本仓库。
 
