@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.112.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Introduction # In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements.">
@@ -950,7 +950,7 @@ Broadcast mechanism to distribute processing configuration at runtime
 among the relevant operators. </p>
 <p>Following up directly where we left the discussion of the end-to-end
 solution last time, in this article we will describe how you can use the
-&quot;Swiss knife&quot; of Flink - the <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/process_function.html"><em>Process Function</em></a> to create an
+&quot;Swiss knife&quot; of Flink - the <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/process_function.html"><em>Process Function</em></a> to create an
 implementation that is tailor-made to match your streaming business
 logic requirements. Our discussion will continue in the context of the
 <a href="/news/2020/01/15/demo-fraud-detection.html#fraud-detection-demo">Fraud Detection engine</a>. We will also demonstrate how you can
@@ -1003,7 +1003,7 @@ and the time limit for producing an alert could lie as low as <em>300-500
 ms</em>. This is all the time you get from the moment of ingestion of a
 transaction event into a fraud detection system until an alert has to
 become available to downstream systems. </p>
-<p>As you might know, Flink provides a powerful <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/windows.html">Window
+<p>As you might know, Flink provides a powerful <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/windows.html">Window
 API</a>
 that is applicable for a wide range of use cases. However, if you go
 over all of the available types of supported windows, you will realize
@@ -1012,21 +1012,21 @@ the low-latency evaluation of <em>each</em> incoming transaction. There is
 no type of window in Flink that can express the <em>&ldquo;x minutes/hours/days
 back from the <u>current event</u>&rdquo;</em> semantic. In the Window API, events
 fall into windows (as defined by the window
-<a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/windows.html#window-assigners">assigners</a>),
+<a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/windows.html#window-assigners">assigners</a>),
 but they cannot themselves individually control the creation and
 evaluation of windows*. As described above, our goal for the fraud
 detection engine is to achieve immediate evaluation of the previous
 relevant data points as soon as the new event is received. This raises
 the question of feasibility of applying the Window API in this case. The Window API offers some options for defining custom triggers, evictors, and window assigners, which may get to the required result. However, it is usually difficult to get this right (and easy to break). Moreover, this approach does not provide access to broadcast state, which is required for implementing dynamic reconfiguration of business rules.</p>
 <p>*) apart from the session windows, but they are limited to assignments
-based on the session <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/windows.html#session-windows">gaps</a></p>
+based on the session <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/windows.html#session-windows">gaps</a></p>
 <center>
 <img src="/img/blog/patterns-blog-3/evaluation-delays.png" width="600px" alt="Figure 2: Evaluation Delays"/>
 <br/>
 <i><small>Figure 2: Evaluation Delays</small></i>
 </center>
 <br/>
-<p>Let&rsquo;s take an example of using a <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/windows.html#sliding-windows">sliding
+<p>Let&rsquo;s take an example of using a <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/windows.html#sliding-windows">sliding
 window</a>
 from Flink&rsquo;s Window API. Using sliding windows with the slide of <em>S</em>
 translates into an expected value of evaluation delay equal to <em>S/2.</em>
@@ -1052,7 +1052,7 @@ building block in Flink's API. It has a simple contract:</p>
 <p><code>processElement()</code> receives input events one by one. You can react to
 each input by producing one or more output events to the next
 operator by calling <code>out.collect(someOutput)</code>. You can also pass data
-to a <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/side_output.html">side
+to a <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/side_output.html">side
 output</a>
 or ignore a particular input altogether.</p>
 </li>
@@ -1062,7 +1062,7 @@ fires. Both event time and processing time timers are supported.</p>
 </li>
 <li>
 <p><code>open()</code> is equivalent to a constructor. It is called inside of the
-<a href="//nightlies.apache.org/flinkflink-docs-release-1.11/concepts/glossary.html#flink-taskmanager">TaskManager&rsquo;s</a>
+<a href="//nightlies.apache.org/flink/flink-docs-release-1.11/concepts/glossary.html#flink-taskmanager">TaskManager&rsquo;s</a>
 JVM, and is used for initialization, such as registering
 Flink-managed state. It is also the right place to initialize fields
 that are not serializable and cannot be transferred from the
@@ -1099,7 +1099,7 @@ other words, cleaned up from state).</p>
 </center>
 <br/>
 <p>We will
-<a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/state/state.html#using-keyed-state">use</a>
+<a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/state/state.html#using-keyed-state">use</a>
 <code>MapState</code> to store the individual events of the window. In order to allow
 efficient clean-up of the out-of-scope events, we will utilize event
 timestamps as the <code>MapState</code> keys.</p>
@@ -1289,7 +1289,7 @@ which enables a reasonable trade-off between the precision with which
 the timers will be triggered, and the number of timers being used.
 Timers are stored in Flink's fault-tolerant state, and managing them
 with millisecond-level precision can be wasteful. In our case, with this
-rounding, we will create at most one timer per key in any given second. Flink documentation provides some additional [<u>details</u>](//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/operators/process_function.html#timer-coalescing).
+rounding, we will create at most one timer per key in any given second. Flink documentation provides some additional [<u>details</u>](//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/operators/process_function.html#timer-coalescing).
 </div>
 <ol start="7">
 <li>The <code>onTimer</code> method will trigger the clean-up of the window state.</li>
@@ -1337,7 +1337,7 @@ the state which is out of scope of this widest window.</p>
 You might be wondering why we did not use `ListState` , as we are always
 iterating over all of the values of the window state? This is actually
 an optimization for the case when `RocksDBStateBackend`
-[is used](//nightlies.apache.org/flinkflink-docs-release-1.11/ops/state/state_backends.html#the-rocksdbstatebackend). Iterating over a `ListState` would cause all of the `Transaction`
+[is used](//nightlies.apache.org/flink/flink-docs-release-1.11/ops/state/state_backends.html#the-rocksdbstatebackend). Iterating over a `ListState` would cause all of the `Transaction`
 objects to be deserialized. Using `MapState`\'s keys iterator only causes
 deserialization of the keys (type `long`), and therefore reduces the
 computational overhead.
@@ -1460,14 +1460,14 @@ transactions per timestamp in <code>MapState&lt;Long, Set&lt;Transaction&gt;&gt;
 a choice, however, might have a more significant effect on performance
 than might be anticipated. The reason is that Flink does not currently
 provide a native <code>Set</code> serializer and will enforce a fallback to the less
-efficient <a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/types_serialization.html#general-class-types">Kryo
+efficient <a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/types_serialization.html#general-class-types">Kryo
 serializer</a>
 instead
 (<a href="https://issues.apache.org/jira/browse/FLINK-16729">FLINK-16729</a>). A
 meaningful alternative strategy is to assume that, in a normal scenario,
 no two discrepant events can have exactly the same timestamp and to turn
 the window state into a <code>MapState&lt;Long, Transaction&gt;</code> type. You can use
-<a href="//nightlies.apache.org/flinkflink-docs-release-1.11/dev/stream/side_output.html">side-outputs</a>
+<a href="//nightlies.apache.org/flink/flink-docs-release-1.11/dev/stream/side_output.html">side-outputs</a>
 to collect and monitor any unexpected occurrences which contradict your
 assumption. During performance optimizations, I generally recommend you
 to <a href="https://flink.apache.org/news/2020/04/15/flink-serialization-tuning-vol-1.html#disabling-kryo">disable the fallback to

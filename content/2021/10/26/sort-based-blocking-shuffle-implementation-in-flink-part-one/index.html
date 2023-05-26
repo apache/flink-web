@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.112.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
@@ -1103,21 +1103,21 @@ The throughput per disk of the new sort-based implementation can reach up to 160
   <a class="anchor" href="#how-to-use-this-new-feature">#</a>
 </h1>
 <p>The sort-based blocking shuffle is introduced mainly for large-scale batch jobs but it also works well for batch jobs with low parallelism.</p>
-<p>The sort-based blocking shuffle is not enabled by default. You can enable it by setting the <a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-parallelism">taskmanager.network.sort-shuffle.min-parallelism</a> config option to a smaller value. This means that for parallelism smaller than this threshold, the hash-based blocking shuffle will be used, otherwise, the sort-based blocking shuffle will be used (it has no influence on streaming applications). Setting this option to 1 will disable the hash-based blocking shuffle.</p>
+<p>The sort-based blocking shuffle is not enabled by default. You can enable it by setting the <a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-parallelism">taskmanager.network.sort-shuffle.min-parallelism</a> config option to a smaller value. This means that for parallelism smaller than this threshold, the hash-based blocking shuffle will be used, otherwise, the sort-based blocking shuffle will be used (it has no influence on streaming applications). Setting this option to 1 will disable the hash-based blocking shuffle.</p>
 <p>For spinning disks and large-scale batch jobs, you should use the sort-based blocking shuffle. For low parallelism (several hundred processes or fewer) on solid state drives, both implementations should be fine.</p>
 <p>There are several other config options that can have an impact on the performance of the sort-based blocking shuffle:</p>
 <ol>
 <li>
-<p><a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/deployment/config/#taskmanager-network-blocking-shuffle-compression-enabled">taskmanager.network.blocking-shuffle.compression.enabled</a>: This enables shuffle data compression, which can reduce both the network and the disk IO with some CPU overhead. It is recommended to enable shuffle data compression unless the data compression ratio is low. It works for both sort-based and hash-based blocking shuffle.</p>
+<p><a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-blocking-shuffle-compression-enabled">taskmanager.network.blocking-shuffle.compression.enabled</a>: This enables shuffle data compression, which can reduce both the network and the disk IO with some CPU overhead. It is recommended to enable shuffle data compression unless the data compression ratio is low. It works for both sort-based and hash-based blocking shuffle.</p>
 </li>
 <li>
-<p><a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-buffers">taskmanager.network.sort-shuffle.min-buffers</a>: This declares the minimum number of required network buffers that can be used as the in-memory sort-buffer per result partition for data caching and sorting. Increasing the value of this option may improve the blocking shuffle performance. Several hundreds of megabytes of memory is usually enough for large-scale batch jobs.</p>
+<p><a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-buffers">taskmanager.network.sort-shuffle.min-buffers</a>: This declares the minimum number of required network buffers that can be used as the in-memory sort-buffer per result partition for data caching and sorting. Increasing the value of this option may improve the blocking shuffle performance. Several hundreds of megabytes of memory is usually enough for large-scale batch jobs.</p>
 </li>
 <li>
-<p><a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-batch-shuffle-size">taskmanager.memory.framework.off-heap.batch-shuffle.size</a>: This configuration defines the maximum memory size that can be used by data reading of the sort-based blocking shuffle per task manager. Increasing the value of this option may improve the shuffle read performance, and usually, several hundreds of megabytes of memory is enough for large-scale batch jobs. Because this memory is cut from the framework off-heap memory, you may also need to increase <a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-size">taskmanager.memory.framework.off-heap.size</a> before you increase this value.</p>
+<p><a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-batch-shuffle-size">taskmanager.memory.framework.off-heap.batch-shuffle.size</a>: This configuration defines the maximum memory size that can be used by data reading of the sort-based blocking shuffle per task manager. Increasing the value of this option may improve the shuffle read performance, and usually, several hundreds of megabytes of memory is enough for large-scale batch jobs. Because this memory is cut from the framework off-heap memory, you may also need to increase <a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-memory-framework-off-heap-size">taskmanager.memory.framework.off-heap.size</a> before you increase this value.</p>
 </li>
 </ol>
-<p>For more information about blocking shuffle in Flink, please refer to the <a href="//nightlies.apache.org/flinkflink-docs-release-1.14/docs/ops/batch/blocking_shuffle/">official documentation</a>.</p>
+<p>For more information about blocking shuffle in Flink, please refer to the <a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/ops/batch/blocking_shuffle/">official documentation</a>.</p>
 <p><strong>Note:</strong> From the optimization mechanism in <a href="/2021/10/26/sort-shuffle-part2">part two</a>, we can see that the IO scheduling relies on the concurrent data read requests of the downstream consumer tasks for more sequential reads. As a result, if the downstream consumer task is running one by one (for example, because of limited resources), the advantage brought by IO scheduling disappears, which can influence performance. We may further optimize this scenario in future versions.</p>
 <h1 id="whats-next">
   What&rsquo;s next?

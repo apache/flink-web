@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.112.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
@@ -939,7 +939,7 @@ https://github.com/alex-shpak/hugo-book
 <br>
 <strong>Dynamic data partitioning</strong> provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.<br>
 <br>
-<strong>Custom window management</strong> demonstrates how you can utilize the low level <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/stream/operators/process_function.html">process function API</a>, when the native <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/stream/operators/windows.html">window API</a> is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.</p>
+<strong>Custom window management</strong> demonstrates how you can utilize the low level <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/stream/operators/process_function.html">process function API</a>, when the native <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/stream/operators/windows.html">window API</a> is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.</p>
 <p>These patterns build on top of core Flink functionality, however, they might not be immediately apparent from the framework&rsquo;s documentation as explaining and presenting the motivation behind them is not always trivial without a concrete use case. That is why we will showcase these patterns with a practical example that offers a real-world usage scenario for Apache Flink — a <em>Fraud Detection</em> engine.
 We hope that this series will place these powerful approaches into your tool belt and enable you to take on new and exciting tasks.</p>
 <p>In the first blog post of the series we will look at the high-level architecture of the demo application, describe its components and their interactions. We will then deep dive into the implementation details of the first pattern in the series - <strong>dynamic data partitioning</strong>.</p>
@@ -953,7 +953,7 @@ We hope that this series will place these powerful approaches into your tool bel
 <p>You will see the demo is a self-contained application - it only requires <code>docker</code> and <code>docker-compose</code> to be built from sources and includes the following components:</p>
 <ul>
 <li>Apache Kafka (message broker) with ZooKeeper</li>
-<li>Apache Flink (<a href="//nightlies.apache.org/flinkflink-docs-stable/concepts/glossary.html#flink-application-cluster">application cluster</a>)</li>
+<li>Apache Flink (<a href="//nightlies.apache.org/flink/flink-docs-stable/concepts/glossary.html#flink-application-cluster">application cluster</a>)</li>
 <li>Fraud Detection Web App</li>
 </ul>
 <p>The high-level goal of the Fraud Detection engine is to consume a stream of financial transactions and evaluate them against a set of rules. These rules are subject to frequent changes and tweaks. In a real production system, it is important to be able to add and remove them at runtime, without incurring an expensive penalty of stopping and restarting the job.</p>
@@ -1016,7 +1016,7 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span><span class="line"><span class="cl">  <span class="nt">&#34;windowMinutes&#34;</span><span class="p">:</span> <span class="mi">10080</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink&rsquo;s API is realised by a <code>keyBy()</code> function.</p>
-<p>Most examples in Flink&rsquo;s <code>keyBy()</code><a href="//nightlies.apache.org/flinkflink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events&rsquo; fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
+<p>Most examples in Flink&rsquo;s <code>keyBy()</code><a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events&rsquo; fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
 <p>On a high level, our main processing pipeline looks like this:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
 </span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
@@ -1067,7 +1067,7 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span><span class="line"><span class="cl">  <span class="o">}</span>
 </span></span><span class="line"><span class="cl"><span class="o">}</span>
 </span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
-<p>Events of this type will be the input to the <code>keyBy()</code> function in the main processing pipeline and allow the use of a simple lambda-expression as a <a href="//nightlies.apache.org/flinkflink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions"><code>KeySelector</code></a> for the final step of implementing dynamic data shuffle.</p>
+<p>Events of this type will be the input to the <code>keyBy()</code> function in the main processing pipeline and allow the use of a simple lambda-expression as a <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions"><code>KeySelector</code></a> for the final step of implementing dynamic data shuffle.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
 </span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
 </span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicKeyFunction</span><span class="o">())</span>

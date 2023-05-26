@@ -3,7 +3,7 @@
 <html lang="en" dir=>
 
 <head>
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.112.3">
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="In a previous blog post, we presented how Flink’s network stack works from the high-level abstractions to the low-level details. This second blog post in the series of network stack posts extends on this knowledge and discusses monitoring network-related metrics to identify effects such as backpressure or bottlenecks in throughput and latency. Although this post briefly covers what to do with backpressure, the topic of tuning the network stack will be further examined in a future post.">
@@ -945,7 +945,7 @@ https://github.com/alex-shpak/hugo-book
   Monitoring
   <a class="anchor" href="#monitoring">#</a>
 </h2>
-<p>Probably the most important part of network monitoring is <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/back_pressure.html">monitoring backpressure</a>, a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:</p>
+<p>Probably the most important part of network monitoring is <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/monitoring/back_pressure.html">monitoring backpressure</a>, a situation where a system is receiving data at a higher rate than it can process¹. Such behaviour will result in the sender being backpressured and may be caused by two things:</p>
 <ul>
 <li>
 <p>The receiver is slow.<br>
@@ -968,7 +968,7 @@ If backpressure occurs, it will bubble upstream and eventually reach your source
   Backpressure Monitor
   <a class="anchor" href="#backpressure-monitor">#</a>
 </h3>
-<p>The <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/back_pressure.html">backpressure monitor</a> is only exposed via Flink’s web UI². Since it&rsquo;s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks&rsquo; threads on all TaskManagers via <code>Thread.getStackTrace()</code> and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of</p>
+<p>The <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/monitoring/back_pressure.html">backpressure monitor</a> is only exposed via Flink’s web UI². Since it&rsquo;s an active component that is only triggered on request, it is currently not available via metrics. The backpressure monitor samples the running tasks&rsquo; threads on all TaskManagers via <code>Thread.getStackTrace()</code> and computes the number of samples where tasks were blocked on a buffer request. These tasks were either unable to send network buffers at the rate they were produced, or the downstream task(s) were slow at processing them and gave no credits for sending. The backpressure monitor will show the ratio of blocked to total requests. Since some backpressure is considered normal / temporary, it will show a status of</p>
 <ul>
 <li><span style="color:green">OK</span> for <code>ratio ≤ 0.10</code>,</li>
 <li><span style="color:orange">LOW</span> for <code>0.10 &lt; Ratio ≤ 0.5</code>, and</li>
@@ -985,7 +985,7 @@ The backpressure monitor can help you find where (at which task/operator) backpr
   Network Metrics
   <a class="anchor" href="#network-metrics">#</a>
 </h2>
-<p><a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/metrics.html#network">Network</a> and <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/metrics.html#io">task I/O</a> metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:</p>
+<p><a href="//nightlies.apache.org/flink/flink-docs-release-1.8/monitoring/metrics.html#network">Network</a> and <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/monitoring/metrics.html#io">task I/O</a> metrics are more lightweight than the backpressure monitor and are continuously published for each running job. We can leverage those and get even more insights, not only for backpressure monitoring. The most relevant metrics for users are:</p>
 <ul>
 <li>
 <p><strong><span style="color:orange">up to Flink 1.8:</span></strong> <code>outPoolUsage</code>, <code>inPoolUsage</code><br>
@@ -1157,7 +1157,7 @@ The relation between `exclusiveBuffersUsage`, `floatingBuffersUsage`, and the up
 <p>Besides the obvious use of each individual metric mentioned above, there are also a few combinations providing useful insight into what is happening in the network stack:</p>
 <ul>
 <li>
-<p>Low throughput with frequent <code>outPoolUsage</code> values around 100% but low <code>inPoolUsage</code> on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel">buffers-per-channel</a> parameter or try disabling credit-based flow control to verify.</p>
+<p>Low throughput with frequent <code>outPoolUsage</code> values around 100% but low <code>inPoolUsage</code> on all receivers is an indicator that the round-trip-time of our credit-notification (depends on your network’s latency) is too high for the default number of exclusive buffers to make use of your bandwidth. Consider increasing the <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/ops/config.html#taskmanager-network-memory-buffers-per-channel">buffers-per-channel</a> parameter or try disabling credit-based flow control to verify.</p>
 </li>
 <li>
 <p>Combining <code>numRecordsOut</code> and <code>numBytesOut</code> helps identifying average serialised record sizes which supports you in capacity planning for peak scenarios.</p>
@@ -1213,7 +1213,7 @@ This list is far from exhaustive. Generally, in order to reduce a bottleneck and
   <a class="anchor" href="#latency-tracking">#</a>
 </h3>
 <p>Tracking latencies at the various locations they may occur is a topic of its own. In this section, we will focus on the time records wait inside Flink’s network stack — including the system’s network connections. In low throughput scenarios, these latencies are influenced directly by the output flusher via the buffer timeout parameter or indirectly by any application code latencies. When processing a record takes longer than expected or when (multiple) timers fire at the same time — and block the receiver from processing incoming records — the time inside the network stack for following records is extended dramatically. We highly recommend adding your own metrics to your Flink job  for better latency tracking in your job’s components and a broader view on the cause of delays.</p>
-<p>Flink offers some support for <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/monitoring/metrics.html#latency-tracking">tracking the latency</a> of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/ops/config.html#metrics-latency-interval">configuration via <code>metrics.latency.interval</code></a> or via <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-">ExecutionConfig#setLatencyTrackingInterval()</a>. Once enabled, Flink will collect latency histograms based on the <a href="//nightlies.apache.org/flinkflink-docs-release-1.8/ops/config.html#metrics-latency-granularity">granularity defined via <code>metrics.latency.granularity</code></a>:</p>
+<p>Flink offers some support for <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/monitoring/metrics.html#latency-tracking">tracking the latency</a> of records passing through the system (outside of user code). However, this is disabled by default (see below why!) and must be enabled by setting a latency tracking interval either in Flink’s <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-interval">configuration via <code>metrics.latency.interval</code></a> or via <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/api/java/org/apache/flink/api/common/ExecutionConfig.html#setLatencyTrackingInterval-long-">ExecutionConfig#setLatencyTrackingInterval()</a>. Once enabled, Flink will collect latency histograms based on the <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/ops/config.html#metrics-latency-granularity">granularity defined via <code>metrics.latency.granularity</code></a>:</p>
 <ul>
 <li><code>single</code>: one histogram for each operator subtask</li>
 <li><code>operator</code> (default): one histogram for each combination of source task and operator subtask</li>
