@@ -60,11 +60,11 @@ Flink 中针对事件驱动应用的明星特性当属 savepoint。Savepoint 是
 
 ### 典型的事件驱动型应用实例
 
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/streaming-models-how-ing-adds-models-at-runtime-to-catch-fraudsters/">反欺诈</a>
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/building-a-real-time-anomaly-detection-system-with-flink-mux/">异常检测</a>
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/dynamically-configured-stream-processing-using-flink-kafka/">基于规则的报警</a>
+* <a href="https://www.youtube.com/watch?v=Do7C4UJyWCM/">反欺诈</a>
+* <a href="https://www.youtube.com/watch?v=rJNH5WhWAj4/">异常检测</a>
+* <a href="https://www.youtube.com/watch?v=_yHds9SvMfE/">基于规则的报警</a>
 * <a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink/">业务流程监控</a>
-* <a href="https://berlin-2017.flink-forward.org/kb_sessions/drivetribes-kappa-architecture-with-apache-flink/">（社交网络）Web 应用</a>
+* <a href="https://www.youtube.com/watch?v=0cJ565r2FVI/">（社交网络）Web 应用</a>
 
 ## 数据分析应用<a name="analytics"></a>
 
@@ -92,8 +92,8 @@ Flink 为持续流式分析和批量分析都提供了良好的支持。具体�
 
 ### 典型的数据分析应用实例
 
-* <a href="http://2016.flink-forward.org/kb_sessions/a-brief-history-of-time-with-apache-flink-real-time-monitoring-and-analysis-with-flink-kafka-hb/">电信网络质量监控</a>
-* 移动应用中的<a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/">产品更新及实验评估分析</a>
+* <a href="https://www.youtube.com/watch?v=izYsMQWeUbE/">电信网络质量监控</a>
+* 移动应用中的<a href="https://www.youtube.com/watch?v=17tUR4TsvpM/">产品更新及实验评估分析</a>
 * 消费者技术中的<a href="https://eng.uber.com/athenax/">实时数据即席分析</a>
 * 大规模图分析
 
