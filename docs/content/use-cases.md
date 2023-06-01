@@ -60,11 +60,11 @@ However, Flink's outstanding feature for event-driven applications is savepoint.
 
 ### What are typical event-driven applications?
 
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/streaming-models-how-ing-adds-models-at-runtime-to-catch-fraudsters/">Fraud detection</a>
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/building-a-real-time-anomaly-detection-system-with-flink-mux/">Anomaly detection</a>
-* <a href="https://sf-2017.flink-forward.org/kb_sessions/dynamically-configured-stream-processing-using-flink-kafka/">Rule-based alerting</a>
+* <a href="https://www.youtube.com/watch?v=Do7C4UJyWCM/">Fraud detection</a>
+* <a href="https://www.youtube.com/watch?v=rJNH5WhWAj4/">Anomaly detection</a>
+* <a href="https://www.youtube.com/watch?v=_yHds9SvMfE/">Rule-based alerting</a>
 * <a href="https://jobs.zalando.com/tech/blog/complex-event-generation-for-business-process-monitoring-using-apache-flink/">Business process monitoring</a>
-* <a href="https://berlin-2017.flink-forward.org/kb_sessions/drivetribes-kappa-architecture-with-apache-flink/">Web application (social network)</a>
+* <a href="https://www.youtube.com/watch?v=0cJ565r2FVI/">Web application (social network)</a>
 
 ## Data Analytics Applications<a name="analytics"></a>
 
@@ -92,8 +92,8 @@ Flink provides very good support for continuous streaming as well as batch analy
 
 ### What are typical data analytics applications?
 
-* <a href="http://2016.flink-forward.org/kb_sessions/a-brief-history-of-time-with-apache-flink-real-time-monitoring-and-analysis-with-flink-kafka-hb/">Quality monitoring of Telco networks</a>
-* <a href="https://techblog.king.com/rbea-scalable-real-time-analytics-king/">Analysis of product updates &amp; experiment evaluation</a> in mobile applications
+* <a href="https://www.youtube.com/watch?v=izYsMQWeUbE/">Quality monitoring of Telco networks</a>
+* <a href="https://www.youtube.com/watch?v=17tUR4TsvpM/">Analysis of product updates &amp; experiment evaluation</a> in mobile applications
 * <a href="https://eng.uber.com/athenax/">Ad-hoc analysis of live data</a> in consumer technology
 * Large-scale graph analysis
 
