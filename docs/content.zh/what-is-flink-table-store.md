@@ -1,5 +1,5 @@
 ---
-title: What is Flink Table Store?
+title: Flink Table Store 是什么?
 bookCollapseSection: false
 weight: 5
 bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-stable/"

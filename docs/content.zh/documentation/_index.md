@@ -1,5 +1,5 @@
 ---
-title: Documentation
+title: 文档
 bookCollapseSection: true
 weight: 10
 menu_weight: 2

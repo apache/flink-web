@@ -1,5 +1,5 @@
 ---
-title: Security
+title: 安全
 bookCollapseSection: false
 weight: 17
 menu_weight: 3
