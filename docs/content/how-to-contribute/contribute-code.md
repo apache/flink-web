@@ -106,7 +106,7 @@ to the Flink project and want to learn about it and its contribution process, yo
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">Implement</a></h2>
-        <p>Implement the change according to the <a href="{{< relref "how-to-contribute/contribute-code" >}}">Code Style and Quality Guide</a> and the approach agreed upon in the Jira ticket.</p> <br />
+        <p>Implement the change according to the <a href="{{< relref "how-to-contribute/code-style-and-quality-preamble" >}}">Code Style and Quality Guide</a> and the approach agreed upon in the Jira ticket.</p> <br />
         <p><b>Only start working on the implementation if there is consensus on the approach (e.g. you are assigned to the ticket)</b></p>
       </div>
     </div>
@@ -204,7 +204,7 @@ Once you've been assigned to a Jira issue, you may start to implement the requir
 Here are some further points to keep in mind while implementing:
 
 - [Set up a Flink development environment](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- Follow the [Code Style and Quality Guide]({{< relref "how-to-contribute/contribute-code" >}}) of Flink
+- Follow the [Code Style and Quality Guide]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}}) of Flink
 - Take any discussions and requirements from the Jira issue or design document into account.
 - Do not mix unrelated issues into one contribution.
 
