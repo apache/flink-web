@@ -22,15 +22,15 @@ Apache Flink provides a robust unit testing framework to make sure your applicat
 </dependency> 
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-runtime_2.11</artifactId>
-  <version>1.9.0</version>
+  <artifactId>flink-runtime_${scala.binary.version}</artifactId>
+  <version>${flink.version}</version>
   <scope>test</scope>
   <classifier>tests</classifier>
 </dependency>
 <dependency>
   <groupId>org.apache.flink</groupId>
-  <artifactId>flink-streaming-java_2.11</artifactId>
-  <version>1.9.0</version>
+  <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+  <version>${flink.version}</version>
   <scope>test</scope>
   <classifier>tests</classifier>
 </dependency>

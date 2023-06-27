@@ -35,7 +35,6 @@ The Flink documentation is written in [Markdown](http://daringfireball.net/proje
 In order to update or extend the documentation you have to modify the Markdown (`.md`) files. Please verify your changes by starting the build script in preview mode.
 
 ```
-cd docs
 ./build_docs.sh -p
 ```
 

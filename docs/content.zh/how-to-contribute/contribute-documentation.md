@@ -35,7 +35,6 @@ Flink 文档是用 [Markdown](http://daringfireball.net/projects/markdown/) 编�
 为了更新或扩展文档，你必须修改 Markdown (.md) 文件。请通过在预览模式下启动构建脚本来验证你的更改。
 
 ```
-cd docs
 ./build_docs.sh -p
 ```
 
