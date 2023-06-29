@@ -116,7 +116,7 @@ ext {
     scalaBinaryVersion = '${scalaBinaryVersion}'
     slf4jVersion = '1.7.36'
     log4jVersion = '2.17.1'
-    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.17"
+    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.15"
 }
 
 // artifact properties
