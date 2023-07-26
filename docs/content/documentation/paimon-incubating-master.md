@@ -1,7 +1,7 @@
 ---
 weight: 10
-title: Table Store Master (snapshot)
-bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-master/"
+title: Paimon(incubating) (formely Flink Table Store) Master
+bookHref: "https://paimon.apache.org/docs/master/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Flink documentation (latest snapshot)
+# Paimon(incubating) (formely Flink Table Store) documentation (latest snapshot)
 
-{{< external_link name="You can find the Flink Table Store documentation for the latest snapshot here.">}}
+{{< external_link name="You can find the Paimon(incubating) (formely Flink Table Store) documentation for the latest snapshot here.">}}
