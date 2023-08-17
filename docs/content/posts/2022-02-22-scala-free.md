@@ -83,5 +83,5 @@ We are already seeing new Scala 3 wrappers pop up in the community are excited t
 [^2]: https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need 
 [^3]: https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies
 [^4]: https://github.com/ariskk/flink4s 
-[^5]: https://github.com/findify/flink-adt 
+[^5]: https://github.com/flink-extended/flink-scala-api 
 [^6]: https://github.com/sjwiesman/flink-scala-3 
