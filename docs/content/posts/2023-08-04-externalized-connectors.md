@@ -58,7 +58,7 @@ The following connectors have been moved to individual repositories:
 
 ### Versioning
 
-Connectors continue to use the same Maven dependency `groupId` and `artificatId`, however, the JAR artifact `version` has changed and now uses the format, `<major>.<minor>.<patch>-<flink-major>.<flink-minor>`. For example, to use the DynamoDB connector for Flink 1.17, add the following dependency to your project:  
+Connectors continue to use the same Maven dependency `groupId` and `artifactId`. However, the JAR artifact `version` has changed and now uses the format, `<major>.<minor>.<patch>-<flink-major>.<flink-minor>`. For example, to use the DynamoDB connector for Flink 1.17, add the following dependency to your project:  
 
 ```
 <dependency>
@@ -72,6 +72,6 @@ You can find the maven dependency for a connector in the [Flink connectors docum
 
 ### Contributing
 
-Similarly, when creating JIRAs to report issues or to contribute to externalized connectors, the `Affects Version/s` and `Fix Version/s` fields should now use the connector version instead of a Flink version. The format should be `<connector-name>-<major>.<minor>.<patch>` for example, use `opensearch-1.1.0` for the OpenSearch connector. All other fields in the JIRA like `Component/s` remain the same.  
+Similarly, when creating JIRAs to report issues or to contribute to externalized connectors, the `Affects Version/s` and `Fix Version/s` fields should now use the connector version instead of a Flink version. The format should be `<connector-name>-<major>.<minor>.<patch>`.  For example, use `opensearch-1.1.0` for the OpenSearch connector. All other fields in the JIRA like `Component/s` remain the same.  
 
 For more information on how to contribute to externalized connectors, see the [Externalized Connector development wiki](https://cwiki.apache.org/confluence/display/FLINK/Externalized+Connector+development).
