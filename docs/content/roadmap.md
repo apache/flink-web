@@ -32,7 +32,7 @@ More details and various smaller changes can be found in the
 
 The roadmap is continuously updated. New features and efforts should be added to the roadmap once there is consensus that they will happen and what they will roughly look like for the user.
 
-**Last Update:** 2023-08-XX
+**Last Update:** 2023-09-01
 
 ## Feature Radar
 
