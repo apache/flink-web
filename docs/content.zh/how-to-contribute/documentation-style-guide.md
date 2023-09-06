@@ -27,19 +27,12 @@ Flink 同时维护了 **英文** 和 **中文** 两种文档，当你拓展或�
 
 * **使用主动语态。**[主动语态](https://medium.com/@DaphneWatson/technical-writing-active-vs-passive-voice-485dfaa4e498)简洁，并让内容更具有吸引力。如果你在句子的动词后添加 _by zombies_ 后仍然读的通，那么你用的就是被动语态。
 
-  <div class="alert alert-info">
-    <b>主动语态</b>
-    <p>"You can run this example in your IDE or on the command line."</p>
+  * **主动语态**
+    "You can run this example in your IDE or on the command line."
+  * **被动语态**
+    "This example can be run in your IDE or on the command line (by zombies)."
 
-    <p></p>
-
-  <b>被动语态</b>
-    <p>"This example can be run in your IDE or on the command line (by zombies)."</p>
-  </div>
-
-
-  <div class="alert alert-info"> 
-    <b>关于语态：</b>
+* **关于语态**
     <p>如上语态规范主要是写英文文档过程中注意，中文文档仍然以 <a href='https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications'>这个翻译规范</a> 为准 
   </div>
 
@@ -81,11 +74,10 @@ Markdown](https://guides.github.com/features/mastering-markdown/) 和纯 [HTML](
 
 除 Markdown 之外，每个文件还包含一个 YAML [前言区块](https://jekyllrb.com/docs/front-matter/)，用于设置页面变量以及元数据。前言必须在文件的最开始，由三条虚线之间的有效 YAML 集合来指定。
 
-<div class="alert alert-warning">
-  <h3>Apache 许可证</h3>
+### Apache 许可证
 
-  <p>对于每一个文档， 前言后都应当紧随一个Apache 许可证声明。两种语言版本的声明都用英语表示，并按照如下实例完全复制。</p>
-</div>
+对于每一个文档， 前言后都应当紧随一个Apache 许可证声明。两种语言版本的声明都用英语表示，并按照如下实例完全复制。
+
 
 ```
 ---
@@ -204,11 +196,9 @@ under the License.
 </table>
 </font>
 
-<div class="alert alert-warning">
-  <h3>最佳实践</h3>
+#### 最佳实践
 
 标题使用叙述语言的措辞。例如，一个动态表格的文档页面，“动态表格和连续查询”就比“背景”或者“技术信息”更有描述性。
-</div>
 
 ### 目录
 
@@ -225,11 +215,9 @@ under the License.
 {:.no_toc" }}}
 ```
 
-<div class="alert alert-warning">
-  <h3>最佳实践</h3>
+#### 最佳实践
 
 为所涵盖的主题写一个简短的介绍，并放在 TOC 之前。一些上下文，例如关键信息的概述，对于确保文档的连贯、降低阅读门槛都大有帮助。
-</div>
 
 ### 导航
 
@@ -241,11 +229,9 @@ under the License.
 {{ "{% top " }}%}
 ```
 
-<div class="alert alert-warning">
-  <h3>最佳实践</h3>
+#### 最佳实践
 
 建议至少要在 2 级章节的结尾处添加回到首页链接。
-</div>
 
 ### 标注
 
@@ -291,11 +277,9 @@ under the License.
   [Link Text](external_url)
   ```
 
-<div class="alert alert-warning">
-  <h3>最佳实践</h3>
+#### 最佳实践
 
 链使用可以提供操作或者目标信息的描述性链接名称。例如，避免使用“了解更多”或“单击此处”链接。
-</div>
 
 ### 可视化内容
 
@@ -305,11 +289,9 @@ under the License.
 {{< img src="/fig/image_name.png" alt="Picture Text" width="200px" >}}
 ```
 
-<div class="alert alert-warning">
-  <h3>最佳实践</h3>
+#### 最佳实践
 
 在适当或必要的情况下使用流程图、表格和图形进行额外说明，但切勿作为独立的信息来源。确保内容中的字体大小不影响阅读，并且整体分辨率足够。
-</div>
 
 ### 代码
 

@@ -39,7 +39,7 @@ Below, we provide more details about the key features in the Pulsar Flink Connec
 When users needed to strictly guarantee the ordering of messages, only one consumer was allowed to consume them. This had a severe impact on throughput. To address this, we designed a Key_Shared subscription model in Pulsar that guarantees the ordering of messages and improves throughput by adding a Key to each message and routes messages with the same Key Hash to one consumer.
 
 <br>
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-01-07-pulsar-flink/pulsar-key-shared.png" width="640px" alt="Apache Pulsar Key-Shared Subscription"/>
 </div>
 
@@ -161,7 +161,7 @@ Pulsar offers a hierarchical architecture where data is divided into streaming, 
 The batch and stream solution based on the new Flink Source API is divided into two simple parts: SplitEnumerator and Reader. SplitEnumerator discovers and assigns partitions, and Reader reads data from the partition.
 
 <br>
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-01-07-pulsar-flink/pulsar-flink-batch-stream.png" width="640px" alt="Batch and Stream Solution with Apache Pulsar and Apache Flink"/>
 </div>
 

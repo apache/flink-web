@@ -1,0 +1,71 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<!--
+    Partial that renders the navbar menus.
+-->
+
+<!-- Main layout -->
+{{ $menu_entries := where .Site.Pages "Params.menu_weight" "!=" nil }}
+{{ template "book-menu-group" (dict "Pages" $menu_entries "CurrentPage" $ "Group" 1) }}
+{{ template "book-menu-group" (dict "Pages" $menu_entries "CurrentPage" $ "Group" 2) }}
+{{ template "book-menu-group" (dict "Pages" $menu_entries "CurrentPage" $ "Group" 3) }}
+
+<!-- Templates -->
+{{ define "book-menu-group" }}
+    {{ range where $.Pages "Params.menu_weight" $.Group }}
+      {{ template "nav-menu-item" (dict "Item" . "CurrentPage" $.CurrentPage) }}
+    {{ end }}
+{{ end }}
+
+{{ define "nav-menu-item" }}
+  {{ if eq $.Item.Params.section_link true }}
+    <li class="nav-item">
+      {{ template "book-page-link" (dict "Page" $.Item "CurrentPage" $.CurrentPage "Classes" "nav-link") }}
+    </li>
+  {{ else if $.Item.IsSection }}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {{- partial "docs/title" $.Item -}}
+      </a>
+      <ul class="dropdown-menu">
+        {{ range (where $.Item.Pages "Params.bookhidden" "ne" true) }}
+          <li>
+            {{ template "book-page-link" (dict "Page" . "CurrentPage" $.CurrentPage "Classes" "dropdown-item") }}
+          </li>
+        {{ end }}
+      </ul>
+    </li>
+  {{ else }}
+    <li class="nav-item">
+      {{ template "book-page-link" (dict "Page" $.Item "CurrentPage" $.CurrentPage "Classes" "nav-link") }}
+    </li>
+  {{ end }}
+{{ end }}
+
+{{ define "book-page-link" }}
+  {{ if .Page.Params.BookHref }}
+    <a class="{{ .Classes }}" href="{{ .Page.Params.BookHref }}">
+      {{- partial "docs/title" .Page -}} <i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  {{ else }}
+    <a class="{{ .Classes }}" href="{{ .Page.RelPermalink }}">
+      {{- partial "docs/title" .Page -}}
+    </a>
+  {{ end }}
+{{ end }}

@@ -25,7 +25,7 @@ Apache Flink 是一个针对无界和有界数据流进行有状态计算的框�
 
 只有在每一个单独的事件上进行转换操作的应用才不需要状态，换言之，每一个具有一定复杂度的流处理应用都是有状态的。任何运行基本业务逻辑的流处理应用都需要在一定时间内存储所接收的事件或中间结果，以供后续的某个时间点（例如收到下一个事件或者经过一段特定时间）进行访问并进行后续处理。
 
-<div class="row front-graphic">
+<div>
   {{< img src="/img/function-state.png" width="350px" >}}
 </div>
 
@@ -52,7 +52,7 @@ Flink 提供了丰富的时间语义支持。
 
 Flink 根据抽象程度分层，提供了三种不同的 API。每一种 API 在简洁性和表达力上有着不同的侧重，并且针对不同的应用场景。
 
-<div class="row front-graphic">
+<div>
   {{< img src="/img/api-stack.png" width="500px" >}}
 </div>
 

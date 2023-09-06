@@ -1,8 +1,8 @@
 ---
 title: How to Contribute
 bookCollapseSection: true
-weight: 16
-menu_weight: 3
+weight: 20
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

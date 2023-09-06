@@ -1,7 +1,7 @@
 ---
-title: What is Apache Flink?
+title: About
 bookCollapseSection: true
-weight: 1
+weight: 5
 menu_weight: 1
 ---
 <!--

@@ -1,8 +1,8 @@
 ---
 title: Getting Started
 bookCollapseSection: true
-weight: 9
-menu_weight: 2
+weight: 10
+menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

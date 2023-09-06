@@ -1,7 +1,7 @@
 ---
 title: Downloads
 bookCollapseSection: false
-weight: 8
+weight: 5
 menu_weight: 2
 ---
 <!--

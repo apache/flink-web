@@ -55,7 +55,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
       <td>
         <ul class="contribute-card-list">
           <li>回答 <a href="{{< relref "community" >}}#mailing-lists">用户邮件列表</a> 中的问题</li>
-          <li>回答 <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> 上带有 <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>、 <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> 或 <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> 标签的 Flink 相关问题</li>
+          <li>回答 <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> 上带有 <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code>apache-flink</code></a>、 <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code>flink-streaming</code></a> 或 <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code>flink-sql</code></a> 标签的 Flink 相关问题</li>
           <li>检查 <a href="http://issues.apache.org/jira/browse/FLINK">Jira</a> 上近期发布的 issue 中用户提出的问题</li>
         </ul>
       </td>

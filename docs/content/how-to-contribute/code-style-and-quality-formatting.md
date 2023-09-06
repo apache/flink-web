@@ -129,8 +129,4 @@ values
 * **Arrays must be defined Java-style.** For example, `public String[] array`.
 * **Use Flink Preconditions.** To increase homogeneity, consistently use the `org.apache.flink.Preconditions` methods `checkNotNull` and `checkArgument` rather than Apache Commons Validate or Google Guava.
 
-
-
-<hr>
-
 [^1]: We are keeping such frameworks out of Flink, to make debugging easier and avoid dependency clashes.
