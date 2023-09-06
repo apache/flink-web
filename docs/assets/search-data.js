@@ -36,15 +36,20 @@
 
   {{- $pages := where .Site.Pages "Kind" "in" (slice "page" "section") -}}
   {{- $pages = where $pages "Params.booksearchexclude" "!=" true -}}
-  {{- $pages = where $pages "Content" "not in" (slice nil "") -}}
 
-  {{ range $index, $page := $pages }}
-  index.add({
-    'id': {{ $index }},
-    'href': '{{ $page.RelPermalink }}',
-    'title': {{ (partial "docs/simple-title" $page) | jsonify }},
-    'section': {{ (partial "docs/simple-title" $page.Parent) | jsonify }},
-    'content': {{ $page.Plain | jsonify }}
-  });
+  {{ $.Scratch.Set "counter" 0 }}
+  {{ range $page := $pages }}
+    {{ if ne $page.Plain "" }}
+      {{ if ne $page.Plain nil }}
+        index.add({
+          'id': {{$.Scratch.Get "counter"}},
+          'href': '{{ $page.RelPermalink }}',
+          'title': {{ (partial "docs/simple-title" $page) | jsonify }},
+          'section': {{ (partial "docs/simple-title" $page.Parent) | jsonify }},
+          'content': {{ $page.Plain | jsonify }}
+        });
+        {{ $.Scratch.Add "counter" 1 }}
+      {{ end }}
+    {{ end }}
   {{- end -}}
 })();
