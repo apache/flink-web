@@ -12,7 +12,7 @@ aliases:
 - /2021/07/07/backpressure.html
 ---
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/animated.png" alt="Backpressure monitoring in the web UI"/>
 	<p class="align-center">Backpressure monitoring in the web UI</p>
 </div>
@@ -69,7 +69,7 @@ One way to detect backpressure is to use [metrics]({{< param DocsBaseUrl >}}flin
 however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases, it should be enough to just
 look at the job graph in the Web UI.
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/simple-example.png"/>
 </div>
 
@@ -84,7 +84,7 @@ If you click on one particular task and go into the “BackPressure” tab you w
 the problem and check what is the busy/backpressured/idle status of every subtask in that task. For example,
 this is especially handy if there is a data skew and not all subtasks are equally utilized.
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/subtasks.png" alt="Backpressure among subtasks"/>
 	<p class="align-center">Backpressure among subtasks</p>
 </div>
@@ -123,7 +123,7 @@ Fortunately, this is only relevant for two cases:
 as the value for busyTimeMsPerSecond. For more information on the topic of Data Sources please
 [take a look here]({{< param DocsBaseUrl >}}flink-docs-release-1.13/docs/dev/datastream/sources/).
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/source-task-busy.png" alt="Old-style sources do not report busy time"/>
 	<p class="align-center">Old-style sources do not report busy time</p>
 </div>
@@ -145,12 +145,12 @@ of 500ms/s.
 Furthermore, varying load and especially firing windows can move the bottleneck to a different place in
 the job graph:
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/bottleneck-zoom.png" alt="Bottleneck alternating between two tasks"/>
 	<p class="align-center">Bottleneck alternating between two tasks</p>
 </div>
 
-<div class="row front-graphic">
+<div>
   <img src="/img/blog/2021-07-07-backpressure/sliding-window.png" alt="SlidingWindowOperator"/>
 	<p class="align-center">SlidingWindowOperator</p>
 </div>

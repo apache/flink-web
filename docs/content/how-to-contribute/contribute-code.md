@@ -76,6 +76,7 @@ to the Flink project and want to learn about it and its contribution process, yo
   padding: 0;
   display: flex;
   align-items: flex-start;
+  border: none;
 }
 
 .contribute-grid .number {

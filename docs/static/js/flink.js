@@ -179,3 +179,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	// to h1-h4 but we use h5 in generated documentation
     anchors.add('h5');
 });
+
+function resizeNav(event) {
+    const footerTop = Math.min(0, document.querySelector('footer').getBoundingClientRect().top - window.innerHeight);
+    const headerSize = document.querySelector('header nav').getBoundingClientRect().bottom;
+    document.querySelector('aside nav').style.height = (window.innerHeight - headerSize + footerTop) + 'px';
+}
+
+document.addEventListener("scroll", resizeNav);
+window.addEventListener("resize", resizeNav);

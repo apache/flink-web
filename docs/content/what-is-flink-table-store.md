@@ -1,9 +1,7 @@
 ---
 title: What is Flink Table Store?
 bookCollapseSection: false
-weight: 5
 bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-stable/"
-menu_weight: 1
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

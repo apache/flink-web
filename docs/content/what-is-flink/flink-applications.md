@@ -25,7 +25,7 @@ Obviously, streams are a fundamental aspect of stream processing. However, strea
 
 Every non-trivial streaming application is stateful, i.e., only applications that apply transformations on individual events do not require state. Any application that runs basic business logic needs to remember events or intermediate results to access them at a later point in time, for example when the next event is received or after a specific time duration.
 
-<div class="row front-graphic">
+<div>
   {{< img src="/img/function-state.png" width="350px" >}}
 </div>
 
@@ -52,7 +52,7 @@ Flink provides a rich set of time-related features.
 
 Flink provides three layered APIs. Each API offers a different trade-off between conciseness and expressiveness and targets different use cases.
 
-<div class="row front-graphic">
+<div>
   {{< img src="/img/api-stack.png" width="500px" >}}
 </div>
 

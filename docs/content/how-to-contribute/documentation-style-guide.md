@@ -43,15 +43,10 @@ Principles](#general-guiding-principles).
   after the verb in a sentence and it still makes sense, you are using the
   passive voice.
 
-  <div class="alert alert-info">
-    <b>Active Voice</b>
-    <p>"You can run this example in your IDE or on the command line."</p>
-
-    <p></p>
-
-  <b>Passive Voice</b>
-    <p>"This example can be run in your IDE or on the command line (by zombies)."</p>
-  </div>
+  * **Active Voice**
+    "You can run this example in your IDE or on the command line."
+  * **Passive Voice**
+    "This example can be run in your IDE or on the command line (by zombies)."
 
 * **Use you, never we.** Using _we_ can be confusing and patronizing to some
   users, giving the impression that “we are all members of a secret club and
@@ -114,14 +109,12 @@ block](https://jekyllrb.com/docs/front-matter/) that will be used to set
 variables and metadata on the page. The front matter must be the first thing in
 the file and must be specified as a valid YAML set between triple-dashed lines.
 
-<div class="alert alert-warning">
-  <h3>Apache License</h3>
+### Apache License
 
-  <p>For every documentation file, the front matter should be immediately
-  followed by the Apache License statement. For both language versions, this
-  block must be stated in US English and copied in the exact same words as in
-  the following example.</p>
-</div>
+For every documentation file, the front matter should be immediately
+followed by the Apache License statement. For both language versions, this
+block must be stated in US English and copied in the exact same words as inthe following example.
+
 
 ```
 ---
@@ -246,13 +239,11 @@ consecutive — never skip a header level for styling reasons!
 </table>
 </font>
 
-<div class="alert alert-warning">
-  <h3>Best Practice</h3>
+#### Best Practice
 
 Use descriptive language in the phrasing of headings. For example, for a
 documentation page on dynamic tables, "Dynamic Tables and Continuous Queries"
 is more descriptive than "Background" or "Technical Information".
-</div>
 
 ### Table of Contents
 
@@ -271,14 +262,13 @@ from the TOC:
 {:.no_toc" }}}
 ```
 
-<div class="alert alert-warning">
-  <h3>Best Practice</h3>
+#### Best Practice
 
 Write a short and concise introduction to the topic that is being covered and
 place it before the TOC. A little context, such an outline of key messages,
 goes a long way in ensuring that the documentation is consistent and
 accessible to all levels of knowledge.
-</div>
+
 
 ### Navigation
 
@@ -294,12 +284,10 @@ a default link when generating the documentation:
 {{ "{% top " }}%}
 ```
 
-<div class="alert alert-warning">
-  <h3>Best Practice</h3>
+#### Best Practice
 
 It's recommended to use Back to Top links at least at the end of each Level-2
 section.
-</div>
 
 ### Annotations
 
@@ -350,12 +338,10 @@ overwriting.
   [Link Text](external_url)
   ```
 
-<div class="alert alert-warning">
-  <h3>Best Practice</h3>
+#### Best Practice
 
 Use descriptive links that provide information on the action or destination.
 For example, avoid using "Learn More" or "Click Here" links.
-</div>
 
 ### Visual Elements
 
@@ -367,14 +353,12 @@ links:
 {{< img src="/fig/image_name.png" alt="Picture Text" width="200px" >}}
 ```
 
-<div class="alert alert-warning">
-  <h3>Best Practice</h3>
+#### Best Practice
 
 Use flowcharts, tables and figures where appropriate or necessary for
 additional clarification, but never as a standalone source of information.
 Make sure that any text included in those elements is large enough to read
 and that the overall resolution is adequate.
-</div>
 
 ### Code
 

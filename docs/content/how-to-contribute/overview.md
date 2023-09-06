@@ -55,7 +55,7 @@ Apache Flink is developed by an open and friendly community. Everybody is cordia
       <td>
         <ul class="contribute-card-list">
           <li>Reply to questions on the <a href="{{< relref "community" >}}#mailing-lists">user mailing list</a></li>
-          <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code style="background-color: #cee0ed; border-color: #cee0ed;">apache-flink</code></a>, <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-streaming</code></a> or <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code style="background-color: #cee0ed; border-color: #cee0ed;">flink-sql</code></a> tag</li>
+          <li>Reply to Flink related questions on <a href="https://stackoverflow.com/questions/tagged/apache-flink">Stack Overflow</a> with the <a href="https://stackoverflow.com/questions/tagged/apache-flink"><code>apache-flink</code></a>, <a href="https://stackoverflow.com/questions/tagged/flink-streaming"><code>flink-streaming</code></a> or <a href="https://stackoverflow.com/questions/tagged/flink-sql"><code>flink-sql</code></a> tag</li>
           <li>Check the latest issues in <a href="http://issues.apache.org/jira/browse/FLINK">Jira</a> for tickets which are actually user questions</li>
         </ul>
       </td>
