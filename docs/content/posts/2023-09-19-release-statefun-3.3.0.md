@@ -31,7 +31,7 @@ For more information see [Flink's release announcement](https://flink.apache.org
 
 ## Release Notes
 
-Please review the [release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12350540)
+Please review the [release notes](https://issues.apache.org/jira/secure/ReleaseNote.jspa?projectId=12315522&version=12351276)
 for a detailed list of changes and new features if you plan to upgrade your setup to Stateful Functions 3.3.0.
 
 ## List of Contributors
