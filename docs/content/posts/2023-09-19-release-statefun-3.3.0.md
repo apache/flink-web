@@ -23,6 +23,19 @@ or [JIRA](https://issues.apache.org/jira/browse/FLINK)!
 
 ## New Features
 
+### Fixed CVE-2023-41834 
+
+Stateful Functions versions 3.1.0, 3.1.1 and 3.2.0 allowed HTTP header
+injection due to Improper Neutralization of CRLF Sequences. Attackers could
+potentially inject malicious content into the HTTP response that is
+sent to the user. This could include injecting a fake login form or
+other phishing content, or injecting malicious JavaScript code that
+can steal user credentials or perform other malicious actions on the
+user's behalf.
+
+Stateful Functions 3.3.0 has fixed this security vulnerability. More details can be found on the 
+[Security]({{< relref "security" >}}) page.
+
 ### Upgraded Flink dependency to 1.16.2
 
 Stateful Functions 3.3.0 runtime uses Flink 1.16.2 underneath.
