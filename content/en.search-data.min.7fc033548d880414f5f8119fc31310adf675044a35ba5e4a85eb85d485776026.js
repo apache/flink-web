@@ -1,1 +1,0 @@
-"use strict";(function(){const e={cache:!0};e.doc={id:"id",field:["title","content"],store:["title","href","section"]};const t=FlexSearch.create("balance",e);window.bookSearchIndex=t})()
