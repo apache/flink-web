@@ -32,7 +32,7 @@ tables:
                     <br />
                     <br />
                     [Read more about Flink's role at Alibaba](https://ververica.com/blog/blink-flink-alibaba-search)"
-            column2: "Amazon Kinesis Data Analytics, a fully managed cloud service for stream processing, uses Apache Flink in part to power its Java application capability."
+            column2: "Amazon Managed Service for Apache Flink is a fully managed Amazon service that enables you to use an Apache Flink application to process and analyze streaming data."
             column3: "BetterCloud, a multi-SaaS management platform, uses Flink to surface near real-time intelligence from SaaS application activity.
                     <br />
                     <br />
