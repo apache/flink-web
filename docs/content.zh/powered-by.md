@@ -32,7 +32,7 @@ tables:
                     <br />
                     <br />
                     [阅读更多有关 Flink 在阿里巴巴扮演角色的信息](https://ververica.com/blog/blink-flink-alibaba-search)"
-            column2: "Amazon Kinesis Data Analytics 是一种用于流处理完全托管的云服务，它部分地使用 Apache Flink 来增加其 Java 应用程序功能。"
+            column2: "Amazon Managed Service for Apache Flink 是一项完全托管的 Amazon 服务；可以让您能够使用Apache Flink来处理和分析流数据。"
             column3: "BetterCloud 是一个多 SaaS 管理平台，它使用 Flink 从 SaaS 应用程序活动中获取近乎实时的智能。
                     <br />
                     <br />
