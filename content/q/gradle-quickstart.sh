@@ -46,6 +46,9 @@ defaultFlinkVersion="${1:-1.17.0}"
 # passes the scala version prefixed with a _, e.g.: _2.12
 scalaBinaryVersionFromCmdArg="${2/_/}"
 defaultScalaBinaryVersion="${scalaBinaryVersionFromCmdArg:-2.12}"
+defaultJavaVersion="1.8"
+defaultSlf4jVersion="1.7.36"
+defaultLog4jVersion="2.17.1"
 
 echo "This script creates a Flink project using Java and Gradle."
 
@@ -62,6 +65,12 @@ while [ $TRUE ]; do
   flinkVersion=${flinkVersion:-$defaultFlinkVersion}
   read -p "Scala version ($defaultScalaBinaryVersion): " scalaBinaryVersion
   scalaBinaryVersion=${scalaBinaryVersion:-$defaultScalaBinaryVersion}
+  read -p "Java version ($defaultJavaVersion): " javaVersion
+  javaVersion=${javaVersion:-$defaultJavaVersion}
+  read -p "Slf4j version ($defaultSlf4jVersion): " slf4jVersion
+  slf4jVersion=${slf4jVersion:-defaultSlf4jVersion}
+  read -p "Log4j version ($defaultLog4jVersion): " log4jVersion
+  log4jVersion=${log4jVersion:-defaultLog4jVersion}
 
   echo ""
   echo "-----------------------------------------------"
@@ -70,6 +79,9 @@ while [ $TRUE ]; do
   echo "Version: ${version}"
   echo "Scala binary version: ${scalaBinaryVersion}"
   echo "Flink version: ${flinkVersion}"
+  echo "Java version: ${javaVersion}"
+  echo "Slf4j version: ${slf4jVersion}"
+  echo "Log4j version: ${log4jVersion}"
   echo "-----------------------------------------------"
   read -p "Create Project? (Y/n): " createProject
   createProject=${createProject:-y}
@@ -111,12 +123,12 @@ plugins {
 }
 
 ext {
-    javaVersion = '1.8'
+    javaVersion = '${javaVersion}'
     flinkVersion = '${flinkVersion}'
     scalaBinaryVersion = '${scalaBinaryVersion}'
-    slf4jVersion = '1.7.36'
-    log4jVersion = '2.17.1'
-    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.17"
+    slf4jVersion = '${slf4jVersion}'
+    log4jVersion = '${log4jVersion}'
+    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "${defaultFlinkVersion}"
 }
 
 // artifact properties
