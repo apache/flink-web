@@ -28,7 +28,7 @@ Convince yourself by exploring the [use cases]({{< relref "use-cases" >}}) that 
 
 ## Deploy Applications Anywhere
 
-Apache Flink is a distributed system and requires compute resources in order to execute applications. Flink integrates with all common cluster resource managers such as [Hadoop YARN](https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html), [Apache Mesos](https://mesos.apache.org), and [Kubernetes](https://kubernetes.io/) but can also be setup to run as a stand-alone cluster.
+Apache Flink is a distributed system and requires compute resources in order to execute applications. Flink integrates with all common cluster resource managers such as [Hadoop YARN](https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html) and [Kubernetes](https://kubernetes.io/) but can also be setup to run as a stand-alone cluster.
 
 Flink is designed to work well each of the previously listed resource managers. This is achieved by resource-manager-specific deployment modes that allow Flink to interact with each resource manager in its idiomatic way.
 
