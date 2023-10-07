@@ -97,15 +97,15 @@ echo "ThisBuild / resolvers ++= Seq(
   Resolver.mavenLocal
 )
 
-name := \"Flink Project\"
+name := \"$projectName\"
 
-version := \"0.1-SNAPSHOT\"
+version := \"$version\"
 
-organization := \"org.example\"
+organization := \"$organization\"
 
-ThisBuild / scalaVersion := \"2.12.7\"
+ThisBuild / scalaVersion := \"$scalaVersion\"
 
-val flinkVersion = \"1.16.1\"
+val flinkVersion = \"$flinkVersion\"
 
 val flinkDependencies = Seq(
   \"org.apache.flink\" %% \"flink-scala\" % flinkVersion % \"provided\",
