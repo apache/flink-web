@@ -18,6 +18,8 @@
 # limitations under the License.
 ################################################################################
 
+source "$(dirname "$0")"/_utils.sh
+
 declare -r TRUE=0
 declare -r FALSE=1
 
@@ -41,11 +43,15 @@ function mkPackage() {
 defaultProjectName="quickstart"
 defaultOrganization="org.myorg.quickstart"
 defaultVersion="0.1-SNAPSHOT"
-defaultFlinkVersion="${1:-1.17.0}"
+defaultFlinkVersion="$(extract_parameter 'FlinkStableVersion')"
+defaultFlinkShortVersion="$(extract_parameter 'FlinkStableShortVersion')"
+flinkVersionFromParameter="${1:-$defaultFlinkVersion}"
 # flink-docs-master/docs/dev/datastream/project-configuration/#gradle
 # passes the scala version prefixed with a _, e.g.: _2.12
+defaultScalaShortVersion="$(extract_parameter 'ScalaShortVersion')"
 scalaBinaryVersionFromCmdArg="${2/_/}"
-defaultScalaBinaryVersion="${scalaBinaryVersionFromCmdArg:-2.12}"
+defaultScalaBinaryVersion="${scalaBinaryVersionFromCmdArg:-$defaultScalaShortVersion}"
+defaultJavaVersion="$(extract_parameter 'JavaVersion')"
 
 echo "This script creates a Flink project using Java and Gradle."
 
@@ -58,10 +64,12 @@ while [ $TRUE ]; do
   organization=${organization:-$defaultOrganization}
   read -p "Version ($defaultVersion): " version
   version=${version:-$defaultVersion}
-  read -p "Flink version ($defaultFlinkVersion): " flinkVersion
-  flinkVersion=${flinkVersion:-$defaultFlinkVersion}
+  read -p "Flink version ($flinkVersionFromParameter): " flinkVersion
+  flinkVersion=${flinkVersion:-$flinkVersionFromParameter}
   read -p "Scala version ($defaultScalaBinaryVersion): " scalaBinaryVersion
   scalaBinaryVersion=${scalaBinaryVersion:-$defaultScalaBinaryVersion}
+  read -p "Java version ($defaultJavaVersion): " javaVersion
+  javaVersion=${javaVersion:-$defaultJavaVersion}
 
   echo ""
   echo "-----------------------------------------------"
@@ -70,6 +78,7 @@ while [ $TRUE ]; do
   echo "Version: ${version}"
   echo "Scala binary version: ${scalaBinaryVersion}"
   echo "Flink version: ${flinkVersion}"
+  echo "Java version: ${javaVersion}"
   echo "-----------------------------------------------"
   read -p "Create Project? (Y/n): " createProject
   createProject=${createProject:-y}
@@ -111,12 +120,12 @@ plugins {
 }
 
 ext {
-    javaVersion = '1.8'
+    javaVersion = '${javaVersion}'
     flinkVersion = '${flinkVersion}'
     scalaBinaryVersion = '${scalaBinaryVersion}'
     slf4jVersion = '1.7.36'
     log4jVersion = '2.17.1'
-    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "1.17"
+    flinkVersionNew = flinkVersion.toString().replace("-SNAPSHOT", "") >= "${defaultFlinkShortVersion}"
 }
 
 // artifact properties
