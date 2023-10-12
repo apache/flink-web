@@ -2,6 +2,8 @@
 title: 开发计划
 bookCollapseSection: false
 weight: 6
+aliases:
+- /roadmap.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

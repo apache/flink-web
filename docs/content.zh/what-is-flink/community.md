@@ -2,6 +2,8 @@
 title: 社区 & 项目信息
 bookCollapseSection: false
 weight: 7
+aliases:
+- /community.html
 
 tables:
     mailing-lists:

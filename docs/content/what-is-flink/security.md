@@ -2,6 +2,8 @@
 title: Security
 bookCollapseSection: false
 weight: 8
+aliases:
+- /security.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

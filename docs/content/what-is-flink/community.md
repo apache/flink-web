@@ -2,6 +2,8 @@
 title: Community & Project Info
 bookCollapseSection: false
 weight: 7
+aliases:
+- /community.html
 
 tables:
     mailing-lists:

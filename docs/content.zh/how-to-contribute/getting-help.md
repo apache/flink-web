@@ -2,6 +2,8 @@
 title: 获取帮助
 bookCollapseSection: false
 weight: 25
+aliases:
+- /getting-help.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
