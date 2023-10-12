@@ -2,6 +2,8 @@
 title: Flink 用户
 bookToc: false
 weight: 5
+aliases:
+- /powered-by.html
 
 tables:
     powered-by:

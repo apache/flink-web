@@ -2,6 +2,8 @@
 title: Getting Help
 bookCollapseSection: false
 weight: 25
+aliases:
+- /getting-help.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
