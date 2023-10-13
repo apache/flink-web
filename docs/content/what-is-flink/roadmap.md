@@ -4,6 +4,7 @@ bookCollapseSection: false
 weight: 6
 aliases:
 - /roadmap.html
+- /roadmap/index.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

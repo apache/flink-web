@@ -4,6 +4,7 @@ bookToc: false
 weight: 5
 aliases:
 - /powered-by.html
+- /powered-by/index.html
 
 tables:
     powered-by:

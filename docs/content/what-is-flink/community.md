@@ -4,6 +4,7 @@ bookCollapseSection: false
 weight: 7
 aliases:
 - /community.html
+- /community/index.html
 
 tables:
     mailing-lists:
