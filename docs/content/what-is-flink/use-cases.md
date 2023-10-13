@@ -4,6 +4,7 @@ bookCollapseSection: false
 weight: 4
 aliases:
 - /use-cases.html
+- /use-cases/index.html
 
 ---
 <!--
