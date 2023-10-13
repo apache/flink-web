@@ -4,6 +4,7 @@ bookCollapseSection: false
 weight: 8
 aliases:
 - /security.html
+- /security/index.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

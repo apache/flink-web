@@ -3,7 +3,8 @@ title: 开发计划
 bookCollapseSection: false
 weight: 6
 aliases:
-- /roadmap.html
+- /zh/roadmap.html
+- /zh/roadmap/index.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

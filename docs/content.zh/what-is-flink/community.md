@@ -3,7 +3,8 @@ title: 社区 & 项目信息
 bookCollapseSection: false
 weight: 7
 aliases:
-- /community.html
+- /zh/community.html
+- /zh/community/index.html
 
 tables:
     mailing-lists:
