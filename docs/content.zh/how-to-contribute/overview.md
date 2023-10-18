@@ -28,7 +28,7 @@ Apache Flink 是由一个开放友好的社区开发的。我们诚挚地欢迎�
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-console" aria-hidden="true"></span> 贡献代码</td>
-      <td>请阅读 <a href=""{{< relref "how-to-contribute/contribute-code" >}}">代码贡献指南</a></td>
+      <td>请阅读 <a href="{{< relref "how-to-contribute/contribute-code" >}}">代码贡献指南</a></td>
     </tr>
     <tr>
       <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> 帮助做代码审核</td>
