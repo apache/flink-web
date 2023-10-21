@@ -1,7 +1,7 @@
 ---
 title: What is Paimon(incubating) (formerly Flink Table Store)?
 bookCollapseSection: false
-bookHref: "https://paimon.apache.org/docs/master/"
+bookHref: "https://paimon.apache.org/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -24,4 +24,4 @@ under the License.
 
 # What is Apache Paimon (formerly Flink Table Store)?
 
-The Flink Table Store had joined Apache Incubator as Apache Paimon(incubating). All information on the Apache Paimon(incubating) can be found on the [Paimon website.](https://paimon.apache.org/docs/master/)
+The Flink Table Store had joined Apache Incubator as Apache Paimon(incubating). All information on the Apache Paimon(incubating) can be found on the [Paimon website.](https://paimon.apache.org/)
