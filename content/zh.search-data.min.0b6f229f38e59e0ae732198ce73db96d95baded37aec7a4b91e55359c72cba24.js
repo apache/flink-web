@@ -125,8 +125,9 @@ This component is compatible with Apache Flink version(s):
 Apache Flink ML 2.2.0 Python Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
 1.15.* Apache Flink Kubernetes Operator # Apache Flink® Kubernetes Operator 1.6 是我们最新的稳定版本。
-Apache Flink Kubernetes Operator 1.6.0 # Apache Flink Kubernetes Operator 1.6.0 Source Release (asc, sha512)
+Apache Flink Kubernetes Operator 1.6.1 # Apache Flink Kubernetes Operator 1.6.1 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
+1.18.0
 1.17.1
 1.16.2
 1.15.4
@@ -163,7 +164,7 @@ Scala API: 为了使用 Scala API，将 flink-java 的 artifact id 替换为 fli
 Apache Flink ML # 用户需要在 pom.xml 中添加如下依赖来使在项目中使用 Apache Flink ML。
 &lt;dependency&gt; &lt;groupId&gt;org.apache.flink&lt;/groupId&gt; &lt;artifactId&gt;flink-ml-core&lt;/artifactId&gt; &lt;version&gt;2.3.0&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.flink&lt;/groupId&gt; &lt;artifactId&gt;flink-ml-iteration&lt;/artifactId&gt; &lt;version&gt;2.3.0&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.flink&lt;/groupId&gt; &lt;artifactId&gt;flink-ml-lib&lt;/artifactId&gt; &lt;version&gt;2.3.0&lt;/version&gt; &lt;/dependency&gt; 高级用户可以根据使用场景来只包含最小集合的依赖：
 依赖组件 flink-ml-core 来开发不使用迭代的自定义机器学习算法。 依赖组件 flink-ml-core 与 flink-ml-iteration 来开发使用迭代的自定义机器学习算法。 依赖组件 flink-ml-lib 来使用 Flink ML 提供的机器学习算法。 Apache Flink Kubernetes Operator # You can add the following dependencies to your pom.xml to include Apache Flink Kubernetes Operator in your project.
-&lt;dependency&gt; &lt;groupId&gt;org.apache.flink&lt;/groupId&gt; &lt;artifactId&gt;flink-kubernetes-operator&lt;/artifactId&gt; &lt;version&gt;1.6.0&lt;/version&gt; &lt;/dependency&gt; 旧版本的更新策略 # 截至2017年3月，Flink 社区决定使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的 bugfix。
+&lt;dependency&gt; &lt;groupId&gt;org.apache.flink&lt;/groupId&gt; &lt;artifactId&gt;flink-kubernetes-operator&lt;/artifactId&gt; &lt;version&gt;1.6.1&lt;/version&gt; &lt;/dependency&gt; 旧版本的更新策略 # 截至2017年3月，Flink 社区决定使用 bugfix 来支持当前和之前的次要版本。如果 1.2.x 是当前的正式版本，则 1.1.y 是之前的次要支持版本。这两个版本都将收到关键问题的 bugfix。
 As of March 2023, the Flink community decided that upon release of a new Flink minor version, the community will perform one final bugfix release for resolved critical/blocker issues in the Flink minor version losing support. If 1.16.1 is the current release and 1.15.4 is the latest previous patch version, once 1.17.0 is released we will create a 1.15.5 to flush out any resolved critical/blocker issues.
 请注意，社区始终愿意讨论旧版本的 bugfix 版本。请在 dev@flink.apache.org 邮件列表中与开发人员联系。
 所有稳定版本 # 所有的 Flink 版本均可通过 https://archive.apache.org/dist/flink/ 获得，包括校验和加密签名。在撰写本文时，这包括以下版本：
