@@ -159,6 +159,7 @@ under the License.
 * 所有重要的决定和结论 **必须在邮件列表中有所体现。**
   "没有发生在邮件列表上的事情，即视为没有发生。" - [Apache 准则](http://theapacheway.com/on-list/)
 * 使用 **Slack 消息列（Thread** 使频道（Channel）中的多组同时进行的对话保持有序。
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
 * **不要通过私信（Direct Message** 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。
 
 **注意**: 来自我们 Slack 中公共渠道的所有消息都 **永久存储并发布** 在 [linen.dev 上的 Apache Flink Slack 存档](https://www.linen.dev/s/apache-flink)。 这个存档的目的是让搜索引擎在 Flink Slack 中找到过去的讨论。

@@ -55,6 +55,15 @@ After creating an account in Slack, don't forget to introduce yourself in #intro
 Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list]({{< relref "community" >}}#mailing-lists).
 Any existing Slack member can also invite anyone else to join.
 
+There are a couple of community rules:
+
+* **Be respectful** - This is the most important rule!
+* All important decisions and conclusions **must be reflected back to the mailing lists.**
+  "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
+* Use **Slack threads** to keep parallel conversations from overwhelming a channel.
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. Doing this can result in removal from Slack.
+
 ### Stack Overflow
 
 Many members of the Flink community are active on [Stack Overflow](https://stackoverflow.com). You can search for questions and answers or post your questions using the [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink) tag.

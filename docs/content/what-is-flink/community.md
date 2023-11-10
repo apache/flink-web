@@ -162,7 +162,8 @@ There are a couple of community rules:
 * All important decisions and conclusions **must be reflected back to the mailing lists.**
   "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
 * Use **Slack threads** to keep parallel conversations from overwhelming a channel.
-* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. These should be picked-up voluntarily.
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. Doing this can result in removal from Slack.
 
 **Note**: All messages from public channels in our Slack are **permanently stored and published** in the [Apache Flink Slack archive on linen.dev](https://www.linen.dev/s/apache-flink). The purpose of this archive is to allow search engines to find past discussions in the Flink Slack.
 

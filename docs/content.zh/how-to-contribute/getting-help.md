@@ -54,6 +54,15 @@ Apache Flink 社区每天都会回答许多用户的问题。你可以从历史�
 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表]({{< relref "community" >}}#mailing-lists)。 
 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 
+在 Slack 空间交流时，请遵守以下规则：
+
+* **保持尊重** - 这是最重要的规则
+* 所有重要的决定和结论 **必须在邮件列表中有所体现。**
+  "没有发生在邮件列表上的事情，即视为没有发生。" - [Apache 准则](http://theapacheway.com/on-list/)
+* 使用 **Slack 消息列（Thread** 使频道（Channel）中的多组同时进行的对话保持有序。
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
+* **不要通过私信（Direct Message** 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。
+
 ### Stack Overflow
 
 Flink 社区的许多成员都活跃在 [Stack Overflow](https://stackoverflow.com)。你可以在这里搜索问题和答案，或者使用 [\[apache-flink\]](https://stackoverflow.com/questions/tagged/apache-flink) 标签来发布你的问题。
