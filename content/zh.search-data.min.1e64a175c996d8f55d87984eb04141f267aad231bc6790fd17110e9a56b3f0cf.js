@@ -215,7 +215,7 @@ Flink 主仓库的构建通知 订阅 订阅 退订 只读邮件列表 归档 is
 发送一封不包含任何内容或主题的邮件到 listname-subscribe@flink.apache.org（替换 listname 为 dev, user, user-zh 等等） 等待直到收到一封主题为 “confirm subscribe to listname@flink.apache.org” 的邮件。回复该邮件，不用修改主题和添加邮件内容。 等待直到收到一封主题为 “WELCOME to listname@flink.apache.org” 的邮件。 如果你的邮件中包含代码，请根据如下要求进行检查：
 请确认你所使用的外链不会被修改、删除等，这些操作会使得归档后的邮件变得无效 粘贴文字而不是文字的截图 对代码进行格式化操作，以提高可读性 添加足够的上下文，确保代码没有模棱两可的地方 Slack # 你可以通过 此链接 加入 Apache Flink 社区专属的 Slack 工作空间。 在成功加入后，不要忘记在 #introductions 频道介绍你自己。 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 Dev 邮件列表。 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 在 Slack 空间交流时，请遵守以下规则：
-保持尊重 - 这是最重要的规则 所有重要的决定和结论 必须在邮件列表中有所体现。 &ldquo;没有发生在邮件列表上的事情，即视为没有发生。&rdquo; - Apache 准则 使用 Slack 消息列（Thread 使频道（Channel）中的多组同时进行的对话保持有序。 不要通过私信（Direct Message 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。 注意: 来自我们 Slack 中公共渠道的所有消息都 永久存储并发布 在 linen.dev 上的 Apache Flink Slack 存档。 这个存档的目的是让搜索引擎在 Flink Slack 中找到过去的讨论。
+保持尊重 - 这是最重要的规则 所有重要的决定和结论 必须在邮件列表中有所体现。 &ldquo;没有发生在邮件列表上的事情，即视为没有发生。&rdquo; - Apache 准则 使用 Slack 消息列（Thread 使频道（Channel）中的多组同时进行的对话保持有序。 Use either #pyflink (for all Python Flink questions) or #troubleshooting (for all other Flink questions). 不要通过私信（Direct Message 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。 注意: 来自我们 Slack 中公共渠道的所有消息都 永久存储并发布 在 linen.dev 上的 Apache Flink Slack 存档。 这个存档的目的是让搜索引擎在 Flink Slack 中找到过去的讨论。
 Stack Overflow # Committer 们会关注 Stack Overflow 上 apache-flink 相关标签的问题。
 请确认你为自己的问题打上了正确的标签，从而可以获得 Flink 社区的帮助。
 Issue 追踪 # 我们使用 Jira 进行所有代码相关的 issues 追踪 https://issues.apache.org/jira/browse/FLINK。 所有 issue 必须使用英文。
@@ -402,7 +402,8 @@ ASF 网站的 git 仓库 # ASF writable: https://gitbox.apache.org/repos/asf/fli
 Apache Pony 邮件存档 如果你想发送到邮件列表，你需要：
 发送电子邮件至 user-subscribe@flink.apache.org 来订阅邮件列表 通过回复确认邮件来确认订阅 发送你的电子邮件到 user@flink.apache.org. 请注意，如果你没有订阅邮件列表，你将不会收到邮件的回复。
 Slack # 你可以通过 此链接 加入 Apache Flink 社区专属的 Slack 工作空间。 在成功加入后，不要忘记在 #introductions 频道介绍你自己。 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 Dev 邮件列表。 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
-Stack Overflow # Flink 社区的许多成员都活跃在 Stack Overflow。你可以在这里搜索问题和答案，或者使用 [apache-flink] 标签来发布你的问题。
+在 Slack 空间交流时，请遵守以下规则：
+保持尊重 - 这是最重要的规则 所有重要的决定和结论 必须在邮件列表中有所体现。 &ldquo;没有发生在邮件列表上的事情，即视为没有发生。&rdquo; - Apache 准则 使用 Slack 消息列（Thread 使频道（Channel）中的多组同时进行的对话保持有序。 Use either #pyflink (for all Python Flink questions) or #troubleshooting (for all other Flink questions). 不要通过私信（Direct Message 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。 Stack Overflow # Flink 社区的许多成员都活跃在 Stack Overflow。你可以在这里搜索问题和答案，或者使用 [apache-flink] 标签来发布你的问题。
 发现 Bug? # 如果你发现一个意外行为可能是由 Bug 导致的，你可以在 Flink&rsquo;s JIRA 中搜索已经上报的 Bug 或者发布该 Bug。
 如果你不确定意外行为的发生是否由 Bug 引起的，请发送问题到 用户邮件列表。
 收到错误信息? # 找到导致错误的原因通常是比较困难的。在下文中，我们列出了最常见的错误消息并解释了如何处理它们。
