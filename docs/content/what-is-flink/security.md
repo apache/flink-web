@@ -102,6 +102,6 @@ Historically, we've received numerous remote code execution vulnerability report
 
 ### I found a vulnerability in Flink, how do I report it?
 
-Thanks a lot for looking into the security of Apache Flink! We appreciate reports improving the security of Flink. We accept vulnerability reports through the [Apache Security Team](http://www.apache.org/security/), via their private email address [security@apache.org](mailto:security@apache.org).
+Thanks a lot for looking into the security of Apache Flink! We appreciate reports improving the security of Flink. We accept vulnerability reports through the [Apache Security Team](https://www.apache.org/security/), via their private email address [security@apache.org](mailto:security@apache.org).
 
 If you want to discuss a potential security issue privately with the Flink PMC, you can reach us also via [private@flink.apache.org](mailto:private@flink.apache.org).
