@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en" dir=>
+<html lang="en" dir=ZgotmplZ>
 
 <head>
   
@@ -22,17 +22,18 @@
 <meta property="og:url" content="https://flink.apache.org/2022/11/25/optimising-the-throughput-of-async-sinks-using-a-custom-ratelimitingstrategy/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-11-25T12:00:00+00:00" />
 <meta property="article:modified_time" content="2022-11-25T12:00:00+00:00" />
+
 <title>Optimising the throughput of async sinks using a custom RateLimitingStrategy | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
-<script defer src="/en.search.min.03046567ca6cbbc005cb5df4a407328496329b5f275efbffa73a9ba07cc0615a.js" integrity="sha256-AwRlZ8psu8AFy130pAcyhJYym18nXvv/pzqboHzAYVo="></script>
+<script defer src="/en.search.min.536ec24066568ddcbd4d42e758c1f9206559f9ee163861f5f9b7e6f5b360993f.js" integrity="sha256-U27CQGZWjdy9TULnWMH5IGVZ&#43;e4WOGH1&#43;bfm9bNgmT8="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-  <meta name="generator" content="Hugo 0.113.0">
+  <meta name="generator" content="Hugo 0.120.4">
 
     
     <script>
@@ -55,7 +56,7 @@ https://github.com/alex-shpak/hugo-book
     
 </head>
 
-<body dir=>
+<body dir=ZgotmplZ>
   
 
 
@@ -495,18 +496,18 @@ https://github.com/alex-shpak/hugo-book
   Rationale behind the RateLimitingStrategy interface
   <a class="anchor" href="#rationale-behind-the-ratelimitingstrategy-interface">#</a>
 </h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">RateLimitingStrategy</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="c1">// Information provided to the RateLimitingStrategy
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="nf">registerInFlightRequest</span><span class="o">(</span><span class="n">RequestInfo</span> <span class="n">requestInfo</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="nf">registerCompletedRequest</span><span class="o">(</span><span class="n">ResultInfo</span> <span class="n">resultInfo</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="c1">// Controls offered to the RateLimitingStrategy
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">boolean</span> <span class="nf">shouldBlock</span><span class="o">(</span><span class="n">RequestInfo</span> <span class="n">requestInfo</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="nf">getMaxBatchSize</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl"><span class="o">}</span>
-</span></span></code></pre></div><p>There are 2 core ideas behind the RateLimitingStrategy interface:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">RateLimitingStrategy</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// Information provided to the RateLimitingStrategy</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerInFlightRequest</span><span class="p">(</span><span class="n">RequestInfo</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerCompletedRequest</span><span class="p">(</span><span class="n">ResultInfo</span><span class="w"> </span><span class="n">resultInfo</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// Controls offered to the RateLimitingStrategy</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">shouldBlock</span><span class="p">(</span><span class="n">RequestInfo</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="nf">getMaxBatchSize</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>There are 2 core ideas behind the RateLimitingStrategy interface:</p>
 <ul>
 <li><strong>Information methods:</strong> We need methods to provide the RateLimitingStrategy with sufficient information to track the rate of requests or rate of sent messages (each request can comprise multiple messages)</li>
 <li><strong>Control methods:</strong> We also need methods to allow the RateLimitingStrategy to control the sink’s request rate.</li>
@@ -534,50 +535,50 @@ https://github.com/alex-shpak/hugo-book
 </ul>
 <p>This strategy means we will start with a low request rate (slow start), but aggressively increase it until the destination throttles us, which allows us to discover the highest possible request rate. It will also adjust the request rate if the conditions of the destination changes (e.g. another client starts writing to the same destination). This strategy works well if destinations implement traffic shaping and throttles once the bandwidth limit is reached (e.g. Amazon Kinesis Data Streams, Amazon Kinesis Data Firehose).</p>
 <p>First, we implement the information methods to keep track of the number of in-flight requests and in-flight messages.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CongestionControlRateLimitingStrategy</span> <span class="kd">implements</span> <span class="n">RateLimitingStrategy</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">    <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nd">@Override</span>
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerInFlightRequest</span><span class="o">(</span><span class="n">RequestInfo</span> <span class="n">requestInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightRequests</span><span class="o">++;</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightMessages</span> <span class="o">+=</span> <span class="n">requestInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="nd">@Override</span>
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerCompletedRequest</span><span class="o">(</span><span class="n">ResultInfo</span> <span class="n">resultInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightRequests</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">currentInFlightRequests</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="n">currentInFlightMessages</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">max</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">currentInFlightMessages</span> <span class="o">-</span> <span class="n">resultInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">());</span>
-</span></span><span class="line"><span class="cl">        
-</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleDown</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleUp</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="o">}</span>
-</span></span></code></pre></div><p>Then we implement the control methods to dynamically adjust the request rate.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">CongestionControlRateLimitingStrategy</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">RateLimitingStrategy</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerInFlightRequest</span><span class="p">(</span><span class="n">RequestInfo</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">currentInFlightRequests</span><span class="o">++</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">currentInFlightMessages</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">.</span><span class="na">getBatchSize</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerCompletedRequest</span><span class="p">(</span><span class="n">ResultInfo</span><span class="w"> </span><span class="n">resultInfo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">currentInFlightRequests</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">0</span><span class="p">,</span><span class="w"> </span><span class="n">currentInFlightRequests</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">currentInFlightMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">0</span><span class="p">,</span><span class="w"> </span><span class="n">currentInFlightMessages</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">resultInfo</span><span class="p">.</span><span class="na">getBatchSize</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">resultInfo</span><span class="p">.</span><span class="na">getFailedMessages</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">maxInFlightMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scalingStrategy</span><span class="p">.</span><span class="na">scaleDown</span><span class="p">(</span><span class="n">maxInFlightMessages</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">maxInFlightMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scalingStrategy</span><span class="p">.</span><span class="na">scaleUp</span><span class="p">(</span><span class="n">maxInFlightMessages</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Then we implement the control methods to dynamically adjust the request rate.</p>
 <p>We keep a current value for maxInFlightMessages and maxInFlightRequests, and postpone all new requests if maxInFlightRequests or maxInFlightMessages have been reached.</p>
 <p>Every time a request completes, the CongestionControlRateLimitingStrategy will check if there are any failed messages in the response. If there are, it will decrease maxInFlightMessages. If there are no failed messages, it will increase maxInFlightMessages. This gives us indirect control of the rate of messages being written to the destination.</p>
 <p>Side note: The default CongestionControlRateLimitingStrategy uses an Additive Increase / Multiplicative Decrease (AIMD) scaling strategy. This is also used in TCP congestion control to avoid overloading the destination by increasing write rate slowly but backing off quickly if throttled.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CongestionControlRateLimitingStrategy</span> <span class="kd">implements</span> <span class="n">RateLimitingStrategy</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">    <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nd">@Override</span>
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerCompletedRequest</span><span class="o">(</span><span class="n">ResultInfo</span> <span class="n">resultInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="o">(</span><span class="n">resultInfo</span><span class="o">.</span><span class="na">getFailedMessages</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleDown</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">            <span class="n">maxInFlightMessages</span> <span class="o">=</span> <span class="n">scalingStrategy</span><span class="o">.</span><span class="na">scaleUp</span><span class="o">(</span><span class="n">maxInFlightMessages</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">shouldBlock</span><span class="o">(</span><span class="n">RequestInfo</span> <span class="n">requestInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">currentInFlightRequests</span> <span class="o">&gt;=</span> <span class="n">maxInFlightRequests</span>
-</span></span><span class="line"><span class="cl">                <span class="o">||</span> <span class="o">(</span><span class="n">currentInFlightMessages</span> <span class="o">+</span> <span class="n">requestInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">()</span> <span class="o">&gt;</span> <span class="n">maxInFlightMessages</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="o">}</span>
-</span></span></code></pre></div><h3 id="example-2-tokenbucketratelimitingstrategy">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">CongestionControlRateLimitingStrategy</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">RateLimitingStrategy</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerCompletedRequest</span><span class="p">(</span><span class="n">ResultInfo</span><span class="w"> </span><span class="n">resultInfo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">resultInfo</span><span class="p">.</span><span class="na">getFailedMessages</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">maxInFlightMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scalingStrategy</span><span class="p">.</span><span class="na">scaleDown</span><span class="p">(</span><span class="n">maxInFlightMessages</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">maxInFlightMessages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scalingStrategy</span><span class="p">.</span><span class="na">scaleUp</span><span class="p">(</span><span class="n">maxInFlightMessages</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">shouldBlock</span><span class="p">(</span><span class="n">RequestInfo</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">currentInFlightRequests</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">maxInFlightRequests</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">currentInFlightMessages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">.</span><span class="na">getBatchSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">maxInFlightMessages</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h3 id="example-2-tokenbucketratelimitingstrategy">
   [Example 2] TokenBucketRateLimitingStrategy
   <a class="anchor" href="#example-2-tokenbucketratelimitingstrategy">#</a>
 </h3>
@@ -589,51 +590,51 @@ https://github.com/alex-shpak/hugo-book
 <li>When preparing an async request, we check if the token bucket has sufficient tokens. If not, we postpone the request.</li>
 </ul>
 <p>Let’s look at an example implementation:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TokenBucketRateLimitingStrategy</span> <span class="kd">implements</span> <span class="n">RateLimitingStrategy</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Bucket</span> <span class="n">bucket</span><span class="o">;</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="nf">TokenBucketRateLimitingStrategy</span><span class="o">()</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Refill</span> <span class="n">refill</span> <span class="o">=</span> <span class="n">Refill</span><span class="o">.</span><span class="na">intervally</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Bandwidth</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">Bandwidth</span><span class="o">.</span><span class="na">classic</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">refill</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">        <span class="k">this</span><span class="o">.</span><span class="na">bucket</span> <span class="o">=</span> <span class="n">Bucket4j</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
-</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">addLimit</span><span class="o">(</span><span class="n">limit</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">            <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="c1">// ... (information methods not needed)
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    
-</span></span><span class="line"><span class="cl">    <span class="nd">@Override</span>
-</span></span><span class="line"><span class="cl">    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">shouldBlock</span><span class="o">(</span><span class="n">RequestInfo</span> <span class="n">requestInfo</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">bucket</span><span class="o">.</span><span class="na">tryConsume</span><span class="o">(</span><span class="n">requestInfo</span><span class="o">.</span><span class="na">getBatchSize</span><span class="o">());</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl"><span class="o">}</span>
-</span></span></code></pre></div><p>In the above example, we use the <a href="https://github.com/bucket4j/bucket4j">Bucket4j</a> library’s Token Bucket implementation. We also map 1 message to 1 token. Since our token bucket has a size of 10 tokens and a refill rate of 1 token per second, we can be sure that we will not exceed a burst of 10 messages, and will also not exceed a constant rate of 1 message per second.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">TokenBucketRateLimitingStrategy</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">RateLimitingStrategy</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Bucket</span><span class="w"> </span><span class="n">bucket</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">TokenBucketRateLimitingStrategy</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Refill</span><span class="w"> </span><span class="n">refill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Refill</span><span class="p">.</span><span class="na">intervally</span><span class="p">(</span><span class="n">1</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="n">1</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Bandwidth</span><span class="w"> </span><span class="n">limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Bandwidth</span><span class="p">.</span><span class="na">classic</span><span class="p">(</span><span class="n">10</span><span class="p">,</span><span class="w"> </span><span class="n">refill</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">bucket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Bucket4j</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">.</span><span class="na">addLimit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// ... (information methods not needed)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">shouldBlock</span><span class="p">(</span><span class="n">RequestInfo</span><span class="w"> </span><span class="n">requestInfo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">bucket</span><span class="p">.</span><span class="na">tryConsume</span><span class="p">(</span><span class="n">requestInfo</span><span class="p">.</span><span class="na">getBatchSize</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>In the above example, we use the <a href="https://github.com/bucket4j/bucket4j">Bucket4j</a> library’s Token Bucket implementation. We also map 1 message to 1 token. Since our token bucket has a size of 10 tokens and a refill rate of 1 token per second, we can be sure that we will not exceed a burst of 10 messages, and will also not exceed a constant rate of 1 message per second.</p>
 <p>This would be useful if we know that our destination will failover ungracefully if a rate of 1 message per second is exceeded, or if we intentionally want to limit our sink’s throughput to provide higher bandwidth for other clients writing to the same destination.</p>
 <h2 id="specifying-a-custom-ratelimitingstrategy">
   Specifying a custom RateLimitingStrategy
   <a class="anchor" href="#specifying-a-custom-ratelimitingstrategy">#</a>
 </h2>
 <p>To specify a custom RateLimitingStrategy, we have to specify it in the AsyncSinkWriterConfiguration which is passed into the constructor of the AsyncSinkWriter. For example:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">MyCustomSinkWriter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">AsyncSinkWriter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="o">,</span> <span class="n">MyCustomRequestEntry</span><span class="o">&gt;</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">    <span class="n">MyCustomSinkWriter</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">ElementConverter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="o">,</span> <span class="n">MyCustomRequestEntry</span><span class="o">&gt;</span> <span class="n">elementConverter</span><span class="o">,</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Sink</span><span class="o">.</span><span class="na">InitContext</span> <span class="n">context</span><span class="o">,</span>
-</span></span><span class="line"><span class="cl">        <span class="n">Collection</span><span class="o">&lt;</span><span class="n">BufferedRequestState</span><span class="o">&lt;</span><span class="n">MyCustomRequestEntry</span><span class="o">&gt;&gt;</span> <span class="n">states</span><span class="o">)</span> <span class="o">{</span>
-</span></span><span class="line"><span class="cl">            <span class="kd">super</span><span class="o">(</span>
-</span></span><span class="line"><span class="cl">                <span class="n">elementConverter</span><span class="o">,</span>
-</span></span><span class="line"><span class="cl">                <span class="n">context</span><span class="o">,</span>
-</span></span><span class="line"><span class="cl">                <span class="n">AsyncSinkWriterConfiguration</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
-</span></span><span class="line"><span class="cl">                    <span class="c1">// ...
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                    <span class="o">.</span><span class="na">setRateLimitingStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">TokenBucketRateLimitingStrategy</span><span class="o">())</span>
-</span></span><span class="line"><span class="cl">                    <span class="o">.</span><span class="na">build</span><span class="o">(),</span>
-</span></span><span class="line"><span class="cl">                <span class="n">states</span><span class="o">);</span>
-</span></span><span class="line"><span class="cl">    <span class="o">}</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl"><span class="o">}</span>
-</span></span></code></pre></div><h2 id="summary">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">MyCustomSinkWriter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="o">&gt;</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">AsyncSinkWriter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="p">,</span><span class="w"> </span><span class="n">MyCustomRequestEntry</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">MyCustomSinkWriter</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ElementConverter</span><span class="o">&lt;</span><span class="n">InputT</span><span class="p">,</span><span class="w"> </span><span class="n">MyCustomRequestEntry</span><span class="o">&gt;</span><span class="w"> </span><span class="n">elementConverter</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Sink</span><span class="p">.</span><span class="na">InitContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">BufferedRequestState</span><span class="o">&lt;</span><span class="n">MyCustomRequestEntry</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">states</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">super</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">elementConverter</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">context</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">AsyncSinkWriterConfiguration</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="c1">// ...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">.</span><span class="na">setRateLimitingStrategy</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">TokenBucketRateLimitingStrategy</span><span class="p">())</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">.</span><span class="na">build</span><span class="p">(),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">states</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h2 id="summary">
   Summary
   <a class="anchor" href="#summary">#</a>
 </h2>
