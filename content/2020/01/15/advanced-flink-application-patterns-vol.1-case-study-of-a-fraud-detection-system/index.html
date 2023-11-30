@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en" dir=ZgotmplZ>
+<html lang="en" dir=>
 
 <head>
   
@@ -26,18 +26,17 @@ Dynamic updates of application logic allow Flink jobs to change at runtime, with
 <meta property="og:url" content="https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2020-01-15T12:00:00+00:00" />
 <meta property="article:modified_time" content="2020-01-15T12:00:00+00:00" />
-
 <title>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
-<script defer src="/en.search.min.536ec24066568ddcbd4d42e758c1f9206559f9ee163861f5f9b7e6f5b360993f.js" integrity="sha256-U27CQGZWjdy9TULnWMH5IGVZ&#43;e4WOGH1&#43;bfm9bNgmT8="></script>
+<script defer src="/en.search.min.ef27a57afacd7b7208a775b91a20eb451ab208426066616b728dd65333a72541.js" integrity="sha256-7yelevrNe3IIp3W5GiDrRRqyCEJgZmFrco3WUzOnJUE="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-  <meta name="generator" content="Hugo 0.120.4">
+  <meta name="generator" content="Hugo 0.113.0">
 
     
     <script>
@@ -60,7 +59,7 @@ https://github.com/alex-shpak/hugo-book
     
 </head>
 
-<body dir=ZgotmplZ>
+<body dir=>
   
 
 
@@ -539,11 +538,11 @@ We hope that this series will place these powerful approaches into your tool bel
 <p>The first pattern we will look into is Dynamic Data Partitioning.</p>
 <p>If you have used Flink&rsquo;s DataStream API in the past, you are undoubtedly familiar with the <strong>keyBy</strong> method. Keying a stream shuffles all the records such that elements with the same key are assigned to the same partition. This means all records with the same key are processed by the same physical instance of the next operator.</p>
 <p>In a typical streaming application, the choice of key is fixed, determined by some static field within the elements. For instance, when building a simple window-based aggregation of a stream of transactions, we might always group by the transactions account id.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="c1">// [...]</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="n">windowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">.</span><span class="na">keyBy</span><span class="p">(</span><span class="n">Transaction</span><span class="p">::</span><span class="n">getAccountId</span><span class="p">)</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">.</span><span class="na">window</span><span class="p">(</span><span class="cm">/*window specification*/</span><span class="p">);</span><span class="w">
-</span></span></span></code></pre></div><p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="c1">// [...]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">DataStream</span><span class="o">&lt;...&gt;</span> <span class="n">windowed</span> <span class="o">=</span> <span class="n">input</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="n">Transaction</span><span class="o">::</span><span class="n">getAccountId</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">  <span class="o">.</span><span class="na">window</span><span class="o">(</span><span class="cm">/*window specification*/</span><span class="o">);</span>
+</span></span></code></pre></div><p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
 To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:</p>
 <p><em>&ldquo;Whenever the <strong>sum</strong> of the accumulated <strong>payment amount</strong> from the same <strong>payer</strong> to the same <strong>beneficiary</strong> within the <strong>duration of a week</strong> is <strong>greater</strong> than <strong>1 000 000 $</strong> - fire an alert.&rdquo;</em></p>
 <p>In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:</p>
@@ -569,12 +568,12 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span></code></pre></div><p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink&rsquo;s API is realised by a <code>keyBy()</code> function.</p>
 <p>Most examples in Flink&rsquo;s <code>keyBy()</code><a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events&rsquo; fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
 <p>On a high level, our main processing pipeline looks like this:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alerts</span><span class="w"> </span><span class="o">=</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">transactions</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicKeyFunction</span><span class="p">())</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">keyBy</span><span class="p">(</span><span class="cm">/* some key selector */</span><span class="p">);</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="cm">/* actual calculations and alerting */</span><span class="p">)</span><span class="w">
-</span></span></span></code></pre></div><p>We have previously established that each rule defines a <strong><code>groupingKeyNames</code></strong> parameter that specifies which combination of fields will be used for the incoming events&rsquo; grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of <code>DynamicKeyFunction()</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicKeyFunction</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">keyBy</span><span class="o">(</span><span class="cm">/* some key selector */</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="cm">/* actual calculations and alerting */</span><span class="o">)</span>
+</span></span></code></pre></div><p>We have previously established that each rule defines a <strong><code>groupingKeyNames</code></strong> parameter that specifies which combination of fields will be used for the incoming events&rsquo; grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of <code>DynamicKeyFunction()</code>.</p>
 <center>
 <img src="/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png" width="800px" alt="Figure 3: Forking events with Dynamic Key Function"/>
 <br/>
@@ -582,49 +581,49 @@ To understand why this is the case, let us start with articulating a realistic s
 </center>
 <br/>
 <p><code>DynamicKeyFunction</code> iterates over a set of defined rules and prepares every event to be processed by a <code>keyBy()</code> function by extracting the required grouping keys:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">DynamicKeyFunction</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">extends</span><span class="w"> </span><span class="n">ProcessFunction</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="p">,</span><span class="w"> </span><span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">...</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="cm">/* Simplified */</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">List</span><span class="o">&lt;</span><span class="n">Rule</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="cm">/* Rules that are initialized somehow.
-</span></span></span><span class="line"><span class="cl"><span class="cm">                        Details will be discussed in a future blog post. */</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Override</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">processElement</span><span class="p">(</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">Transaction</span><span class="w"> </span><span class="n">event</span><span class="p">,</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">Context</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="w"> </span><span class="p">:</span><span class="n">rules</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="n">out</span><span class="p">.</span><span class="na">collect</span><span class="p">(</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">           </span><span class="k">new</span><span class="w"> </span><span class="n">Keyed</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">               </span><span class="n">event</span><span class="p">,</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">               </span><span class="n">KeysExtractor</span><span class="p">.</span><span class="na">getKey</span><span class="p">(</span><span class="n">rule</span><span class="p">.</span><span class="na">getGroupingKeyNames</span><span class="p">(),</span><span class="w"> </span><span class="n">event</span><span class="p">),</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">               </span><span class="n">rule</span><span class="p">.</span><span class="na">getRuleId</span><span class="p">()));</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">...</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
-</span></span></span></code></pre></div><p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>&quot;{payerId=25;beneficiaryId=12}&quot;</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DynamicKeyFunction</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">extends</span> <span class="n">ProcessFunction</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">   <span class="o">...</span>
+</span></span><span class="line"><span class="cl">  <span class="cm">/* Simplified */</span>
+</span></span><span class="line"><span class="cl">  <span class="n">List</span><span class="o">&lt;</span><span class="n">Rule</span><span class="o">&gt;</span> <span class="n">rules</span> <span class="o">=</span> <span class="cm">/* Rules that are initialized somehow.
+</span></span></span><span class="line"><span class="cl"><span class="cm">                        Details will be discussed in a future blog post. */</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="nd">@Override</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">processElement</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Transaction</span> <span class="n">event</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Context</span> <span class="n">ctx</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">      <span class="n">Collector</span><span class="o">&lt;</span><span class="n">Keyed</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="k">for</span> <span class="o">(</span><span class="n">Rule</span> <span class="n">rule</span> <span class="o">:</span><span class="n">rules</span><span class="o">)</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">       <span class="n">out</span><span class="o">.</span><span class="na">collect</span><span class="o">(</span>
+</span></span><span class="line"><span class="cl">           <span class="k">new</span> <span class="n">Keyed</span><span class="o">&lt;&gt;(</span>
+</span></span><span class="line"><span class="cl">               <span class="n">event</span><span class="o">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">KeysExtractor</span><span class="o">.</span><span class="na">getKey</span><span class="o">(</span><span class="n">rule</span><span class="o">.</span><span class="na">getGroupingKeyNames</span><span class="o">(),</span> <span class="n">event</span><span class="o">),</span>
+</span></span><span class="line"><span class="cl">               <span class="n">rule</span><span class="o">.</span><span class="na">getRuleId</span><span class="o">()));</span>
+</span></span><span class="line"><span class="cl">      <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>&quot;{payerId=25;beneficiaryId=12}&quot;</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
 <p>Notice that a wrapper class <code>Keyed</code> with the following signature was introduced as the output type of <code>DynamicKeyFunction</code>:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Keyed</span><span class="o">&lt;</span><span class="n">IN</span><span class="p">,</span><span class="w"> </span><span class="n">KEY</span><span class="p">,</span><span class="w"> </span><span class="n">ID</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="n">IN</span><span class="w"> </span><span class="n">wrapped</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="n">KEY</span><span class="w"> </span><span class="n">key</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">id</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">...</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">KEY</span><span class="w"> </span><span class="nf">getKey</span><span class="p">(){</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">key</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
-</span></span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Keyed</span><span class="o">&lt;</span><span class="n">IN</span><span class="o">,</span> <span class="n">KEY</span><span class="o">,</span> <span class="n">ID</span><span class="o">&gt;</span> <span class="o">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">IN</span> <span class="n">wrapped</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">KEY</span> <span class="n">key</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">private</span> <span class="n">ID</span> <span class="n">id</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl">  <span class="kd">public</span> <span class="n">KEY</span> <span class="nf">getKey</span><span class="o">(){</span>
+</span></span><span class="line"><span class="cl">      <span class="k">return</span> <span class="n">key</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl">  <span class="o">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">}</span>
+</span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
 <p>Events of this type will be the input to the <code>keyBy()</code> function in the main processing pipeline and allow the use of a simple lambda-expression as a <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions"><code>KeySelector</code></a> for the final step of implementing dynamic data shuffle.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alerts</span><span class="w"> </span><span class="o">=</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">transactions</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicKeyFunction</span><span class="p">())</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">keyBy</span><span class="p">((</span><span class="n">keyed</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">keyed</span><span class="p">.</span><span class="na">getKey</span><span class="p">());</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicAlertFunction</span><span class="p">())</span><span class="w">
-</span></span></span></code></pre></div><p>By applying <code>DynamicKeyFunction</code> we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules&rsquo; processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same <code>groupingKeyNames</code>, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span> <span class="n">alerts</span> <span class="o">=</span>
+</span></span><span class="line"><span class="cl">    <span class="n">transactions</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicKeyFunction</span><span class="o">())</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">keyBy</span><span class="o">((</span><span class="n">keyed</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">keyed</span><span class="o">.</span><span class="na">getKey</span><span class="o">());</span>
+</span></span><span class="line"><span class="cl">        <span class="o">.</span><span class="na">process</span><span class="o">(</span><span class="k">new</span> <span class="n">DynamicAlertFunction</span><span class="o">())</span>
+</span></span></code></pre></div><p>By applying <code>DynamicKeyFunction</code> we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules&rsquo; processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same <code>groupingKeyNames</code>, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.</p>
 <h3 id="summary">
   Summary:
   <a class="anchor" href="#summary">#</a>
