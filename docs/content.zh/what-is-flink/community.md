@@ -215,9 +215,9 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
     * GitHub 镜像: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
 
-* **Flink Table Store 仓库**
-    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-table-store.git](https://gitbox.apache.org/repos/asf/flink-table-store.git)
-    * GitHub 镜像: [https://github.com/apache/flink-table-store](https://github.com/apache/flink-table-store)
+* **Apache Paimon(incubating) (formerly Flink Table Store) 仓库**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/incubator-paimon.git](https://gitbox.apache.org/repos/asf/incubator-paimon.git)
+    * GitHub 镜像: [https://github.com/apache/incubator-paimon](https://github.com/apache/incubator-paimon)
 
 * **Flink Website 仓库**
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)

@@ -1,7 +1,7 @@
 ---
 weight: 5
-title: With Flink Table Store
-bookHref: "https://nightlies.apache.org/flink/flink-table-store-docs-stable/docs/try-table-store/quick-start/"
+title: With Paimon(incubating) (formerly Flink Table Store)
+bookHref: https://paimon.apache.org/docs/master/engines/flink/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Getting Started with Flink Table Store
+# Getting Started with Apache Paimon(incubating) (formerly Flink Table Store)
 
-{{< external_link name="Read how you can get started with Flink Table Store here.">}}
+{{< external_link name="Read how you can get started with Apache Paimon(incubating) (formerly Flink Table Store) here.">}}

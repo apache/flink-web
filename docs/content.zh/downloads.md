@@ -55,9 +55,9 @@ Apache Flink® Kubernetes Operator {{< param FlinkKubernetesOperatorStableShortV
 
 {{% flink_download "flink_kubernetes_operator" %}}
 
-## Apache Flink Table Store 
+## Apache Flink Table Store (currently Apache Paimon(incubating))
 
-Apache Flink® Table Store {{< param FlinkTableStoreStableShortVersion >}} 是我们最新的稳定版本。
+Apache Flink® Table Store {{< param FlinkTableStoreStableShortVersion >}} 是其作为Flink子项目时，最后的发布版本。目前其已经成为[Apache Paimon(incubating)](https://paimon.apache.org/)项目。
 
 {{% flink_download "flink_table_store" %}}
 
