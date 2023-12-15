@@ -75,7 +75,7 @@ However, Flink's outstanding feature for event-driven applications is its suppor
 
 Analytical jobs extract information and insight from raw data. Traditionally, analytics are performed as batch queries or applications on bounded data sets of recorded events. In order to incorporate the latest data into the result of the analysis, it has to be added to the analyzed data set and the query or application is rerun. The results are written to a storage system or emitted as reports.
 
-With a sophisticated stream processing engine, analytics can also be performed in a real-time fashion. Instead of reading finite data sets, streaming queries or applications ingest real-time event streams and continuously produce and update results as events are consumed. The results are either written to an external database or maintained as internal state. Dashboard application can read the latest results from the external database or directly query the internal state of the application.
+With a sophisticated stream processing engine, analytics can also be performed in a real-time fashion. Instead of reading finite data sets, streaming queries or applications ingest real-time event streams and continuously produce and update results as events are consumed. The results are either written to an external database or maintained as internal state. A dashboard application can read the latest results from the external database or directly query the internal state of the application.
 
 Apache Flink supports streaming as well as batch analytical applications as shown in the figure below.
 
