@@ -1,7 +1,7 @@
 ---
 weight: 5
 title: With Paimon(incubating) (formerly Flink Table Store)
-bookHref: https://paimon.apache.org/docs/master/engines/flink/
+bookHref: "https://paimon.apache.org/docs/master/engines/flink/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
