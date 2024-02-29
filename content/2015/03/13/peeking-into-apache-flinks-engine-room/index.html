@@ -15,24 +15,25 @@
 
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Join Processing in Apache Flink # Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system.">
+<meta name="description" content="Join Processing in Apache Flink #  Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Peeking into Apache Flink&#39;s Engine Room" />
-<meta property="og:description" content="Join Processing in Apache Flink # Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system." />
+<meta property="og:description" content="Join Processing in Apache Flink #  Joins are prevalent operations in many data processing applications. Most data processing systems feature APIs that make joining data sets very easy. However, the internal algorithms for join processing are much more involved – especially if large data sets need to be efficiently handled. Therefore, join processing serves as a good example to discuss the salient design points and implementation details of a data processing system." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://flink.apache.org/2015/03/13/peeking-into-apache-flinks-engine-room/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2015-03-13T10:00:00+00:00" />
 <meta property="article:modified_time" content="2015-03-13T10:00:00+00:00" />
+
 <title>Peeking into Apache Flink&#39;s Engine Room | Apache Flink</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
-<script defer src="/en.search.min.9b5861643562296072feeb735c798fa5b9e91687ecd7d3a152f9cf9419830c69.js" integrity="sha256-m1hhZDViKWBy/utzXHmPpbnpFofs19OhUvnPlBmDDGk="></script>
+<script defer src="/en.search.min.8d7aae059238873acc14c6fceedd74ca05b1e32ec3a607bf1abbe87bd0271042.js" integrity="sha256-jXquBZI4hzrMFMb87t10ygWx4y7Dpge/Grvoe9AnEEI="></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-  <meta name="generator" content="Hugo 0.111.3">
+  <meta name="generator" content="Hugo 0.92.2" />
 
     
     <script>
@@ -480,21 +481,22 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p>Flink provides fluent APIs in Java and Scala to write data flow programs. Flink’s APIs are centered around parallel data collections which are called data sets. data sets are processed by applying Transformations that compute new data sets. Flink’s transformations include Map and Reduce as known from MapReduce <a href="http://research.google.com/archive/mapreduce.html">[1]</a> but also operators for joining, co-grouping, and iterative processing. The documentation gives an overview of all available transformations <a href="//nightlies.apache.org/flink/flink-docs-release-0.8/dataset_transformations.html">[2]</a>.</p>
 <p>Joining two Scala case class data sets is very easy as the following example shows:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="line"><span class="cl"><span class="c1">// define your data types
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">case</span> <span class="k">class</span> <span class="nc">PageVisit</span><span class="o">(</span><span class="n">url</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">ip</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">userId</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="k">class</span> <span class="nc">User</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">email</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">country</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">// get your data from somewhere
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">visits</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[</span><span class="kt">PageVisit</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
-</span></span><span class="line"><span class="cl"><span class="k">val</span> <span class="n">users</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[</span><span class="kt">User</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">// filter the users data set
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">germanUsers</span> <span class="k">=</span> <span class="n">users</span><span class="o">.</span><span class="n">filter</span><span class="o">((</span><span class="n">u</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&#34;de&#34;</span><span class="o">))</span>
-</span></span><span class="line"><span class="cl"><span class="c1">// join data sets
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">val</span> <span class="n">germanVisits</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[(</span><span class="kt">PageVisit</span>, <span class="kt">User</span><span class="o">)]</span> <span class="k">=</span>
-</span></span><span class="line"><span class="cl">      <span class="c1">// equi-join condition (PageVisit.userId = User.id)
-</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="n">visits</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">germanUsers</span><span class="o">).</span><span class="n">where</span><span class="o">(</span><span class="s">&#34;userId&#34;</span><span class="o">).</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&#34;id&#34;</span><span class="o">)</span>
-</span></span></code></pre></div><p>Flink’s APIs also allow to:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-scala" data-lang="scala"><span class="c1">// define your data types
+</span><span class="c1"></span><span class="k">case</span> <span class="k">class</span> <span class="nc">PageVisit</span><span class="o">(</span><span class="n">url</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">ip</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">userId</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">User</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">email</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">country</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+
+<span class="c1">// get your data from somewhere
+</span><span class="c1"></span><span class="k">val</span> <span class="n">visits</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[</span><span class="kt">PageVisit</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+<span class="k">val</span> <span class="n">users</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[</span><span class="kt">User</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+
+<span class="c1">// filter the users data set
+</span><span class="c1"></span><span class="k">val</span> <span class="n">germanUsers</span> <span class="k">=</span> <span class="n">users</span><span class="o">.</span><span class="n">filter</span><span class="o">((</span><span class="n">u</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&#34;de&#34;</span><span class="o">))</span>
+<span class="c1">// join data sets
+</span><span class="c1"></span><span class="k">val</span> <span class="n">germanVisits</span><span class="k">:</span> <span class="kt">DataSet</span><span class="o">[(</span><span class="kt">PageVisit</span>, <span class="kt">User</span><span class="o">)]</span> <span class="k">=</span>
+      <span class="c1">// equi-join condition (PageVisit.userId = User.id)
+</span><span class="c1"></span>     <span class="n">visits</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">germanUsers</span><span class="o">).</span><span class="n">where</span><span class="o">(</span><span class="s">&#34;userId&#34;</span><span class="o">).</span><span class="n">equalTo</span><span class="o">(</span><span class="s">&#34;id&#34;</span><span class="o">)</span>
+
+</code></pre></div><p>Flink’s APIs also allow to:</p>
 <ul>
 <li>apply a user-defined join function to each pair of joined elements instead returning a <code>($Left, $Right)</code> tuple,</li>
 <li>select fields of pairs of joined Tuple elements (projection), and</li>
