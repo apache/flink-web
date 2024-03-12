@@ -42,7 +42,7 @@ https://www.apache.org/foundation/sponsorship.html
 
 - [Alibaba](https://www.alibabagroup.com/en-US) 捐赠了 8 台机器（32vCPU,64GB）为 Flink 仓库和 Pull Reqeust 运行[持续集成的任务](https://cwiki.apache.org/confluence/display/FLINK/Azure+Pipelines#AzurePipelines-AvailableCustomBuildMachines)。
 - [AWS](https://aws.amazon.com/opensource/) 捐赠了 AWS 服务的开销，这些 AWS 服务用在了 [flink-connector-aws](https://github.com/apache/flink-connector-aws) 项目的集成测试中。
-- [Ververica](http://ververica.com/) 捐赠了一台机器（1vCPU,2GB）用于维护 [flink-ci](https://cwiki.apache.org/confluence/display/FLINK/Continuous+Integration) 镜像仓库，以及一台机器（8vCPU,64GB）运行日常的 [Flink Benchmark](https://lists.apache.org/thread.html/41a68c775753a7841896690c75438e0a497634102e676db880f30225@%3Cdev.flink.apache.org%3E)。
+- [Ververica](http://ververica.com/) 捐赠了一台机器（1vCPU,2GB）用于维护 [flink-ci](https://cwiki.apache.org/confluence/display/FLINK/Continuous+Integration) 镜像仓库，以及一台机器（8vCPU,64GB）运行日常的 [Flink Benchmark](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=115511847)。
 
 
 
