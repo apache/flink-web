@@ -25,7 +25,7 @@ under the License.
 # Special Thanks
 
 ## General Apache sponsors
-Without those sponsors, the ASF would simply not exist or sustain its activities :
+Without those sponsors, the ASF would simply not exist or sustain its activities:
 
 https://www.apache.org/foundation/thanks.html
 
