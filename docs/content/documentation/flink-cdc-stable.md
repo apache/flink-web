@@ -1,6 +1,6 @@
 ---
 weight: 11
-title: Flink CDC $FlinkCDCStableShortVersion (stable)
+title: CDC $FlinkCDCStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable"
 ---
 <!--
