@@ -1,5 +1,5 @@
 ---
-weight: 6
+weight: 7
 title: Training Course
 bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/"
 ---

@@ -1,7 +1,7 @@
 ---
-weight: 7
-title: Training Course
-bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/"
+weight: 11
+title: CDC $FlinkCDCStableShortVersion (stable)
+bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Training Course
+# Flink CDC documentation (latest stable release)
 
-{{< external_link name="Read all about the Flink Training Course here.">}}
+{{< external_link name="You can find the Flink CDC documentation for the latest stable release here.">}}
