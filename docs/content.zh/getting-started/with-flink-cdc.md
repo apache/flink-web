@@ -1,7 +1,7 @@
 ---
 weight: 6
 title: With Flink CDC
-bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/try-flink-cdc"
+bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
