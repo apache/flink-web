@@ -99,6 +99,16 @@ For the next release we are thinking to enable it by default.
 
 Autoscaling used to be an application / job cluster only feature. Now it is also supported for session clusters.
 
+### Improved Standalone Autoscaler
+
+Since 1.7.0, Flink Autoscaling is now also available in a standalone module without the need to run on top of Kubernetes.
+
+We merged notable improvements to the standalone autoscaler:
+
+- The control loop now supports multiple thread
+- We implemented a JdbcAutoScalerStateStore for storing state via JDBC-supported databases
+- We implemented a JdbcAutoScalerEventHandler for emitting events to JDBC-supported databases
+
 ### Savepoint Trigger Nonce
 
 A common request is to support a streamlined, user-friendly way of redeploying from a target savepoint. Previously this
