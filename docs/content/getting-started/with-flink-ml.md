@@ -1,5 +1,5 @@
 ---
-weight: 3
+weight: 4
 title: With Flink ML
 bookHref: "https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/"
 ---

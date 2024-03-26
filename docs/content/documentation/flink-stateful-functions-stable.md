@@ -1,5 +1,5 @@
 ---
-weight: 4
+weight: 9
 title: Stateful Functions $StateFunStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-stable/"
 ---

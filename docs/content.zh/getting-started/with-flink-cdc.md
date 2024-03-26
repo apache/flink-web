@@ -1,5 +1,5 @@
 ---
-weight: 6
+weight: 3
 title: With Flink CDC
 bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/"
 ---
