@@ -1,5 +1,5 @@
 ---
-weight: 8
+weight: 4
 title: Kubernetes Operator Main (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main"
 ---

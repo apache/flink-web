@@ -1,5 +1,5 @@
 ---
-weight: 4
+weight: 10
 title: Stateful Functions Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-statefun-docs-master"
 ---

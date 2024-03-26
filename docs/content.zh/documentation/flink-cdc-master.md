@@ -1,5 +1,5 @@
 ---
-weight: 12
+weight: 6
 title: CDC Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-master"
 ---
