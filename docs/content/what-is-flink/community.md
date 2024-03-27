@@ -202,6 +202,18 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
     * GitHub mirror: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
 
+* **Flink Kubernetes Operator Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
+    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
+
+* **Flink CDC Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-cdc.git](https://gitbox.apache.org/repos/asf/flink-cdc.git)
+    * GitHub mirror: [https://github.com/apache/flink-cdc](https://github.com/apache/flink-cdc)
+
+* **Flink ML Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
+    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
+
 * **Flink Stateful Functions Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
     * GitHub mirror: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
@@ -209,18 +221,6 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 * **Flink Stateful Functions Docker Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
     * GitHub mirror: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
-
-* **Flink ML Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
-    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
-
-* **Flink Kubernetes Operator Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
-    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
-
-* **Apache Paimon(incubating) (formerly Flink Table Store) Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/incubator-paimon.git](https://gitbox.apache.org/repos/asf/incubator-paimon.git)
-    * GitHub mirror: [https://github.com/apache/incubator-paimon](https://github.com/apache/incubator-paimon)
 
 * **Flink Website Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)
