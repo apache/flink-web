@@ -125,4 +125,4 @@ Many common data transformation or enrichment tasks can be addressed by Flink's 
 ### What are typical data pipeline applications?
 
 * <a href="https://ververica.com/blog/blink-flink-alibaba-search">Real-time search index building</a> in e-commerce
-* <a href="https://jobs.zalando.com/tech/blog/apache-showdown-flink-vs.-spark/">Continuous ETL</a> in e-commerce
+* <a href="https://engineering.zalando.com/posts/2016/03/apache-showdown-flink-vs.-spark.html">Continuous ETL</a> in e-commerce
