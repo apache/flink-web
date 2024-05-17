@@ -37,6 +37,12 @@ These are connectors that are released separately from the main Flink releases.
 
 {{% flink_download "flink_connectors" %}}
 
+## Apache Flink CDC
+
+Apache Flink® CDC {{< param FlinkCDCStableShortVersion >}} is the latest stable release.
+
+{{% flink_download "flink_cdc" %}}
+
 ## Apache Flink Stateful Functions
 
 Apache Flink® Stateful Functions {{< param StateFunStableShortVersion >}} is the latest stable release.
