@@ -150,10 +150,10 @@ This component is compatible with Apache Flink version(s):
 1.16.x
 1.15.x
 Additional Components # These are components that the Flink project develops which are not part of the main Flink release:
-Pre-bundled Hadoop 2.8.3 # Pre-bundled Hadoop 2.8.3 Source Release (asc, sha512)
-Pre-bundled Hadoop 2.7.5 # Pre-bundled Hadoop 2.7.5 Source Release (asc, sha512)
-Pre-bundled Hadoop 2.6.5 # Pre-bundled Hadoop 2.6.5 Source Release (asc, sha512)
-Pre-bundled Hadoop 2.4.1 # Pre-bundled Hadoop 2.4.1 Source Release (asc, sha512)
+Pre-bundled Hadoop 2.8.3 # Pre-bundled Hadoop 2.8.3 (asc, sha512)
+Pre-bundled Hadoop 2.7.5 # Pre-bundled Hadoop 2.7.5 (asc, sha512)
+Pre-bundled Hadoop 2.6.5 # Pre-bundled Hadoop 2.6.5 (asc, sha512)
+Pre-bundled Hadoop 2.4.1 # Pre-bundled Hadoop 2.4.1 (asc, sha512)
 Apache Flink-shaded 18.0 Source Release # Apache Flink-shaded 18.0 Source Release Source Release (asc, sha512)
 Apache Flink-shaded 17.0 Source Release # Apache Flink-shaded 17.0 Source Release Source Release (asc, sha512)
 Apache Flink-shaded 16.2 Source Release # Apache Flink-shaded 16.2 Source Release Source Release (asc, sha512)
