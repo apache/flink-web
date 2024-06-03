@@ -1539,7 +1539,7 @@ flink-cep, flink-clients, flink-connector-elasticsearch-base, flink-connector-el
 https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need&#160;&#x21a9;&#xfe0e;
 https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies&#160;&#x21a9;&#xfe0e;
 https://github.com/ariskk/flink4s&#160;&#x21a9;&#xfe0e;
-https://github.com/findify/flink-adt&#160;&#x21a9;&#xfe0e;
+https://github.com/flink-extended/flink-scala-api&#160;&#x21a9;&#xfe0e;
 https://github.com/sjwiesman/flink-scala-3&#160;&#x21a9;&#xfe0e;
 `}),e.add({id:93,href:"/2022/02/18/apache-flink-1.13.6-release-announcement/",title:"Apache Flink 1.13.6 Release Announcement",section:"Flink Blog",content:`The Apache Flink Community is pleased to announce another bug fix release for Flink 1.13.
 This release includes 99 bug and vulnerability fixes and minor improvements for Flink 1.13 including another upgrade of Apache Log4j (to 2.17.1). Below you will find a list of all bugfixes and improvements (excluding improvements to the build infrastructure and build stability). For a complete list of all changes see: JIRA.
