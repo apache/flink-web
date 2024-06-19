@@ -68,4 +68,4 @@ Db2 CDC source is now migrated to the unified incremental snapshot framework.
 Flink CDC pipeline submission CLI now supports recovering a pipeline execution from a specific savepoint file by using command line argument `--from-savepoint`
 
 ## List of Contributors
-Check Null, FocusComputing, GOODBOY008, Hang Ruan, He Wang, Hongshun Wang, Jiabao Sun, Kunni, L, Laffery, Leonard Xu, Muhammet Orazov, Paul Lin, PengFei Li, Qingsheng Ren, Qishang Zhong, Shawn Huang, Thorne, TorinJie, Xianxun Ye, Xin Gong, Yaroslav Tkachenko, e-mhui, gongzhongqiang, joyCurry30, kunni, lzshlzsh, qwding, shikai93, sky, skylines, wenmo, wudi, xleoken, xuzifu666, yanghuaiGit, yux, yuxiqian, 张田
+Check Null, FocusComputing, GOODBOY008, Hang Ruan, He Wang, Hongshun Wang, Jiabao Sun, Kunni, SeungMin, Laffery, Leonard Xu, Muhammet Orazov, Paul Lin, PengFei Li, Qingsheng Ren, Qishang Zhong, Shawn Huang, Thorne, TorinJie, Xianxun Ye, Xin Gong, Yaroslav Tkachenko, e-mhui, gongzhongqiang, joyCurry30, kunni, lzshlzsh, qwding, shikai93, sky, skylines, wenmo, wudi, xleoken, xuzifu666, yanghuaiGit, yux, yuxiqian, 张田
