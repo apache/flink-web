@@ -61,8 +61,24 @@ See [Deployment Docs](https://nightlies.apache.org/flink/flink-cdc-docs-release-
 More customizable schema evolution modes have been added.
 Now, apart from existing "Evolve", "Ignore", and "Exception" mode, a pipeline job could be configured as:
 
-* "TryEvolve": Always do schema evolution attempts, but evolution failures will be tolerated.
-* "Lenient": Similar to "TryEvolve" mode, but provides more lenient schema conversion after failover.
+### "Lenient" Mode
+
+Similar to "TryEvolve" mode, but it always keeps original table structure as a part of evolved schema, which guarantees lossless recoverability from job fail-over.
+
+In this mode, pipeline will ignore all `DropColumnEvent`s, and insert `NULL` values to fill in the gap. 
+Also, `AddColumnEvent`s will be relocated to the end of the table to maximize compatibility with those sinks that don't allow inserting new columns arbitrarily.  
+
+> Note: This is the default schema change behavior now. You may override it with `pipeline.schema.change.behavior` configuration.
+
+### "TryEvolve" Mode
+
+Always do schema evolution attempts, but evolution failures will be tolerated.
+
+In this mode, if a schema change event wasn't applied to downstream successfully, pipeline will tolerate the failure and allow the job running by appending `NULL` or trimming original data.
+
+> Note: Using TryEvolve mode might potentially drop some data when some schema change requests failed. Use `Evolve` or `Lenient` if it's unacceptable.
+
+### Per-type Configuration
 
 Also, it is possible to enable / disable some types of schema evolution events with the following syntax:
 
