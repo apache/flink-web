@@ -1,12 +1,14 @@
 ---
 title:  "Apache Flink CDC 3.2.0 Release Announcement"
-date: "2024-08-15T08:00:00.000Z"
+date: "2024-09-05T08:00:00.000Z"
 authors:
+- yuxiqian:
+  name: "Xiqian Yu"
 - renqs:
   name: "Qingsheng Ren"
   twitter: "renqstuite"
 aliases:
-- /news/2024/08/15/release-release-cdc-3.2.0.html
+- /news/2024/09/05/release-release-cdc-3.2.0.html
 ---
 
 The Apache Flink Community is excited to announce the release of Flink CDC 3.2.0!
