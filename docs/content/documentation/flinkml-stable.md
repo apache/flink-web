@@ -1,5 +1,5 @@
 ---
-weight: 7
+weight: 8
 title: ML $FlinkMLStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-ml-docs-stable/"
 ---
