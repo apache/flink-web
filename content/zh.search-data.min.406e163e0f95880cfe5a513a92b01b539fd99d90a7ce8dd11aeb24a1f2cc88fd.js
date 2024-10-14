@@ -96,10 +96,10 @@ Apache Flink JDBC Connector 3.2.0 # Apache Flink JDBC Connector 3.2.0 Source Rel
 This component is compatible with Apache Flink version(s):
 1.18.x
 1.19.x
-Apache Flink Kafka Connector 3.2.0 # Apache Flink Kafka Connector 3.2.0 Source Release (asc, sha512)
+Apache Flink Kafka Connector 3.3.0 # Apache Flink Kafka Connector 3.3.0 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
-1.18.x
 1.19.x
+1.20.x
 Apache Flink MongoDB Connector 1.2.0 # Apache Flink MongoDB Connector 1.2.0 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
 1.18.x
