@@ -127,7 +127,7 @@ The example illustrates the expressive power of the `KeyedProcessFunction` but a
 
 ### The DataStream API
 
-The {{< docs_link file="flink-docs-stable/dev/datastream_api.html" name="DataStream API">}} provides primitives for many common stream processing operations, such as windowing, record-at-a-time transformations, and enriching events by querying an external data store. The DataStream API is available for Java and Scala and is based on functions, such as `map()`, `reduce()`, and `aggregate()`. Functions can be defined by extending interfaces or as Java or Scala lambda functions.
+The {{< docs_link file="flink-docs-stable/dev/datastream_api.html" name="DataStream API">}} provides primitives for many common stream processing operations, such as windowing, record-at-a-time transformations, and enriching events by querying an external data store. The DataStream API is available for Java and is based on functions, such as `map()`, `reduce()`, and `aggregate()`. Functions can be defined by extending interfaces or as Java lambda functions.
 
 The following example shows how to sessionize a clickstream and count the number of clicks per session.
 
@@ -155,7 +155,7 @@ DataStream<Tuple2<String, Long>> result = clicks
 
 ### SQL &amp; Table API
 
-Flink features two relational APIs, the {{< docs_link file="flink-docs-stable/dev/table/index.html" name="Table API and SQL">}}. Both APIs are unified APIs for batch and stream processing, i.e., queries are executed with the same semantics on unbounded, real-time streams or bounded, recorded streams and produce the same results. The Table API and SQL leverage [Apache Calcite](https://calcite.apache.org) for parsing, validation, and query optimization. They can be seamlessly integrated with the DataStream and DataSet APIs and support user-defined scalar, aggregate, and table-valued functions.
+Flink features two relational APIs, the {{< docs_link file="flink-docs-stable/dev/table/index.html" name="Table API and SQL">}}. Both APIs are unified APIs for batch and stream processing, i.e., queries are executed with the same semantics on unbounded, real-time streams or bounded, recorded streams and produce the same results. The Table API and SQL leverage [Apache Calcite](https://calcite.apache.org) for parsing, validation, and query optimization. They can be seamlessly integrated with the DataStream API and support user-defined scalar, aggregate, and table-valued functions.
 
 Flink's relational APIs are designed to ease the definition of [data analytics]({{< relref "use-cases#analytics" >}}), [data pipelining, and ETL applications]({{< relref "use-cases#pipelines" >}}).
 
@@ -172,7 +172,3 @@ GROUP BY SESSION(clicktime, INTERVAL '30' MINUTE), userId
 Flink features several libraries for common data processing use cases. The libraries are typically embedded in an API and not fully self-contained. Hence, they can benefit from all features of the API and be integrated with other libraries.
 
 * **{{< docs_link file="flink-docs-stable/docs/libs/cep/" name="Complex Event Processing (CEP)">}}**: Pattern detection is a very common use case for event stream processing. Flink's CEP library provides an API to specify patterns of events (think of regular expressions or state machines). The CEP library is integrated with Flink's DataStream API, such that patterns are evaluated on DataStreams. Applications for the CEP library include network intrusion detection, business process monitoring, and fraud detection.
-  
-* **{{< docs_link file="flink-docs-stable/docs/dev/dataset/overview/" name="DataSet API">}}**: The DataSet API is Flink's core API for batch processing applications. The primitives of the DataSet API include *map*, *reduce*, *(outer) join*, *co-group*, and *iterate*. All operations are backed by algorithms and data structures that operate on serialized data in memory and spill to disk if the data size exceed the memory budget. The data processing algorithms of Flink's DataSet API are inspired by traditional database operators, such as hybrid hash-join or external merge-sort. Starting with Flink 1.12 the DataSet API has been soft deprecated.
-  
-* **{{< docs_link file="flink-docs-stable/docs/libs/gelly/overview/" name="Gelly">}}**: Gelly is a library for scalable graph processing and analysis. Gelly is implemented on top of and integrated with the DataSet API. Hence, it benefits from its scalable and robust operators. Gelly features {{< docs_link file="flink-docs-stable/dev/libs/gelly/library_methods.html" name="built-in algorithms">}}, such as label propagation, triangle enumeration, and page rank, but provides also a {{< docs_link file="flink-docs-stable/dev/libs/gelly/graph_api.html" name="Graph API">}} that eases the implementation of custom graph algorithms.
