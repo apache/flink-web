@@ -38,15 +38,14 @@ For deployments using last-state upgrade mode, the operator - instead of forcefu
 This change makes it possible to finally use the last-state upgrade mode for session jobs as well.
 
 
-### Autoscaler Scale Down
+### Autoscaler Delayed Scale Down
 
 With the introduction of the configuration option `job.autoscaler.scale-down.interval`, the operator can now optimize multiple scale-down operations to a single one to prevent too many unnecessary downscales, thus improving job availability.
 Please note that `job.autoscaler.scale-up.grace-period` has been removed with this change.
 
 
 ### Other Autoscaler Improvements
-- Autoscaling now takes into account the number of partitions in case of Kafka and Pulsar
-- Better error handling
+- Optimized cases where partitions or key groups cannot be evenly distributed to subtasks in case of Kafka and Pulsar
 - Introduced `autoscaler.standalone.jdbc.event-handler.ttl` to support cleaning up historical event handler records in JDBC event handler
 - Autoscaler is now compatible with Flink 1.20
 
