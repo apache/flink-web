@@ -1,5 +1,5 @@
 ---
-weight: 2
+weight: 3
 title: Flink Master (snapshot)
 bookHref: "https://nightlies.apache.org/flink/flink-docs-master/"
 ---

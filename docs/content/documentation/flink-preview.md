@@ -1,7 +1,7 @@
 ---
-weight: 6
-title: CDC $FlinkCDCStableShortVersion (stable)
-bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable"
+weight: 2
+title: Flink 2.0 (preview)
+bookHref: "https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Flink CDC documentation (latest stable release)
+# Flink documentation (latest stable release)
 
-{{< external_link name="You can find the Flink CDC documentation for the latest stable release here.">}}
+{{< external_link name="You can find the Flink documentation for the latest preview release here.">}}

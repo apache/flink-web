@@ -1,5 +1,5 @@
 ---
-weight: 5
+weight: 6
 title: CDC $FlinkCDCStableShortVersion (stable)
 bookHref: "https://nightlies.apache.org/flink/flink-cdc-docs-stable"
 ---
