@@ -45,7 +45,7 @@ Please note that `job.autoscaler.scale-up.grace-period` has been removed with th
 
 
 ### Other Autoscaler Improvements
-- Optimized cases where partitions or key groups cannot be evenly distributed to subtasks in case of Kafka and Pulsar
+- Optimized cases where partitions or key groups cannot be evenly distributed to subtasks
 - Introduced `autoscaler.standalone.jdbc.event-handler.ttl` to support cleaning up historical event handler records in JDBC event handler
 - Autoscaler is now compatible with Flink 1.20
 
