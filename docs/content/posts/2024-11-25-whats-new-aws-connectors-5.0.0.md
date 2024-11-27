@@ -162,7 +162,7 @@ DataStream<String> dynamodbRecordsWithEventTimeWatermarks = env.fromSource(
 ## Summary
 In this blog, we have covered the motivation behind creating the new `KinesisStreamsSource` and `DynamoDbStreamsSource` connectors, highlighting their new features and migration guidance. Feel free to reach out on the Flink mailing list ([dev@flink.apache.org](mailto:dev@flink.apache.org)) or Flink Slack to discuss any further improvements.
 
-To get started with the connectors, follow one the guides below!
+To get started with the connectors, follow one of the guides below!
 
 * [**Amazon Kinesis Data Streams Source**](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/kinesis/#kinesis-streams-source)
 * [**Amazon DynamoDB Streams Source**](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/dynamodb/#amazon-dynamodb-streams-source)
@@ -204,9 +204,9 @@ The diagram below illustrates what could happen when records with a given orderi
 Fig. 2 - Illustration of record distribution within a Kinesis Data Stream after a resharding operation.
 </center>
 
-As we can see, to ensure that records from the `pk2` are read in order, we need to ensure that the shards are read in order of `Shard 0`, then `Shard 3`, then `Shard 6`. This can be more easily understood as : All parent shards must be fully read before children shard can be read.
+As we can see, to ensure that records from the `pk2` are read in order, we need to ensure that the shards are read in order of `Shard 0`, then `Shard 3`, then `Shard 6`. This can be more easily understood as: All parent shards must be fully read before children shards can be read.
 
-The new `KinesisStreamsSource` ensures that parent shards are read completely before reading the children shard, and so ensure that record ordering is maintained even after a resharding operation on the stream.
+The new `KinesisStreamsSource` ensures that parent shards are read completely before reading children shards, and so ensures that record ordering is maintained even after a resharding operation on the stream.
 
 
 
