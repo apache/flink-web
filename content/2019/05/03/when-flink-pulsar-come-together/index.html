@@ -1,0 +1,772 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2019/05/03/when-flink-pulsar-come-together/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The open source data technology frameworks Apache Flink and Apache Pulsar can integrate in different ways to provide elastic data processing at large scale. I recently gave a talk at Flink Forward San Francisco 2019 and presented some of the integrations between the two frameworks for batch and streaming applications. In this post, I will give a short introduction to Apache Pulsar and its differentiating elements from other messaging systems and describe the ways that Pulsar and Flink can work together to provide a seamless developer experience for elastic data processing at scale.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="When Flink &amp; Pulsar Come Together" />
+<meta property="og:description" content="The open source data technology frameworks Apache Flink and Apache Pulsar can integrate in different ways to provide elastic data processing at large scale. I recently gave a talk at Flink Forward San Francisco 2019 and presented some of the integrations between the two frameworks for batch and streaming applications. In this post, I will give a short introduction to Apache Pulsar and its differentiating elements from other messaging systems and describe the ways that Pulsar and Flink can work together to provide a seamless developer experience for elastic data processing at scale." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/05/03/when-flink-pulsar-come-together/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-05-03T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-05-03T12:00:00+00:00" />
+<title>When Flink & Pulsar Come Together | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2019/05/03/when-flink-pulsar-come-together/">When Flink &amp; Pulsar Come Together</a>
+    </h1>
+    
+
+
+  May 3, 2019 -
+
+
+
+  Sijie Guo
+
+  <a href="https://twitter.com/sijieg">(@sijieg)</a>
+  
+
+
+
+    <p><p>The open source data technology frameworks <a href="https://flink.apache.org/">Apache Flink</a> and <a href="https://pulsar.apache.org/en/">Apache Pulsar</a> can integrate in different ways to provide elastic data processing at large scale. I recently gave a talk at <a href="https://www.flink-forward.org/">Flink Forward</a> San Francisco 2019 and presented some of the integrations between the two frameworks for batch and streaming applications. In this post, I will give a short introduction to Apache Pulsar and its differentiating elements from other messaging systems and describe the ways that Pulsar and Flink can work together to provide a seamless developer experience for elastic data processing at scale.</p>
+<h2 id="a-brief-introduction-to-apache-pulsar">
+  A brief introduction to Apache Pulsar
+  <a class="anchor" href="#a-brief-introduction-to-apache-pulsar">#</a>
+</h2>
+<p><a href="https://pulsar.apache.org/en/">Apache Pulsar</a> is an open-source distributed pub-sub messaging system under the stewardship of the <a href="https://www.apache.org/">Apache Software Foundation</a>. Pulsar is a multi-tenant, high-performance solution for server-to-server messaging including multiple features such as native support for multiple clusters in a Pulsar instance, with seamless <a href="https://pulsar.apache.org/docs/en/administration-geo">geo-replication</a> of messages across clusters, very low publish and end-to-end latency, seamless scalability to over a million topics, and guaranteed message delivery with <a href="https://pulsar.apache.org/docs/en/concepts-architecture-overview#persistent-storage">persistent message storage</a> provided by <a href="https://bookkeeper.apache.org/">Apache BookKeeper</a> among others. Let’s now discuss the primary differentiators between Pulsar and other pub-sub messaging frameworks:</p>
+<p>The first differentiating factor stems from the fact that although Pulsar provides a flexible pub-sub messaging system it is also backed by durable log storage — hence combining both messaging and storage under one framework. Because of that layered architecture, Pulsar provides instant failure recovery, independent scalability and balance-free cluster expansion.</p>
+<p>Pulsar’s architecture follows a similar pattern to other pub-sub systems as the framework is organized in topics as the main data entity, with producers sending data to, and consumers receiving data from a topic as shown in the diagram below.</p>
+<center>
+<img src="/img/blog/pulsar-flink/image-1.png" width="400px" alt="Pulsar producers and consumers"/>
+</center>
+<br>
+<p>The second differentiator of Pulsar is that the framework is built from the get-go with <a href="https://pulsar.apache.org/docs/en/concepts-multi-tenancy/">multi-tenancy</a> in mind. What that means is that each Pulsar topic has a hierarchical management structure making the allocation of resources as well as the resource management and coordination between teams efficient and easy. With Pulsar’s multi-tenancy structure, data platform maintainers can onboard new teams with no friction as Pulsar provides resource isolation at the property (tenant), namespace or topic level, while at the same time data can be shared across the cluster for easy collaboration and coordination.</p>
+<center>
+<img src="/img/blog/pulsar-flink/image-2.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+</center>
+<br>
+<p>Finally, Pulsar’s flexible messaging framework unifies the streaming and queuing data consumption models and provides greater flexibility. As shown in the below diagram, Pulsar holds the data in the topic while multiple teams can consume the data independently depending on their workloads and data consumption patterns.</p>
+<center>
+<img src="/img/blog/pulsar-flink/image-3.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+</center>
+<br>
+<h2 id="pulsars-view-on-data-segmented-data-streams">
+  Pulsar’s view on data: Segmented data streams
+  <a class="anchor" href="#pulsars-view-on-data-segmented-data-streams">#</a>
+</h2>
+<p>Apache Flink is a streaming-first computation framework that perceives <a href="/news/2019/02/13/unified-batch-streaming-blink.html">batch processing as a special case of streaming</a>. Flink’s view on data streams distinguishes batch and stream processing between bounded and unbounded data streams, assuming that for batch workloads the data stream is finite, with a beginning and an end.</p>
+<p>Apache Pulsar has a similar perspective to that of Apache Flink with regards to the data layer. The framework also uses streams as a unified view on all data, while its layered architecture allows traditional pub-sub messaging for streaming workloads and continuous data processing or usage of <em>Segmented Streams</em> and bounded data stream for batch and static workloads.</p>
+<center>
+<img src="/img/blog/pulsar-flink/image-4.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+</center>
+<br>
+<p>With Pulsar, once a producer sends data to a topic, it is partitioned depending on the data traffic and then further segmented under those partitions — using Apache Bookkeeper as segment store —  to allow for parallel data processing as illustrated in the diagram below. This allows a combination of traditional pub-sub messaging and distributed parallel computations in one framework.</p>
+<center>
+<img src="/img/blog/pulsar-flink/image-5.png" width="640px" alt="Apache Flink and Apache Pulsar"/>
+</center>
+<br>
+<h2 id="when-flink--pulsar-come-together">
+  When Flink + Pulsar come together
+  <a class="anchor" href="#when-flink--pulsar-come-together">#</a>
+</h2>
+<p>Apache Flink and Apache Pulsar integrate in multiple ways already. In the following sections, I will present some potential future integrations between the frameworks and share examples of existing ways in which you can utilize the frameworks together.</p>
+<h3 id="potential-integrations">
+  Potential Integrations
+  <a class="anchor" href="#potential-integrations">#</a>
+</h3>
+<p>Pulsar can integrate with Apache Flink in different ways. Some potential integrations include providing support for streaming workloads with the use of <em>Streaming Connectors</em> and support for batch workloads with the use of <em>Batch Source Connectors</em>. Pulsar also comes with native support for schema that can integrate with Flink and provide structured access to the data, for example by using Flink SQL as a way of querying data in Pulsar. Finally, an alternative way of integrating the technologies could include using Pulsar as a state backend with Flink. Since Pulsar has a layered architecture (<em>Streams</em> and <em>Segmented Streams</em>, powered by Apache Bookkeeper), it becomes natural to use Pulsar as a storage layer and store Flink state.</p>
+<p>From an architecture point of view, we can imagine the integration between the two frameworks as one that uses Apache Pulsar for a unified view of the data layer and Apache Flink as a unified computation and data processing framework and API.</p>
+<h3 id="existing-integrations">
+  Existing Integrations
+  <a class="anchor" href="#existing-integrations">#</a>
+</h3>
+<p>Integration between the two frameworks is ongoing and developers can already use Pulsar with Flink in multiple ways. For example, Pulsar can be used as a streaming source and streaming sink in Flink DataStream applications. Developers can ingest data from Pulsar into a Flink job that makes computations and processes real-time data, to then send the data back to a Pulsar topic as a streaming sink. Such an example is shown below:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// create and configure Pulsar consumer</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">PulsarSourceBuilder</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="n">builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PulsarSourceBuilder</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">builder</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SimpleStringSchema</span><span class="p">())</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">serviceUrl</span><span class="p">(</span><span class="n">serviceUrl</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">topic</span><span class="p">(</span><span class="n">inputTopic</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">subscriptionName</span><span class="p">(</span><span class="n">subscription</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">SourceFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// ingest DataStream with Pulsar consumer</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">words</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="p">.</span><span class="na">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// perform computation on DataStream (here a simple WordCount)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">WordWithCount</span><span class="o">&gt;</span><span class="w"> </span><span class="n">wc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">words</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">flatMap</span><span class="p">((</span><span class="n">FlatMapFunction</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">WordWithCount</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="w"> </span><span class="n">collector</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="n">collector</span><span class="p">.</span><span class="na">collect</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">WordWithCount</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="w"> </span><span class="n">1</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">returns</span><span class="p">(</span><span class="n">WordWithCount</span><span class="p">.</span><span class="na">class</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">keyBy</span><span class="p">(</span><span class="s">&#34;word&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">timeWindow</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">seconds</span><span class="p">(</span><span class="n">5</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="p">.</span><span class="na">reduce</span><span class="p">((</span><span class="n">ReduceFunction</span><span class="o">&lt;</span><span class="n">WordWithCount</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="w"> </span><span class="n">c2</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">new</span><span class="w"> </span><span class="n">WordWithCount</span><span class="p">(</span><span class="n">c1</span><span class="p">.</span><span class="na">word</span><span class="p">,</span><span class="w"> </span><span class="n">c1</span><span class="p">.</span><span class="na">count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">c2</span><span class="p">.</span><span class="na">count</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// emit result via Pulsar producer</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">wc</span><span class="p">.</span><span class="na">addSink</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">FlinkPulsarProducer</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">serviceUrl</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">outputTopic</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">new</span><span class="w"> </span><span class="n">AuthenticationDisabled</span><span class="p">(),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">wordWithCount</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">wordWithCount</span><span class="p">.</span><span class="na">toString</span><span class="p">().</span><span class="na">getBytes</span><span class="p">(</span><span class="n">UTF_8</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">wordWithCount</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">wordWithCount</span><span class="p">.</span><span class="na">word</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>Another integration between the two frameworks that developers can take advantage of includes using Pulsar as both a streaming source and a streaming table sink for Flink SQL or Table API queries as shown in the example below:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// obtain a DataStream with words</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">words</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// register DataStream as Table &#34;words&#34; with two attributes (&#34;word&#34;, &#34;ts&#34;). </span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">//   &#34;ts&#34; is an event-time timestamp.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">tableEnvironment</span><span class="p">.</span><span class="na">registerDataStream</span><span class="p">(</span><span class="s">&#34;words&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">words</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;word, ts.rowtime&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// create a TableSink that produces to Pulsar</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">TableSink</span><span class="w"> </span><span class="n">sink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PulsarJsonTableSink</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">serviceUrl</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">outputTopic</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">new</span><span class="w"> </span><span class="n">AuthenticationDisabled</span><span class="p">(),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">ROUTING_KEY</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// register Pulsar TableSink as table &#34;wc&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">tableEnvironment</span><span class="p">.</span><span class="na">registerTableSink</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="s">&#34;wc&#34;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">sink</span><span class="p">.</span><span class="na">configure</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">new</span><span class="w"> </span><span class="n">String</span><span class="o">[]</span><span class="p">{</span><span class="s">&#34;word&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;cnt&#34;</span><span class="p">},</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">new</span><span class="w"> </span><span class="n">TypeInformation</span><span class="o">[]</span><span class="p">{</span><span class="n">Types</span><span class="p">.</span><span class="na">STRING</span><span class="p">,</span><span class="w"> </span><span class="n">Types</span><span class="p">.</span><span class="na">LONG</span><span class="p">}));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// count words per 5 seconds and write result to table &#34;wc&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">tableEnvironment</span><span class="p">.</span><span class="na">sqlUpdate</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="s">&#34;INSERT INTO wc &#34;</span><span class="w"> </span><span class="o">+</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="s">&#34;SELECT word, COUNT(*) AS cnt &#34;</span><span class="w"> </span><span class="o">+</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="s">&#34;FROM words &#34;</span><span class="w"> </span><span class="o">+</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="s">&#34;GROUP BY word, TUMBLE(ts, INTERVAL &#39;5&#39; SECOND)&#34;</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>Finally, Flink integrates with Pulsar for batch workloads as a batch sink where all results get pushed to Pulsar after Apache Flink has completed the computation in a static data set. Such an example is shown below:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// obtain DataSet from arbitrary computation</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">WordWithCount</span><span class="o">&gt;</span><span class="w"> </span><span class="n">wc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// create PulsarOutputFormat instance</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">OutputFormat</span><span class="w"> </span><span class="n">pulsarOutputFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PulsarOutputFormat</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">serviceUrl</span><span class="p">,</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">topic</span><span class="p">,</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="k">new</span><span class="w"> </span><span class="n">AuthenticationDisabled</span><span class="p">(),</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">wordWithCount</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">wordWithCount</span><span class="p">.</span><span class="na">toString</span><span class="p">().</span><span class="na">getBytes</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// write DataSet to Pulsar</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">wc</span><span class="p">.</span><span class="na">output</span><span class="p">(</span><span class="n">pulsarOutputFormat</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>Both Pulsar and Flink share a similar view on how the data and the computation level of an application can be <em>“streaming-first”</em> with batch as a special case streaming. With Pulsar’s Segmented Streams approach and Flink’s steps to unify batch and stream processing workloads under one framework, there are numerous ways of integrating the two technologies together to provide elastic data processing at massive scale. Subscribe to the <a href="/community.html#mailing-lists">Apache Flink</a> and <a href="https://lists.apache.org/list.html?dev@pulsar.apache.org">Apache Pulsar</a> mailing lists to stay up-to-date with the latest developments in this space or share your thoughts and recommendations with both communities.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-05-03-pulsar-flink.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#a-brief-introduction-to-apache-pulsar">A brief introduction to Apache Pulsar</a></li>
+        <li><a href="#pulsars-view-on-data-segmented-data-streams">Pulsar’s view on data: Segmented data streams</a></li>
+        <li><a href="#when-flink--pulsar-come-together">When Flink + Pulsar come together</a>
+          <ul>
+            <li><a href="#potential-integrations">Potential Integrations</a></li>
+            <li><a href="#existing-integrations">Existing Integrations</a></li>
+          </ul>
+        </li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

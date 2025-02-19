@@ -1,0 +1,721 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2022/02/22/scala-free-in-one-fifteen/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath. Users can now leverage the Java API from any Scala version, including Scala 3!
+Fig.1 Flink 1.15 Scala 3 Example This blog will discuss what has historically made supporting multiple Scala versions so complex, how we achieved this milestone, and the future of Scala in Apache Flink.
+TLDR: All Scala dependencies are now isolated to the flink-scala jar.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Scala Free in One Fifteen" />
+<meta property="og:description" content="Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath. Users can now leverage the Java API from any Scala version, including Scala 3!
+Fig.1 Flink 1.15 Scala 3 Example This blog will discuss what has historically made supporting multiple Scala versions so complex, how we achieved this milestone, and the future of Scala in Apache Flink.
+TLDR: All Scala dependencies are now isolated to the flink-scala jar." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/02/22/scala-free-in-one-fifteen/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-02-22T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-02-22T00:00:00+00:00" />
+<title>Scala Free in One Fifteen | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2022/02/22/scala-free-in-one-fifteen/">Scala Free in One Fifteen</a>
+    </h1>
+    
+
+
+  February 22, 2022 -
+
+
+
+  Seth Wiesman
+
+  <a href="https://twitter.com/sjwiesman">(@sjwiesman)</a>
+  
+
+
+
+    <p><p>Flink 1.15 is right around the corner, and among the many improvements is a Scala free classpath.
+Users can now leverage the Java API from any Scala version, including Scala 3!</p>
+<figure style="margin-left:auto;margin-right:auto;display:block;padding-top: 20px;padding-bottom:20px;width:75%;">
+  <img src="/img/blog/2022-02-22-scala-free/flink-scala-3.jpeg">
+  <figcaption style="padding-top: 10px;text-align:center"><b>Fig.1</b> Flink 1.15 Scala 3 Example</figcaption>
+</figure>
+<p>This blog will discuss what has historically made supporting multiple Scala versions so complex, how we achieved this milestone, and the future of Scala in Apache Flink.</p>
+<div class="alert alert-info">
+<b>TLDR</b>: All Scala dependencies are now isolated to the <code>flink-scala</code> jar. 
+To remove Scala from the user-code classpath, remove this jar from the lib directory of the Flink distribution.
+<p><br><br></p>
+<div class="highlight"><pre><code class="language-bash"><span class="nv">$ </span>rm flink-dist/lib/flink-scala*</code></pre></div>
+</div>
+<h2 id="the-classpath-and-scala">
+  The Classpath and Scala
+  <a class="anchor" href="#the-classpath-and-scala">#</a>
+</h2>
+<p>If you have worked with a JVM-based application, you have probably heard the term classpath.
+The classpath defines where the JVM will search for a given classfile when it needs to be loaded.
+There may only be one instance of a classfile on each classpath, forcing any dependency Flink exposes onto users.
+That is why the Flink community works hard to keep our classpath &ldquo;clean&rdquo; - or free of unnecessary dependencies.
+We achieve this through a combination of <a href="https://github.com/apache/flink-shaded">shaded dependencies</a>, <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/debugging/debugging_classloading/#inverted-class-loading-and-classloader-resolution-order">child first class loading</a>, and a <a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/filesystems/plugins/">plugins abstraction</a> for optional components.</p>
+<p>The Apache Flink runtime is primarily written in Java but contains critical components that forced Scala on the default classpath.
+And because Scala does not maintain binary compatibility across minor releases, this historically required cross-building components for all versions of Scala.
+But due to many reasons - <a href="https://github.com/scala/scala/releases/tag/v2.12.8">breaking changes in the compiler</a>, <a href="https://www.scala-lang.org/news/2.13.0">a new standard library</a>, and <a href="https://docs.scala-lang.org/scala3/guides/macros/macros.html">a reworked macro system</a> - this was easier said than done.</p>
+<h2 id="hiding-scala">
+  Hiding Scala
+  <a class="anchor" href="#hiding-scala">#</a>
+</h2>
+<p>As mentioned above, Flink uses Scala in a few key components; Mesos integration, the serialization stack, RPC, and the table planner.
+Instead of removing these dependencies or finding ways to cross-build them, the community hid Scala.
+It still exists in the codebase but no longer leaks into the user code classloader.</p>
+<p>In 1.14, we took our first steps in hiding Scala from our users.
+We dropped the support for Apache Mesos, partially implemented in Scala, which Kubernetes very much eclipsed in terms of adoption.
+Next, we isolated our RPC system into a dedicated classloader, including Akka.
+With these changes, the runtime itself no longer relied on Scala (hence why flink-runtime lost its Scala suffix), but Scala was still ever-present in the API layer.</p>
+<p>These changes, and the ease with which we implemented them, started to make people wonder what else might be possible.
+After all, we isolated Akka in less than a month, a task stuck in the backlog for years, thought to be too time-consuming.</p>
+<p>The next logical step was to decouple the DataStream / DataSet Java APIs from Scala.
+This primarily entailed the few cleanups of some <a href="https://issues.apache.org/jira/browse/FLINK-23967">test</a> <a href="https://issues.apache.org/jira/browse/FLINK-23968">classes</a> but also the identifying of code paths that are only relevant for the Scala API.
+These paths were then migrated into the Scala API modules and only used if required.</p>
+<p>For example, the <a href="https://issues.apache.org/jira/browse/FLINK-24017">Kryo serializer</a>, which we always extended to support certain Scala types, now only includes them if an application uses the Scala APIs.</p>
+<p>Finally, it was time to tackle the Table API, specifically the table planner, which contains 378,655 lines of Scala code at the time of writing.
+The table planner provides parsing, planning, and optimization of SQL and Table API queries into highly optimized Java code.
+It is the most extensive Scala codebase in Flink and it cannot be ported easily to Java.
+Using what we learned from building dedicated classloaders for the RPC stack and conditional classloading for the serializers, we hid the planner behind an abstraction that does not expose any of its internals, including Scala.</p>
+<h2 id="the-future-of-scala-in-apache-flink">
+  The Future of Scala in Apache Flink
+  <a class="anchor" href="#the-future-of-scala-in-apache-flink">#</a>
+</h2>
+<p>While most of these changes happened behind the scenes, they resulted in one very user-facing change: removing many scala suffixes. You can find a list of all dependencies that lost their Scala suffix at the end of this post<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup><sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>.</p>
+<p>Additionally, changes to the Table API required several changes to the packaging and the distribution, which some power users relying on the planner internals might need to adapt to<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>.</p>
+<p>Going forward, Flink will continue to support Scala packages for the DataStream and Table APIs compiled against Scala 2.12 while the Java API is now unlocked for users to leverage components from any Scala version.
+We are already seeing new Scala 3 wrappers pop up in the community are excited to see how users leverage these tools in their streaming pipelines<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup><sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup><sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>!</p>
+<hr>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>flink-cep, flink-clients, flink-connector-elasticsearch-base, flink-connector-elasticsearch6, flink-connector-elasticsearch7, flink-connector-gcp-pubsub, flink-connector-hbase-1.4, flink-connector-hbase-2.2, flink-connector-hbase-base, flink-connector-jdbc, flink-connector-kafka, flink-connector-kinesis, flink-connector-nifi, flink-connector-pulsar, flink-connector-rabbitmq, flink-connector-testing, flink-connector-twitter, flink-connector-wikiedits, flink-container, flink-dstl-dfs, flink-gelly, flink-hadoop-bulk, flink-kubernetes, flink-runtime-web, flink-sql-connector-elasticsearch6, flink-sql-connector-elasticsearch7, flink-sql-connector-hbase-1.4, flink-sql-connector-hbase-2.2, flink-sql-connector-kafka, flink-sql-connector-kinesis, flink-sql-connector-rabbitmq, flink-state-processor-api, flink-statebackend-rocksdb, flink-streaming-java, flink-table-api-java-bridge, flink-test-utils, flink-yarn, flink-table-runtime, flink-table-api-java-bridge&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need">https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/overview/#which-dependencies-do-you-need</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies">https://nightlies.apache.org/flink/flink-docs-master/docs/dev/configuration/advanced/#anatomy-of-table-dependencies</a>&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p><a href="https://github.com/ariskk/flink4s">https://github.com/ariskk/flink4s</a>&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p><a href="https://github.com/flink-extended/flink-scala-api">https://github.com/flink-extended/flink-scala-api</a>&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:6">
+<p><a href="https://github.com/sjwiesman/flink-scala-3">https://github.com/sjwiesman/flink-scala-3</a>&#160;<a href="#fnref:6" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2022-02-22-scala-free.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#the-classpath-and-scala">The Classpath and Scala</a></li>
+        <li><a href="#hiding-scala">Hiding Scala</a></li>
+        <li><a href="#the-future-of-scala-in-apache-flink">The Future of Scala in Apache Flink</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

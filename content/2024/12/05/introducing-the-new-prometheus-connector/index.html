@@ -1,0 +1,858 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2024/12/05/introducing-the-new-prometheus-connector/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="We are excited to announce a new sink connector that enables writing data to Prometheus (FLIP-312). This articles introduces the main features of the connector, and the reasoning behind design decisions.
+This connector allows writing data to Prometheus using the Remote-Write push interface, which lets you write time-series data to Prometheus at scale.
+Motivations for a Prometheus connector # Prometheus is an efficient time-series database optimized for building real-time dashboards and alerts, typically in combination with Grafana or other visualization tools.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Introducing the new Prometheus connector" />
+<meta property="og:description" content="We are excited to announce a new sink connector that enables writing data to Prometheus (FLIP-312). This articles introduces the main features of the connector, and the reasoning behind design decisions.
+This connector allows writing data to Prometheus using the Remote-Write push interface, which lets you write time-series data to Prometheus at scale.
+Motivations for a Prometheus connector # Prometheus is an efficient time-series database optimized for building real-time dashboards and alerts, typically in combination with Grafana or other visualization tools." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2024/12/05/introducing-the-new-prometheus-connector/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-12-05T18:00:00+00:00" />
+<meta property="article:modified_time" content="2024-12-05T18:00:00+00:00" />
+<title>Introducing the new Prometheus connector | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2024/12/05/introducing-the-new-prometheus-connector/">Introducing the new Prometheus connector</a>
+    </h1>
+    
+
+
+  December 5, 2024 -
+
+
+
+  Lorenzo Nicora
+
+
+
+
+    <p><p>We are excited to announce a new sink connector that enables writing data to Prometheus (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-312:&#43;Prometheus&#43;Sink&#43;Connector">FLIP-312</a>). This articles introduces the main features of the connector, and the reasoning behind design decisions.</p>
+<p>This connector allows writing data to Prometheus using the <a href="https://prometheus.io/docs/specs/remote_write_spec/">Remote-Write</a> push interface, which lets you write time-series data to Prometheus at scale.</p>
+<h2 id="motivations-for-a-prometheus-connector">
+  Motivations for a Prometheus connector
+  <a class="anchor" href="#motivations-for-a-prometheus-connector">#</a>
+</h2>
+<p>Prometheus is an efficient time-series database optimized for building real-time dashboards and alerts, typically in combination with Grafana or other visualization tools.</p>
+<p>Prometheus is commonly used for observability, to monitor compute resources, Kubernetes clusters, and applications. It can also be used to observe Flink clusters and jobs. The Flink <a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/metric_reporters/#prometheus">Metric Reporter</a> has exactly this purpose.</p>
+<p>So, why do we need a connector?</p>
+<p>The goal of the new Flink Prometheus connector is not to observe Flink. The goal is to use Flink as pre-processor for observability data coming from diverse systems, and be able to write this processed time-series directly to Prometheus.</p>
+<p>Prometheus can serve as a general-purpose observability time-series database, beyond traditional infrastructure monitoring. For example, it can be used to monitor IoT devices, sensors, connected cars, media streaming devices, and any resource that streams events or measurements continuously.</p>
+<p>Observability data from these use cases differs from metrics generated by compute resources. They present additional challenges:</p>
+<ul>
+<li><strong>Out-of-order events</strong>: Devices may be connected via mobile networks or even Bluetooth. Events from different devices may follow different paths and arrive at very different times. A <strong>stateful, event-time logic</strong> can be used to reorder them.</li>
+<li><strong>High frequency</strong> and <strong>high cardinality</strong>: You can have a sheer number of devices, each emitting signals multiple times per second. <strong>Aggregating over time</strong> and <strong>over dimensions</strong> can reduce frequency and cardinality and make the volume of data more efficiently analysable.</li>
+<li><strong>Lack of contextual information</strong>: Raw events sent by the devices often lack of contextual information for a meaningful analysis. <strong>Enrichment</strong> of raw events, looking up some reference dataset, can be used to add dimensions useful for the analysis.</li>
+<li><strong>Noise</strong>: sensor measurement may contain noise. For example when a GPS tracker loses connection and reports spurious positions. These obvious outliers can be <strong>filtered</strong> out to simplify visualization and analysis.</li>
+</ul>
+<p>Flink can be used as a pre-processor to address all the above.</p>
+<p>You can implement a sink from scratch or use AsyncIO to call the Prometheus Remote-Write endpoint. However, there are non-trivial details to implement an efficient Remote-Write client:</p>
+<ul>
+<li>There is no high-level client for Prometheus Remote-Write. You would need to build on top of a low-level HTTP client.</li>
+<li>Remote-Write can be inefficient unless write requests are batched and parallelized.</li>
+<li>Error handling can be complex, and specifications demand strict behaviors (see <a href="#strict-specifications-lenient-implementations">Strict Specifications, Lenient Implementations</a>).</li>
+</ul>
+<p>The new Prometheus connector manages all of this for you.</p>
+<p>Note that registering some custom Flink metrics and having them pushed to Prometheus by the Metric Reporter is not really an option here, for multiple reasons. For example:</p>
+<ul>
+<li>The dimensions of these time-series are not known upfront and often have high cardinality, even after preprocessing. Think for example of a dimension <code>deviceID</code> where the value is the ID of the IoT device that is generating the measurement. This can easily be thousands. In Flink you would have to register a separate custom metric for each device.</li>
+<li>A Flink custom metric will send to Prometheus a sample of the metric every fixed period. Usually several seconds. This happens when scraped, with the <a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/metric_reporters/#prometheus">Prometheus reporter</a>, or at the interval configured with the <a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/metric_reporters/#prometheuspushgateway">PrometheusPushGateway reporter</a>. If you are processing measurements from devices you want to control this frequency.</li>
+<li>But the most fundamental reason is that these time-series are <strong>data</strong> from the point of view of the Flink application, and custom metrics are designed to observe how Flink process data, not for data itself.</li>
+</ul>
+<h2 id="key-features">
+  Key features
+  <a class="anchor" href="#key-features">#</a>
+</h2>
+<p>The version <code>1.0.0</code> of the Prometheus connector has the following features:</p>
+<ul>
+<li>DataStream API, Java Sink, based on AsyncSinkBase.</li>
+<li>Configurable write batching.</li>
+<li>Order is retained on retries.</li>
+<li>At-most-once guarantees (we’ll explain the reason for this later).</li>
+<li>Supports parallelism greater than 1.</li>
+<li>Configurable retry strategy for retryable server responses (e.g., throttling) and configurable behavior when the retry limit is reached.</li>
+</ul>
+<h3 id="authentication">
+  Authentication
+  <a class="anchor" href="#authentication">#</a>
+</h3>
+<p>Authentication is <a href="https://prometheus.io/docs/specs/remote_write_spec/#out-of-scope">explicitly out of scope</a> for Prometheus Remote-Write specifications.
+The connector provides a generic interface, PrometheusRequestSigner, to manipulate requests and add headers. This allows implementation of any authentication scheme that requires adding headers to the request, such as API keys, authorization, or signature tokens.</p>
+<p>In the release <code>1.0.0</code>, an implementation for Amazon Managed Service for Prometheus (AMP) is provided as a separate, optional dependency.</p>
+<h2 id="designing-the-connector">
+  Designing the connector
+  <a class="anchor" href="#designing-the-connector">#</a>
+</h2>
+<p>A sink to Prometheus differs from a sink to most other datastores or time-series databases. The wire interface is the easiest part; the main challenges arise from the differing design goals of Prometheus and Flink, as well as from the <a href="https://prometheus.io/docs/specs/remote_write_spec/">Remote-Write specifications</a>. Let’s go through some of these aspects to better understand the behavior of this connector.</p>
+<h3 id="data-model-and-wire-protocol">
+  Data model and wire protocol
+  <a class="anchor" href="#data-model-and-wire-protocol">#</a>
+</h3>
+<p>Prometheus is a dimensional time-series database. Each time-series is represented by a series of Samples (timestamp and value), identified by a set of unique Labels (key, value). Labels represents the dimensions with one label named <code>__name__</code> playing the special role of metric name. The set of Labels represent the unique identifier of the time-series. Records (Samples) are simply the values (doubles) in order of timestamp (long, as UNIX timestamp since the Epoch).</p>
+<center>
+<br/>
+<img src="/img/blog/2024-12-05-introducing-new-prometheus-connector/prometheus-data-model.png" width="60%"/>
+<br/>
+Fig. 1 - Logical data model of the Prometheus TSDB.
+</center>
+<p>The wire-protocol payload defined by the <a href="https://prometheus.io/docs/specs/remote_write_spec/">Remote-Write specifications</a> allows batching in a single write request datapoints (samples) from multiple time-series, and multiple samples for each time-series. This the Protobuf definition of the single method exposed by the interface:</p>
+<pre tabindex="0"><code>func Send(WriteRequest)
+
+message WriteRequest {
+  repeated TimeSeries timeseries = 1;
+  // [...]
+}
+
+message TimeSeries {
+  repeated Label labels   = 1;
+  repeated Sample samples = 2;
+}
+
+message Label {
+  string name  = 1;
+  string value = 2;
+}
+
+message Sample {
+  double value    = 1;
+  int64 timestamp = 2;
+}
+</code></pre><p>The POST payload is serialized as Protobuf 3, compressed with <a href="https://github.com/google/snappy">Snappy</a>.</p>
+<h3 id="specifications-constraints">
+  Specifications constraints
+  <a class="anchor" href="#specifications-constraints">#</a>
+</h3>
+<p>Specifications do not impose any constraints on repeating <code>TimeSeries</code> with the same set of <code>Label</code>, but it does require strict ordering of <code>Sample</code> belonging to the same time-series (by <code>timestamp</code>) and <code>Label</code> in a single <code>TimeSeries</code> (by name).</p>
+<blockquote class="book-hint info">
+  <p>The term &ldquo;time-series&rdquo; is overloaded, referring to both:</p>
+<ol>
+<li>A unique series of samples in the datastore, identified by a unique set of labels,
+and</li>
+<li><code>TimeSeries</code> as a block of the <code>WriteRequest</code>.</li>
+</ol>
+<p>The two concepts are obviously related, but a <code>WriteRequest</code> may contain multiple <code>TimeSeries</code> elements referring to the same datastore <em>time-series</em>.</p>
+
+</blockquote>
+
+<h3 id="prometheus-design-principles-vs-flink-design-principles">
+  Prometheus design principles vs Flink design principles
+  <a class="anchor" href="#prometheus-design-principles-vs-flink-design-principles">#</a>
+</h3>
+<p>Flink is designed with a consistency-first approach. By default, any unexpected error causes the streaming job to fail and restart from the last checkpoint.</p>
+<p>In contrast, Prometheus is designed with an availability-first approach, prioritizing fast ingestion over strict consistency. When a write request contains malformed entries, the entire request must be discarded and not retried. If you retry, Prometheus will keep rejecting your write, so there is no point doing it.
+Additionally, samples belonging to the same time series (with the same dimensions or labels) must be written in strict timestamp order.</p>
+<p>You may have already spotted the issue: any malformed or out-of-order samples can act as a “poison pill” unless you drop the offending request and proceed.</p>
+<h3 id="strict-specifications-lenient-implementations">
+  Strict specifications, lenient implementations
+  <a class="anchor" href="#strict-specifications-lenient-implementations">#</a>
+</h3>
+<p>The <a href="https://prometheus.io/docs/specs/remote_write_spec/">Remote-Write specifications</a> are very strict regarding the <a href="https://prometheus.io/docs/specs/remote_write_spec/#labels">ordering of <code>Labels</code></a> within a request, the <a href="https://prometheus.io/docs/specs/remote_write_spec/#ordering">ordering of <code>Samples</code></a> belonging to the same time-series, and preventing from <a href="https://prometheus.io/docs/specs/remote_write_spec/#retries-backoff">retrying rejected requests</a>.</p>
+<p>However, many Prometheus backend implementations are more lenient. They may support a limited, configurable out-of-order time window and may not enforce strict label ordering as long as other rules are followed.</p>
+<p>As a result, a connector that strictly enforces the Remote-Write specifications may limit the user’s flexibility compared to what their specific Prometheus implementation allows.</p>
+<h3 id="error-handling-and-guarantees">
+  Error-handling and guarantees
+  <a class="anchor" href="#error-handling-and-guarantees">#</a>
+</h3>
+<p>As we have seen, the Remote-Write specifications require that certain rejected writes—specifically those related to malformed and out-of-order samples (typically 400 responses)—must not be retried. The connector has no choice but to discard the entire offending request and continue with the next record. The specifications do not define a standard response format, and there is no reliable way to automatically identify and selectively discard the offending samples.</p>
+<p>The connector itself does not introduce out-of-order writes. Also, a <code>KeySelector</code> is provided to keyBy the stream sent to the connector to ensure the input order is not lost. Upstream of this point partitioning data correctly, identifying and resolving out-of-order data. See <a href="#users-responsibilities">User’s responsibilities</a>, below.</p>
+<p>For this reason, this is an <em>at-most-once</em> connector.</p>
+<p>If data loss is unavoidable, the best the connector can do is to make data loss very evident to the user. Each time a request is dropped, a <code>WARN</code> log is emitted, containing the endpoint’s response (which provides an indication of the issue) and incrementing counters for the number of dropped samples and requests.</p>
+<p>Not that, when the job restarts from checkpoints, some duplicate writes inevitably happen and they are discarded. As a user, you can safely ignore them.</p>
+<h3 id="scaling-writes-batching-parallelizing-and-ordering">
+  Scaling writes: batching, parallelizing, and ordering
+  <a class="anchor" href="#scaling-writes-batching-parallelizing-and-ordering">#</a>
+</h3>
+<p>There are two ways to scale write throughput to Prometheus: batching multiple samples into a single write request and parallelizing the writes.</p>
+<p>Parallelizing poses challenges due to the ordering requirements imposed by Prometheus. You must ensure that all samples belonging to the same time series (defined as records with an identical set of labels) are written by the same thread.</p>
+<p>Additionally, max inflight request is fixed to 1 for the underlying Async Sink.</p>
+<p>Otherwise, you risk accidental out-of-order writes, even if your data is initially in order.
+The connector handles this by ensuring that writes are never retried asynchronously. However, it is the user’s responsibility to partition the data before reaching the sink to preserve the correct order.</p>
+<h3 id="users-responsibilities">
+  User’s responsibilities
+  <a class="anchor" href="#users-responsibilities">#</a>
+</h3>
+<p>As always, giving users more control also brings more responsibility. Since the actual ordering constraints depend on the specific Prometheus backend implementation, the connector grants users the freedom (and the responsibility) to ensure they are sending valid data.</p>
+<p>If the data is invalid, Prometheus will reject the write request, and the Flink job will continue. Logs and metrics will indicate that something is wrong.</p>
+<p>In particular, it is the user’s responsibility to correctly partition the data within the Flink application and upstream so that the order per time series is maintained. Failing to do so will result in some data being dropped.
+That said, dropping a few data points is generally not an issue for observability use cases (if your use case requires zero data loss, you should probably consider a different time-series database). Additionally, we’ve observed that some Prometheus backends may occasionally drop writes, even when they are rigorously sent in order—especially when writing at high parallelism and pushing throughput to the limits of the backend resources.</p>
+<h2 id="testing-the-connector">
+  Testing the connector
+  <a class="anchor" href="#testing-the-connector">#</a>
+</h2>
+<p>Testing the connector posed some interesting challenges. Beyond typical unit test coverage, we implemented several “integration tests” to examine the stack of the error handler, retry policy, and HTTP client together. However, the most challenging aspect was testing behavior under error conditions and at scale. We quickly realized there was no simple way to test many of these error conditions automatically using a containerized Prometheus, especially not at scale.</p>
+<p>We decided to prioritize a manual testing plan, covering over 40 combinations of configurations and error conditions. We ran tests with Prometheus in Docker, and with Amazon Managed Service for Apache Flink and Amazon Managed Service for Prometheus to easily test at scale.</p>
+<p>In particular, the unhappy scenarios that have been tested include:</p>
+<ul>
+<li>Malformed (label names violating the specifications), and out of order writes.</li>
+<li>Restart from savepoint and from checkpoint.</li>
+<li>Behavior under backpressure, simulated exceeding the destination Prometheus quota, letting the connector retrying forever after being throttled.</li>
+<li>Maximum number of retries is exceeded, also simulated via Prometheus throttling, but with a low maximum retries value. The connector behavior in this case is configurable, so both “fail” (job fails and restart) and “discard and continue” behaviors have been tested.</li>
+<li>Remote-write endpoint is not reachable.</li>
+<li>Remote-write authentication fails.</li>
+<li>Inconsistent configuration, such as (numeric) parameters outside the expected range.</li>
+</ul>
+<p>To facilitate testing we created a data generator, a separate Flink application, capable of generating semi-random data and of introducing specific errors, like out-of-order samples. The generator can also produce a high volume of data for load and stress testing.  One aspect of the test harness requiring special attention was not losing ordering. For example, we used Kafka between the generator and the writer application. Kinesis was not an option due to its lack of strict ordering guarantees.</p>
+<p>Finally, the connector was also stress-tested, writing up to 1,000,000 samples per second with 1,000,000 cardinality (distinct time-series). 1 million is where we stopped testing, not a limit of the connector itself. This throughput has been achieved with parallelism between 24 and 32, depending on the number of samples per input record. Obviously, your mileage may vary, depending on your Prometheus backend, the samples per record, and the number of dimensions.</p>
+<h2 id="future-improvements">
+  Future improvements
+  <a class="anchor" href="#future-improvements">#</a>
+</h2>
+<p>There are a couple of obvious improvements for future releases:</p>
+<ol>
+<li>Table API/SQL support</li>
+<li>Optional validation of input data</li>
+</ol>
+<p>Both these features were considered for the first release, but excluded due to the challenges they would pose. Let&rsquo;s go through some of these considerations.</p>
+<h3 id="consideration-about-table-api-sql-interface">
+  Consideration about Table API /SQL interface
+  <a class="anchor" href="#consideration-about-table-api-sql-interface">#</a>
+</h3>
+<p>The structure of the record that Prometheus expects is hierarchical. A <code>TimeSeries</code> contains multiple <code>Labels</code> (key-value pairs, which essentially form the primary key of the record), and multiple <code>Samples</code>, which hold the actual measurement <code>value</code> and the <code>timestamps</code>. The maximum number of <code>Labels</code> depends on the Prometheus implementation, and a <code>TimeSeries</code> can have tens of <code>Labels</code>. Additionally, a single <code>TimeSeries</code> record can contain hundreds of <code>Samples</code>.</p>
+<p>This type of structured record is not easily represented in a table abstraction.</p>
+<p>A user-friendly Table API implementation would require flattening this structure, imposing a reasonable limit on the number of <code>Labels</code>, and including only a single <code>Sample</code> per record. While this does not prevent the sink from batching multiple records into a single write request, it would limit user flexibility and scalability.</p>
+<h3 id="considerations-about-data-validation">
+  Considerations about data validation
+  <a class="anchor" href="#considerations-about-data-validation">#</a>
+</h3>
+<p>Data validation would be a convenient feature, allowing to discard or send to a &ldquo;dead letter queue&rdquo; invalid records, before the sink attempts the write request that would be rejected by Prometheus. This would reduce data loss in case of malformed data, because Prometheus rejects the entire write request (the batch) regardless of the number of offending records.</p>
+<p>However, validating well-formed input would come with a significant performance cost. It would require checking every <code>Label</code> with a regular expression, and checking the ordering of the list of <code>Labels</code>, on every single input record.</p>
+<p>Additionally, checking <code>Sample</code> ordering in the sink would not allow reordering, unless you introduce some form of longer windowing that would inevitably increase latency. If latency is not a problem, some form of reordering can be implemented by the user, upstream of the connector.</p>
+<h2 id="list-of-contributors">
+  List of Contributors
+  <a class="anchor" href="#list-of-contributors">#</a>
+</h2>
+<p>Lorenzo Nicora, Hong Teoh, Francisco Morillo, Karthi Thyagarajan</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2024-12-05-introducing-new-prometheus-connector.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#motivations-for-a-prometheus-connector">Motivations for a Prometheus connector</a></li>
+        <li><a href="#key-features">Key features</a>
+          <ul>
+            <li><a href="#authentication">Authentication</a></li>
+          </ul>
+        </li>
+        <li><a href="#designing-the-connector">Designing the connector</a>
+          <ul>
+            <li><a href="#data-model-and-wire-protocol">Data model and wire protocol</a></li>
+            <li><a href="#specifications-constraints">Specifications constraints</a></li>
+            <li><a href="#prometheus-design-principles-vs-flink-design-principles">Prometheus design principles vs Flink design principles</a></li>
+            <li><a href="#strict-specifications-lenient-implementations">Strict specifications, lenient implementations</a></li>
+            <li><a href="#error-handling-and-guarantees">Error-handling and guarantees</a></li>
+            <li><a href="#scaling-writes-batching-parallelizing-and-ordering">Scaling writes: batching, parallelizing, and ordering</a></li>
+            <li><a href="#users-responsibilities">User’s responsibilities</a></li>
+          </ul>
+        </li>
+        <li><a href="#testing-the-connector">Testing the connector</a></li>
+        <li><a href="#future-improvements">Future improvements</a>
+          <ul>
+            <li><a href="#consideration-about-table-api-sql-interface">Consideration about Table API /SQL interface</a></li>
+            <li><a href="#considerations-about-data-validation">Considerations about data validation</a></li>
+          </ul>
+        </li>
+        <li><a href="#list-of-contributors">List of Contributors</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

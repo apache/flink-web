@@ -1,0 +1,795 @@
+
+<!DOCTYPE html>
+<html lang="zh" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Apache Flink 代码样式和质量指南 — 组件" />
+<meta property="og:description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/" /><meta property="article:section" content="how-to-contribute" />
+
+
+<title>Apache Flink 代码样式和质量指南 — 组件 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="alternate" hreflang="en" href="https://flink.apache.org/how-to-contribute/code-style-and-quality-components/" title="Code Style and Quality Guide — Components Guide">
+
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/zh.search.min.a8ffe5b99abaee80c22e63a42a544257a8a958f002fc92240a01c1b89771fc07.js" integrity="sha256-qP/luZq67oDCLmOkKlRCV6ipWPAC/JIkCgHBuJdx/Ac="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/zh/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/flink-architecture/">架构</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/flink-applications/">应用</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/flink-operations/">运维</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/use-cases/">应用场景</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/powered-by/">Flink 用户</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/roadmap/">开发计划</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/community/">社区 & 项目信息</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/what-is-flink/special-thanks/">特殊致谢</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">教程</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/overview/">如何参与贡献</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/contribute-code/">贡献代码</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/reviewing-prs/">审核 Pull Request</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/code-style-and-quality-preamble/">代码样式与质量指南</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/contribute-documentation/">贡献文档</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/documentation-style-guide/">文档样式指南</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/improve-website/">贡献网站</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/zh/how-to-contribute/getting-help/">获取帮助</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/zh/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="搜索" aria-label="搜索" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+  <article class="markdown"><h1 id="apache-flink-代码样式和质量指南--组件">
+  Apache Flink 代码样式和质量指南 — 组件
+  <a class="anchor" href="#apache-flink-%e4%bb%a3%e7%a0%81%e6%a0%b7%e5%bc%8f%e5%92%8c%e8%b4%a8%e9%87%8f%e6%8c%87%e5%8d%97--%e7%bb%84%e4%bb%b6">#</a>
+</h1>
+<h4 id="序言hahahugoshortcode55s0hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-preamble/">序言</a>
+  <a class="anchor" href="#%e5%ba%8f%e8%a8%80hahahugoshortcode55s0hbhb">#</a>
+</h4>
+<h4 id="pull-requests--changeshahahugoshortcode55s1hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-pull-requests/">Pull Requests &amp; Changes</a>
+  <a class="anchor" href="#pull-requests--changeshahahugoshortcode55s1hbhb">#</a>
+</h4>
+<h4 id="常用编码指南hahahugoshortcode55s2hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-common/">常用编码指南</a>
+  <a class="anchor" href="#%e5%b8%b8%e7%94%a8%e7%bc%96%e7%a0%81%e6%8c%87%e5%8d%97hahahugoshortcode55s2hbhb">#</a>
+</h4>
+<h4 id="java-语言指南hahahugoshortcode55s3hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-java/">Java 语言指南</a>
+  <a class="anchor" href="#java-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode55s3hbhb">#</a>
+</h4>
+<h4 id="scala-语言指南hahahugoshortcode55s4hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-scala/">Scala 语言指南</a>
+  <a class="anchor" href="#scala-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode55s4hbhb">#</a>
+</h4>
+<h4 id="组件指南hahahugoshortcode55s5hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-components/">组件指南</a>
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e6%8c%87%e5%8d%97hahahugoshortcode55s5hbhb">#</a>
+</h4>
+<h4 id="格式指南hahahugoshortcode55s6hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-formatting/">格式指南</a>
+  <a class="anchor" href="#%e6%a0%bc%e5%bc%8f%e6%8c%87%e5%8d%97hahahugoshortcode55s6hbhb">#</a>
+</h4>
+<h2 id="组件特定指南">
+  组件特定指南
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e7%89%b9%e5%ae%9a%e6%8c%87%e5%8d%97">#</a>
+</h2>
+<p><em>关于特定组件更改的附加指南。</em></p>
+<h3 id="配置更改">
+  配置更改
+  <a class="anchor" href="#%e9%85%8d%e7%bd%ae%e6%9b%b4%e6%94%b9">#</a>
+</h3>
+<p>配置选项应该放在哪里？</p>
+<ul>
+<li><span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。</li>
+<li><span style="text-decoration:underline;">‘ExecutionConfig’</span>: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。</li>
+<li><span style="text-decoration:underline;">ExecutionEnvironment (in code)</span>: 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。</li>
+</ul>
+<p>如何命名配置键：</p>
+<ul>
+<li>
+<p>配置键名应该分层级。将配置视为嵌套对象（JSON 样式）</p>
+<pre tabindex="0"><code>taskmanager: {
+  jvm-exit-on-oom: true,
+  network: {
+    detailed-metrics: false,
+    request-backoff: {
+      initial: 100,
+      max: 10000
+    },
+    memory: {
+      fraction: 0.1,
+      min: 64MB,
+      max: 1GB,
+      buffers-per-channel: 2,
+      floating-buffers-per-gate: 16
+    }
+  }
+}
+</code></pre></li>
+<li>
+<p>因此生成的配置键应该：</p>
+<p><strong>不是</strong> <code>&quot;taskmanager.detailed.network.metrics&quot;</code></p>
+<p><strong>而是</strong> <code>&quot;taskmanager.network.detailed-metrics&quot;</code></p>
+</li>
+</ul>
+<h3 id="连接器">
+  连接器
+  <a class="anchor" href="#%e8%bf%9e%e6%8e%a5%e5%99%a8">#</a>
+</h3>
+<p>连接器历来很难实现，需要处理多线程、并发和检查点等许多方面。</p>
+<p>作为 <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A&#43;Refactor&#43;Source&#43;Interface">FLIP-27</a> 的一部分，我们正在努力使数据源（source）的实现更简单。新的数据源应该不必处理并发/线程和检查点的任何方面。</p>
+<p>预计在不久的将来，会有类似针对数据汇（sink）的 FLIP。</p>
+<h3 id="示例">
+  示例
+  <a class="anchor" href="#%e7%a4%ba%e4%be%8b">#</a>
+</h3>
+<p>示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。数据源/数据汇可以使用 <code>StreamExecutionEnvironment.socketTextStream</code>，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的数据源/数据源。（对于流，Flink 提供了连续的文件数据源读取数据） 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。</p>
+<p>示例中应该有不少的注释。他们可以在类级 Javadoc 中描述示例的总体思路，并且描述正在发生什么和整个代码里使用了什么功能。还应描述预期的输入数据和输出数据。</p>
+<p>示例应该包括参数解析，以便你可以运行一个示例（使用 <code>bin/flink run path/to/myExample.jar --param1 … --param2</code> 运行程序）。</p>
+<h3 id="表和-sql-api">
+  表和 SQL API
+  <a class="anchor" href="#%e8%a1%a8%e5%92%8c-sql-api">#</a>
+</h3>
+<h4 id="语义">
+  语义
+  <a class="anchor" href="#%e8%af%ad%e4%b9%89">#</a>
+</h4>
+<p><strong>SQL 标准应该是事实的主要来源。</strong></p>
+<ul>
+<li>语法、语义和功能应该和 SQL 保持一致！</li>
+<li>我们不需要重造轮子。大部分问题都已经在业界广泛讨论过并写在 SQL 标准中了。</li>
+<li>我们依靠最新的标准（在写这篇文档时使用 SQL:2016 or ISO/IEC 9075:2016 (<a href="https://standards.iso.org/ittf/PubliclyAvailableStandards/c065143_ISO_IEC_TR_19075-5_2016.zip">[下载]</a>)。并不是所有的部分都能在网上找到，但可以通过网络查找确认。</li>
+</ul>
+<p>讨论与标准或厂商特定解释的差异。</p>
+<ul>
+<li>一旦定义了语法或行为就不能轻易撤销。</li>
+<li>需要扩展或解释标准的贡献需要与社区进行深入的讨论。</li>
+<li>请通过一些对 Postgres、Microsoft SQL Server、Oracle、Hive、Calcite、Beam 等其他厂商如何处理此类案例进行初步的探讨来帮助提交者。</li>
+</ul>
+<p>将 Table API 视为 SQL 和 Java/Scala 编程世界之间的桥梁。</p>
+<ul>
+<li>Table API 是一种嵌入式域特定语言，用于遵循关系模型的分析程序。 在语法和名称方面不需要严格遵循 SQL 标准，但如果这有助于使其感觉更直观，那么可以更接近编程语言的方式/命名函数和功能。</li>
+<li>Table API 可能有一些非 SQL 功能（例如 map()、flatMap() 等），但还是应该“感觉像 SQL”。如果可能，函数和算子应该有相等的语义和命名。</li>
+</ul>
+<h4 id="常见错误">
+  常见错误
+  <a class="anchor" href="#%e5%b8%b8%e8%a7%81%e9%94%99%e8%af%af">#</a>
+</h4>
+<ul>
+<li>添加功能时支持 SQL 的类型系统。
+<ul>
+<li>SQL 函数、连接器或格式化从一开始就应该原生的支持大多数 SQL 类型。</li>
+<li>不支持的类型会导致混淆，限制可用性，多次修改相同代码会增加负担。</li>
+<li>例如，当添加 <code>SHIFT_LEFT</code> 函数时，确保贡献足够通用，不仅适用于 <code>INT</code> 也适用于 <code>BIGINT</code> 或 <code>TINYINT</code>.</li>
+</ul>
+</li>
+</ul>
+<h4 id="测试">
+  测试
+  <a class="anchor" href="#%e6%b5%8b%e8%af%95">#</a>
+</h4>
+<p>测试为空性</p>
+<ul>
+<li>几乎每个操作，SQL 都原生支持 <code>NULL</code>，并具有 3 值布尔逻辑。</li>
+<li>确保测试每个功能的可空性。</li>
+</ul>
+<p>尽量避免集成测试</p>
+<ul>
+<li>启动一个 Flink 集群并且对 SQL 查询生成的代码进行编译会很耗时。</li>
+<li>避免对 planner 测试或 API 调用的变更进行集成测试。</li>
+<li>相反，使用单元测试来验证 planner 产生的优化计划。或者直接测试算子的运行时行为。</li>
+</ul>
+<h4 id="兼容性">
+  兼容性
+  <a class="anchor" href="#%e5%85%bc%e5%ae%b9%e6%80%a7">#</a>
+</h4>
+<p>不要在次要版本中引入物理计划更改！</p>
+<ul>
+<li>流式 SQL 中状态的向后兼容性依赖于物理执行计划保持稳定的事实。否则，生成的 Operator Names/IDs 将发生变化，并且无法匹配和恢复状态。</li>
+<li>导致流传输管道的优化物理计划改变的每个 bug 修复均会破坏兼容性。</li>
+<li>因此，导致不同优化计划的此类更改目前仅可以合并到大版本中。</li>
+</ul>
+<h4 id="scala--java-互操作性遗留代码部分">
+  Scala / Java 互操作性（遗留代码部分）
+  <a class="anchor" href="#scala--java-%e4%ba%92%e6%93%8d%e4%bd%9c%e6%80%a7%e9%81%97%e7%95%99%e4%bb%a3%e7%a0%81%e9%83%a8%e5%88%86">#</a>
+</h4>
+<p>在设计接口时要牢记 Java。</p>
+<ul>
+<li>考虑一个类将来是否需要与 Java 类交互。</li>
+<li>在接口中使用 Java 集合和 Java Optional，以便与 Java 代码平滑集成。</li>
+<li>如果要将类转换为 Java，不要使用 .copy() 或 apply() 等 case class 的功能进行构造。</li>
+<li>纯 Scala 面向用户的 API 应该使用纯 Scala 集合/迭代/等与 Scala 自然和惯用的（“scalaesk”）集成。</li>
+</ul>
+</article>
+
+          
+
+
+
+  
+  
+  	
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content.zh/how-to-contribute/code-style-and-quality-components.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+  
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#apache-flink-代码样式和质量指南--组件">Apache Flink 代码样式和质量指南 — 组件</a>
+      <ul>
+        <li>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#组件特定指南">组件特定指南</a>
+          <ul>
+            <li><a href="#配置更改">配置更改</a></li>
+            <li><a href="#连接器">连接器</a></li>
+            <li><a href="#示例">示例</a></li>
+            <li><a href="#表和-sql-api">表和 SQL API</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+            
+          
+
+          
+            
+              
+                <li>
+                  <a  href="/how-to-contribute/code-style-and-quality-components/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;English
+                  </a>
+                </li>
+              
+            
+          
+            
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/zh/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

@@ -1,0 +1,689 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2019/09/13/the-state-processor-api-how-to-read-write-and-modify-the-state-of-flink-applications/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Whether you are running Apache FlinkⓇ in production or evaluated Flink as a computation framework in the past, you&rsquo;ve probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! Apache Flink 1.9.0 introduces the State Processor API, a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink&rsquo;s savepoints and checkpoints.
+In this post, we explain why this feature is a big step for Flink, what you can use it for, and how to use it.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="The State Processor API: How to Read, write and modify the state of Flink applications" />
+<meta property="og:description" content="Whether you are running Apache FlinkⓇ in production or evaluated Flink as a computation framework in the past, you&rsquo;ve probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! Apache Flink 1.9.0 introduces the State Processor API, a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink&rsquo;s savepoints and checkpoints.
+In this post, we explain why this feature is a big step for Flink, what you can use it for, and how to use it." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/09/13/the-state-processor-api-how-to-read-write-and-modify-the-state-of-flink-applications/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-09-13T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-09-13T12:00:00+00:00" />
+<title>The State Processor API: How to Read, write and modify the state of Flink applications | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2019/09/13/the-state-processor-api-how-to-read-write-and-modify-the-state-of-flink-applications/">The State Processor API: How to Read, write and modify the state of Flink applications</a>
+    </h1>
+    
+
+
+  September 13, 2019 -
+
+
+
+  Seth Wiesman
+
+  <a href="https://twitter.com/sjwiesman">(@sjwiesman)</a>
+  
+
+  Fabian Hueske
+
+  <a href="https://twitter.com/fhueske">(@fhueske)</a>
+  
+
+
+
+    <p><p>Whether you are running Apache Flink<sup>Ⓡ</sup> in production or evaluated Flink as a computation framework in the past, you&rsquo;ve probably found yourself asking the question: How can I access, write or update state in a Flink savepoint? Ask no more! <a href="https://flink.apache.org/news/2019/08/22/release-1.9.0.html">Apache Flink 1.9.0</a> introduces the <a href="//nightlies.apache.org/flink/flink-docs-release-1.9/dev/libs/state_processor_api.html">State Processor API</a>, a powerful extension of the DataSet API that allows reading, writing and modifying state in Flink&rsquo;s savepoints and checkpoints.</p>
+<p>In this post, we explain why this feature is a big step for Flink, what you can use it for, and how to use it. Finally, we will discuss the future of the State Processor API and how it aligns with our plans to evolve Flink into a system for <a href="https://flink.apache.org/news/2019/02/13/unified-batch-streaming-blink.html">unified batch and stream processing</a>.</p>
+<h2 id="stateful-stream-processing-with-apache-flink-until-flink-19">
+  Stateful Stream Processing with Apache Flink until Flink 1.9
+  <a class="anchor" href="#stateful-stream-processing-with-apache-flink-until-flink-19">#</a>
+</h2>
+<p>All non-trivial stream processing applications are stateful and most of them are designed to run for months or years. Over time, many of them accumulate a lot of valuable state that can be very expensive or even impossible to rebuild if it gets lost due to a failure. In order to guarantee the consistency and durability of application state, Flink featured a sophisticated checkpointing and recovery mechanism from very early on. With every release, the Flink community has added more and more state-related features to improve checkpointing and recovery speed, the maintenance of applications, and practices to manage applications.</p>
+<p>However, a feature that was commonly requested by Flink users was the ability to access the state of an application “from the outside”. This request was motivated by the need to validate or debug the state of an application, to migrate the state of an application to another application, to evolve an application from the Heap State Backend to the RocksDB State Backend, or to import the initial state of an application from an external system like a relational database.</p>
+<p>Despite all those convincing reasons to expose application state externally, your access options have been fairly limited until now. Flink&rsquo;s Queryable State feature only supports key-lookups (point queries) and does not guarantee the consistency of returned values (the value of a key might be different before and after an application recovered from a failure). Moreover, queryable state cannot be used to add or modify the state of an application. Also, savepoints, which are consistent snapshots of an application&rsquo;s state, were not accessible because the application state is encoded with a custom binary format.</p>
+<h2 id="reading-and-writing-application-state-with-the-state-processor-api">
+  Reading and Writing Application State with the State Processor API
+  <a class="anchor" href="#reading-and-writing-application-state-with-the-state-processor-api">#</a>
+</h2>
+<p>The State Processor API that comes with Flink 1.9 is a true game-changer in how you can work with application state! In a nutshell, it extends the DataSet API with Input and OutputFormats to read and write savepoint or checkpoint data. Due to the <a href="//nightlies.apache.org/flink/flink-docs-master/dev/table/common.html#integration-with-datastream-and-dataset-api">interoperability of DataSet and Table API</a>, you can even use relational Table API or SQL queries to analyze and process state data.</p>
+<p>For example, you can take a savepoint of a running stream processing application and analyze it with a DataSet batch program to verify that the application behaves correctly. Or you can read a batch of data from any store, preprocess it, and write the result to a savepoint that you use to bootstrap the state of a streaming application. It&rsquo;s also possible to fix inconsistent state entries now. Finally, the State Processor API opens up many ways to evolve a stateful application that were previously blocked by parameter and design choices that could not be changed without losing all the state of the application after it was started. For example, you can now arbitrarily modify the data types of states, adjust the maximum parallelism of operators, split or merge operator state, re-assign operator UIDs, and so on.</p>
+<h2 id="mapping-application-state-to-datasets">
+  Mapping Application State to DataSets
+  <a class="anchor" href="#mapping-application-state-to-datasets">#</a>
+</h2>
+<p>The State Processor API maps the state of a streaming application to one or more data sets that can be separately processed. In order to be able to use the API, you need to understand how this mapping works.</p>
+<p>But let&rsquo;s first have a look at what a stateful Flink job looks like. A Flink job is composed of operators, typically one or more source operators, a few operators for the actual processing, and one or more sink operators. Each operator runs in parallel in one or more tasks and can work with different types of state. An operator can have zero, one, or more <em>“operator states”</em> which are organized as lists that are scoped to the operator&rsquo;s tasks. If the operator is applied on a keyed stream, it can also have zero, one, or more <em>“keyed states”</em> which are scoped to a key that is extracted from each processed record. You can think of keyed state as a distributed key-value map.</p>
+<p>The following figure shows the application “MyApp” which consists of three operators called “Src”, “Proc”, and “Snk”. Src has one operator state (os1), Proc has one operator state (os2) and two keyed states (ks1, ks2) and Snk is stateless.</p>
+<p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
+	<img src="/img/blog/2019-09-13-state-processor-api-blog/application-my-app-state-processor-api.png" width="600px" alt="Application: My App"/>
+</p>
+<p>A savepoint or checkpoint of MyApp consists of the data of all states, organized in a way that the states of each task can be restored. When processing the data of a savepoint (or checkpoint) with a batch job, we need a mental model that maps the data of the individual tasks&rsquo; states into data sets or tables. In fact, we can think of a savepoint as a database. Every operator (identified by its UID) represents a namespace. Each operator state of an operator is mapped to a dedicated table in the namespace with a single column that holds the state&rsquo;s data of all tasks. All keyed states of an operator are mapped to a single table consisting of a column for the key, and one column for each keyed state. The following figure shows how a savepoint of MyApp is mapped to a database.</p>
+<p style="display: block; text-align: center; margin-top: 20px; margin-bottom: 20px">
+	<img src="/img/blog/2019-09-13-state-processor-api-blog/database-my-app-state-processor-api.png" width="600px" alt="Database: My App"/>
+</p>
+<p>The figure shows how the values of Src&rsquo;s operator state are mapped to a table with one column and five rows, one row for all list entries across all parallel tasks of Src. Operator state os2 of the operator “Proc” is similarly mapped to an individual table. The keyed states ks1 and ks2 are combined to a single table with three columns, one for the key, one for ks1 and one for ks2. The keyed table holds one row for each distinct key of both keyed states. Since the operator “Snk” does not have any state, its namespace is empty.</p>
+<p>The State Processor API now offers methods to create, load, and write a savepoint. You can read a DataSet from a loaded savepoint or convert a DataSet into a state and add it to a savepoint. DataSets can be processed with the full feature set of the DataSet API. With these building blocks, all of the before-mentioned use cases (and more) can be addressed. Please have a look at the <a href="//nightlies.apache.org/flink/flink-docs-release-1.9/dev/libs/state_processor_api.html">documentation</a> if you&rsquo;d like to learn how to use the State Processor API in detail.</p>
+<h2 id="why-dataset-api">
+  Why DataSet API?
+  <a class="anchor" href="#why-dataset-api">#</a>
+</h2>
+<p>In case you are familiar with <a href="https://flink.apache.org/roadmap.html">Flink&rsquo;s roadmap</a>, you might be surprised that the State Processor API is based on the DataSet API. The Flink community plans to extend the DataStream API with the concept of <em>BoundedStreams</em> and deprecate the DataSet API. When designing this feature, we also evaluated the DataStream API or Table API but neither could provide the right feature set yet. Since we didn&rsquo;t want to block this feature on the progress of Flink&rsquo;s APIs, we decided to build it on the DataSet API, but kept its dependencies on the DataSet API to a minimum. Hence, migrating it to another API should be fairly easy.</p>
+<h2 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h2>
+<p>Flink users have requested a feature to access and modify the state of streaming applications from the outside for a long time. With the State Processor API, Flink 1.9.0 finally exposes application state as a data format that can be manipulated. This feature opens up many new possibilities for how users can maintain and manage Flink streaming applications, including arbitrary evolution of stream applications and exporting and bootstrapping of application state. To put it concisely, the State Processor API unlocks the black box that savepoints used to be.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-09-13-state-processor-api.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#stateful-stream-processing-with-apache-flink-until-flink-19">Stateful Stream Processing with Apache Flink until Flink 1.9</a></li>
+        <li><a href="#reading-and-writing-application-state-with-the-state-processor-api">Reading and Writing Application State with the State Processor API</a></li>
+        <li><a href="#mapping-application-state-to-datasets">Mapping Application State to DataSets</a></li>
+        <li><a href="#why-dataset-api">Why DataSet API?</a></li>
+        <li><a href="#summary">Summary</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

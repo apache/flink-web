@@ -1,0 +1,745 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2019/03/11/flink-and-prometheus-cloud-native-monitoring-of-streaming-applications/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This blog post describes how developers can leverage Apache Flink&rsquo;s built-in metrics system together with Prometheus to observe and monitor streaming applications in an effective way. This is a follow-up post from my Flink Forward Berlin 2018 talk (slides, video). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flink and Prometheus: Cloud-native monitoring of streaming applications" />
+<meta property="og:description" content="This blog post describes how developers can leverage Apache Flink&rsquo;s built-in metrics system together with Prometheus to observe and monitor streaming applications in an effective way. This is a follow-up post from my Flink Forward Berlin 2018 talk (slides, video). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/03/11/flink-and-prometheus-cloud-native-monitoring-of-streaming-applications/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-03-11T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-03-11T12:00:00+00:00" />
+<title>Flink and Prometheus: Cloud-native monitoring of streaming applications | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2019/03/11/flink-and-prometheus-cloud-native-monitoring-of-streaming-applications/">Flink and Prometheus: Cloud-native monitoring of streaming applications</a>
+    </h1>
+    
+
+
+  March 11, 2019 -
+
+
+
+  Maximilian Bode, TNG Technology Consulting
+
+  <a href="https://twitter.com/mxpbode">(@mxpbode)</a>
+  
+
+
+
+    <p><p>This blog post describes how developers can leverage Apache Flink&rsquo;s built-in <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html">metrics system</a> together with <a href="https://prometheus.io/">Prometheus</a> to observe and monitor streaming applications in an effective way. This is a follow-up post from my <a href="https://flink-forward.org/">Flink Forward</a> Berlin 2018 talk (<a href="https://www.slideshare.net/MaximilianBode1/monitoring-flink-with-prometheus">slides</a>, <a href="https://www.ververica.com/flink-forward-berlin/resources/monitoring-flink-with-prometheus">video</a>). We will cover some basic Prometheus concepts and why it is a great fit for monitoring Apache Flink stream processing jobs. There is also an example to showcase how you can utilize Prometheus with Flink to gain insights into your applications and be alerted on potential degradations of your Flink jobs.</p>
+<h2 id="why-prometheus">
+  Why Prometheus?
+  <a class="anchor" href="#why-prometheus">#</a>
+</h2>
+<p>Prometheus is a metrics-based monitoring system that was originally created in 2012. The system is completely open-source (under the Apache License 2) with a vibrant community behind it and it has graduated from the Cloud Native Foundation last year – a sign of maturity, stability and production-readiness. As we mentioned, the system is based on metrics and it is designed to measure the overall health, behavior and performance of a service. Prometheus features a multi-dimensional data model as well as a flexible query language. It is designed for reliability and can easily be deployed in traditional or containerized environments. Some of the important Prometheus concepts are:</p>
+<ul>
+<li>
+<p><strong>Metrics:</strong> Prometheus defines metrics as floats of information that change in time. These time series have millisecond precision.</p>
+</li>
+<li>
+<p><strong>Labels</strong> are the key-value pairs associated with time series that support Prometheus&rsquo; flexible and powerful data model – in contrast to hierarchical data structures that one might experience with traditional metrics systems.</p>
+</li>
+<li>
+<p><strong>Scrape:</strong> Prometheus is a pull-based system and fetches (&ldquo;scrapes&rdquo;) metrics data from specified sources that expose HTTP endpoints with a text-based format.</p>
+</li>
+<li>
+<p><strong>PromQL</strong> is Prometheus&rsquo; <a href="https://prometheus.io/docs/prometheus/latest/querying/basics/">query language</a>. It can be used for both building dashboards and setting up alert rules that will trigger when specific conditions are met.</p>
+</li>
+</ul>
+<p>When considering metrics and monitoring systems for your Flink jobs, there are many <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html">options</a>. Flink offers native support for exposing data to Prometheus via the <code>PrometheusReporter</code> configuration. Setting up this integration is very easy.</p>
+<p>Prometheus is a great choice as usually Flink jobs are not running in isolation but in a greater context of microservices. For making metrics available to Prometheus from other parts of a larger system, there are two options: There exist <a href="https://prometheus.io/docs/instrumenting/clientlibs/">libraries for all major languages</a> to instrument other applications. Additionally, there is a wide variety of <a href="https://prometheus.io/docs/instrumenting/exporters/">exporters</a>, which are tools that expose metrics of third-party systems (like databases or Apache Kafka) as Prometheus metrics.</p>
+<h2 id="prometheus-and-flink-in-action">
+  Prometheus and Flink in Action
+  <a class="anchor" href="#prometheus-and-flink-in-action">#</a>
+</h2>
+<p>We have provided a <a href="https://github.com/mbode/flink-prometheus-example">GitHub repository</a> that demonstrates the integration described above. To have a look, clone the repository, make sure <a href="https://docs.docker.com/install/">Docker</a> is installed and run:</p>
+<pre tabindex="0"><code>./gradlew composeUp
+</code></pre><p>This builds a Flink job using the build tool <a href="https://gradle.org/">Gradle</a> and starts up a local environment based on <a href="https://docs.docker.com/compose/">Docker Compose</a> running the job in a <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/ops/deployment/docker.html#flink-job-cluster">Flink job cluster</a> (reachable at <a href="http://localhost:8081/">http://localhost:8081</a>) as well as a Prometheus instance (<a href="http://localhost:9090/">http://localhost:9090</a>).</p>
+<center>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheusexamplejob.png" width="600px" alt="PrometheusExampleJob in Flink Web UI"/>
+<br/>
+<i><small>Job graph and custom metric for example job in Flink web interface.</small></i>
+</center>
+<br/>
+<p>The <code>PrometheusExampleJob</code> has three operators: Random numbers up to 10,000 are generated, then a map counts the events and creates a histogram of the values passed through. Finally, the events are discarded without further output. The very simple code below is from the second operator. It illustrates how easy it is to add custom metrics relevant to your business logic into your Flink job.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">FlinkMetricsExposingMapFunction</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">RichMapFunction</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">transient</span><span class="w"> </span><span class="n">Counter</span><span class="w"> </span><span class="n">eventCounter</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">Configuration</span><span class="w"> </span><span class="n">parameters</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">eventCounter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getRuntimeContext</span><span class="p">().</span><span class="na">getMetricGroup</span><span class="p">().</span><span class="na">counter</span><span class="p">(</span><span class="s">&#34;events&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">Integer</span><span class="w"> </span><span class="nf">map</span><span class="p">(</span><span class="n">Integer</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">eventCounter</span><span class="p">.</span><span class="na">inc</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><center><i><small>Excerpt from <a href="https://github.com/mbode/flink-prometheus-example/blob/master/src/main/java/com/github/mbode/flink_prometheus_example/FlinkMetricsExposingMapFunction.java">FlinkMetricsExposingMapFunction.java</a> demonstrating custom Flink metric.</small></i></center>
+<h2 id="configuring-prometheus-with-flink">
+  Configuring Prometheus with Flink
+  <a class="anchor" href="#configuring-prometheus-with-flink">#</a>
+</h2>
+<p>To start monitoring Flink with Prometheus, the following steps are necessary:</p>
+<ol>
+<li>
+<p>Make the <code>PrometheusReporter</code> jar available to the classpath of the Flink cluster (it comes with the Flink distribution):</p>
+<pre><code> cp /opt/flink/opt/flink-metrics-prometheus-1.7.2.jar /opt/flink/lib
+</code></pre>
+</li>
+<li>
+<p><a href="//nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html#reporter">Configure the reporter</a> in Flink&rsquo;s <em>flink-conf.yaml</em>. All job managers and task managers will expose the metrics on the configured port.</p>
+<pre><code> metrics.reporters: prom
+ metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
+ metrics.reporter.prom.port: 9999
+</code></pre>
+</li>
+<li>
+<p>Prometheus needs to know where to scrape metrics. In a static scenario, you can simply <a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/">configure Prometheus</a> in <em>prometheus.yml</em> with the following:</p>
+<pre><code> scrape_configs:
+ - job_name: 'flink'
+   static_configs:
+   - targets: ['job-cluster:9999', 'taskmanager1:9999', 'taskmanager2:9999']
+</code></pre>
+<p>In more dynamic scenarios we recommend using Prometheus&rsquo; service discovery support for different platforms such as Kubernetes, AWS EC2 and more.</p>
+</li>
+</ol>
+<p>Both custom metrics are now available in Prometheus:</p>
+<center>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheus.png" width="600px" alt="Prometheus web UI with example metric"/>
+<br/>
+<i><small>Example metric in Prometheus web UI.</small></i>
+</center>
+<br/>
+<p>More technical metrics from the Flink cluster (like checkpoint sizes or duration, Kafka offsets or resource consumption) are also available. If you are interested, you can check out the HTTP endpoints exposing all Prometheus metrics for the job managers and the two task managers on <a href="http://localhost:9249/metrics">http://localhost:9249</a>, <a href="http://localhost:9250/metrics">http://localhost:9250</a> and <a href="http://localhost:9251/metrics">http://localhost:9251</a>, respectively.</p>
+<p>To test Prometheus&rsquo; alerting feature, kill one of the Flink task managers via</p>
+<pre tabindex="0"><code>docker kill taskmanager1
+</code></pre><p>Our Flink job can recover from this partial failure via the mechanism of <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/dev/stream/state/checkpointing.html">Checkpointing</a>. Nevertheless, after roughly one minute (as configured in the alert rule) the following alert will fire:</p>
+<center>
+<img src="/img/blog/2019-03-11-prometheus-monitoring/prometheusalerts.png" width="600px" alt="Prometheus web UI with example alert"/>
+<br/>
+<i><small>Example alert in Prometheus web UI.</small></i>
+</center>
+<br/>
+<p>In real-world situations alerts like this one can be routed through a component called <a href="https://prometheus.io/docs/alerting/alertmanager/">Alertmanager</a> and be grouped into notifications to systems like email, PagerDuty or Slack.</p>
+<p>Go ahead and play around with the setup, and check out the <a href="https://grafana.com/grafana">Grafana</a> instance reachable at <a href="http://localhost:3000/">http://localhost:3000</a> (credentials <em>admin:flink</em>) for visualizing Prometheus metrics. If there are any questions or problems, feel free to <a href="https://github.com/mbode/flink-prometheus-example/issues">create an issue</a>. Once finished, do not forget to tear down the setup via</p>
+<pre tabindex="0"><code>./gradlew composeDown
+</code></pre><br/>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>Using Prometheus together with Flink provides an easy way for effective monitoring and alerting of your Flink jobs. Both projects have exciting and vibrant communities behind them with new developments and additions scheduled for upcoming releases. We encourage you to try the two technologies together as it has immensely improved our insights into Flink jobs running in production.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-03-11-prometheus-monitoring.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#why-prometheus">Why Prometheus?</a></li>
+        <li><a href="#prometheus-and-flink-in-action">Prometheus and Flink in Action</a></li>
+        <li><a href="#configuring-prometheus-with-flink">Configuring Prometheus with Flink</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

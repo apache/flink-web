@@ -1,0 +1,715 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2020/06/15/flink-on-zeppelin-notebooks-for-interactive-data-analysis-part-1/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The latest release of Apache Zeppelin comes with a redesigned interpreter for Apache Flink (version Flink 1.10&#43; is only supported moving forward) that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, and provide a tutorial for running Streaming ETL with Flink on Zeppelin.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1" />
+<meta property="og:description" content="The latest release of Apache Zeppelin comes with a redesigned interpreter for Apache Flink (version Flink 1.10&#43; is only supported moving forward) that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works, and provide a tutorial for running Streaming ETL with Flink on Zeppelin." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/06/15/flink-on-zeppelin-notebooks-for-interactive-data-analysis-part-1/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-06-15T08:00:00+00:00" />
+<meta property="article:modified_time" content="2020-06-15T08:00:00+00:00" />
+<title>Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2020/06/15/flink-on-zeppelin-notebooks-for-interactive-data-analysis-part-1/">Flink on Zeppelin Notebooks for Interactive Data Analysis - Part 1</a>
+    </h1>
+    
+
+
+  June 15, 2020 -
+
+
+
+  Jeff Zhang
+
+  <a href="https://twitter.com/zjffdu">(@zjffdu)</a>
+  
+
+
+
+    <p><p>The latest release of <a href="https://zeppelin.apache.org/">Apache Zeppelin</a> comes with a redesigned interpreter for Apache Flink (version Flink 1.10+ is only supported moving forward)
+that allows developers to use Flink directly on Zeppelin notebooks for interactive data analysis. I wrote 2 posts about how to use Flink in Zeppelin. This is part-1 where I explain how the Flink interpreter in Zeppelin works,
+and provide a tutorial for running Streaming ETL with Flink on Zeppelin.</p>
+<h1 id="the-flink-interpreter-in-zeppelin-09">
+  The Flink Interpreter in Zeppelin 0.9
+  <a class="anchor" href="#the-flink-interpreter-in-zeppelin-09">#</a>
+</h1>
+<p>The Flink interpreter can be accessed and configured from Zeppelin’s interpreter settings page.
+The interpreter has been refactored so that Flink users can now take advantage of Zeppelin to write Flink applications in three languages,
+namely Scala, Python (PyFlink) and SQL (for both batch &amp; streaming executions).
+Zeppelin 0.9 now comes with the Flink interpreter group, consisting of the below five interpreters:</p>
+<ul>
+<li>%flink     - Provides a Scala environment</li>
+<li>%flink.pyflink   - Provides a python environment</li>
+<li>%flink.ipyflink   - Provides an ipython environment</li>
+<li>%flink.ssql     - Provides a stream sql environment</li>
+<li>%flink.bsql     - Provides a batch sql environment</li>
+</ul>
+<p>Not only has the interpreter been extended to support writing Flink applications in three languages, but it has also extended the available execution modes for Flink that now include:</p>
+<ul>
+<li>Running Flink in Local Mode</li>
+<li>Running Flink in Remote Mode</li>
+<li>Running Flink in Yarn Mode</li>
+</ul>
+<p>You can find more information about how to get started with Zeppelin and all the execution modes for Flink applications in <a href="https://github.com/apache/zeppelin/tree/master/notebook/Flink%20Tutorial">Zeppelin notebooks</a> in this post.</p>
+<h1 id="flink-on-zeppelin-for-stream-processing">
+  Flink on Zeppelin for Stream processing
+  <a class="anchor" href="#flink-on-zeppelin-for-stream-processing">#</a>
+</h1>
+<p>Performing stream processing jobs with Apache Flink on Zeppelin allows you to run most major streaming cases,
+such as streaming ETL and real time data analytics, with the use of Flink SQL and specific UDFs.
+Below we showcase how you can execute streaming ETL using Flink on Zeppelin:</p>
+<p>You can use Flink SQL to perform streaming ETL by following the steps below
+(for the full tutorial, please refer to the <a href="https://github.com/apache/zeppelin/blob/master/notebook/Flink%20Tutorial/4.%20Streaming%20ETL_2EYD56B9B.zpln">Flink Tutorial/Streaming ETL tutorial</a> of the Zeppelin distribution):</p>
+<ul>
+<li>Step 1. Create source table to represent the source data.</li>
+</ul>
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_source.png" width="80%" alt="Create Source Table"/>
+</center>
+<ul>
+<li>Step 2. Create a sink table to represent the processed data.</li>
+</ul>
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/create_sink.png" width="80%" alt="Create Sink Table"/>
+</center>
+<ul>
+<li>Step 3. After creating the source and sink table, we can insert them to our statement to trigger the stream processing job as the following:</li>
+</ul>
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/etl.png" width="80%" alt="ETL"/>
+</center>
+<ul>
+<li>Step 4. After initiating the streaming job, you can use another SQL statement to query the sink table to verify the results of your job. Here you can see the top 10 records which will be refreshed every 3 seconds.</li>
+</ul>
+<center>
+<img src="/img/blog/2020-06-15-flink-on-zeppelin/preview.png" width="80%" alt="Preview"/>
+</center>
+<h1 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h1>
+<p>In this post, we explained how the redesigned Flink interpreter works in Zeppelin 0.9.0 and provided some examples for performing streaming ETL jobs with
+Flink and Zeppelin. In the next post, I will talk about how to do streaming data visualization via Flink on Zeppelin.
+Besides that, you can find an additional <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">tutorial for batch processing with Flink on Zeppelin</a> as well as using Flink on Zeppelin for
+more advance operations like resource isolation, job concurrency &amp; parallelism, multiple Hadoop &amp; Hive environments and more on our series of posts on Medium.
+And here&rsquo;s a list of <a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a> for your reference.</p>
+<h1 id="references">
+  References
+  <a class="anchor" href="#references">#</a>
+</h1>
+<ul>
+<li><a href="http://zeppelin.apache.org">Apache Zeppelin official website</a></li>
+<li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-1-get-started-2591aaa6aa47">Part 1</a></li>
+<li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-2-batch-711731df5ad9">Part 2</a></li>
+<li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-3-streaming-5fca1e16754">Part 3</a></li>
+<li>Flink on Zeppelin tutorials - <a href="https://medium.com/@zjffdu/flink-on-zeppelin-part-4-advanced-usage-998b74908cd9">Part 4</a></li>
+<li><a href="https://www.youtube.com/watch?v=YxPo0Fosjjg&amp;list=PL4oy12nnS7FFtg3KV1iS5vDb0pTz12VcX">Flink on Zeppelin tutorial videos</a></li>
+</ul>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-06-15-flink-on-zeppelin-part1.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#the-flink-interpreter-in-zeppelin-09">The Flink Interpreter in Zeppelin 0.9</a></li>
+    <li><a href="#flink-on-zeppelin-for-stream-processing">Flink on Zeppelin for Stream processing</a></li>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#references">References</a></li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

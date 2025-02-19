@@ -1,0 +1,789 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Motivation # Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="FLIP-147: Support Checkpoints After Tasks Finished - Part One" />
+<meta property="og:description" content="Motivation # Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-07-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-11T00:00:00+00:00" />
+<title>FLIP-147: Support Checkpoints After Tasks Finished - Part One | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/">FLIP-147: Support Checkpoints After Tasks Finished - Part One</a>
+    </h1>
+    
+
+
+  July 11, 2022 -
+
+
+
+  Yun Gao
+
+
+  Dawid Wysakowicz
+
+
+  Daisy Tsang
+
+
+
+
+    <p><h1 id="motivation">
+  Motivation
+  <a class="anchor" href="#motivation">#</a>
+</h1>
+<p>Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions,
+Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases.
+Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing,
+operating, and maintaining consistency between streaming and batch backfilling jobs, like
+<a href="https://www.ververica.com/blog/apache-flinks-stream-batch-unification-powers-alibabas-11.11-in-2020">the case for Alibaba</a>.</p>
+<p>Flink provides two execution modes under the unified programming API: the streaming mode and the batch mode.
+The streaming mode processes records incrementally based on the states, thus it supports both bounded and unbounded sources.
+The batch mode works with bounded sources and usually has a better performance for bounded jobs because it executes all the
+tasks in topological order and avoids random state access by pre-sorting the input records. Although batch mode is often the
+preferred mode to process bounded jobs, streaming mode is also required for various reasons. For example, users may want to deal
+with records containing retraction or exploit the property that data is roughly sorted by event times in streaming mode
+(like the case in <a href="https://www.youtube.com/watch?t=666&amp;v=4qSlsYogALo&amp;feature=youtu.be">Kappa+ Architecture</a>). Moreover,
+users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.</p>
+<center>
+<img vspace="20" style="width:70%" src="/img/blog/2022-07-11-final-checkpoint/stream_batch_cmp.png" />
+<p style="font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em">
+  Figure 1. A comparison of the Streaming mode and Batch mode for the example Count operator. For streaming mode, the arrived
+  elements are not sorted, the operator would read / write the state corresponding to the element for computation.
+  For batch mode, the arrived elements are first sorted as a whole and then processed.
+</p>
+</center>
+<p>In streaming mode, <a href="https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/dev/datastream/fault-tolerance/checkpointing/">checkpointing</a>
+is the vital mechanism in supporting exactly-once guarantees. By periodically snapshotting the
+aligned states of operators, Flink can recover from the latest checkpoint and continue execution when failover happens. However,
+previously Flink could not take checkpoints if any task gets finished. This would cause problems for jobs with both bounded and unbounded
+sources: if there are no checkpoints after the bounded part finished, the unbounded part might need to reprocess a large amount of
+records in case of a failure.</p>
+<p>Furthermore, being unable to take checkpoints with finished tasks is a problem for jobs using two-phase-commit sinks to achieve
+<a href="https://flink.apache.org/features/2018/03/01/end-to-end-exactly-once-apache-flink.html">end-to-end exactly-once processing</a>.
+The two-phase-commit sinks first write data to temporary files or external transactions,
+and commit the data only after a checkpoint completes to ensure the data would not be replayed on failure. However, if a job
+contains bounded sources, committing the results would not be possible after the bounded sources finish. Also because of that,
+for bounded jobs we have no way to commit the last piece of data after the first source task finished, and previously the bounded
+jobs just ignore the uncommitted data when finishing. These behaviors caused a lot of confusion and are always asked in the user
+mailing list.</p>
+<p>Therefore, to complete the support of streaming mode for jobs using bounded sources, it is important for us to</p>
+<ol>
+<li>Support taking checkpoints with finished tasks.</li>
+<li>Furthermore, revise the process of finishing so that all the data could always be committed.</li>
+</ol>
+<p>The remaining blog briefly describes the changes we made to achieve the above goals. In the next blog,
+we’ll share more details on how they are implemented.</p>
+<h1 id="support-checkpointing-with-finished-tasks">
+  Support Checkpointing with Finished Tasks
+  <a class="anchor" href="#support-checkpointing-with-finished-tasks">#</a>
+</h1>
+<p>The core idea of supporting checkpoints with finished tasks is to mark the finished operators in checkpoints and skip
+executing these operators after recovery. As illustrated in Figure 2, a checkpoint is composed of the states of all
+the operators. If all the subtasks of an operator have finished, we could mark it as fully finished and skip the
+execution of this operator on startup. For other operators, their states are composed of the states of all the
+running subtasks. The states will be repartitioned on restarting and all the new subtasks restarted with the assigned states.</p>
+<center>
+<img vspace="20" style="width:50%" src="/img/blog/2022-07-11-final-checkpoint/checkpoint_format.png" />
+<p style="font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em">
+  Figure 2. An illustration of the extended checkpoint format.
+</p>
+</center>
+<p>To support creating such a checkpoint for jobs with finished tasks, we extended the checkpoint procedure.
+Previously the checkpoint coordinator inside the JobManager first notifies all the sources to report snapshots,
+then all the sources further notify their descendants via broadcasting barrier events. Since now the sources might
+have already finished, the checkpoint coordinator would instead treat the running tasks who also do not have running
+precedent tasks as &ldquo;new sources&rdquo;, and it notifies these tasks to initiate the checkpoints. Finally, if the subtasks of
+an operator are either finished on triggering checkpoint or have finished processing all the data on snapshotting states,
+the operator would be marked as fully finished.</p>
+<p>The changes of the checkpoint procedure are transparent to users except that for checkpoints indeed containing
+finished tasks, we disallowed adding new operators as precedents of the fully finished ones, since it would make the fully
+finished operators have running precedents after restarting, which conflicts with the design that tasks finished
+in topological order.</p>
+<h1 id="revise-the-process-of-finishing">
+  Revise the Process of Finishing
+  <a class="anchor" href="#revise-the-process-of-finishing">#</a>
+</h1>
+<p>Based on the ability to take checkpoints with finished tasks, we could then solve the issue that two-phase-commit
+operators could not commit all the data when running in streaming mode. As the background, Flink jobs
+have two ways to finish:</p>
+<ol>
+<li>All sources are bound and they processed all the input records. The job will finish after all the
+input records are processed and all the result are committed to external systems.</li>
+<li>Users execute <code>stop-with-savepoint [--drain]</code>. The job will take a savepoint and then finish. With <code>–-drain</code>, the job
+will be stopped permanently and is also required to commit all the data. However, without <code>--drain</code> the job might
+be resumed from the savepoint later, thus not all data are required to be committed, as long as the state of the data could be
+recovered from the savepoint.</li>
+</ol>
+<p>Let&rsquo;s first have a look at the case of bounded sources. To achieve end-to-end exactly-once,
+two-phase-commit operators only commit data after a checkpoint following this piece of data succeeded.
+However, previously there is no such an opportunity for the data between the last periodic checkpoint and job getting finished,
+and the data finally gets lost. Note that it is also not correct if we directly commit the data on job finished, since
+if there are failovers after that (like due to other unfinished tasks getting failed), the data will be replayed and cause duplication.</p>
+<p>The case of <code>stop-with-savepoint --drain</code> also has problems. The previous implementation first stalls the execution and
+takes a savepoint. After the savepoint succeeds, all the source tasks would stop actively. Although the savepoint seems to
+provide the opportunity to commit all the data, some processing logic is in fact executed during the job getting stopped,
+and the records produced would be discarded by mistake. For example, calling <code>endInput()</code> method for operators happens during
+the stopping phase, some operators like the async operator might still emit new records in this method.</p>
+<p>At last, although <code>stop-with-savepoint</code> without draining is not required to commit all the data, we hope the job finish process could
+be unified for all the cases to keep the code clean.</p>
+<p>To fix the remaining issues, we need to modify the process of finishing to ensure all the data getting committed for the required cases.
+An intuitive idea is to directly insert a step to the tasks’ lifecycle to wait for the next checkpoint, as shown in the left part
+of Figure 3. However, it could not solve all the issues.</p>
+<center>
+<img vspace="20" style="width:90%" src="/img/blog/2022-07-11-final-checkpoint/finish_cmp.png" />
+<p style="font-size: 0.6em;text-align:left;margin-top:-1em;margin-bottom: 4em">
+  Figure 3. A comparison of the two options to ensure tasks committed all the data before getting finished. The first
+  option directly inserts a step in the tasks’ lifecycle to wait for the next checkpoint, which disallows the tasks to wait
+  for the same checkpoint / savepoint. The second option decouples the notification of finishing operator logic and finishing tasks,
+  thus it allows all the tasks to first process all records, then they have the chance to wait for the same checkpoint / savepoint.
+</p>
+</center>
+<p>For the case of bounded sources, the intuitive idea works, but it might have performance issues in some cases:
+as exemplified in Figure 4, If there are multiple cascading tasks containing two-phase commit sinks, each task would
+wait for the next checkpoint separately, thus the job needs to wait for three more checkpoints during finishing,
+which might prolong the total execution time for a long time.</p>
+<center>
+<img vspace="20" style="width:90%" src="/img/blog/2022-07-11-final-checkpoint/example_job.png" />
+<p style="font-size: 0.6em;text-align:center;margin-top:-1em;margin-bottom: 4em">
+    Figure 4. An example job that contains a chain of tasks containing two-phase-commit operators. 
+</p>
+</center>
+<p>For the case of <code>stop-with-savepoint [--drain]</code>, the intuitive idea does not work since different tasks have to
+wait for different checkpoints / savepoints, thus we could not finish the job with a specific savepoint.</p>
+<p>Therefore, we do not take the intuitive option. Instead, we decoupled <em>&ldquo;finishing operator logic&rdquo;</em> and <em>&ldquo;finishing tasks&rdquo;</em>:
+all the tasks would first finish their execution logic as a whole, including calling lifecycle methods like <code>endInput()</code>,
+then each task could wait for the next checkpoint concurrently. Besides, for stop-with-savepoint we also reverted the current
+implementation similarly: all the tasks will first finish executing the operators&rsquo; logic, then they simply wait for the next savepoint
+to happen before finish. Therefore, in this way the finishing processes are unified and the data could be fully committed for all the cases.</p>
+<p>Based on this thought, as shown in the right part of Figure 3, to decoupled the process of &ldquo;finishing operator logic&rdquo;
+and &ldquo;finishing tasks&rdquo;, we introduced a new <code>EndOfData</code> event. For each task, after executing all the operator logic it would first notify
+the descendants with an <code>EndOfData</code> event so that the descendants also have chances to finish executing the operator logic. Then all
+the tasks could wait for the next checkpoint or the specified savepoint concurrently to commit all the remaining data before getting finished.</p>
+<p>At last, it is also worthy to mention we have clarified and renamed the <code>close()</code> and <code>dispose()</code> methods in the operators’ lifecycle.
+The two methods are in fact different since <code>close()</code> is only called when the task finishes normally and dispose() is called in both
+cases of normal finishing and failover. However, this was not clear from their names. Therefore, we rename the two methods to <code>finish()</code> and <code>close()</code>:</p>
+<ul>
+<li><code>finish()</code> marks the termination of the operator and no more records are allowed after <code>finish()</code> is called. It should
+only be called when sources are finished or when the <code>-–drain</code> parameter is specified.</li>
+<li><code>close()</code> is used to do cleanup and release all the held resources.</li>
+</ul>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
+<p>By supporting the checkpoints after tasks finished and revising the process of finishing, we can support checkpoints for jobs with
+both bounded and unbounded sources, and ensure the bounded job gets all output records committed before it finishes. The motivation
+behind this change is to ensure data consistency, results completeness, and failure recovery if there are bounded sources in the pipeline.
+The final checkpoint mechanism was first implemented in Flink 1.14 and enabled by default in Flink 1.15. If you have any questions,
+please feel free to start a discussion or report an issue in the dev or user mailing list.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2022-07-11-final-checkpoint-part1.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#motivation">Motivation</a></li>
+    <li><a href="#support-checkpointing-with-finished-tasks">Support Checkpointing with Finished Tasks</a></li>
+    <li><a href="#revise-the-process-of-finishing">Revise the Process of Finishing</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

@@ -1,0 +1,785 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2019/02/13/batch-as-a-special-case-of-streaming-and-alibabas-contribution-of-blink/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Last week, we broke the news that Alibaba decided to contribute its Flink-fork, called Blink, back to the Apache Flink project. Why is that a big thing for Flink, what will it mean for users and the community, and how does it fit into Flink’s overall vision? Let&rsquo;s take a step back to understand this better&hellip;
+A Unified Approach to Batch and Streaming # Since its early days, Apache Flink has followed the philosophy of taking a unified approach to batch and streaming data processing.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Batch as a Special Case of Streaming and Alibaba&#39;s contribution of Blink" />
+<meta property="og:description" content="Last week, we broke the news that Alibaba decided to contribute its Flink-fork, called Blink, back to the Apache Flink project. Why is that a big thing for Flink, what will it mean for users and the community, and how does it fit into Flink’s overall vision? Let&rsquo;s take a step back to understand this better&hellip;
+A Unified Approach to Batch and Streaming # Since its early days, Apache Flink has followed the philosophy of taking a unified approach to batch and streaming data processing." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/02/13/batch-as-a-special-case-of-streaming-and-alibabas-contribution-of-blink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-02-13T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-02-13T12:00:00+00:00" />
+<title>Batch as a Special Case of Streaming and Alibaba&#39;s contribution of Blink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2019/02/13/batch-as-a-special-case-of-streaming-and-alibabas-contribution-of-blink/">Batch as a Special Case of Streaming and Alibaba&#39;s contribution of Blink</a>
+    </h1>
+    
+
+
+  February 13, 2019 -
+
+
+
+  Stephan Ewen
+
+  <a href="https://twitter.com/stephanewen">(@stephanewen)</a>
+  
+
+  Fabian Hueske
+
+  <a href="https://twitter.com/fhueske">(@fhueske)</a>
+  
+
+  Xiaowei Jiang
+
+  <a href="https://twitter.com/XiaoweiJ">(@XiaoweiJ)</a>
+  
+
+
+
+    <p><p>Last week, we <a href="https://lists.apache.org/thread.html/2f7330e85d702a53b4a2b361149930b50f2e89d8e8a572f8ee2a0e6d@%3Cdev.flink.apache.org%3E">broke the news</a> that Alibaba decided to contribute its Flink-fork, called Blink, back to the Apache Flink project. Why is that a big thing for Flink, what will it mean for users and the community, and how does it fit into Flink’s overall vision? Let&rsquo;s take a step back to understand this better&hellip;</p>
+<h2 id="a-unified-approach-to-batch-and-streaming">
+  A Unified Approach to Batch and Streaming
+  <a class="anchor" href="#a-unified-approach-to-batch-and-streaming">#</a>
+</h2>
+<p>Since its early days, Apache Flink has followed the philosophy of taking a unified approach to batch and streaming data processing. The core building block is <em>&ldquo;continuous processing of unbounded data streams&rdquo;</em>: if you can do that, you can also do offline processing of bounded data sets (batch processing use cases), because these are just streams that happen to end at some point.</p>
+<center>
+<img src="/img/blog/unified-batch-streaming-blink/bounded-unbounded.png" width="600px" alt="Processing of bounded and unbounded data."/>
+</center>
+<br>
+<p>The <em>&ldquo;streaming first, with batch as a special case of streaming&rdquo;</em> philosophy is supported by various projects (for example <a href="https://flink.apache.org">Flink</a>, <a href="https://beam.apache.org">Beam</a>, etc.) and often been cited as a powerful way to build data applications that <a href="https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101">generalize across real-time and offline processing</a> and to help greatly reduce the complexity of data infrastructures.</p>
+<h3 id="why-are-there-still-batch-processors">
+  Why are there still batch processors?
+  <a class="anchor" href="#why-are-there-still-batch-processors">#</a>
+</h3>
+<p>However, <em>&ldquo;batch is just a special case of streaming&rdquo;</em> does not mean that any stream processor is now the right tool for your batch processing use cases - the introduction of stream processors did not render batch processors obsolete:</p>
+<ul>
+<li>
+<p>Pure stream processing systems are very slow at batch processing workloads. No one would consider it a good idea to use a stream processor that shuffles through message queues to analyze large amounts of available data.</p>
+</li>
+<li>
+<p>Unified APIs like <a href="https://beam.apache.org">Apache Beam</a> often delegate to different runtimes depending on whether the data is continuous/unbounded of fix/bounded. For example, the implementations of the batch and streaming runtime of Google Cloud Dataflow are different, to get the desired performance and resilience in each case.</p>
+</li>
+<li>
+<p><em>Apache Flink</em> has a streaming API that can do bounded/unbounded use cases, but still offers a separate DataSet API and runtime stack that is faster for batch use cases.</p>
+</li>
+</ul>
+<p>What is the reason for the above? Where did <em>&ldquo;batch is just a special case of streaming&rdquo;</em> go wrong?</p>
+<p>The answer is simple, nothing is wrong with that paradigm. Unifying batch and streaming in the API is one aspect. One needs to also exploit certain characteristics of the special case “bounded data” in the runtime to competitively handle batch processing use cases. After all, batch processors have been built specifically for that special case.</p>
+<h2 id="batch-on-top-of-a-streaming-runtime">
+  Batch on top of a Streaming Runtime
+  <a class="anchor" href="#batch-on-top-of-a-streaming-runtime">#</a>
+</h2>
+<p>We always believed that it is possible to have a runtime that is state-of-the-art for both stream processing and batch processing use cases at the same time. A runtime that is streaming-first, but can exploit just the right amount of special properties of bounded streams to be as fast for batch use cases as dedicated batch processors. <strong>This is the unique approach that Flink takes.</strong></p>
+<p>Apache Flink has a network stack that supports both <a href="https://www.ververica.com/flink-forward-berlin/resources/improving-throughput-and-latency-with-flinks-network-stack">low-latency/high-throughput streaming data exchanges</a>, as well as high-throughput batch shuffles. Flink has streaming runtime operators for many operations, but also specialized operators for bounded inputs, which get used when you choose the DataSet API or select the batch environment in the Table API.</p>
+<center>
+<img src="/img/blog/unified-batch-streaming-blink/stream-batch-joins.png" width="500px" alt="Streaming and batch joins."/>
+<br>
+<i>The figure illustrates a streaming join and a batch join. The batch join can read one input fully into a hash table and then probe with the other input. The stream join needs to build tables for both sides, because it needs to continuously process both inputs. 
+For data larger than memory, the batch join can partition both data sets into subsets that fit in memory (data hits disk once) whereas the continuous nature of the stream join requires it to always keep all data in the table and repeatedly hit disk on cache misses.</i>
+</center>
+<br>
+<p>Because of that, Apache Flink has been actually demonstrating some pretty impressive batch processing performance since its early days. The below benchmark is a bit older, but validated our architectural approach early on.</p>
+<center>
+<img src="/img/blog/unified-batch-streaming-blink/sort-performance.png" width="500px" alt="Sort performance."/>
+<br>
+<i>Time to sort 3.2 TB (80 GB/node), in seconds<br>
+(<a href="https://www.slideshare.net/FlinkForward/dongwon-kim-a-comparative-performance-evaluation-of-flink" target="blank">Presentation by Dongwon Kim, Flink Forward Berlin 2015</a>.)</i>
+</center>
+<br>
+<h2 id="what-is-still-missing">
+  What is still missing?
+  <a class="anchor" href="#what-is-still-missing">#</a>
+</h2>
+<p>To conclude the approach and make Flink&rsquo;s experience on bounded data (batch) state-of-the-art, we need to add a few more enhancements. We believe that these features are key to realizing our vision:</p>
+<p><strong>(1) A truly unified runtime operator stack</strong>: Currently the bounded and unbounded operators have a different network and threading model and don&rsquo;t mix and match. The original reason was that batch operators followed a &ldquo;pull model&rdquo; (easier for batch algorithms), while streaming operators followed a &ldquo;push model&rdquo; (better latency/throughput characteristics). In a unified stack, continuous streaming operators are the foundation. When operating on bounded data without latency constraints, the API or the query optimizer can select from a larger set of operators. The optimizer can pick, for example, a specialized join operator that first consumes one input stream entirely before reading the second input stream.</p>
+<p><strong>(2) Exploiting bounded streams to reduce the scope of fault tolerance</strong>: When input data is bounded, it is possible to completely buffer data during shuffles (memory or disk) and replay that data after a failure. This makes recovery more fine grained and thus much more efficient.</p>
+<p><strong>(3) Exploiting bounded stream operator properties for scheduling</strong>: A continuous unbounded streaming application needs (by definition) all operators running at the same time. An application on bounded data can schedule operations after another, depending on how the operators consume data (e.g., first build hash table, then probe hash table). This increases resource efficiency.</p>
+<p><strong>(4) Enabling these special case optimizations for the DataStream API</strong>: Currently, only the Table API (which is unified across bounded/unbounded streams) activates these optimizations when working on bounded data.</p>
+<p><strong>(5) Performance and coverage for SQL</strong>: SQL is the de-facto standard data language, and while it is also being rapidly adopted for continuous streaming use cases, there is absolutely no way past it for bounded/batch use cases. To be competitive with the best batch engines, Flink needs more coverage and performance for the SQL query execution. While the core data-plane in Flink is high performance, the speed of SQL execution ultimately depends a lot also on optimizer rules, a rich set of operators, and features like code generation.</p>
+<h2 id="enter-blink">
+  Enter Blink
+  <a class="anchor" href="#enter-blink">#</a>
+</h2>
+<p>Blink is a fork of Apache Flink, originally created inside Alibaba to improve Flink’s behavior for internal use cases. Blink adds a series of improvements and integrations (see the <a href="https://github.com/apache/flink/blob/blink/README.md">Readme</a> for details), many of which fall into the category of improved bounded-data/batch processing and SQL. In fact, of the above list of features for a unified batch/streaming system, Blink implements significant steps forward in all except (4):</p>
+<p><strong>Unified Stream Operators:</strong> Blink extends the Flink streaming runtime operator model to support selectively reading from different inputs, while keeping the push model for very low latency. This control over the inputs helps to now support algorithms like hybrid hash-joins on the same operator and threading model as continuous symmetric joins through RocksDB. These operators also form the basis for future features like <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-17&#43;Side&#43;Inputs&#43;for&#43;DataStream&#43;API">“Side Inputs”</a>.</p>
+<p><strong>Table API &amp; SQL Query Processor:</strong> The SQL query processor is the component that evolved the changed most compared to the latest Flink master branch:</p>
+<ul>
+<li>
+<p>While Flink currently translates queries either into DataSet or DataStream programs (depending on the characteristics of their inputs), Blink translates queries to a data flow of the aforementioned stream operators.</p>
+</li>
+<li>
+<p>Blink adds many more runtime operators for common SQL operations like semi-joins, anti-joins, etc.</p>
+</li>
+<li>
+<p>The query planner (optimizer) is still based on Apache Calcite, but has many more optimization rules (incl. join reordering) and uses a proper cost model for planning.</p>
+</li>
+<li>
+<p>Stream operators are more aggressively chained.</p>
+</li>
+<li>
+<p>The common data structures (sorters, hash tables) and serializers are extended to go even further in operating on binary data and saving serialization overhead. Code generation is used for the row serializers.</p>
+</li>
+</ul>
+<p><strong>Improved Scheduling and Failure Recovery:</strong> Finally, Blink implements several improvements for task scheduling and fault tolerance. The scheduling strategies use resources better by exploiting how the operators process their input data. The failover strategies recover more fine-grained along the boundaries of persistent shuffles. A failed JobManager can be replaced without restarting a running application.</p>
+<p>The changes in Blink result in a big improvement in performance. The below numbers were reported by the developers of Blink to give a rough impression of the performance gains.</p>
+<center>
+<img src="/img/blog/unified-batch-streaming-blink/blink-flink-tpch.png" width="600px" alt="TPC-H performance of Blink and Flink."/>
+<br>
+<i>Relative performance of Blink versus Flink 1.6.0 in the TPC-H benchmark, query by query.<br>
+The performance improvement is in average 10x.<br>
+<a href="https://www.ververica.com/flink-forward-berlin/resources/unified-engine-for-data-processing-and-ai" target="blank">Presentation by Xiaowei Jiang at Flink Forward Berlin, 2018</a>.)</i>
+</center>
+<br>
+<center>
+<img src="/img/blog/unified-batch-streaming-blink/blink-spark-tpcds.png" width="600px" alt="TPC-DS performace of Blink and Spark."/>
+<br>
+<i>Performance of Blink versus Spark in the TPC-DS benchmark, aggregate time for all queries together.<br>
+<a href="https://www.bilibili.com/video/av42325467/?p=3" target="blank">Presentation by Xiaowei Jiang at Flink Forward Beijing, 2018</a>.</i>
+</center>
+<br>
+<h2 id="how-do-we-plan-to-merge-blink-and-flink">
+  How do we plan to merge Blink and Flink?
+  <a class="anchor" href="#how-do-we-plan-to-merge-blink-and-flink">#</a>
+</h2>
+<p>Blink’s code is currently available as a <a href="https://github.com/apache/flink/tree/blink">branch</a> in the Apache Flink repository. It is a challenge to merge a such big amount of changes, while making the merge process as non-disruptive as possible and keeping public APIs as stable as possible.</p>
+<p>The community’s <a href="https://lists.apache.org/thread.html/6066abd0f09fc1c41190afad67770ede8efd0bebc36f00938eecc118@%3Cdev.flink.apache.org%3E">merge plan</a> focuses initially on the bounded/batch processing features mentioned above and follows the following approach to ensure a smooth integration:</p>
+<ul>
+<li>
+<p>To merge Blink’s <em>SQL/Table API query processor</em> enhancements, we exploit the fact that both Flink and Blink have the same APIs: SQL and the Table API.
+Following some restructuring of the Table/SQL module (<a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-32%3A&#43;Restructure&#43;flink-table&#43;for&#43;future&#43;contributions">FLIP-32</a>) we plan to merge the Blink query planner (optimizer) and runtime (operators) as an additional query processor next to the current SQL runtime. Think of it as two different runners for the same APIs.<br>
+Initially, users will be able to select which query processor to use. After a transition period in which the new query processor will be developed to subsume the current query processor, the current processor will most likely be deprecated and eventually dropped. Given that SQL is such a well defined interface, we anticipate that this transition has little friction for users. Mostly a pleasant surprise to have broader SQL feature coverage and a boost in performance.</p>
+</li>
+<li>
+<p>To support the merge of Blink’s <em>enhancements to scheduling and recovery</em> for jobs on bounded data, the Flink community is already working on refactoring its current schedule and adding support for <a href="https://issues.apache.org/jira/browse/FLINK-10429">pluggable scheduling and fail-over strategies</a>.<br>
+Once this effort is finished, we can add Blink’s scheduling and recovery strategies as a new scheduling strategy that is used by the new query processor. Eventually, we plan to use the new scheduling strategy also for bounded DataStream programs.</p>
+</li>
+<li>
+<p>The extended catalog support, DDL support, as well as support for Hive’s catalog and integrations is currently going through separate design discussions. We plan to leverage existing code here whenever it makes sense.</p>
+</li>
+</ul>
+<h2 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h2>
+<p>We believe that the data processing stack of the future is based on stream processing: The elegance of stream processing with its ability to model offline processing (batch), real-time data processing, and event-driven applications in the same way, while offering high performance and consistency is simply too compelling.</p>
+<p>Exploiting certain properties of bounded data is important for a stream processor to achieve the same performance as dedicated batch processors. While Flink always supported batch processing, the project is taking the next step in building a unified runtime and towards <strong>becoming a stream processor that is competitive with batch processing systems even on their home turf: OLAP SQL.</strong> The contribution of Alibaba’s Blink code helps the Flink community to pick up the speed on this development.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-02-13-unified-batch-streaming-blink.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#a-unified-approach-to-batch-and-streaming">A Unified Approach to Batch and Streaming</a>
+          <ul>
+            <li><a href="#why-are-there-still-batch-processors">Why are there still batch processors?</a></li>
+          </ul>
+        </li>
+        <li><a href="#batch-on-top-of-a-streaming-runtime">Batch on top of a Streaming Runtime</a></li>
+        <li><a href="#what-is-still-missing">What is still missing?</a></li>
+        <li><a href="#enter-blink">Enter Blink</a></li>
+        <li><a href="#how-do-we-plan-to-merge-blink-and-flink">How do we plan to merge Blink and Flink?</a></li>
+        <li><a href="#summary">Summary</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

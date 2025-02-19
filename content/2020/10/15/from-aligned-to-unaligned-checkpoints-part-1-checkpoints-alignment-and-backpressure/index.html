@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
+Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure" />
+<meta property="og:description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
+Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-10-15T03:00:00+00:00" />
+<meta property="article:modified_time" content="2020-10-15T03:00:00+00:00" />
+<title>From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/">From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure</a>
+    </h1>
+    
+
+
+  October 15, 2020 -
+
+
+
+  Arvid Heise
+
+
+  Stephan Ewen
+
+
+
+
+    <p><p>Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both <a href="https://hal.inria.fr/hal-02463206/document">very small</a> and <a href="https://102.alibaba.com/detail?id=35">extremely large</a> scenarios and provides support for many operational features like stateful upgrades with <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/stream/state/schema_evolution.html">state evolution</a> or <a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/savepoints.html">roll-backs and time-travel</a>.</p>
+<p>Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application. When the application backpressures, the processing of checkpoints is backpressured as well (<a href="#appendix-1---on-backpressure">Appendix 1</a> recaps what is backpressure and why it can be a good thing). In such cases, checkpoints may take longer to complete or even time out completely.</p>
+<p>In Flink 1.11, the community introduced a first version of a new feature called &ldquo;<a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/checkpoints.html#unaligned-checkpoints">unaligned checkpoints</a>&rdquo; that aims at solving this issue, while Flink 1.12 plans to further expand its functionality. In this two-series blog post, we discuss how Flink’s checkpointing mechanism has been modified to support unaligned checkpoints, how unaligned checkpoints work, and how this new mode impacts Flink users. In the first of the two posts, we start with a recap of the original checkpointing process in Flink, its core properties and issues under backpressure.</p>
+<h1 id="state-in-streaming-applications">
+  State in Streaming Applications
+  <a class="anchor" href="#state-in-streaming-applications">#</a>
+</h1>
+<p>Simply put, state is the information that you need to remember across events. Even the most trivial streaming applications are typically stateful because of their need to “remember” the exact position they are processing data from, for example in the form of a Kafka Partition Offset or a File Offset.
+In addition, many applications hold state internally as a way to support their internal operations, such as windows, aggregations, joins, or state machines.</p>
+<p>For the remainder of this article, we&rsquo;ll use the following example showing a streaming application consisting of <strong>four operators</strong>, each one holding some state.</p>
+<span>
+	<center>
+	<img vspace="8" style="width:75%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-1.png" />
+	</center>
+</span>
+<h2 id="state-persistence-through-checkpoints">
+  State Persistence through Checkpoints
+  <a class="anchor" href="#state-persistence-through-checkpoints">#</a>
+</h2>
+<p>Streaming applications are long-lived. They inevitably experience hardware and software failures but should, ideally, look from the outside as if no failure ever happened. Since applications are long-lived — and can potentially accumulate very large state —, recomputing partial results after failures can take quite some time, and so a way to persist and recover this (potentially very large) application state is necessary.</p>
+<p>Flink relies on its <strong>state checkpointing and recovery mechanism</strong> to implement such behavior, as shown in the figure below. Periodic checkpoints store a snapshot of the application’s state on some Checkpoint Storage (commonly an Object Store or Distributed File System, like S3, HDFS, GCS, Azure Blob Storage, etc.). When a failure is detected, the affected parts of the application are reset to the state of the latest checkpoint (either by a local reset or by loading the state from the checkpoint storage).</p>
+<div style="line-height:40%;">
+    <br>
+</div>
+<center>
+	<img vspace="8" style="width:90%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-2.png" />
+</center>
+<div style="line-height:60%;">
+    <br>
+</div>
+<p>Flink’s checkpoint-based approach differs from the approach taken by other stream processing systems that keep state in a distributed database or write state changes to a log, for example. The checkpoint-based approach has some nice properties, described below, which make it a great option for Flink.</p>
+<ul>
+<li>
+<p><strong>Checkpointing has very simple external dependencies</strong>: An <em>Object Storage</em> or a <em>Distributed FileSystem</em> are probably the most available and easiest-to-administer services. Because these are available on all public cloud providers and among the first systems to provide on-premises, Flink becomes well-suited for a <em>cloud-native</em> stack. In addition, these storage systems are cheaper by an order of magnitude (GB/month) when compared to distributed databases, key/value stores, or event brokers.</p>
+</li>
+<li>
+<p><strong>Checkpoints are immutable and versioned</strong>: Together with immutable and versioned inputs (as input streams are, by nature), checkpoints support storing immutable application snapshots that can be used for rollbacks, debugging, testing, or as a cheap alternative to analyze application state outside the production setup.</p>
+</li>
+<li>
+<p><strong>Checkpoints decouple the “stream transport” from the persistence mechanism</strong>: “Stream transport” refers to how data is being exchanged between operators (e.g. during a shuffle). This decoupling is key to Flink’s batch &lt;-&gt; streaming unification in one system, because it allows Flink to implement a data transport that can take the shape of both a low-latency streaming exchange or a decoupled batch data exchange.</p>
+</li>
+</ul>
+<h1 id="the-checkpointing-mechanism">
+  The Checkpointing Mechanism
+  <a class="anchor" href="#the-checkpointing-mechanism">#</a>
+</h1>
+<p>The fundamental challenge solved by the checkpointing algorithm (details in <a href="https://pdfs.semanticscholar.org/6fa0/917417d3c213b0e130ae01b7b440b1868dde.pdf">this paper</a>) is drawing a snapshot out of the ever-changing state of a streaming application without suspending the continuous processing of events. Because there are always events in-flight (on the network, in I/O buffers, etc.), up- and downstream operators can be processing events from different times: the sink may write data from 11:04, while the source already ingests events from 11:06. Ideally, all snapshotted data should belong to the same point-in-time, as if the input was paused and we waited until all in-flight data was drained (i.e. the pipeline becoming idle) before taking the snapshot.</p>
+<p>To achieve that, Flink injects <em>checkpoint barriers</em> into the streams at the sources, which travel through the entire topology and eventually reach the sinks. These barriers divide the stream into a <em>pre-checkpoint epoch</em> (all events that are persisted in state or emitted into sinks) and a <em>post-checkpoint epoch</em> (events not reflected in the state, to be re-processed when resuming from the checkpoint).</p>
+<p>The following figure shows what happens when a barrier reaches an operator.</p>
+<span>
+	<center>
+	<img vspace="8" style="width:100%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-3.png" />
+	</center>
+</span>
+<p>Operators need to make sure that they take the checkpoint exactly when all pre-checkpoint events are processed and no post-checkpoint events have yet been processed. When the first barrier reaches the head of the input buffer queue and is consumed by the operator, the operator starts the so-called <em>alignment phase</em>. During that phase, the operator will not consume any data from the channels where it already received a barrier, until it has received a barrier from all input channels.</p>
+<p>Once all barriers are received, the operator snapshots its state, forwards the barrier to the output, and ends the alignment phase, which unblocks all inputs. An operator state snapshot is written into the checkpoint storage, typically asynchronously while data processing continues. Once all operators have successfully written their state snapshot to the checkpoint storage, the checkpoint is successfully completed and can be used for recovery.</p>
+<p>One important thing to note here is that the barriers flow with the events, strictly in line. In a healthy setup without backpressure, barriers flow and align in milliseconds. The checkpoint duration is dominated by the time it takes to write the state snapshots to the checkpoint storage, which becomes faster with <a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/large_state_tuning.html#incremental-checkpoints">incremental checkpoints</a>. If the events flow slowly under backpressure, so will the barriers. That means that barriers can take long to travel from sources to sinks resulting in the alignment phase to take even longer to complete.</p>
+<h2 id="recovery">
+  Recovery
+  <a class="anchor" href="#recovery">#</a>
+</h2>
+<p>When operators restart from a checkpoint (automatically during recovery or manually during deployment from a savepoint), the operators first restore their state from the checkpoint storage before resuming the event stream processing.</p>
+<span>
+	<center>
+	<img vspace="8" style="width:100%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-4.png" />
+	</center>
+</span>
+<p>Since sources are bound to the offsets persisted in the checkpoint, recovery time is often calculated as the sum of the time of the recovery process — outlined in the previous figure — and any additional time needed to process any remaining data up to the point right before the system failure. When an application experiences backpressure, recovery time can also include the total time from the very start of the recovery process until backpressure is fully eliminated.</p>
+<h2 id="consistency-guarantees">
+  Consistency Guarantees
+  <a class="anchor" href="#consistency-guarantees">#</a>
+</h2>
+<p>The alignment phase is only necessary for checkpoints with <strong>exactly-once</strong> processing semantics, which is the default setting in Flink. If an application runs with <strong>at-least-once</strong> processing semantics, checkpoints will not block any channels with barriers during alignment, which has an additional cost from the duplication of the then-not-blocked events when recovering the operator.</p>
+<p>This is not to be confused with having at-least-once semantics only in the sinks — something that many Flink users choose over transactional sinks — because many sink operations are idempotent or converge to the same result (like inputs/outputs to key/value stores). Having at-least-once semantics in an intermediate operator state is often not idempotent (for example a simple count aggregation) and hence using exactly-once checkpoints is advisable for the majority of Flink users.</p>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
+<p>This blog post recaps how Flink’s fault tolerance mechanism (based on aligned checkpoints) works, and why checkpointing is a fitting mechanism for a fault-tolerant stream processor. The checkpointing mechanism has been optimized over time to make checkpoints faster and cheaper (with both asynchronous and incremental checkpoints) and faster-to-recover (local caching), but the basic concepts (barriers, alignment, operator state snapshots) are still the same as in the original version.</p>
+<p>The next part will dig into a major break with the original mechanism that avoids the alignment phase — the recently-introduced &ldquo;unaligned checkpoints&rdquo;. Stay tuned for the second part, which explains how unaligned checkpoints work and how they guarantee consistent checkpointing times under backpressure.</p>
+<hr>
+<h2 id="appendix-1---on-backpressure">
+  Appendix 1 - On Backpressure
+  <a class="anchor" href="#appendix-1---on-backpressure">#</a>
+</h2>
+<p>Backpressure refers to the behavior where a slow receiver (e.g. of data/requests) makes the senders slow down in order to not overwhelm the receiver, something that can result in possibly dropping some of the processed data or requests. This is a crucial and very much desirable behavior for systems where completeness/correctness is important. Backpressure is implicitly implemented in many of the most basic building blocks of distributed communication, such as TCP Flow Control, bounded (blocking) I/O queues, poll-based consumers, etc.</p>
+<p>Apache Flink implements backpressure across the entire data flow graph. A sink that (temporarily) cannot keep up with the data rate will result in the source connectors slowing down and pulling data out of the source systems more slowly. We believe that this is a good and desirable behavior, because backpressure is not only necessary in order to avoid overwhelming the memory of a receiver (thread), but can also prevent different stages of the streaming application from drifting apart too far.</p>
+<p>Consider the example below:</p>
+<ul>
+<li>We have a source (let’s say reading data from Apache Kafka), parsing data, grouping and aggregating data by a key, and writing it to a sink system (some database).</li>
+<li>The application needs to re-group data by key between the parsing and the grouping/aggregation step.</li>
+</ul>
+<span>
+	<center>
+	<img vspace="8" style="width:75%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-5.png" />
+	</center>
+</span>
+<p>Let’s assume we use a <strong>non-backpressure approach</strong>, like writing the data to a log/MQ for the data re-grouping over the network (the approach used by <a href="https://docs.confluent.io/current/streams/architecture.html#backpressure">Kafka Streams</a>). If the sink is now slower than the remaining parts of the streaming application (which can easily happen), the first stage (source and parse) will still work as fast as possible to pull data out of the source, parse it, and put it into the log for the shuffle. That intermediate log will accumulate a lot of data, meaning it needs significant capacity, so that in a worst case scenario can hold a full copy of the input data or otherwise result in data loss (when the drift is greater than the retention time).</p>
+<p><strong>With backpressure</strong>, the source/parse stage slows down to match the speed of the sink, keeping both parts of the application closer together in their progress through the data, and avoiding the need to provision a lot of intermediate storage capacity.</p>
+<hr>
+<p>We&rsquo;d like to thank Marta Paes Moreira and Markos Sfikas for the wonderful review process.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#state-in-streaming-applications">State in Streaming Applications</a>
+      <ul>
+        <li><a href="#state-persistence-through-checkpoints">State Persistence through Checkpoints</a></li>
+      </ul>
+    </li>
+    <li><a href="#the-checkpointing-mechanism">The Checkpointing Mechanism</a>
+      <ul>
+        <li><a href="#recovery">Recovery</a></li>
+        <li><a href="#consistency-guarantees">Consistency Guarantees</a></li>
+      </ul>
+    </li>
+    <li><a href="#conclusion">Conclusion</a>
+      <ul>
+        <li><a href="#appendix-1---on-backpressure">Appendix 1 - On Backpressure</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

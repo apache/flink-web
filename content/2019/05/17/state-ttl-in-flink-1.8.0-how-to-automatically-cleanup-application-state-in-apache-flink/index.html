@@ -1,0 +1,764 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2019/05/17/state-ttl-in-flink-1.8.0-how-to-automatically-cleanup-application-state-in-apache-flink/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.
+In this post, we motivate the State TTL feature and discuss its use cases.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink" />
+<meta property="og:description" content="A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.
+In this post, we motivate the State TTL feature and discuss its use cases." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/05/17/state-ttl-in-flink-1.8.0-how-to-automatically-cleanup-application-state-in-apache-flink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-05-17T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-05-17T12:00:00+00:00" />
+<title>State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.c34b8a3404aa0f9423d81bbba3f4b7195e00d999fc077279ac6672e2d7adbab6.js" integrity="sha256-w0uKNASqD5Qj2Bu7o/S3GV4A2Zn8B3J5rGZy4teturY="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 1.20 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/">Flink 2.0 (preview)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.10 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2019/05/17/state-ttl-in-flink-1.8.0-how-to-automatically-cleanup-application-state-in-apache-flink/">State TTL in Flink 1.8.0: How to Automatically Cleanup Application State in Apache Flink</a>
+    </h1>
+    
+
+
+  May 17, 2019 -
+
+
+
+  Fabian Hueske
+
+  <a href="https://twitter.com/fhueske">(@fhueske)</a>
+  
+
+  Andrey Zagrebin
+
+
+
+
+    <p><p>A common requirement for many stateful streaming applications is to automatically cleanup application state for effective management of your state size, or to control how long the application state can be accessed (e.g. due to legal regulations like the GDPR). The state time-to-live (TTL) feature was initiated in Flink 1.6.0 and enabled application state cleanup and efficient state size management in Apache Flink.</p>
+<p>In this post, we motivate the State TTL feature and discuss its use cases. Moreover, we show how to use and configure it. We explain how Flink internally manages state with TTL and present some exciting additions to the feature in Flink 1.8.0. The blog post concludes with an outlook on future improvements and extensions.</p>
+<h1 id="the-transient-nature-of-state">
+  The Transient Nature of State
+  <a class="anchor" href="#the-transient-nature-of-state">#</a>
+</h1>
+<p>There are two major reasons why state should be maintained only for a limited time. For example, let’s imagine a Flink application that ingests a stream of user login events and stores for each user the time of the last login to improve the experience of frequent visitors.</p>
+<ul>
+<li>
+<p><strong>Controlling the size of state.</strong>
+Being able to efficiently manage an ever-growing state size is a primary use case for state TTL. Oftentimes, data needs to be persisted temporarily while there is some user activity around it, e.g. web sessions. When the activity ends there is no longer interest in that data while it still occupies storage. Flink 1.8.0 introduces background cleanup of old state based on TTL that makes the eviction of no-longer-necessary data frictionless. Previously, the application developer had to take extra actions and explicitly remove useless state to free storage space. This manual clean up procedure was not only error prone but also less efficient than the new lazy method to remove state. Following our previous example of storing the time of the last login, this might not be necessary after some time because the user can be treated as “infrequent” later on.</p>
+</li>
+<li>
+<p><strong>Complying with data protection and sensitive data requirements.</strong>
+Recent developments around data privacy regulations, such as the General Data Protection Regulation (GDPR) introduced by the European Union, make compliance with such data requirements or treating sensitive data a top priority for many use cases and applications. An example of such use cases includes applications that require keeping data for a specific timeframe and preventing access to it thereafter. This is a common challenge for companies providing short-term services to their customers. The state TTL feature gives guarantees for how long an application can access state and hence can help to comply with data protection regulations.</p>
+</li>
+</ul>
+<p>Both requirements can be addressed by a feature that periodically, yet continuously, removes the state for a key once it becomes unnecessary or unimportant and there is no requirement to keep it in storage any more.</p>
+<h1 id="state-ttl-for-continuous-cleanup-of-application-state">
+  State TTL for continuous cleanup of application state
+  <a class="anchor" href="#state-ttl-for-continuous-cleanup-of-application-state">#</a>
+</h1>
+<p>The 1.6.0 release of Apache Flink introduced the State TTL feature. It enabled developers of stream processing applications to configure the state of operators to expire and be cleaned up after a defined timeout (time-to-live). In Flink 1.8.0 the feature was extended, including continuous cleanup of old entries for both the RocksDB and the heap state backends (FSStateBackend and MemoryStateBackend), enabling a continuous cleanup process of old entries (according to the TTL setting).</p>
+<p>In Flink’s DataStream API, application state is defined by a <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/dev/stream/state/state.html#using-managed-keyed-state">state descriptor</a>. State TTL is configured by passing a <code>StateTtlConfiguration</code> object to a state descriptor. The following Java example shows how to create a state TTL configuration and provide it to the state descriptor that holds the last login time of a user as a <code>Long</code> value:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.flink.api.common.state.StateTtlConfig</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.flink.api.common.time.Time</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.flink.api.common.state.ValueStateDescriptor</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">StateTtlConfig</span><span class="w"> </span><span class="n">ttlConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StateTtlConfig</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">newBuilder</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">days</span><span class="p">(</span><span class="n">7</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">setUpdateType</span><span class="p">(</span><span class="n">StateTtlConfig</span><span class="p">.</span><span class="na">UpdateType</span><span class="p">.</span><span class="na">OnCreateAndWrite</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">setStateVisibility</span><span class="p">(</span><span class="n">StateTtlConfig</span><span class="p">.</span><span class="na">StateVisibility</span><span class="p">.</span><span class="na">NeverReturnExpired</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ValueStateDescriptor</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lastUserLogin</span><span class="w"> </span><span class="o">=</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">new</span><span class="w"> </span><span class="n">ValueStateDescriptor</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="s">&#34;lastUserLogin&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">lastUserLogin</span><span class="p">.</span><span class="na">enableTimeToLive</span><span class="p">(</span><span class="n">ttlConfig</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>Flink provides multiple options to configure the behavior of the state TTL functionality.</p>
+<ul>
+<li>
+<p><strong>When is the Time-to-Live reset?</strong>
+By default, the expiration time of a state entry is updated when the state is modified. Optionally, it can also be updated on read access at the cost of an additional write operation to update the timestamp.</p>
+</li>
+<li>
+<p><strong>Can the expired state be accessed one last time?</strong>
+State TTL employs a lazy strategy to clean up expired state. This can lead to the situation that an application attempts to read state which is expired but hasn’t been removed yet. You can configure whether such a read request returns the expired state or not. In either case, the expired state is immediately removed afterwards. While the option of returning expired state favors data availability, not returning expired state can be required for data protection regulations.</p>
+</li>
+<li>
+<p><strong>Which time semantics are used for the Time-to-Live timers?</strong>
+With Flink 1.8.0, users can only define a state TTL in terms of processing time. The support for event time is planned for future Apache Flink releases.</p>
+</li>
+</ul>
+<p>You can read more about how to use state TTL in the <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/stream/state/state.html#state-time-to-live-ttl">Apache Flink documentation</a>.</p>
+<p>Internally, the State TTL feature is implemented by storing an additional timestamp of the last relevant state access, along with the actual state value. While this approach adds some storage overhead, it allows Flink to check for the expired state during state access, checkpointing, recovery, or dedicated storage cleanup procedures.</p>
+<h1 id="taking-out-the-garbage">
+  “Taking out the Garbage”
+  <a class="anchor" href="#taking-out-the-garbage">#</a>
+</h1>
+<p>When a state object is accessed in a read operation, Flink will check its timestamp and clear the state if it is expired (depending on the configured state visibility, the expired state is returned or not). Due to this lazy removal, expired state that is never accessed again will forever occupy storage space unless it is garbage collected.</p>
+<p>So how can the expired state be removed without the application logic explicitly taking care of it? In general, there are different possible strategies to remove it in the background.</p>
+<h2 id="keep-full-state-snapshots-clean">
+  Keep full state snapshots clean
+  <a class="anchor" href="#keep-full-state-snapshots-clean">#</a>
+</h2>
+<p>Flink 1.6.0 already supported automatic eviction of the expired state when a full snapshot for a checkpoint or savepoint is taken. Note that state eviction is not applied for incremental checkpoints. State eviction on full snapshots must be explicitly enabled as shown in the following example:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StateTtlConfig</span><span class="w"> </span><span class="n">ttlConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StateTtlConfig</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">newBuilder</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">days</span><span class="p">(</span><span class="n">7</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">cleanupFullSnapshot</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p>The local storage stays untouched but the size of the stored snapshot is reduced. The local state of an operator will only be cleaned up when the operator reloads its state from a snapshot, i.e. in case of recovery or when starting from a savepoint.</p>
+<p>Due to these limitations, applications still need to actively remove state after it expired in Flink 1.6.0. To improve the user experience, Flink 1.8.0 introduces two more autonomous cleanup strategies, one for each of Flink’s two state backend types. We describe them below.</p>
+<h2 id="incremental-cleanup-in-heap-state-backends">
+  Incremental cleanup in Heap state backends
+  <a class="anchor" href="#incremental-cleanup-in-heap-state-backends">#</a>
+</h2>
+<p>This approach is specific to the Heap state backends (FSStateBackend and MemoryStateBackend). The idea is that the storage backend keeps a lazy global iterator over all state entries. Certain events, for instance state access, trigger an incremental cleanup. Every time an incremental cleanup is triggered, the iterator is advanced. The traversed state entries are checked and expired once are removed. The following code example shows how to enable incremental cleanup:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StateTtlConfig</span><span class="w"> </span><span class="n">ttlConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StateTtlConfig</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">newBuilder</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">days</span><span class="p">(</span><span class="n">7</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// check 10 keys for every state access</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">cleanupIncrementally</span><span class="p">(</span><span class="n">10</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p>If enabled, every state access triggers a cleanup step. For every clean up step, a certain number of state entries are checked for expiration. There are two tuning parameters. The first defines the number of state entries to check for each cleanup step. The second parameter is a flag to trigger a cleanup step after each processed record, additionally to each state access.</p>
+<p>There are two important caveats about this approach:</p>
+<ul>
+<li>The first one is that the time spent for the incremental cleanup increases the record processing latency.</li>
+<li>The second one should be practically negligible but still worth mentioning: if no state is accessed or no records are processed, expired state won’t be removed.</li>
+</ul>
+<h2 id="rocksdb-background-compaction-to-filter-out-expired-state">
+  RocksDB background compaction to filter out expired state
+  <a class="anchor" href="#rocksdb-background-compaction-to-filter-out-expired-state">#</a>
+</h2>
+<p>If your application uses the RocksDB state backend, you can enable another cleanup strategy which is based on a Flink specific compaction filter. RocksDB periodically runs asynchronous compactions to merge state updates and reduce storage. The Flink compaction filter checks the expiration timestamp of state entries with TTL and discards all expired values.</p>
+<p>The first step to activate this feature is to configure the RocksDB state backend by setting the following Flink configuration option: <code>state.backend.rocksdb.ttl.compaction.filter.enabled</code>. Once the RocksDB state backend is configured, the compaction cleanup strategy is enabled for a state as shown in the following code example:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StateTtlConfig</span><span class="w"> </span><span class="n">ttlConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StateTtlConfig</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">newBuilder</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">days</span><span class="p">(</span><span class="n">7</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">cleanupInRocksdbCompactFilter</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p>Keep in mind that calling the Flink TTL filter slows down the RocksDB compaction.</p>
+<h2 id="eager-state-cleanup-with-timers">
+  Eager State Cleanup with Timers
+  <a class="anchor" href="#eager-state-cleanup-with-timers">#</a>
+</h2>
+<p>Another way to manually cleanup state is based on Flink timers. This is an idea that the community is currently evaluating for future releases. With this approach, a cleanup timer is registered for every state access. This approach is more predictable because state is eagerly removed as soon as it expires. However, it is more expensive because the timers consume storage along with the original state.</p>
+<h1 id="future-work">
+  Future work
+  <a class="anchor" href="#future-work">#</a>
+</h1>
+<p>Apart from including the timer-based cleanup strategy, mentioned above, the Flink community has plans to further improve the state TTL feature. The possible improvements include adding support of TTL for event time scale (only processing time is supported at the moment) and enabling State TTL for queryable state.</p>
+<p>We encourage you to join the conversation and share your thoughts and ideas in the <a href="https://issues.apache.org/jira/projects/FLINK/summary">Apache Flink JIRA board</a> or by subscribing to the Apache Flink dev mailing list. Feedback or suggestions are always appreciated and we look forward to hearing your thoughts on the Flink mailing lists.</p>
+<h1 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h1>
+<p>Time-based state access restrictions and controlling the size of application state are common challenges in the world of stateful stream processing. Flink’s 1.8.0 release significantly improves the State TTL feature by adding support for continuous background cleanup of expired state objects. The new clean up mechanisms relieve you from manually implementing state cleanup. They are also more efficient due to their lazy nature. State TTL gives you control over the size of your application state so that you can focus on the core logic of your applications.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2019-05-17-state-ttl.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#the-transient-nature-of-state">The Transient Nature of State</a></li>
+    <li><a href="#state-ttl-for-continuous-cleanup-of-application-state">State TTL for continuous cleanup of application state</a></li>
+    <li><a href="#taking-out-the-garbage">“Taking out the Garbage”</a>
+      <ul>
+        <li><a href="#keep-full-state-snapshots-clean">Keep full state snapshots clean</a></li>
+        <li><a href="#incremental-cleanup-in-heap-state-backends">Incremental cleanup in Heap state backends</a></li>
+        <li><a href="#rocksdb-background-compaction-to-filter-out-expired-state">RocksDB background compaction to filter out expired state</a></li>
+        <li><a href="#eager-state-cleanup-with-timers">Eager State Cleanup with Timers</a></li>
+      </ul>
+    </li>
+    <li><a href="#future-work">Future work</a></li>
+    <li><a href="#summary">Summary</a></li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+
