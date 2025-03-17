@@ -68,7 +68,7 @@ The release notes can be found [here](https://issues.apache.org/jira/secure/Rele
 
 ## Release Resources
 
-The source artifacts and helm chart are available on the Downloads page of the Flink website. You can easily try out the new features shipped in the official 1.8.0 release by adding the Helm chart to your own local registry:
+The source artifacts and helm chart are available on the Downloads page of the Flink website. You can easily try out the new features shipped in the official 1.9.0 release by adding the Helm chart to your own local registry:
 
 ```
 $ helm repo add flink-kubernetes-operator-1.9.0 https://archive.apache.org/dist/flink/flink-kubernetes-operator-1.9.0/
