@@ -1,7 +1,7 @@
 ---
 weight: 2
-title: Flink 2.0 (preview)
-bookHref: "https://nightlies.apache.org/flink/flink-docs-release-2.0-preview1/"
+title: Flink $FlinkLTSShortVersion (LTS)
+bookHref: "https://nightlies.apache.org/flink/flink-docs-lts/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Flink documentation (latest stable release)
+# Flink documentation (latest LTS release)
 
-{{< external_link name="You can find the Flink documentation for the latest preview release here.">}}
+{{< external_link name="You can find the Flink documentation for the latest Long-Term Support(LTS) release here.">}}
