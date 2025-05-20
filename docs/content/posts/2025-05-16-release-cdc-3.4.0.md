@@ -17,23 +17,33 @@ Looking forward to any feedback from the community through the Flink [mailing li
 
 # Highlights
 
-## Update Flink dependency to 1.20 in Flink CDC
+## Pipeline Core
 
-Flink CDC version 3.4.0 supports Flink 1.19.x and 1.20.x.
+## Schema Evolution Optimization
 
-## Connectors
+* Optimized the situation where a large number of CreateTableEvents were sent and processed when a job is started.
+* Optimized the situation where it takes a long time to wait when processing multiple SchemaChangeEvents.
 
-### New Pipeline Connectors
+## Transform Enhancement
+
+* Transform arithmetic functions support parameters of null and more numerical types.
+* Fix failure of adding a new column that has the same column name with source table using transform.
+
+## Batch Execution Mode
+
+We have introduced support for scenarios where only full data synchronization is performed without incremental data synchronization. Currently, users can use this feature by specifying `execution.runtime-mode` as `BATCH` in the pipeline.
+
+## Yarn Application Mode
+
+Users can submit job though Cli with command `./bin/flink-cdc.sh -t yarn-application` to run job in YARN application mode.
+
+## Pipeline Connectors
+
+### Apache Iceberg
 
 Flink CDC 3.4.0 introduces 1 new pipeline connector:
 
 * Iceberg sink. Iceberg is a high-performance format for huge analytic tables. Iceberg brings the reliability and simplicity of SQL tables to big data, while making it possible for engines like Spark, Trino, Flink, Presto, Hive and Impala to safely work with the same tables, at the same time. In this version, Iceberg is supported to be the downstream for Pipeline jobs.
-
-### MySQL
-
-* Support read changelog as append only mode for MySQL CDC connector.
-* MySqlSnapshotSplitAssigner assign the ending chunk early to avoid out of memory error from TaskManager.
-* Fix MySQL CDC captures common-prefix database accidentally when scan.binlog.newly-added-table option is enabled.
 
 ### Apache Paimon
 
@@ -42,27 +52,19 @@ Flink CDC 3.4.0 introduces 1 new pipeline connector:
 * Write full changelog to Paimon Sink.
 * Performance optimization in Paimon Sink to reduce end-to-end checkpoint time.
 
-### MongoDB
+### MySQL CDC
+
+* Support read changelog as append only mode for MySQL CDC connector.
+* MySqlSnapshotSplitAssigner assign the ending chunk early to avoid out of memory error from TaskManager.
+* Fix MySQL CDC captures common-prefix database accidentally when scan.binlog.newly-added-table option is enabled.
+
+### MongoDB CDC
 
 *  Support metadata 'row_kind' virtual column for Mongo CDC Connector.
 
-## Schema Evolution
+## Update Flink dependency to 1.20 in Flink CDC
 
-* Optimized the situation where a large number of CreateTableEvents were sent and processed when a job is started.
-* Optimized the situation where it takes a long time to wait when processing multiple SchemaChangeEvents.
-
-## Transform
-
-* Transform arithmetic functions support parameters of null and more numerical types.
-* Fix failure of adding a new column that has the same column name with source table using transform.
-
-## Batch execution
-
-We have introduced support for scenarios where only full data synchronization is performed without incremental data synchronization. Currently, users can use this feature by specifying `execution.runtime-mode` as `BATCH` in the pipeline.
-
-## Application mode
-
-Users can submit job though Cli with command `./bin/flink-cdc.sh -t yarn-application` to run job in YARN application mode.
+Flink CDC version 3.4.0 supports Flink 1.19.x and 1.20.x.
 
 # List of Contributors
 
