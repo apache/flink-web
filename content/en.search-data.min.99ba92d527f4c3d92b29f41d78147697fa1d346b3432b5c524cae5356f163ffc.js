@@ -107,7 +107,7 @@ This component is compatible with Apache Flink version(s):
 1.20.x
 Apache Flink Kafka Connector 3.4.0 # Apache Flink Kafka Connector 3.4.0 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
-1.20.x Apache Flink Kafka Connector 4.0.0 # Apache Flink Kafka Connector 4.0.0 Source Release (asc, sha512)
+1.20.x Apache Flink Kafka Connector 4.0.1 # Apache Flink Kafka Connector 4.0.1 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
 2.0.x Apache Flink Kudu Connector 2.0.0 # Apache Flink Kudu Connector 2.0.0 Source Release (asc, sha512)
 This component is compatible with Apache Flink version(s):
