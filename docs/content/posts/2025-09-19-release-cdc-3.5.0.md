@@ -9,7 +9,7 @@ aliases:
 ---
 
 The Apache Flink Community is excited to announce the release of Flink CDC 3.5.0!  
-This release introduces new pipeline Connectors for Apache Fluss and PostgreSQL, and improve usability in multi-tables (with frequent table structure changes) synchronization scenario, many issues encountered in the transform and Schema evolution frameworks have also been fixed.
+This release introduces new pipeline connectors for [Apache Fluss](https://fluss.apache.org) and PostgreSQL, and improves usability in multi-tables (with frequent table structure changes) synchronization scenario, many issues encountered in the transform and Schema evolution frameworks have also been fixed.
 
 Flink CDC release packages are available at [Releases Page](https://flink.apache.org/downloads.html#flink-cdc),
 and documentations are available at [Flink CDC documentation](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.5) page.
@@ -26,7 +26,7 @@ Looking forward to any feedback from the community through the Flink [mailing li
 
 ## Transform Enhancement
 
-* [FLINK-38079] Enhance precision support for DATE and TIME types to improve temporal handling in built-in and user-defined functions..
+* FLINK-38079] Enhance precision support for DATE and TIME types to improve temporal handling in built-in and user-defined functions.
 
 ## Incremental Source Framework
 
@@ -47,6 +47,8 @@ Looking forward to any feedback from the community through the Flink [mailing li
 * [FLINK-38142] Bump Paimon version to 1.2.0.
 * [FLINK-38206] Support writing to existed table with inconsistent schema with upstream.
 * [FLINK-37824] Support column comments when creating a new table.
+
+## Source Connectors
 
 ### MySQL CDC
 
