@@ -1,11 +1,11 @@
 ---
 title:  "Apache Flink CDC 3.5.0 Release Announcement"
-date: "2025-09-19T08:00:00.000Z"
+date: "2025-09-26T08:00:00.000Z"
 authors:
 - yanquan:
   name: "Yanquan Lv"
 aliases:
-- /news/2025/09/19/release-cdc-3.5.0.html
+- /news/2025/09/26/release-cdc-3.5.0.html
 ---
 
 The Apache Flink Community is excited to announce the release of Flink CDC 3.5.0!  
@@ -68,4 +68,4 @@ Looking forward to any feedback from the community through the Flink [mailing li
 
 We would like to express gratitude to all the contributors working on this release:
 
-Sachin Mittal, suhwan, Lanny Boarts, hql0312, yuanoOo, gongzhongqiang, Kunni, North Lin, suntectec, SeungMin, ChengJie1053, kangzai, Ihor Mielientiev, Vinh Pham, wudi, Marta Paes, Shawn Huang, zhangchao.doovvv, linjc13, Sergei Morozov, MOBIN, kunni, Junbo Wang, junmuz, lvyanquan, Thorne, zhuxt2015, Xin Gong, linjianchang, tbpure, Tianzhu Wen, yuxiqian.yxq, Naci Simsek, Мухутдинов Артур, Hongshun Wang, proletarians, wangjunbo, Chao Zhang, ouyangwulin, Hang Ruan, Junbo wang, yuxiqian, wuzexian
+Sachin Mittal, suhwan, Lanny Boarts, hql0312, yuanoOo, gongzhongqiang, Kunni, North Lin, suntectec, SeungMin, ChengJie1053, kangzai, Ihor Mielientiev, Vinh Pham, wudi, Marta Paes, Shawn Huang, zhangchao.doovvv, linjc13, Sergei Morozov, MOBIN, Junbo Wang, junmuz, lvyanquan, Thorne, zhuxt2015, Xin Gong, linjianchang, tbpure, Tianzhu Wen, yuxiqian.yxq, Naci Simsek, Мухутдинов Артур, Hongshun Wang, proletarians, wangjunbo, Chao Zhang, ouyangwulin, Hang Ruan, Junbo wang, yuxiqian, wuzexian
