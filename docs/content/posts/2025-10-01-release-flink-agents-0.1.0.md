@@ -13,15 +13,24 @@ The Apache Flink Community is excited to announce the first preview release of A
 
 ## What is Apache Flink Agents
 
-Apache Flink Agents is a brand-new sub-project from the Apache Flink community. It's an open-source framework for building event-driven streaming agents that can operate with scalability, reliability, and real-time responsiveness. 
+Apache Flink Agents is a new sub-project of Apache Flink for building event-driven AI agents directly on Flink’s streaming runtime. It unifies stream processing and autonomous agents in one framework, combining Flink's proven strengths -- scale, low latency, fault tolerance, and state management -- with agent capabilities -- LLMs, tools, memory, and dynamic orchestration.
 
 ### Why Apache Flink Agents Matters
 
-While AI agents have made rapid progress in interactive applications like chatbots, most still operate outside the high-throughput, low-latency world of real-time data processing. Yet in industrial settings -- from e-commerce and finance to IoT and logistics -- critical decisions must be made instantly in response to live events: a payment failure, a sensor anomaly, a user click. These workloads demand more than just intelligence -- they require massive scale, millisecond latency, fault tolerance, and stateful coordination, all of which are strengths of Apache Flink. But until now, there’s been no unified framework to bring agentic AI patterns into this proven streaming ecosystem. Apache Flink Agents bridges this gap.
+While AI agents have made rapid progress in interactive applications like chatbots and copilots, these systems typically operate in synchronous, one-off interactions. Many business use cases cannot wait for a user to prompt them into action. In industrial settings such as e-commerce, finance, IoT, and logistics, critical decisions must be made instantly in response to live events like a payment failure, a sensor anomaly, or a user click.
+
+To succeed in production, enterprise agents must be capable of:
+- Operating on live, high-volume event streams such as transactions, sensor anomalies, or user clicks.
+- Running continuously and autonomously, not only when prompted.
+- Guaranteeing safety, auditability, and recovery when something goes wrong.
+
+These workloads require more than intelligence alone. They demand massive scale, millisecond latency, fault tolerance, and stateful coordination. These are exactly the strengths of Apache Flink.
+
+Until now, there has been no unified framework to bring agentic AI patterns into Flink’s proven streaming ecosystem. Apache Flink Agents bridges this gap by treating agents as event-driven microservices that are always-on, reliable, and scalable.
 
 ### Key Features
 
-Building on Flink's battle-tested streaming engine, Apache Flink Agents inherits distributed, at-scale, fault-tolerant structured data processing and mature state management, and adds first-class abstractions for Agentic AI building blocks and functionalities -- large language models (LLMs), prompts, tools memory, dynamic orchestration, observability, and more.
+Building on Flink's battle-tested streaming engine, Apache Flink Agents inherits distributed, at-scale, fault-tolerant structured data processing and mature state management, and adds first-class abstractions for Agentic AI building blocks and functionalities -- large language models (LLMs), prompts, tools, memory, dynamic orchestration, observability, and more.
 
 The key features of Apache Flink Agents include:
 - **Massive Scale and Millisecond Latency:** Processes massive-scale event streams in real time, leveraging Flink's distributed processing engine.
