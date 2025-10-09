@@ -1,13 +1,12 @@
 ---
 title:  "Apache Flink Agents 0.1.0 Release Announcement"
-date: "2025-10-01T08:00:00.000Z"
+date: "2025-10-15T08:00:00.000Z"
 authors:
 - xtsong:
   name: "Xintong Song"
 aliases:
-- /news/2025/10/01/release-flink-agents-0.1.0.html
+- /news/2025/10/15/release-flink-agents-0.1.0.html
 ---
-\<todo: update release date in: filename, header-date, header-aliases\>
 
 The Apache Flink Community is excited to announce the first preview release of Apache Flink Agents (0.1.0).
 
@@ -43,9 +42,9 @@ The key features of Apache Flink Agents include:
 
 ## Release 0.1.0
 
-Flink Agents 0.1.0 is available for downloading [here](https://flink.apache.org/downloads/). \<todo: add flink agents to flink website download page\>
+Flink Agents 0.1.0 is available for downloading [here](https://flink.apache.org/downloads/#apache-flink-agents).
 
-Documentations and quickstart examples can be found [here](https://nightlies.apache.org/flink/flink-agents-docs-main/). \<todo: update doc url to `.../flink-agents-release-0.1`\>
+Documentations and quickstart examples can be found [here](https://nightlies.apache.org/flink/flink-agents-docs-release-0.1/).
 
 **Note:** Flink Agents 0.1.0 is a preview version, which means:
 - Some functionalities may contain known or unknown issues. You can check the list of known issues and their resolution status via the [Github Issues](https://github.com/apache/flink-agents/issues).
@@ -55,7 +54,7 @@ Therefore, we do not recommend using this version in production environments wit
 We greatly appreciate any feedback you can provide, whether it's sharing how you're using our product, suggesting new features, helping us identify and fix bugs, or anything else that comes to mind. Your insights are invaluable to us.
 
 You may reach out to us via:
-- [Join the Apache Flink Slack](https://flink.apache.org/what-is-flink/community/#slack) and ask for help in [#flink-agents-user](xxx). \<todo: create channel and update link\>
+- [Join the Apache Flink Slack](https://flink.apache.org/what-is-flink/community/#slack) and ask for help in [#flink-agents-user](https://apache-flink.slack.com/archives/C09KP5YUWE8).
 - Post feature requirements and bug reports at [Github Issues](https://github.com/apache/flink-agents/issues).
 - Share your use case and ideas at [Github Discussions](https://github.com/apache/flink-agents/discussions).
 
