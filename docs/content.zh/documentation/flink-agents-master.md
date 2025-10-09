@@ -1,7 +1,7 @@
 ---
-weight: 11
-title: ML Master (snapshot)
-bookHref: "https://nightlies.apache.org/flink/flink-ml-docs-master"
+weight: 9
+title: Agents Main (snapshot)
+bookHref: "https://nightlies.apache.org/flink/flink-agents-docs-main/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,6 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-# Flink ML documentation (latest snapshot)
+# Flink Agents documentation (latest snapshot)
 
-{{< external_link name="You can find the Flink ML documentation for the latest snapshot here.">}}
+{{< external_link name="You can find the Flink Agents documentation for the latest snapshot here.">}}
