@@ -43,6 +43,12 @@ Apache Flink® CDC {{< param FlinkCDCStableShortVersion >}} is the latest stable
 
 {{% flink_download "flink_cdc" %}}
 
+## Apache Flink Agents
+
+Apache Flink® Agents {{< param FlinkAgentsStableShortVersion >}} is the latest release.
+
+{{% flink_download "flink_agents" %}}
+
 ## Apache Flink Stateful Functions
 
 Apache Flink® Stateful Functions {{< param StateFunStableShortVersion >}} is the latest stable release.

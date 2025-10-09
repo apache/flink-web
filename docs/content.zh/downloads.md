@@ -37,6 +37,12 @@ These are connectors that are released separately from the main Flink releases.
 
 {{% flink_download "flink_connectors" %}}
 
+## Apache Flink Agents
+
+Apache Flink® Agents {{< param FlinkAgentsStableShortVersion >}} 是我们最新的版本。
+
+{{% flink_download "flink_agents" %}}
+
 ## Apache Flink Stateful Functions
 
 Apache Flink® Stateful Functions {{< param StateFunStableShortVersion >}} 是我们最新的稳定版本。
