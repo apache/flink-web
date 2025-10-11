@@ -63,4 +63,4 @@ You may reach out to us via:
 
 The Apache Flink community would like to thank each and every one of the contributors that have made this release possible:
 
-Adem Amen Thabti, Alan Z., Eugene, Hao Li, HuangXingBo, Kavishankarks, KeGu-069, Letao Jiang, Qingsheng Ren, Richard, Wenjin Xie, Xintong Song, Xu Huang, Xuannan, twosom, zhaomin1423
+Adem Amen Thabti, Alan Z., Eugene, Hao Li, HuangXingBo, Kavishankarks, KeGu-069, Letao Jiang, Qingsheng Ren, Richard, Wenjin Xie, Xintong Song, Xu Huang, Xuannan, twosom, yanand0909, zhaomin1423
