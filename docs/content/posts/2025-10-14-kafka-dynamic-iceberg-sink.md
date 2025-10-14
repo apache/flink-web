@@ -1,8 +1,8 @@
 ---
 title: "From Stream to Lakehouse: Kafka Ingestion with the Flink Dynamic Iceberg Sink"
-date: "2025-10-03T00:00:00.000Z"
+date: "2025-10-14T00:00:00.000Z"
 aliases:
-- /news/2025/10/03/2025-10-03-kafka-dynamic-iceberg-sink.html
+- /news/2025/10/14/2025-10-14-kafka-dynamic-iceberg-sink.html
 authors:
 - Swapna:
   name: "Swapna Marru"
