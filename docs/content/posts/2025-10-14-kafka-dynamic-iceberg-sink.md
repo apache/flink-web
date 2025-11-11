@@ -9,9 +9,9 @@ authors:
 
 ---
 
-Ingesting thousands of evolving Kafka topics into a lakehouse often creates complex, brittle pipelines that require constant manual intervention. But what if your ingestion pipeline could adapt on its own, with zero downtime?
+Ingesting thousands of evolving Kafka topics into a lakehouse often creates complex, brittle pipelines that require constant manual intervention as its write patterns change. But what if your ingestion pipeline could adapt on its own, with zero downtime?
 
-Enter the **Flink Dynamic Iceberg Sink**, a powerful pattern for Apache Flink that allows users to seamlessly write streaming data into multiple Iceberg tables—dynamically, efficiently, and with full schema evolution support. The sink can create and write to new tables based on instructions within the records themselves. As the schema of incoming records evolves, the dynamic sink automatically evolves the Iceberg table schema in the lakehouse. It can even adapt to changes in the table's partitioning scheme. The key is that all of this happens in real-time, **without a single job restart.**
+Enter the **Flink Dynamic Iceberg Sink**, a powerful pattern for Apache Flink that allows users to write streaming data into multiple Iceberg tables—dynamically, efficiently, and with full schema evolution support. The sink can create and write to new tables based on instructions within the records themselves. As the schema of incoming records evolves, the dynamic sink automatically evolves the Iceberg table schema in the lakehouse. It can even adapt to changes in the table's partitioning scheme. The key is that all of this happens in real-time, **without a single job restart.**
 
 In this post, we'll guide you through building this exact system. We will start by exploring the limitations of traditional, static pipelines and then demonstrate how the dynamic sink pattern provides a robust, scalable solution. We'll focus on a common use case: ingesting Kafka data with dynamic Avro schemas sourced from a Confluent Schema Registry. By the end, you'll have a blueprint for building a scalable, self-adapting ingestion layer that eliminates operational toil and truly bridges your streams and your lakehouse.
 
@@ -24,7 +24,7 @@ Let's start with the basics. Our goal is to get data from a single Kafka topic i
 <img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/simple-single-kafka-topic-to-iceberg.png" style="width:70%;margin:15px">
 </div>
 
-### Standard Flink Job Components
+### How to write to an Iceberg table with Flink
 
 A standard Flink job for this task consists of three main components. 
 
@@ -41,7 +41,7 @@ A standard Flink job for this task consists of three main components.
 This setup is simple, robust, and works perfectly for a single topic with a stable schema.
 
 
-## Scaling Up: The "One DAG Per Topic" Approach
+## Scaling Up: The Naive Approach
 
 Now, what if we have thousands of topics? The logical next step is to create a dedicated processing graph (or DAG) for each topic-to-table mapping within a single Flink application.
 
@@ -51,7 +51,7 @@ Now, what if we have thousands of topics? The logical next step is to create a d
 
 This looks good, but this static architecture cannot adapt to the changes: an Iceberg sink can only write to **one predefined table**, the table must **exist beforehand**, and its **schema is fixed** for the lifetime of the job.
 
-## When Static Pipelines Meet a Dynamic World
+### Scaling Up: Problems Ahead
 
 This static model becomes an operational bottleneck when faced with real-world scenarios.
 
@@ -70,7 +70,7 @@ A single Kafka topic contains multiple event types that need to be routed to dif
 
 All these scenarios require complex workarounds and a way to **automatically restart the application** whenever something changes.
 
-### The Solution: The Dynamic Iceberg Sink
+### The Solution: The Flink Dynamic Iceberg Sink ("Dynamic Sink")
 
 Here’s the new architecture:
 
@@ -147,6 +147,7 @@ public class KafkaRecordToDynamicRecordGenerator implements DynamicRecordGenerat
     }
 }
 ```
+Find more details on options passed to DynamicRecord [here](https://iceberg.apache.org/docs/nightly/flink-writes/#flink-dynamic-iceberg-sink) 
 
 ##### Step 3: Assembling the Flink Job
 
@@ -161,12 +162,11 @@ DynamicIcebergSink.forInput(sourceStream)
     .append();
 ```
 
-
 ## Project Details: Availability, Credits, and Development
 
 This powerful capability is now officially available as part of the Apache Iceberg project.
 
-Find more details on the Dynamic Iceberg Sink [here](https://iceberg.apache.org/docs/nightly/flink-writes/#flink-dynamic-iceberg-sink).
+Find more details on the Dynamic Sink [here](https://iceberg.apache.org/docs/nightly/flink-writes/#flink-dynamic-iceberg-sink).
 
 ### Supported Versions
 You can start using the dynamic sink with the following versions:
@@ -182,7 +182,7 @@ Major development efforts were led by **Maximilian Michels**, with contributions
 
 In conclusion, the choice between a dynamic and a static Iceberg sink represents a trade-off between operational agility and the performance benefits of static bindings. While a simple, static Kafka-to-Iceberg sink is a performant and straightforward solution for stable data environments, the Dynamic Iceberg Sink pattern helps manage the complexity and velocity of frequently changing data.
 
-The most significant advantage of the dynamic sink is its ability to reduce operational burden by automating schema evolution. By leveraging a central schema registry, new schema versions can be published without any direct intervention in the Flink application. The dynamic sink detects these changes and adapts the downstream Iceberg table schema on the fly, eliminating the need for manual code changes, configuration updates, and disruptive job restarts. This creates a truly resilient and hands-off data ingestion pipeline.
+The most significant advantage of the Dynamic Sink is its ability to reduce operational burden by automating schema evolution. By leveraging a central schema registry, new schema versions can be published without any direct intervention in the Flink application. The dynamic sink detects these changes and adapts the downstream Iceberg table schema on the fly, eliminating the need for manual code changes, configuration updates, and disruptive job restarts. This creates a truly resilient and hands-off data ingestion pipeline.
 
 
 Furthermore, the dynamic sink enables powerful, data-driven logic, such as routing records to different tables based on signals within the data itself. This facilitates advanced use cases like multi-tenant data segregation or event-type-based routing without needing to pre-configure every possible outcome.
