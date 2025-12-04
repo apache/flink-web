@@ -1,0 +1,852 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2025/10/14/from-stream-to-lakehouse-kafka-ingestion-with-the-flink-dynamic-iceberg-sink/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ingesting thousands of evolving Kafka topics into a lakehouse often creates complex, brittle pipelines that require constant manual intervention as its write patterns change. But what if your ingestion pipeline could adapt on its own, with zero downtime?
+Enter the Flink Dynamic Iceberg Sink, a powerful pattern for Apache Flink that allows users to write streaming data into multiple Iceberg tables—dynamically, efficiently, and with full schema evolution support. The sink can create and write to new tables based on instructions within the records themselves.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="From Stream to Lakehouse: Kafka Ingestion with the Flink Dynamic Iceberg Sink" />
+<meta property="og:description" content="Ingesting thousands of evolving Kafka topics into a lakehouse often creates complex, brittle pipelines that require constant manual intervention as its write patterns change. But what if your ingestion pipeline could adapt on its own, with zero downtime?
+Enter the Flink Dynamic Iceberg Sink, a powerful pattern for Apache Flink that allows users to write streaming data into multiple Iceberg tables—dynamically, efficiently, and with full schema evolution support. The sink can create and write to new tables based on instructions within the records themselves." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2025/10/14/from-stream-to-lakehouse-kafka-ingestion-with-the-flink-dynamic-iceberg-sink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-10-14T00:00:00+00:00" />
+<meta property="article:modified_time" content="2025-10-14T00:00:00+00:00" />
+<title>From Stream to Lakehouse: Kafka Ingestion with the Flink Dynamic Iceberg Sink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.abf85d9735937528ba6cf27955e9593b504eef73d691ea86e6894279b8794bab.js" integrity="sha256-q/hdlzWTdSi6bPJ5VelZO1BO73PWkeqG5olCebh5S6s="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/docs/get-started/overview/">With Flink Agents<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 2.2 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-lts/">Flink 1.20 (LTS)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.13 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.5 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/">Agents 0.1 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-main/">Agents Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2025/10/14/from-stream-to-lakehouse-kafka-ingestion-with-the-flink-dynamic-iceberg-sink/">From Stream to Lakehouse: Kafka Ingestion with the Flink Dynamic Iceberg Sink</a>
+    </h1>
+    
+
+
+  October 14, 2025 -
+
+
+
+  Swapna Marru
+
+
+
+
+    <p><p>Ingesting thousands of evolving Kafka topics into a lakehouse often creates complex, brittle pipelines that require constant manual intervention as its write patterns change. But what if your ingestion pipeline could adapt on its own, with zero downtime?</p>
+<p>Enter the <strong>Flink Dynamic Iceberg Sink</strong>, a powerful pattern for Apache Flink that allows users to write streaming data into multiple Iceberg tables—dynamically, efficiently, and with full schema evolution support. The sink can create and write to new tables based on instructions within the records themselves. As the schema of incoming records evolves, the dynamic sink automatically evolves the Iceberg table schema in the lakehouse. It can even adapt to changes in the table&rsquo;s partitioning scheme. The key is that all of this happens in real-time, <strong>without a single job restart.</strong></p>
+<p>In this post, we&rsquo;ll guide you through building this exact system. We will start by exploring the limitations of traditional, static pipelines and then demonstrate how the dynamic sink pattern provides a robust, scalable solution. We&rsquo;ll focus on a common use case: ingesting Kafka data with dynamic Avro schemas sourced from a Confluent Schema Registry. By the end, you&rsquo;ll have a blueprint for building a scalable, self-adapting ingestion layer that eliminates operational toil and truly bridges your streams and your lakehouse.</p>
+<h2 id="the-building-block-a-simple-kafka-to-iceberg-pipeline">
+  The Building Block: A Simple Kafka-to-Iceberg Pipeline
+  <a class="anchor" href="#the-building-block-a-simple-kafka-to-iceberg-pipeline">#</a>
+</h2>
+<p>Let&rsquo;s start with the basics. Our goal is to get data from a single Kafka topic into a corresponding Iceberg table.</p>
+<div style="text-align: center;">
+<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/simple-single-kafka-topic-to-iceberg.png" style="width:70%;margin:15px">
+</div>
+<h3 id="how-to-write-to-an-iceberg-table-with-flink">
+  How to write to an Iceberg table with Flink
+  <a class="anchor" href="#how-to-write-to-an-iceberg-table-with-flink">#</a>
+</h3>
+<p>A standard Flink job for this task consists of three main components.</p>
+<ol>
+<li>
+<p><strong>Kafka Source</strong>: Connects to Kafka, subscribes to the topic, and distributes records for parallel processing.</p>
+</li>
+<li>
+<p><strong>A <code>RowData</code> Converter</strong>: This component is responsible for schema-aware processing. It takes the raw <code>byte[]</code> records from Kafka, deserializes them, and transforms them into Flink&rsquo;s internal <code>RowData</code> format. The logic here can vary:</p>
+<ul>
+<li><strong>Specific Logic:</strong> The converter could contain custom deserialization logic tailored to a single, known topic schema.</li>
+<li><strong>Generic Logic:</strong> More powerful, generic pipelines use a schema registry. For formats like Avro or Protobuf, the converter fetches the correct writer&rsquo;s schema from the registry (using an ID from the message header or payload). It then deserializes the bytes into a generic structure like Avro&rsquo;s <code>GenericRecord</code> or Protobuf&rsquo;s <code>DynamicMessage</code>.</li>
+</ul>
+<p>This post will focus on the generic pipeline approach, which is designed for evolving data environments. Even in this generic deserialization approach, a standard job then maps these records to a <strong>static <code>RowData</code> schema</strong> that is hardcoded or configured in the Flink job. This static schema must correspond to the target Iceberg table&rsquo;s schema.</p>
+</li>
+<li>
+<p><strong>Iceberg Sink</strong>: Writes the stream of <code>RowData</code> to a specific Iceberg table, managing transactions and ensuring exactly-once semantics.</p>
+</li>
+</ol>
+<p>This setup is simple, robust, and works perfectly for a single topic with a stable schema.</p>
+<h2 id="scaling-up-the-naive-approach">
+  Scaling Up: The Naive Approach
+  <a class="anchor" href="#scaling-up-the-naive-approach">#</a>
+</h2>
+<p>Now, what if we have thousands of topics? The logical next step is to create a dedicated processing graph (or DAG) for each topic-to-table mapping within a single Flink application.</p>
+<div style="text-align: center;">
+<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/multiple-dag-pipeline.png" style="width:70%;margin:15px">
+</div>
+<p>This looks good, but this static architecture cannot adapt to the changes: an Iceberg sink can only write to <strong>one predefined table</strong>, the table must <strong>exist beforehand</strong>, and its <strong>schema is fixed</strong> for the lifetime of the job.</p>
+<h3 id="scaling-up-problems-ahead">
+  Scaling Up: Problems Ahead
+  <a class="anchor" href="#scaling-up-problems-ahead">#</a>
+</h3>
+<p>This static model becomes an operational bottleneck when faced with real-world scenarios.</p>
+<p><strong>Scenario 1: Schema Evolution</strong>
+When a producer adds a new field to an event schema, the running Flink job, which was configured with the old schema, cannot process the new field. It continues to write the events with the older schema.
+This requires a manual update to the job&rsquo;s code or configuration, followed by a job restart.</p>
+<p>The target Iceberg table&rsquo;s schema must also be updated before the job is restarted. Once restarted, the Flink job&rsquo;s Iceberg sink will use the new table schema, allowing it to write events correctly from both the old and new schemas.</p>
+<p><strong>Scenario 2: A New Topic Appears</strong>
+A new microservice starts producing events. The Flink job has no idea this topic exists. You must add a new DAG to the job code and <strong>restart the application</strong>.</p>
+<p><strong>Scenario 3: Dynamic Routing from a Single Topic</strong>
+A single Kafka topic contains multiple event types that need to be routed to different Iceberg tables. A static sink, hard-wired to one table, can&rsquo;t do this.</p>
+<p>All these scenarios require complex workarounds and a way to <strong>automatically restart the application</strong> whenever something changes.</p>
+<h3 id="the-solution-the-flink-dynamic-iceberg-sink-dynamic-sink">
+  The Solution: The Flink Dynamic Iceberg Sink (&ldquo;Dynamic Sink&rdquo;)
+  <a class="anchor" href="#the-solution-the-flink-dynamic-iceberg-sink-dynamic-sink">#</a>
+</h3>
+<p>Here’s the new architecture:</p>
+<div style="text-align: center;">
+<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/dynamic-iceberg-sink.png" style="width:70%;margin:15px">
+</div>
+<p>This single, unified pipeline can ingest from any number of topics and write to any number of tables, automatically handling new topics and schema changes without restarts.</p>
+<h4 id="a-look-at-the-implementation">
+  A Look at the Implementation
+  <a class="anchor" href="#a-look-at-the-implementation">#</a>
+</h4>
+<p>Let&rsquo;s dive into the key components that make this dynamic behavior possible.</p>
+<h5 id="step-1-preserving-kafka-metadata-with-kafkarecord">
+  Step 1: Preserving Kafka Metadata with <code>KafkaRecord</code>
+  <a class="anchor" href="#step-1-preserving-kafka-metadata-with-kafkarecord">#</a>
+</h5>
+<p>To make dynamic decisions, our pipeline needs metadata. For example, to use the topic name as the table name, we need access to the topic! Standard deserializers often discard this, returning only the deserialized payload.</p>
+<p>To solve this, we first pass the raw Kafka <code>ConsumerRecord</code> through a lightweight wrapper. This wrapper converts it into a simple POJO, <code>KafkaRecord</code>, that preserves all the essential metadata for downstream processing.</p>
+<p>Here is the structure of our <code>KafkaRecord</code> class:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">KafkaRecord</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">topic</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">key</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">value</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Headers</span><span class="w"> </span><span class="n">headers</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">....</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Now, every record flowing through our Flink pipeline is a <code>KafkaRecord</code> object, giving our converter access to the <code>topic</code> for table routing and the <code>value</code> (the raw byte payload) for schema discovery.</p>
+<h5 id="step-2-the-kafkarecordtodynamicrecordgenerator">
+  Step 2: The <code>KafkaRecordToDynamicRecordGenerator</code>
+  <a class="anchor" href="#step-2-the-kafkarecordtodynamicrecordgenerator">#</a>
+</h5>
+<p>It takes a <code>KafkaRecord</code> and performs the &ldquo;late binding&rdquo; of schema and table information. For each message, it:</p>
+<ol>
+<li><strong>Extracts the schema ID</strong> from the <code>value</code> byte array (using the Confluent wire format).</li>
+<li><strong>Fetches the writer&rsquo;s schema</strong> from Schema Registry.</li>
+<li><strong>Deserializes the Avro payload</strong> and converts it into Flink&rsquo;s <code>RowData</code>.</li>
+<li><strong>Bundles everything</strong> into a <code>DynamicRecord</code>, which contains:
+<ul>
+<li>The <code>TableIdentifier</code> (created from <code>kafkaRecord.topic</code>).</li>
+<li>The <code>org.apache.iceberg.Schema</code> (converted from the Avro schema).</li>
+<li>The <code>PartitionSpec</code> (e.g., based on a timestamp field).</li>
+<li>The <code>RowData</code> payload itself.</li>
+</ul>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">KafkaRecordToDynamicRecordGenerator</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">DynamicRecordGenerator</span><span class="o">&lt;</span><span class="n">KafkaRecord</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">DynamicRecord</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">KafkaRecord</span><span class="w"> </span><span class="n">kafkaRecord</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 1. Get schema ID from kafkaRecord.value and fetch schema</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">schemaId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getSchemaId</span><span class="p">(</span><span class="n">kafkaRecord</span><span class="p">.</span><span class="na">value</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Schema</span><span class="w"> </span><span class="n">writerSchema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">schemaRegistryClient</span><span class="p">.</span><span class="na">getById</span><span class="p">(</span><span class="n">schemaId</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 2. Deserialize and convert to RowData</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">GenericRecord</span><span class="w"> </span><span class="n">genericRecord</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">deserialize</span><span class="p">(</span><span class="n">payload</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">RowData</span><span class="w"> </span><span class="n">rowData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">avroToRowDataMapper</span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">genericRecord</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 3. Dynamically create table info from the KafkaRecord</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">TableIdentifier</span><span class="w"> </span><span class="n">tableId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TableIdentifier</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="n">kafkaRecord</span><span class="p">.</span><span class="na">topic</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">org</span><span class="p">.</span><span class="na">apache</span><span class="p">.</span><span class="na">iceberg</span><span class="p">.</span><span class="na">Schema</span><span class="w"> </span><span class="n">icebergSchema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AvroSchemaUtil</span><span class="p">.</span><span class="na">toIceberg</span><span class="p">(</span><span class="n">writerSchema</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">PartitionSpec</span><span class="w"> </span><span class="n">spec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buildPartitionSpec</span><span class="p">(</span><span class="n">icebergSchema</span><span class="p">,</span><span class="w"> </span><span class="n">kafkaRecord</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 4. Return the complete DynamicRecord</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DynamicRecord</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">tableId</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="s">&#34;branch&#34;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">icebergSchema</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">rowData</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">spec</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">DistributionMode</span><span class="p">.</span><span class="na">NONE</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Find more details on options passed to DynamicRecord <a href="https://iceberg.apache.org/docs/nightly/flink-writes/#flink-dynamic-iceberg-sink">here</a></p>
+<h5 id="step-3-assembling-the-flink-job">
+  Step 3: Assembling the Flink Job
+  <a class="anchor" href="#step-3-assembling-the-flink-job">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// A single stream from ALL topics, producing KafkaRecord objects</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">KafkaRecord</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sourceStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="p">.</span><span class="na">fromSource</span><span class="p">(</span><span class="n">kafkaSource</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// A single sink that handles everything</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DynamicIcebergSink</span><span class="p">.</span><span class="na">forInput</span><span class="p">(</span><span class="n">sourceStream</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">generator</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">KafkaRecordToDynamicRecordGenerator</span><span class="p">())</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">catalogLoader</span><span class="p">(</span><span class="n">getCatalogLoader</span><span class="p">())</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">append</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><h2 id="project-details-availability-credits-and-development">
+  Project Details: Availability, Credits, and Development
+  <a class="anchor" href="#project-details-availability-credits-and-development">#</a>
+</h2>
+<p>This powerful capability is now officially available as part of the Apache Iceberg project.</p>
+<p>Find more details on the Dynamic Sink <a href="https://iceberg.apache.org/docs/nightly/flink-writes/#flink-dynamic-iceberg-sink">here</a>.</p>
+<h3 id="supported-versions">
+  Supported Versions
+  <a class="anchor" href="#supported-versions">#</a>
+</h3>
+<p>You can start using the dynamic sink with the following versions:</p>
+<ul>
+<li><strong>Apache Iceberg 1.10.0</strong> or newer. Full release notes <a href="https://github.com/apache/iceberg/releases/tag/apache-iceberg-1.10.0">here</a>.</li>
+<li><strong>Apache Flink 1.20, 2.0, and 2.1</strong>.</li>
+</ul>
+<h3 id="contributors">
+  Contributors
+  <a class="anchor" href="#contributors">#</a>
+</h3>
+<p>The journey began with a detailed project proposal authored by <strong>Peter Vary</strong>, which laid the groundwork for this development. You can read the original proposal <a href="https://docs.google.com/document/d/1R3NZmi65S4lwnmNjH4gLCuXZbgvZV5GNrQKJ5NYdO9s/edit?tab=t.0#heading=h.xv1r23unqyn3">here</a>.</p>
+<p>Major development efforts were led by <strong>Maximilian Michels</strong>, with contributions from several community members.</p>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
+<p>In conclusion, the choice between a dynamic and a static Iceberg sink represents a trade-off between operational agility and the performance benefits of static bindings. While a simple, static Kafka-to-Iceberg sink is a performant and straightforward solution for stable data environments, the Dynamic Iceberg Sink pattern helps manage the complexity and velocity of frequently changing data.</p>
+<p>The most significant advantage of the Dynamic Sink is its ability to reduce operational burden by automating schema evolution. By leveraging a central schema registry, new schema versions can be published without any direct intervention in the Flink application. The dynamic sink detects these changes and adapts the downstream Iceberg table schema on the fly, eliminating the need for manual code changes, configuration updates, and disruptive job restarts. This creates a truly resilient and hands-off data ingestion pipeline.</p>
+<p>Furthermore, the dynamic sink enables powerful, data-driven logic, such as routing records to different tables based on signals within the data itself. This facilitates advanced use cases like multi-tenant data segregation or event-type-based routing without needing to pre-configure every possible outcome.</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2025-10-14-kafka-dynamic-iceberg-sink.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#the-building-block-a-simple-kafka-to-iceberg-pipeline">The Building Block: A Simple Kafka-to-Iceberg Pipeline</a>
+          <ul>
+            <li><a href="#how-to-write-to-an-iceberg-table-with-flink">How to write to an Iceberg table with Flink</a></li>
+          </ul>
+        </li>
+        <li><a href="#scaling-up-the-naive-approach">Scaling Up: The Naive Approach</a>
+          <ul>
+            <li><a href="#scaling-up-problems-ahead">Scaling Up: Problems Ahead</a></li>
+            <li><a href="#the-solution-the-flink-dynamic-iceberg-sink-dynamic-sink">The Solution: The Flink Dynamic Iceberg Sink (&ldquo;Dynamic Sink&rdquo;)</a></li>
+          </ul>
+        </li>
+        <li><a href="#project-details-availability-credits-and-development">Project Details: Availability, Credits, and Development</a>
+          <ul>
+            <li><a href="#supported-versions">Supported Versions</a></li>
+            <li><a href="#contributors">Contributors</a></li>
+          </ul>
+        </li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+
