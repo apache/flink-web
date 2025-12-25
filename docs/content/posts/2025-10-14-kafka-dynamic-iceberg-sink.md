@@ -21,7 +21,7 @@ In this post, we'll guide you through building this exact system. We will start 
 Let's start with the basics. Our goal is to get data from a single Kafka topic into a corresponding Iceberg table.
 
 <div style="text-align: center;">
-<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/simple-single-kafka-topic-to-iceberg.png" style="width:70%;margin:15px">
+<img src="/img/blog/2025-10-14-kafka-dynamic-iceberg-sink/simple-single-kafka-topic-to-iceberg.png" style="width:70%;margin:15px">
 </div>
 
 ### How to write to an Iceberg table with Flink
@@ -46,7 +46,7 @@ This setup is simple, robust, and works perfectly for a single topic with a stab
 Now, what if we have thousands of topics? The logical next step is to create a dedicated processing graph (or DAG) for each topic-to-table mapping within a single Flink application.
 
 <div style="text-align: center;">
-<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/multiple-dag-pipeline.png" style="width:70%;margin:15px">
+<img src="/img/blog/2025-10-14-kafka-dynamic-iceberg-sink/multiple-dag-pipeline.png" style="width:70%;margin:15px">
 </div>
 
 This looks good, but this static architecture cannot adapt to the changes: an Iceberg sink can only write to **one predefined table**, the table must **exist beforehand**, and its **schema is fixed** for the lifetime of the job.
@@ -75,7 +75,7 @@ All these scenarios require complex workarounds and a way to **automatically res
 Here’s the new architecture:
 
 <div style="text-align: center;">
-<img src="/img/blog/2025-10-03-kafka-dynamic-iceberg-sink/dynamic-iceberg-sink.png" style="width:70%;margin:15px">
+<img src="/img/blog/2025-10-14-kafka-dynamic-iceberg-sink/dynamic-iceberg-sink.png" style="width:70%;margin:15px">
 </div>
 
 This single, unified pipeline can ingest from any number of topics and write to any number of tables, automatically handling new topics and schema changes without restarts.
