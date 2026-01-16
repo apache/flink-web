@@ -1,0 +1,759 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2025/04/30/introducing-the-externalized-kudu-connector/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="We are pleased to announce the revival of a connector that makes it possible for Flink to interact with Apache Kudu. The original connector existed as part of the Apache Bahir project, which was moved into the attic. Despite this, we saw interest to keep the Kudu connector updated, hence the community agreed to externalize it as a standalone connector in accordance with the current connector development model. For more information about the externalization process, see FLIP-439.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Introducing the Externalized Kudu Connector" />
+<meta property="og:description" content="We are pleased to announce the revival of a connector that makes it possible for Flink to interact with Apache Kudu. The original connector existed as part of the Apache Bahir project, which was moved into the attic. Despite this, we saw interest to keep the Kudu connector updated, hence the community agreed to externalize it as a standalone connector in accordance with the current connector development model. For more information about the externalization process, see FLIP-439." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2025/04/30/introducing-the-externalized-kudu-connector/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-04-30T18:00:00+00:00" />
+<meta property="article:modified_time" content="2025-04-30T18:00:00+00:00" />
+<title>Introducing the Externalized Kudu Connector | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.42fc281a20ba14a01c2d882db5254699b3a09b40850d75fc23f06da9fffac895.js" integrity="sha256-QvwoGiC6FKAcLYgttSVGmbOgm0CFDXX8I/Btqf/6yJU="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/docs/get-started/overview/">With Flink Agents<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 2.2 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-lts/">Flink 1.20 (LTS)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.13 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.5 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/">Agents 0.1 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-main/">Agents Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2025/04/30/introducing-the-externalized-kudu-connector/">Introducing the Externalized Kudu Connector</a>
+    </h1>
+    
+
+
+  April 30, 2025 -
+
+
+
+  Ferenc Csaky
+
+
+
+
+    <p><p>We are pleased to announce the revival of a connector that makes it possible for Flink to interact with <a href="https://kudu.apache.org/">Apache Kudu</a>.
+The original connector existed as part of the <a href="https://bahir.apache.org/#home">Apache Bahir</a> project, which was moved into the attic.
+Despite this, we saw interest to keep the Kudu connector updated, hence the community agreed to externalize it as a standalone connector in accordance with the current connector development model.
+For more information about the externalization process, see <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-439%3A&#43;Externalize&#43;Kudu&#43;Connector&#43;from&#43;Bahir">FLIP-439</a>.</p>
+<h1 id="highlights">
+  Highlights
+  <a class="anchor" href="#highlights">#</a>
+</h1>
+<ul>
+<li>The connector is built on the already existing Apache Bahir code.</li>
+<li>The existing DataStream connector is updated to Sink V2 API.</li>
+<li>New DataStream Source API connector implementation.</li>
+<li>The Table API source and sink connectors are now using the new Schema stack.</li>
+<li>The first released connector version is <em>2.0.0</em>, and it supports <em>Flink 1.19</em>, and <em>1.20</em>.</li>
+</ul>
+<h1 id="datastream-source-api">
+  DataStream Source API
+  <a class="anchor" href="#datastream-source-api">#</a>
+</h1>
+<p>The Source API implementation is a net new addition to the externalized connector, and it brings some interesting features.
+Although Kudu itself is a bounded source, the Kudu Source implementation supports to configure boundedness, and can run in <code>CONTINUOUS_UNBOUNDED</code> mode.
+In <code>CONTINUOUS_UNBOUNDED</code> mode, the source operates similarly to a Change Data Capture (CDC) system.
+When the job starts, it takes a snapshot of the source table and records the snapshot timestamp.
+After that, it performs periodic differential scans, capturing only the changes that occurred since the last scan.
+The frequency of these scans is determined by the <code>.setDiscoveryPeriod(Duration)</code> setting.
+The following example demonstrates how to stream data from a Kudu table, capturing updates every one minute.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">KuduSource</span><span class="o">&lt;</span><span class="n">Row</span><span class="o">&gt;</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">KuduSource</span><span class="p">.</span><span class="o">&lt;</span><span class="n">Row</span><span class="o">&gt;</span><span class="n">builder</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">setTableInfo</span><span class="p">(...)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">setReaderConfig</span><span class="p">(...)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">setRowResultConverter</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RowResultRowConverter</span><span class="p">())</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">setBoundedness</span><span class="p">(</span><span class="n">Boundedness</span><span class="p">.</span><span class="na">CONTINUOUS_UNBOUNDED</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">setDiscoveryPeriod</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMinutes</span><span class="p">(</span><span class="n">1</span><span class="p">))</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p>For more details and examples, see the <a href="//nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/datastream/kudu/">DataStream connector documentation</a></p>
+<h1 id="table-api-catalog">
+  Table API Catalog
+  <a class="anchor" href="#table-api-catalog">#</a>
+</h1>
+<p>The connector includes a catalog implementation designed to manage metadata for your Kudu setup and facilitate table operations.
+With the Kudu catalog, you can access all existing Kudu tables directly through Flink SQL queries.
+Such catalog can be defined in Flink SQL, as part of the Java application, or via a YAML catalog descriptor as well.
+The below example shows a minimal example in Filnk SQL.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">my_kudu_catalog</span><span class="w"> </span><span class="k">WITH</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="s1">&#39;type&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;kudu&#39;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="s1">&#39;masters&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;localhost:7051&#39;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="s1">&#39;default-database&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;default_database&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">USE</span><span class="w"> </span><span class="k">CATALOG</span><span class="w"> </span><span class="n">my_kudu_catalog</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></div><p>For other Table API related topics and examples, see the <a href="//nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/kudu/">Table API connector documentation</a></p>
+<h1 id="release-notes">
+  Release Notes
+  <a class="anchor" href="#release-notes">#</a>
+</h1>
+<h2 id="sub-task">
+  Sub-task
+  <a class="anchor" href="#sub-task">#</a>
+</h2>
+<ul>
+<li>[FLINK-34929] - Create &ldquo;flink-connector-kudu&rdquo; repository</li>
+<li>[FLINK-34930] - Move existing Kudu connector code from Bahir repo to dedicated repo</li>
+<li>[FLINK-34931] - Update Kudu DataStream connector to use Sink V2</li>
+<li>[FLINK-35114] - Remove old Table API implementations, update Schema stack</li>
+<li>[FLINK-35350] - Add documentation for Kudu connector</li>
+<li>[FLINK-37389] - Add &ldquo;flink-sql-connector-kudu&rdquo; module</li>
+</ul>
+<h2 id="new-feature">
+  New Feature
+  <a class="anchor" href="#new-feature">#</a>
+</h2>
+<ul>
+<li>[FLINK-36855] - Implement Source API in Kudu connector</li>
+<li>[FLINK-37527] - Add <code>KuduSource</code> documentation</li>
+<li>[FLINK-37664] - Integrate Kudu connector docs</li>
+</ul>
+<h2 id="improvement">
+  Improvement
+  <a class="anchor" href="#improvement">#</a>
+</h2>
+<ul>
+<li>[FLINK-36839] - Update Kudu version to 1.17.1</li>
+<li>[FLINK-37190] - Make Kudu <code>FlushMode</code> configurable in Flink SQL</li>
+<li>[FLINK-37230] - Consolidate Kudu connector table options</li>
+<li>[FLINK-37237] - Improve Kudu table creation based on Flink SQL <code>CREATE TABLE</code></li>
+</ul>
+<h1 id="list-of-contributors">
+  List of Contributors
+  <a class="anchor" href="#list-of-contributors">#</a>
+</h1>
+<p>Ferenc Csaky, Martijn Visser, Marton Greber</p>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2025-04-30-introducing-the-externalized-kudu-connector.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li><a href="#highlights">Highlights</a></li>
+    <li><a href="#datastream-source-api">DataStream Source API</a></li>
+    <li><a href="#table-api-catalog">Table API Catalog</a></li>
+    <li><a href="#release-notes">Release Notes</a>
+      <ul>
+        <li><a href="#sub-task">Sub-task</a></li>
+        <li><a href="#new-feature">New Feature</a></li>
+        <li><a href="#improvement">Improvement</a></li>
+      </ul>
+    </li>
+    <li><a href="#list-of-contributors">List of Contributors</a></li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+

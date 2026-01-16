@@ -37,6 +37,18 @@ These are connectors that are released separately from the main Flink releases.
 
 {{% flink_download "flink_connectors" %}}
 
+## Apache Flink CDC
+
+Apache Flink® CDC {{< param FlinkCDCStableShortVersion >}} is the latest stable release.
+
+{{% flink_download "flink_cdc" %}}
+
+## Apache Flink Agents
+
+Apache Flink® Agents {{< param FlinkAgentsStableShortVersion >}} is the latest release.
+
+{{% flink_download "flink_agents" %}}
+
 ## Apache Flink Stateful Functions
 
 Apache Flink® Stateful Functions {{< param StateFunStableShortVersion >}} is the latest stable release.
@@ -54,12 +66,6 @@ Apache Flink® ML {{< param FlinkMLStableShortVersion >}} is the latest stable r
 Apache Flink® Kubernetes Operator {{< param FlinkKubernetesOperatorStableShortVersion >}} is the latest stable release.
 
 {{% flink_download "flink_kubernetes_operator" %}}
-
-## Apache Flink Table Store 
-
-Apache Flink® Table Store {{< param FlinkTableStoreStableShortVersion >}}  is the latest stable release.
-
-{{% flink_download "flink_table_store" %}}
 
 ## Additional Components
 

@@ -122,7 +122,7 @@ under the License.
 
 ## How do I get help from Apache Flink?
 
-There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](#stack-overflow). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira](#issue-tracker). Those interested in contributing to Flink should check out the [contribution guide]({{< relref "how-to-contribute" >}}).
+There are many ways to get help from the Apache Flink community. The [mailing lists](#mailing-lists) are the primary place where all Flink committers are present. For user support and questions use the *user mailing list*. You can also join the community on [Slack](#slack). Some committers are also monitoring [Stack Overflow](#stack-overflow). Please remember to tag your questions with the *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* tag. Bugs and feature requests can either be discussed on the *dev mailing list* or on [Jira](#issue-tracker). Those interested in contributing to Flink should check out the [contribution guide]({{< relref "how-to-contribute/overview" >}}).
 
 ## Mailing Lists
 
@@ -151,7 +151,7 @@ If you send us an email with a code snippet, make sure that:
 
 ## Slack
 
-You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-22mklt3r5-89MjX41gqHsBk81ZoTDqXg)
+You can join the [Apache Flink community on Slack.]({{< param FlinkSlackInviteUrl >}})
 After creating an account in Slack, don't forget to introduce yourself in #introductions.
 Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list](#mailing-lists).
 Any existing Slack member can also invite anyone else to join.
@@ -162,7 +162,8 @@ There are a couple of community rules:
 * All important decisions and conclusions **must be reflected back to the mailing lists.**
   "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
 * Use **Slack threads** to keep parallel conversations from overwhelming a channel.
-* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. These should be picked-up voluntarily.
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. Doing this can result in removal from Slack.
 
 **Note**: All messages from public channels in our Slack are **permanently stored and published** in the [Apache Flink Slack archive on linen.dev](https://www.linen.dev/s/apache-flink). The purpose of this archive is to allow search engines to find past discussions in the Flink Slack.
 
@@ -201,6 +202,18 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-docker.git](https://gitbox.apache.org/repos/asf/flink-docker.git)
     * GitHub mirror: [https://github.com/apache/flink-docker.git](https://github.com/apache/flink-docker.git)
 
+* **Flink Kubernetes Operator Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
+    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
+
+* **Flink CDC Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-cdc.git](https://gitbox.apache.org/repos/asf/flink-cdc.git)
+    * GitHub mirror: [https://github.com/apache/flink-cdc](https://github.com/apache/flink-cdc)
+
+* **Flink ML Repository**
+    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
+    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
+
 * **Flink Stateful Functions Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun.git](https://gitbox.apache.org/repos/asf/flink-statefun.git)
     * GitHub mirror: [https://github.com/apache/flink-statefun](https://github.com/apache/flink-statefun)
@@ -208,18 +221,6 @@ There are plenty of meetups on [meetup.com](http://www.meetup.com/topics/apache-
 * **Flink Stateful Functions Docker Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-statefun-docker.git](https://gitbox.apache.org/repos/asf/flink-statefun-docker.git)
     * GitHub mirror: [https://github.com/apache/flink-statefun-docker](https://github.com/apache/flink-statefun-docker)
-
-* **Flink ML Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-ml.git](https://gitbox.apache.org/repos/asf/flink-ml.git)
-    * GitHub mirror: [https://github.com/apache/flink-ml](https://github.com/apache/flink-ml)
-
-* **Flink Kubernetes Operator Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
-    * GitHub mirror: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
-
-* **Flink Table Store Repository**
-    * ASF repository: [https://gitbox.apache.org/repos/asf/flink-table-store.git](https://gitbox.apache.org/repos/asf/flink-table-store.git)
-    * GitHub mirror: [https://github.com/apache/flink-table-store](https://github.com/apache/flink-table-store)
 
 * **Flink Website Repository**
     * ASF repository: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)

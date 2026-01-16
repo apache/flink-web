@@ -18,13 +18,16 @@
 # limitations under the License.
 ################################################################################
 
+source "$(dirname "$0")"/_utils.sh
 
 PACKAGE=quickstart
+
+defaultFlinkVersionSnapShot="$(extract_parameter 'FlinkStableShortVersion')-SNAPSHOT"
 
 mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate	\
   -DarchetypeGroupId=org.apache.flink								\
   -DarchetypeArtifactId=flink-quickstart-java						\
-  -DarchetypeVersion=${1:-1.17-SNAPSHOT}									\
+  -DarchetypeVersion=${1:-${defaultFlinkVersionSnapShot}}						\
   -DgroupId=org.myorg.quickstart 									\
   -DartifactId=$PACKAGE												\
   -Dversion=0.1														\
