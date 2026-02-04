@@ -23,7 +23,7 @@ aliases:
 <!-- TOC -->
 
 Previous Blog :
-[https:/flink.apache.org/2020/09/04/flink-community-update-august20/](https:/flink.apache.org/2020/09/04/flink-community-update-august20/)
+[https://flink.apache.org/2020/09/04/flink-community-update-august20/](https://flink.apache.org/2020/09/04/flink-community-update-august20/)
 
 After a gap, the Community update is back for February 2026! The intention going forward is that we will look to produce a monthly blog, that will
 highlight what has occurred in the community over the previous month. This will include new PMC and committers, any interesting blogs, new releases, active Flips and 
@@ -34,7 +34,7 @@ Since 2020, the Flink community has been very busy, to give a flavour of what ha
 * added many new connectors, moved out to their own repositories.
 * benefited from newer Calcite levels
 * introduced Change Data Capture
-* introduced Kubenetes Operator support
+* introduced kubernetes Operator support
 * added support for AI capabilities 
 * new DataStream API V2
 * new Flink SQL gateway
@@ -46,13 +46,13 @@ Interestingly, in the last month or so the backlog has been creeping up again an
 As usual this update will summarise what has happened in the previous month (January).
 
 * The previous month has seen the connector parent v2 being released, the long awaited connector parent brought up to date and flink v2 ready.
-* The AWS connectors have been enhanced and are about be to be released for Flink v1 and v2.
-* Flink dev connector Slack brought up an interesting discussion: the Python connectors are in the Flink core repository, but the rest of the connector code is in their own connector specific repository. 
+* The AWS connectors have been enhanced and are about to be released for Flink v1 and v2.
+* An interesting discussion in the Flink dev connector Slack channel highlighted that Python connectors are in the Flink core repository, but the rest of the connector code is in their own connector specific repository. 
 * Flink HTTP connector, addressed all outstanding raised PRs. Preparing for releasing it.
 * Flink Kafka connector had quite a busy month with around 10 commits going in. The most interesting were:
     * [FLINK-38947] Handle errors in onCompletion callback only once ([#214](https://github.com/apache/flink-connector-kafka/pull/214))
     * [FLINK-38876] Support per-cluster offset in Dynamic Kafka Source ([#209](https://github.com/apache/flink-connector-kafka/pull/209))
-* Flink Kubenetes operator
+* Flink kubernetes operator
     * commits, improvements to the blue-green deployment stood out.
     * Preparing to release Kubernetes Operator 1.14.0
 
@@ -64,6 +64,8 @@ As usual this update will summarise what has happened in the previous month (Jan
 [https://www.ververica.com/blog/a-world-without-kafka](https://www.ververica.com/blog/a-world-without-kafka)
 
 ## Summary of Apache Flink Dev List (covering January 2026)
+
+The following section was generated with AI assistance and reviewed by the community.
 
 ### Key Themes
 
