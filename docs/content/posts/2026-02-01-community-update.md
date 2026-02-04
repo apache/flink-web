@@ -71,29 +71,27 @@ AI summary.
 
 ### Active FLIPs
 
-**FLIP-560: Application Capability Enhancement** (Yi Zhang)
-- Multi-job execution in Application Mode
-- Re-running main method after JobManager restarts
-- Expose main method exceptions via REST/UI
+**[FLIP-560](https://cwiki.apache.org/confluence/display/FLINK/FLIP-560%3A+Application+Capability+Enhancement) Application Capability Enhancement** (Yi Zhang)
+- Job manager Config and exceptions exposed in REST/UI
 - Active discussion on error handling and diagnostics
 
-**FLIP-559: Add ARTIFACT Keyword** (Mika Naylor)
+**[FLIP-559](https://cwiki.apache.org/confluence/display/FLINK/FLIP-559%3A+Add+ARTIFACT+keyword+option+in+CREATE+FUNCTION%27s+USING+clause): Add ARTIFACT Keyword** (Mika Naylor)
 - Generic ARTIFACT keyword for CREATE FUNCTION
 - Supports future artifact types beyond JARs
 - Moving toward vote
 
-**FLIP-487: Rescale History in Web UI** (Yuepeng Pan)
+**[FLIP-487](https://cwiki.apache.org/confluence/display/FLINK/FLIP-487%3A+Show+history+of+rescales+in+Web+UI+for+AdaptiveScheduler): Rescale History in Web UI** (Yuepeng Pan)
 - Vote started January 7, 2026
 - Improves rescaling observability
 
-**FLIP-558: SinkUpsertMaterializer Improvements** (Dawid)
+**[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): SinkUpsertMaterializer Improvements** (Dawid)
 - Vote started
 
-**FLIP-339: Adaptive Partition Selection** (Yuepeng Pan)
+**[FLIP-339](https://cwiki.apache.org/confluence/display/FLINK/FLIP-339%3A+Support+Adaptive+Partition+Selection+for+StreamPartitioner): Adaptive Partition Selection** (Yuepeng Pan)
 - Dynamic partitioning based on downstream load
 - Focuses on rebalance/rescale, debate on shuffle()
 
-**FLIP-561: Restructure Flink documentation** (Martijn Visser)
+**[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink documentation** (Martijn Visser)
 - Vote started January 15, 2026
 
 ### Kubernetes Operator 1.14.0 Release
@@ -105,4 +103,9 @@ AI summary.
 ## For more information
 
 Anything you think has been misrepresented, is wrong or missing, please let me know via Flink Slack.
-If you would like to keep a closer eye on what’s happening in the community, subscribe to the Flink [@community mailing list](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more.
+
+If you would like to keep a closer eye on what’s happening in the community, subscribe to one of the Flink [@community mailing list](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more.
+Two popular mailing lists are:
+* the [dev list](https://lists.apache.org/list.html?dev@flink.apache.org) for development related discussions
+* the [user list](https://lists.apache.org/list.html?user@flink.apache.org) for user support and questions 
+
