@@ -45,20 +45,24 @@ Interestingly, in the last month or so the backlog has been creeping up again an
 [Extensive view on the streaming trends for 2026](https://www.kai-waehner.de/blog/2025/12/10/top-trends-for-data-streaming-with-apache-kafka-and-flink-in-2026/)
 * A view on the Flink world from Ververica
 [https://www.ververica.com/blog/a-world-without-kafka](https://www.ververica.com/blog/a-world-without-kafka)
-* A blog on Flink being the future of stream processing 
-[https://www.oreateai.com/blog/understanding-apache-flink-the-future-of-stream-processing/284a4ec5131c57f2dbf5b0b2660f896f](https://www.oreateai.com/blog/understanding-apache-flink-the-future-of-stream-processing/284a4ec5131c57f2dbf5b0b2660f896f)
 
 ## Summary of Apache Flink Dev List (covering January 2026)
 
-AI summary.
-
 ### Key Themes
 
-1. Enhanced Application Mode for batch processing
-2. Improved observability and error reporting
-3. SQL syntax evolution for diverse artifacts
-4. Performance optimization through adaptive partitioning
-5. Kubernetes Operator maturity
+1. SQL improvements
+   - Altering query should be possible if MATERIALIZED TABLE schema contains non persisted columns [https://lists.apache.org/thread/rbnv8k9qbvlrv087x196o3st3rrvswcw](https://lists.apache.org/thread/rbnv8k9qbvlrv087x196o3st3rrvswcw)
+   - SQL syntax evolution for diverse artifacts https://lists.apache.org/thread/ty6pscdlr2sllx4no4mvj6sb2kdvc9rz
+   - Support INET_ATON and INET_NTOA functions for IP address conversion [https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz](https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz)
+   - Exception creating table of nested objects [https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913](https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913)
+2. More Scala to java rule conversion in the table planner including:
+   -  [https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn](https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn)
+3. Kubernetes Operator maturity 
+   - FlinkBlueGreenDeployment
+        - [FLINK-38867](https://issues.apache.org/jira/browse/FLINK-38867)
+        - [FLINK-38915](https://issues.apache.org/jira/browse/FLINK-38915)
+        - [FLINK-38787](https://issues.apache.org/jira/browse/FLINK-38787)
+   - [New release planning](https://lists.apache.org/thread/scrs2664s0hznjf15tz2dd5g5yh923tr)
 
 ### Community Announcements
 
