@@ -29,7 +29,7 @@ After a gap, the Community update is back for February 2026! The intention going
 highlight what has occurred in the community over the previous month. This will include new PMC and committers, any interesting blogs, new releases, active Flips and 
 a view of the themes in the dev list from the previous month.
 <p>
-Since 2020, the Flink community has been very busy, to give a flavour of what has changed; Flink has 
+Since 2020, the Flink community has been very busy, to give a flavour of what has changed, Flink has 
 
 * added many new connectors, moved out to their own repositories.
 * benefited from newer Calcite levels
