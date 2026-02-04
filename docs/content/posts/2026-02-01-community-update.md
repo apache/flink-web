@@ -15,11 +15,11 @@ aliases:
 * [This past month in Flink](#this-past-month-in-flink)
   * [Flink related Blogs](#flink-related-blogs)
   * [Summary of Apache Flink Dev List (covering January 2026)](#summary-of-apache-flink-dev-list-covering-january-2026)
-    * [📊 Key Themes](#-key-themes)
-    * [🎉 Community Announcements](#-community-announcements)
-    * [📋 Active FLIPs](#-active-flips)
-    * [🔧 Kubernetes Operator 1.14.0 Release](#-kubernetes-operator-1140-release)
-    * [❓For more information](#for-more-information)
+    * [Key Themes](#key-themes)
+    * [Community Announcements](#community-announcements)
+    * [Active FLIPs](#active-flips)
+    * [Kubernetes Operator 1.14.0 Release](#kubernetes-operator-1140-release)
+  * [For more information](#for-more-information)
 <!-- TOC -->
 
 Previous Blog :
@@ -28,22 +28,21 @@ Previous Blog :
 After a gap, the Community update is back for February 2026! As usual this update will summarise what has happened in the previous month (January).
 - In the last few years the Flink PR backlog got to around 1200. We introduced the stale bot last year, and it came down to around 200.
 Interestingly, in the last month or so the backlog has been creeping up again and is over 250.
-- The previous month has seen the connector parent v2 being released, the long awaited connector parent brought up to date and flink 2 ready.
+- The previous month has seen the connector parent v2 being released, the long awaited connector parent brought up to date and flink v2 ready.
 - The AWS connectors have been enhanced and are about be to be released for Flink v1 and v2.
-- Flink dev connector slack brought up an interesting discussion the Python connectors are in the Flink core repository
-  but the rest of the connector code is in its own repository.
+- Flink dev connector Slack brought up an interesting discussion: the Python connectors are in the Flink core repository, but the rest of the connector code is in their own connector specific repository. 
 - Flink HTTP connector, addressed all outstanding raised PRs. Preparing for releasing it.
 - Flink Kafka connector had quite a busy month with around 10 commits going in. The most interesting were:
-    - [FLINK-38947] Handle errors in onCompletion callback only once (#214)
-    - [FLINK-38876] Support per-cluster offset in Dynamic Kafka Source (#209)
+    - [FLINK-38947] Handle errors in onCompletion callback only once ([#214](https://github.com/apache/flink-connector-kafka/pull/214))
+    - [FLINK-38876] Support per-cluster offset in Dynamic Kafka Source ([#209](https://github.com/apache/flink-connector-kafka/pull/209))
 - Flink Kubenetes operator
-    - had 9 commits, improvements to the blue-green deployment stood out.
+    - 9 commits, improvements to the blue-green deployment stood out.
     - Preparing to release Kubernetes Operator 1.14.0
 
 ## Flink related Blogs
 
-* Extensive view on the streaming trends for 2026
-[https://www.kai-waehner.de/blog/2025/12/10/top-trends-for-data-streaming-with-apache-kafka-and-flink-in-2026/](https://www.kai-waehner.de/blog/2025/12/10/top-trends-for-data-streaming-with-apache-kafka-and-flink-in-2026/)
+* Kai Waehner 
+[Extensive view on the streaming trends for 2026](https://www.kai-waehner.de/blog/2025/12/10/top-trends-for-data-streaming-with-apache-kafka-and-flink-in-2026/)
 * A view on the Flink world from Ververica
 [https://www.ververica.com/blog/a-world-without-kafka](https://www.ververica.com/blog/a-world-without-kafka)
 * A blog on Flink being the future of stream processing 
@@ -53,7 +52,7 @@ Interestingly, in the last month or so the backlog has been creeping up again an
 
 AI summary.
 
-### 📊 Key Themes
+### Key Themes
 
 1. Enhanced Application Mode for batch processing
 2. Improved observability and error reporting
@@ -61,7 +60,7 @@ AI summary.
 4. Performance optimization through adaptive partitioning
 5. Kubernetes Operator maturity
 
-### 🎉 Community Announcements
+### Community Announcements
 
 **New Committers:**
 - **David Radley**
@@ -70,7 +69,7 @@ AI summary.
 **New PMC Member:**
 - **Hang Ruan**
 
-### 📋 Active FLIPs
+### Active FLIPs
 
 **FLIP-560: Application Capability Enhancement** (Yi Zhang)
 - Multi-job execution in Application Mode
@@ -97,13 +96,13 @@ AI summary.
 **FLIP-561: Restructure Flink documentation** (Martijn Visser)
 - Vote started January 15, 2026
 
-### 🔧 Kubernetes Operator 1.14.0 Release
+### Kubernetes Operator 1.14.0 Release
 
 - **Target:** Release cut January 30, RC vote early February
 - **Release Manager:** Gyula Fóra
 - **Key Features:** FlinkBlueGreenDeployment fixes from Shopify team
 
-### ❓For more information
+## For more information
 
 Anything you think has been misrepresented, is wrong or missing, please let me know via Flink Slack.
 If you would like to keep a closer eye on what’s happening in the community, subscribe to the Flink [@community mailing list](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more.
