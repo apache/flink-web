@@ -31,7 +31,7 @@ Apache Flink® {{< param FlinkStableVersion >}} is the latest stable release.
 
 {{% flink_download "flink" %}}
 
-## Apache Flink connectors
+## Apache Flink Connectors
 
 These are connectors that are released separately from the main Flink releases.
 
