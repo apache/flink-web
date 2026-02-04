@@ -23,7 +23,7 @@ aliases:
 <!-- TOC -->
 
 Previous Blog :
-[http://localhost:1313/2020/09/04/flink-community-update-august20/](http://localhost:1313/2020/09/04/flink-community-update-august20/)
+[https:/flink.apache.org/2020/09/04/flink-community-update-august20/](https:/flink.apache.org/2020/09/04/flink-community-update-august20/)
 
 After a gap, the Community update is back for February 2026! As usual this update will summarise what has happened in the previous month (January).
 - In the last few years the Flink PR backlog got to around 1200. We introduced the stale bot last year, and it came down to around 200.
