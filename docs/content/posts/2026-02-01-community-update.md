@@ -9,7 +9,7 @@ aliases:
 - /news/2026/02/02/community-update.html
 ---
 
-# This past month in Flink
+#  Flink Community update for February 2026
 
 <!-- TOC -->
 * [This past month in Flink](#this-past-month-in-flink)
@@ -25,24 +25,30 @@ aliases:
 Previous Blog :
 [https://flink.apache.org/2020/09/04/flink-community-update-august20/](https://flink.apache.org/2020/09/04/flink-community-update-august20/)
 
-After a gap, the Community update is back for February 2026! The intention going forward is that we will look to produce a monthly blog, that will
-highlight what has occurred in the community over the previous month. This will include new PMC and committers, any interesting blogs, new releases, active Flips and 
+After a [gap](https://flink.apache.org/2020/09/04/flink-community-update-august20/), the Community update is back for February 2026! The intention going forward is that we will look to produce a monthly blog, that will
+highlight what has occurred in the community over the previous month. This will include new PMC and committers, any interesting blogs, new releases, active FLIPs and 
 a view of the themes in the dev list from the previous month.
 <p>
-Since 2020, the Flink community has been very busy, to give a flavour of what has changed, Flink has 
 
-* added many new connectors, moved out to their own repositories.
-* benefited from newer Calcite levels
-* introduced Change Data Capture
-* introduced kubernetes Operator support
-* added support for AI capabilities 
-* new DataStream API V2
-* new Flink SQL gateway
-* released Flink v2, with disaggregated state, support of more up to date JAVA levels and removing deprecated APIs.
-<p>
+## Bringing us up to date - a brief summary of what has happened in Flink since 2020 up to end of 2025.
+Since 2020, the Flink community has been very busy, to give a flavour of what has improved, Flink has 
+
+* added many new connectors, moved out to their own repositories - increasing the reach of Flink flows. 
+* added canonical state, a unified the binary format of savepoints across different state backends, then further performant refinement in the native form.
+* benefited from newer Calcite levels - the latest one Flink has adopted brings in support for nullables in nested objects.
+* introduced Change Data Capture - with a new easy way of defining simple flows.
+* introduced kubernetes Operator support - making Flink enterprise ready.
+* added support for AI capabilities - enriching flows so they benefit from AI.
+* new DataStream API V2 - new simpler datastream API. 
+* new Flink SQL gateway - a more flexible way of submitting SQL.
+* released Flink v2, with disaggregated state, materialized tables , PTFs, support of more up to date JAVA levels and removing deprecated APIs.
+<p> 
+
 In the last few years the Flink PR backlog got to around 1200. We introduced the stale bot last year, and it came down to around 200.
 Interestingly, in the last month or so the backlog has been creeping up again and is over 250.
 <p>
+
+## January 2026 overview
 As usual this update will summarise what has happened in the previous month (January).
 
 * The previous month has seen the connector parent v2 being released, the long awaited connector parent brought up to date and flink v2 ready.
@@ -70,12 +76,12 @@ The following section was generated with AI assistance and reviewed by the commu
 ### Key Themes
 
 1. SQL improvements
-   - Altering query should be possible if MATERIALIZED TABLE schema contains non persisted columns [https://lists.apache.org/thread/rbnv8k9qbvlrv087x196o3st3rrvswcw](https://lists.apache.org/thread/rbnv8k9qbvlrv087x196o3st3rrvswcw)
-   - SQL syntax evolution for diverse artifacts https://lists.apache.org/thread/ty6pscdlr2sllx4no4mvj6sb2kdvc9rz
-   - Support INET_ATON and INET_NTOA functions for IP address conversion [https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz](https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz)
-   - Exception creating table of nested objects [https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913](https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913)
-2. More Scala to java rule conversion in the table planner including:
-   -  [https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn](https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn)
+   - [Altering query should be possible if MATERIALIZED TABLE schema contains non persisted columns](https://lists.apache.org/thread/rbnv8k9qbvlrv087x196o3st3rrvswcw)
+   - [SQL syntax evolution for diverse artifacts](https://lists.apache.org/thread/ty6pscdlr2sllx4no4mvj6sb2kdvc9rz)
+   - [Support INET_ATON and INET_NTOA functions for IP address conversion](https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz)
+   - [Exception creating table of nested objects](https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913)
+2. More Scala to JAVA rule conversion in the table planner including:
+   -  [Migrate BatchPhysicalSortMergeJoinRule](https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn)
 3. Kubernetes Operator maturity 
    - FlinkBlueGreenDeployment
         - [FLINK-38867](https://issues.apache.org/jira/browse/FLINK-38867)
@@ -125,7 +131,9 @@ The following section was generated with AI assistance and reviewed by the commu
 
 ## For more information
 
-Anything you think has been misrepresented, is wrong or missing, please let me know via Flink Slack.
+Follow this blog to keep up to date with what is happening in the Flink community.
+
+If you have ideas for what you would like to see in these blogs or there is anything you think has been misrepresented, is wrong or missing, please let us know via the dev list (detail below) or [slack](https://flink.apache.org/how-to-contribute/getting-help/#slack).   
 
 If you would like to keep a closer eye on what’s happening in the community, subscribe to one of the Flink [@community mailing list](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more.
 Two popular mailing lists are:
