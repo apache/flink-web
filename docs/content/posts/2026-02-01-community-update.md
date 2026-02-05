@@ -12,7 +12,9 @@ aliases:
 #  Flink Community update for February 2026
 
 <!-- TOC -->
-* [This past month in Flink](#this-past-month-in-flink)
+* [Flink Community update for February 2026](#flink-community-update-for-february-2026)
+  * [Bringing us up to date - a brief summary of what has happened in Flink since 2020 up to end of 2025.](#bringing-us-up-to-date---a-brief-summary-of-what-has-happened-in-flink-since-2020-up-to-end-of-2025)
+  * [January 2026 overview](#january-2026-overview)
   * [Flink related Blogs](#flink-related-blogs)
   * [Summary of Apache Flink Dev List (covering January 2026)](#summary-of-apache-flink-dev-list-covering-january-2026)
     * [Key Themes](#key-themes)
@@ -31,17 +33,17 @@ a view of the themes in the dev list from the previous month.
 <p>
 
 ## Bringing us up to date - a brief summary of what has happened in Flink since 2020 up to end of 2025.
-Since 2020, the Flink community has been very busy, to give a flavour of what has improved, Flink has 
+Since 2020, the Flink community has been very busy. Here is a flavour of what has improved. 
 
 * added many new connectors, moved out to their own repositories - increasing the reach of Flink flows. 
-* added canonical state, a unified the binary format of savepoints across different state backends, then further performant refinement in the native form.
-* benefited from newer Calcite levels - the latest one Flink has adopted brings in support for nullables in nested objects.
-* introduced Change Data Capture - with a new easy way of defining simple flows.
+* added canonical state, a unified the binary format of savepoints across different state backends, then a further more performant refinement in the native form.
+* benefited from newer Calcite levels - the [latest one](https://calcite.apache.org/news/2023/11/10/release-1.36.0/) Flink has adopted brings in support for nullables in nested objects.
+* introduced Change Data Capture - with a new easy way to define simple flows.
 * introduced kubernetes Operator support - making Flink enterprise ready.
 * added support for AI capabilities - enriching flows so they benefit from AI.
 * new DataStream API V2 - new simpler datastream API. 
 * new Flink SQL gateway - a more flexible way of submitting SQL.
-* released Flink v2, with disaggregated state, materialized tables , PTFs, support of more up to date JAVA levels and removing deprecated APIs.
+* released Flink v2, with disaggregated state, materialized tables, PTFs, support for more up to date JAVA levels and removing deprecated APIs.
 <p> 
 
 In the last few years the Flink PR backlog got to around 1200. We introduced the stale bot last year, and it came down to around 200.
