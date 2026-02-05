@@ -93,12 +93,12 @@ The following section was generated with AI assistance and reviewed by the commu
 
 ### Community Announcements
 
-**New Committers:**
-- **David Radley**
-- **Yuepeng Pan (RocMarshal)**
+#### New Committers
+- David Radley
+- Yuepeng Pan (RocMarshal)
 
-**New PMC Member:**
-- **Hang Ruan**
+#### New PMC Member
+- Hang Ruan
 
 ### Active FLIPs
 
