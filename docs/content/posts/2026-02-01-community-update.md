@@ -68,8 +68,8 @@ As usual this update will summarise what has happened in the previous month (Jan
 
 * Kai Waehner 
 [Extensive view on the streaming trends for 2026](https://www.kai-waehner.de/blog/2025/12/10/top-trends-for-data-streaming-with-apache-kafka-and-flink-in-2026/)
-* A view on the Flink world from Ververica
-[https://www.ververica.com/blog/a-world-without-kafka](https://www.ververica.com/blog/a-world-without-kafka)
+* A view on the Flink from Ververica
+[A world without Kafka](https://www.ververica.com/blog/a-world-without-kafka)
 
 ## Summary of Apache Flink Dev List (covering January 2026)
 
