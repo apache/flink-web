@@ -19,7 +19,11 @@ aliases:
   * [Summary of Apache Flink Dev List (covering January 2026)](#summary-of-apache-flink-dev-list-covering-january-2026)
     * [Key Themes](#key-themes)
     * [Community Announcements](#community-announcements)
-    * [Active FLIPs](#active-flips)
+      * [New Committers](#new-committers)
+      * [New PMC Member](#new-pmc-member)
+    * [FLIP Activity](#flip-activity)
+      * [Accepted - being implemented](#accepted---being-implemented)
+      * [Being discussed](#being-discussed)
     * [Kubernetes Operator 1.14.0 Release](#kubernetes-operator-1140-release)
   * [For more information](#for-more-information)
 <!-- TOC -->
@@ -35,15 +39,17 @@ a view of the themes in the dev list from the previous month.
 ## Bringing us up to date - a brief summary of what has happened in Flink since 2020 up to end of 2025.
 Since 2020, the Flink community has been very busy. Here is a flavour of what has improved. 
 
-* added many new connectors, moved out to their own repositories - increasing the reach of Flink flows. 
-* added canonical state, a unified the binary format of savepoints across different state backends, then a further more performant refinement in the native form.
-* benefited from newer Calcite levels - the [latest one](https://calcite.apache.org/news/2023/11/10/release-1.36.0/) Flink has adopted brings in support for nullables in nested objects.
-* introduced Change Data Capture - with a new easy way to define simple flows.
-* introduced kubernetes Operator support - making Flink enterprise ready.
-* added support for AI capabilities - enriching flows so they benefit from AI.
-* new DataStream API V2 - new simpler datastream API. 
-* new Flink SQL gateway - a more flexible way of submitting SQL.
-* released Flink v2, with disaggregated state, materialized tables, PTFs, support for more up to date JAVA levels and removing deprecated APIs.
+* Flink Kubernetes (k8s) Operator
+  * Enterprise ready.
+  * Autoscaling - tuning jobs to meet the utilization target set by the user.
+  * k8s experience. 
+* Flink 2.0
+  * Process Table Functions (PTFs) - bringing datastream flexibility to SQL. 
+  * Disaggregated state.
+  * Deprecation of older APIs, leaving the strategic ones.   
+* Materialized tables
+  * Bringing a consistent developer experience to batch and streaming.
+
 <p> 
 
 In the last few years the Flink PR backlog got to around 1200. We introduced the stale bot last year, and it came down to around 200.
@@ -54,7 +60,9 @@ Interestingly, in the last month or so the backlog has been creeping up again an
 As usual this update will summarise what has happened in the previous month (January).
 
 * The previous month has seen the connector parent v2 being released, the long awaited connector parent brought up to date and flink v2 ready.
-* The AWS connectors have been enhanced and are about to be released for Flink v1 and v2.
+* The AWS connectors have been enhanced and are about to be released for Flink v1 and v2. 
+  * Version 5.1 [fixes](https://github.com/apache/flink-connector-aws/pull/193) a data loss issue for DynamoDB Streams and Kinesis Source which was caused when a job restarts from a inflight shard rotation / split during checkpoints.
+  * Version 6.0 introduces [support](https://github.com/apache/flink-connector-aws/pull/219) for the ShardFilter API for DynamoDB Streams source, improving efficiency and responsiveness when processing data from DynamoDB Streams.  
 * An interesting discussion in the Flink dev connector Slack channel highlighted that Python connectors are in the Flink core repository, but the rest of the connector code is in their own connector specific repository. 
 * Flink HTTP connector, addressed all outstanding raised PRs. Preparing for releasing it.
 * Flink Kafka connector had quite a busy month with around 10 commits going in. The most interesting were:
@@ -62,7 +70,7 @@ As usual this update will summarise what has happened in the previous month (Jan
     * [FLINK-38876] Support per-cluster offset in Dynamic Kafka Source ([#209](https://github.com/apache/flink-connector-kafka/pull/209))
 * Flink kubernetes operator
     * commits, improvements to the blue-green deployment stood out.
-    * Preparing to release Kubernetes Operator 1.14.0
+    * Preparing to release Kubernetes Operator 1.14.0.
 
 ## Flink related Blogs
 
@@ -73,8 +81,6 @@ As usual this update will summarise what has happened in the previous month (Jan
 
 ## Summary of Apache Flink Dev List (covering January 2026)
 
-The following section was generated with AI assistance and reviewed by the community.
-
 ### Key Themes
 
 1. SQL improvements
@@ -82,7 +88,7 @@ The following section was generated with AI assistance and reviewed by the commu
    - [SQL syntax evolution for diverse artifacts](https://lists.apache.org/thread/ty6pscdlr2sllx4no4mvj6sb2kdvc9rz)
    - [Support INET_ATON and INET_NTOA functions for IP address conversion](https://lists.apache.org/thread/d39vxv3fjwbvzdrlrxo9g1wlwk6gc9fz)
    - [Exception creating table of nested objects](https://lists.apache.org/list?dev@flink.apache.org:lte=1M:FLINK-38913)
-2. More Scala to JAVA rule conversion in the table planner including:
+2. Technical debt - more Scala to JAVA rule conversions in the table planner including:
    -  [Migrate BatchPhysicalSortMergeJoinRule](https://lists.apache.org/thread/x8fyng2pz2t16jxthqgb47h17cftjjsn)
 3. Kubernetes Operator maturity 
    - FlinkBlueGreenDeployment
@@ -100,30 +106,37 @@ The following section was generated with AI assistance and reviewed by the commu
 #### New PMC Member
 - Hang Ruan
 
-### Active FLIPs
+### FLIP Activity
+
+#### Accepted - being implemented
+**[FLIP-339](https://cwiki.apache.org/confluence/display/FLINK/FLIP-339%3A+Support+Adaptive+Partition+Selection+for+StreamPartitioner): Adaptive Partition Selection** (Yuepeng Pan)
+- Dynamic partitioning based on downstream load
+- Focuses on rebalance/rescale, debate on shuffle()
+
+**[FLIP-487](https://cwiki.apache.org/confluence/display/FLINK/FLIP-487%3A+Show+history+of+rescales+in+Web+UI+for+AdaptiveScheduler): Rescale History in Web UI** (Yuepeng Pan)
+- Improves rescaling observability
+
+**[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): SinkUpsertMaterializer Improvements** (Dawid)
+- Addresses the poor performance and high resource consumption caused by Flink's current implicit handling of data integrity issues, specifically when the upsert key of a stream differs from the PRIMARY KEY of the sink (the use case requiring the Sink Upsert Materializer, or SUM).
 
 **[FLIP-560](https://cwiki.apache.org/confluence/display/FLINK/FLIP-560%3A+Application+Capability+Enhancement) Application Capability Enhancement** (Yi Zhang)
 - Job manager Config and exceptions exposed in REST/UI
-- Active discussion on error handling and diagnostics
+
+**[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink documentation** (Martijn Visser)
+- A more intuitive structure of the documentation.
+
+#### Being discussed
+**[FLIP-557](https://cwiki.apache.org/confluence/display/FLINK/FLIP-557%3A+Granular+Control+over+Data+Reprocessing+and+State+Retention+in+Materialized+Table+Evolution) Granular Control over Data Reprocessing and State Retention in Materialized Table Evolution** (Ramin Gharib) 
+- Introduces control of the data processing window for the evolution of materialized tables.
+- Allows the scope of state retention to be specified for materialized tables. 
 
 **[FLIP-559](https://cwiki.apache.org/confluence/display/FLINK/FLIP-559%3A+Add+ARTIFACT+keyword+option+in+CREATE+FUNCTION%27s+USING+clause): Add ARTIFACT Keyword** (Mika Naylor)
 - Generic ARTIFACT keyword for CREATE FUNCTION
 - Supports future artifact types beyond JARs
 - Moving toward vote
 
-**[FLIP-487](https://cwiki.apache.org/confluence/display/FLINK/FLIP-487%3A+Show+history+of+rescales+in+Web+UI+for+AdaptiveScheduler): Rescale History in Web UI** (Yuepeng Pan)
-- Vote started January 7, 2026
-- Improves rescaling observability
-
-**[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): SinkUpsertMaterializer Improvements** (Dawid)
-- Vote started
-
-**[FLIP-339](https://cwiki.apache.org/confluence/display/FLINK/FLIP-339%3A+Support+Adaptive+Partition+Selection+for+StreamPartitioner): Adaptive Partition Selection** (Yuepeng Pan)
-- Dynamic partitioning based on downstream load
-- Focuses on rebalance/rescale, debate on shuffle()
-
-**[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink documentation** (Martijn Visser)
-- Vote started January 15, 2026
+**[FLIP-563](https://cwiki.apache.org/confluence/display/FLINK/FLIP-563+Support+provided+lib+archives+for+YARN+application+mode) Support provided lib archives for YARN application mode** (Archit Goyal) 
+- Discussion thread started but no responses yet. 
 
 ### Kubernetes Operator 1.14.0 Release
 
