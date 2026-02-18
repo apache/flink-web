@@ -25,7 +25,7 @@ aliases:
 <!-- TOC -->
 
 Previous Blog:
-[https://flink.apache.org/2020/09/04/flink-community-update-august20/](https://flink.apache.org/2020/09/04/flink-community-update-august20/)
+[Flink community update August 2020](https://flink.apache.org/2020/09/04/flink-community-update-august20/)
 
 After a [gap](https://flink.apache.org/2020/09/04/flink-community-update-august20/), the Community update is back for February 2026! The intention going forward is that we will look to produce a monthly blog that will
 highlight what has occurred in the community over the previous month. This will include new PMC and committers, any interesting blogs, new releases, active FLIPs and 
