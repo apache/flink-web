@@ -122,7 +122,7 @@ under the License.
 
 ## 如何从 Apache Flink 获得帮助？
 
-我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 用户邮件列表 获得帮助。你还可以加入社区专属的 [Slack](#slack)。有些 Committer 同时会关注 [Stack Overflow](#stack-overflow)。请在提问的时候记得添加 *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* 的标签。问题反馈以及新特性的讨论则可以在 开发邮件列表 或者 [Jira](#issue-追踪) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南]({{< relref "how-to-contribute" >}}).
+我们可以通过多种方式从 Apache Flink 社区获得帮助。Flink committer 主要活跃在 [邮件列表](#mailing-lists)。对于用户支持和问题咨询，则可以通过 用户邮件列表 获得帮助。你还可以加入社区专属的 [Slack](#slack)。有些 Committer 同时会关注 [Stack Overflow](#stack-overflow)。请在提问的时候记得添加 *[apache-flink](http://stackoverflow.com/questions/tagged/apache-flink)* 的标签。问题反馈以及新特性的讨论则可以在 开发邮件列表 或者 [Jira](#issue-追踪) 上进行讨论。有兴趣对 Flink 进行贡献的人请查阅 [贡献指南]({{< relref "how-to-contribute/overview" >}}).
 
 ## 邮件列表
 
@@ -149,7 +149,7 @@ under the License.
 
 ## Slack
 
-你可以通过 [此链接](https://join.slack.com/t/apache-flink/shared_invite/zt-22mklt3r5-89MjX41gqHsBk81ZoTDqXg)
+你可以通过 [此链接]({{< param FlinkSlackInviteUrl >}})
 加入 Apache Flink 社区专属的 Slack 工作空间。 在成功加入后，不要忘记在 #introductions 频道介绍你自己。 Slack 规定每个邀请链接最多可邀请 100 人，如果遇到上述链接失效的情况，请联系 [Dev 邮件列表](#mailing-lists)。 
 所有已经加入社区 Slack 空间的成员同样可以邀请新成员加入。
 
@@ -159,6 +159,7 @@ under the License.
 * 所有重要的决定和结论 **必须在邮件列表中有所体现。**
   "没有发生在邮件列表上的事情，即视为没有发生。" - [Apache 准则](http://theapacheway.com/on-list/)
 * 使用 **Slack 消息列（Thread** 使频道（Channel）中的多组同时进行的对话保持有序。
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
 * **不要通过私信（Direct Message** 要求他人答疑、指派 Jira、审查 PR。这些事务应遵从自愿原则。
 
 **注意**: 来自我们 Slack 中公共渠道的所有消息都 **永久存储并发布** 在 [linen.dev 上的 Apache Flink Slack 存档](https://www.linen.dev/s/apache-flink)。 这个存档的目的是让搜索引擎在 Flink Slack 中找到过去的讨论。
@@ -214,9 +215,9 @@ Committer 们会关注 [Stack Overflow](http://stackoverflow.com/questions/tagge
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git](https://gitbox.apache.org/repos/asf/flink-kubernetes-operator.git)
     * GitHub 镜像: [https://github.com/apache/flink-kubernetes-operator](https://github.com/apache/flink-kubernetes-operator)
 
-* **Flink Table Store 仓库**
-    * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-table-store.git](https://gitbox.apache.org/repos/asf/flink-table-store.git)
-    * GitHub 镜像: [https://github.com/apache/flink-table-store](https://github.com/apache/flink-table-store)
+* **Apache Paimon(incubating) (formerly Flink Table Store) 仓库**
+    * ASF 仓库: [https://gitbox.apache.org/repos/asf/incubator-paimon.git](https://gitbox.apache.org/repos/asf/incubator-paimon.git)
+    * GitHub 镜像: [https://github.com/apache/incubator-paimon](https://github.com/apache/incubator-paimon)
 
 * **Flink Website 仓库**
     * ASF 仓库: [https://gitbox.apache.org/repos/asf/flink-web.git](https://gitbox.apache.org/repos/asf/flink-web.git)

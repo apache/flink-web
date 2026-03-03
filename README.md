@@ -32,7 +32,7 @@ The site can be viewed at http://localhost:1313/
 
 ## Building the website
 
-You must have [Hugo](https://gohugo.io/getting-started/installing/) installed on your system.
+You must have [Hugo 0.124.1](https://gohugo.io/getting-started/installing/) installed on your system.
 
 The website needs to be rebuilt before being merged into the `asf-site` branch.  
 

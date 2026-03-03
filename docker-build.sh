@@ -20,7 +20,7 @@
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 source "${SCRIPT_DIR}/_utils.sh"
 
-hugo_docker_image="jakejarvis/hugo-extended:latest"
+hugo_docker_image="jakejarvis/hugo-extended:0.124.1"
 docker pull "${hugo_docker_image}"
 
 run_hugo_in_docker="docker run -u$(id -u "${USER}"):$(id -g "${USER}") -v $(pwd)/docs:/src -p 1313:1313 ${hugo_docker_image}"

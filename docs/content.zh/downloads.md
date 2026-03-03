@@ -31,11 +31,17 @@ Apache Flink® {{< param FlinkStableVersion >}} 是我们最新的稳定版本�
 
 {{% flink_download "flink" %}}
 
-## Apache Flink connectors
+## Apache Flink Connectors
 
 These are connectors that are released separately from the main Flink releases.
 
 {{% flink_download "flink_connectors" %}}
+
+## Apache Flink Agents
+
+Apache Flink® Agents {{< param FlinkAgentsStableShortVersion >}} 是我们最新的版本。
+
+{{% flink_download "flink_agents" %}}
 
 ## Apache Flink Stateful Functions
 
@@ -54,12 +60,6 @@ Apache Flink® ML {{< param FlinkMLStableShortVersion >}} 是我们最新的稳�
 Apache Flink® Kubernetes Operator {{< param FlinkKubernetesOperatorStableShortVersion >}} 是我们最新的稳定版本。
 
 {{% flink_download "flink_kubernetes_operator" %}}
-
-## Apache Flink Table Store 
-
-Apache Flink® Table Store {{< param FlinkTableStoreStableShortVersion >}} 是我们最新的稳定版本。
-
-{{% flink_download "flink_table_store" %}}
 
 ## 额外组件
 

@@ -50,10 +50,19 @@ Please note that you won't receive a response to your mail if you are not subscr
 
 ### Slack
 
-You can join the [Apache Flink community on Slack.](https://join.slack.com/t/apache-flink/shared_invite/zt-22mklt3r5-89MjX41gqHsBk81ZoTDqXg)
+You can join the [Apache Flink community on Slack.]({{< param FlinkSlackInviteUrl >}})
 After creating an account in Slack, don't forget to introduce yourself in #introductions.
 Due to Slack limitations the invite link expires after 100 invites. If it is expired, please reach out to the [Dev mailing list]({{< relref "community" >}}#mailing-lists).
 Any existing Slack member can also invite anyone else to join.
+
+There are a couple of community rules:
+
+* **Be respectful** - This is the most important rule!
+* All important decisions and conclusions **must be reflected back to the mailing lists.**
+  "If it didn’t happen on a mailing list, it didn’t happen." - [The Apache Mottos](http://theapacheway.com/on-list/)
+* Use **Slack threads** to keep parallel conversations from overwhelming a channel.
+* Use either [#pyflink](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all Python Flink questions) or [#troubleshooting](https://apache-flink.slack.com/archives/C03G7LJTS2G) (for all other Flink questions).
+* Please **do not direct message** people for troubleshooting, Jira assigning and PR review. Doing this can result in removal from Slack.
 
 ### Stack Overflow
 
