@@ -4,15 +4,15 @@ authors:
   name: David Radley
 date: "2026-03-01T08:00:00Z"
 excerpt: Flink Community update for March 2026
-title: Flink Community Update - March'26
+title: Flink Community update for March 2026
 aliases:
 - /news/2026/03/01/community-update.html
 ---
 
 <!-- TOC -->
-  * [February 2026 overview](#february-2026-overview)
-  * [Flink related Blogs](#flink-related-blogs)
-  * [Summary of Apache Flink Dev List (covering February 2026)](#summary-of-apache-flink-dev-list-covering-february-2026)
+  * [What happened last month](#what-happened-last-month)
+  * [Blogs](#blogs)
+  * [Apache Flink Dev List activity](#apache-flink-dev-list-activity)
     * [Key Themes](#key-themes)
     * [Community Announcements](#community-announcements)
     * [FLIP Activity](#flip-activity)
@@ -25,13 +25,11 @@ aliases:
   * [For more information](#for-more-information)
 <!-- TOC -->
 
-Previous Blog:
-[Flink community update February 2026](https://flink.apache.org/2026/02/01/flink-community-update-february26/)
+Previous Blog: [Flink community update February 2026](https://flink.apache.org/2026/02/01/flink-community-update-february26/)
 
 A strong February; there was a lot of commit activity with 320 open PRs and 4 new releases.
 
-## February 2026 overview
-This will summarise what has happened in the previous month (February).
+## What happened last month
 * Flink
   * [Release planning](https://lists.apache.org/thread/o1lsjzmh2np1fp3b5dk0x6bwzqg4cvw5) for Flink 2.3 ongoing.
   * All CI builds were failing; this was fixed in a [PR](https://github.com/apache/flink/pull/27619) that upgraded Kubernetes client libraries. 
@@ -43,12 +41,16 @@ This will summarise what has happened in the previous month (February).
   * [FLINK-39012](https://issues.apache.org/jira/browse/FLINK-39012) Support global enumerator/dispatcher for dynamic Kafka source (handling multiple cluster topologies)
   * [FLINK-39120](https://issues.apache.org/jira/browse/FLINK-39120) Update to Kafka 4.2.0.
   
-## Flink related Blogs
+## Blogs
 
 * Rion Williams - [Prepare for Launch: Enrichment Strategies for Apache Flink](https://rion.io/2026/01/27/prepare-for-launch-enrichment-strategies-for-apache-flink/)
 * Hongshun Wang - [Fluss 0.9 + Flink CDC V3.6 (coming soon) = production level schema evolution](https://www.linkedin.com/posts/hongshun-wang-82169a233_apachefluss-streamhouse-opensource-activity-7434953224673181696-sfrO?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAEGQNUBcKgSajZ7VR3bxeiquOHZcR2Gq80)
+* Robin Moffatt was kind enough to point me to his list of [Interesting Links - February 2026 (Stream Processing section)](https://rmoff.net/2026/02/27/interesting-links-february-2026/#_stream_processing)
+  * Lots of interesting Flink blogs here.
+  
+## Apache Flink Dev List activity
 
-## Summary of Apache Flink Dev List (covering February 2026)
+You can view the dev list archives [online](https://lists.apache.org/list.html?dev@flink.apache.org) or [subscribe](https://flink.apache.org/community.html#mailing-lists) to receive emails.
 
 ### Key Themes
 
@@ -78,7 +80,6 @@ This will summarise what has happened in the previous month (February).
    - [[FLINK-38624] Replace deprecated RexBuilder#makeAbstractCast](https://issues.apache.org/jira/browse/FLINK-38624)
    - [[FLINK-38624] Convert FlinkLogicalOverAggregate to java](https://issues.apache.org/jira/browse/FLINK-38624)
    - [[FLINK-39161] Port fix for INTERVAL ... WEEK, QUARTER from Calcite](https://issues.apache.org/jira/browse/FLINK-39161)
-
 
 ### Community Announcements
 
