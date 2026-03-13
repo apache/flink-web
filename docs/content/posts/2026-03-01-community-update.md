@@ -53,15 +53,12 @@ A strong February; there was a lot of commit activity with 320 open PRs in the m
 5. Table planner enhancements
    - [[FLINK-37924] Introduce Built-in Function to Access field or element in the Variant](https://issues.apache.org/jira/browse/FLINK-37924)
    - [[FLINK-35661] Fix MiniBatchGroupAggFunction silently dropping records](https://issues.apache.org/jira/browse/FLINK-35661)
-   - [[FLINK-38913] ArrayIndexOutOfBoundsException while unparsing ExtendedSqlRowTypeNameSpec](https://issues.apache.org/jira/browse/FLINK-38913)
    - [[FLINK-39088] Fix upsert key preservation by introducing injective cast checks for CAST](https://issues.apache.org/jira/browse/FLINK-39088)
    - [[FLINK-38624] Type Mismatch Exception in StreamPhysicalOverAggregateRule](https://issues.apache.org/jira/browse/FLINK-38624) Fix for a breaking change, that occurs migrating from 1.20 to 2.x.
 
 ### What happened last month
 * Flink
   * All CI builds were failing; this was fixed in a [PR](https://github.com/apache/flink/pull/27619) that upgraded Kubernetes client libraries.
-* Connector parent
-  * Added [license checking](https://github.com/apache/flink-connector-shared-utils/commit/6e1af169012db40306a56ba8bcf31bb8a309e6e6) to Parent Connector.
 * Flink JDBC connector
   * [FLINK-38851](https://issues.apache.org/jira/browse/FLINK-38851) Support passing arbitrary database options to JDBC Catalog.
 * Flink Kafka connector had 14 commits going in. The most interesting were:
