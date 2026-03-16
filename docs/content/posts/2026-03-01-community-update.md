@@ -29,8 +29,6 @@ aliases:
 
 Previous Blog: [Flink community update February 2026](https://flink.apache.org/2026/02/01/flink-community-update-february26/)
 
-A strong February; there was a lot of commit activity with 320 open PRs in the main repository (600+ across all Flink projects) and 4 new releases.
-
 ## Developer/Technical Updates
 
 ### Key Themes
