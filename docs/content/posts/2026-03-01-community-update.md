@@ -45,7 +45,7 @@ Previous Blog: [Flink community update February 2026](https://flink.apache.org/2
    - [[hotfix] Try to get last checkpoint on recovery regardless of checkpointing interval](https://github.com/apache/flink/commit/c0ada39aafa23e58e6c80883bdb740a89d02c1ff)
    - [[hotfix] Move checkpointing configuration code to CheckpointCoordinatorConfiguration](https://github.com/apache/flink/commit/b2b044dc66814498f0cdfb4e9249f446e2c6fce9)
    - [[FLINK-38939] Pause Sources until the first checkpoint barrier is received](https://issues.apache.org/jira/browse/FLINK-38939)
-4. Enhancements around splits
+4. Enhancements around [splits](https://nightlies.apache.org/flink/flink-docs-release-2.2/docs/dev/datastream/sources/#data-source-concepts)
    - [[FLINK-39073] Improve logging of invalid split transitions](https://issues.apache.org/jira/browse/FLINK-39073)
    - [[FLINK-39073] Defer alignment check for idle splits](https://issues.apache.org/jira/browse/FLINK-39073)
 5. Table planner enhancements
