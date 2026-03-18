@@ -9,6 +9,11 @@ aliases:
 - /news/2026/03/01/community-update.html
 ---
 
+This is the monthly Flink Community update for March 2026. It covers the
+main developments in the community over the past month, including technical updates,
+user-facing updates, and governance and community.
+<!--more-->
+
 <!-- TOC -->
   * [Developer/Technical Updates](#developertechnical-updates)
     * [Key Themes](#key-themes)
