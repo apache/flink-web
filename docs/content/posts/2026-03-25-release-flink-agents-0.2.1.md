@@ -1,6 +1,6 @@
 ---
 title:  "Apache Flink Agents 0.2.1 Release Announcement"
-date: "2026-03-26T09:00:00.000Z"
+date: "2026-03-26T00:00:00.000Z"
 authors:
 - wenjin:
   name: "Wenjin Xie"
