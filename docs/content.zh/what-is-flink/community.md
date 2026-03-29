@@ -36,7 +36,7 @@ tables:
             Archive: "[归档](https://lists.apache.org/list.html?news@flink.apache.org)"
           - Name: 
              val: "<strong>community</strong>@flink.apache.org<br />
-                   <small>与会议，博客以及工作机会相关的更广泛的社区讨论	</small>"
+                   <small>与会议，博客以及工作机会相关的更广泛的社区讨论</small>"
              html: true
             Subscribe: "[订阅](mailto:community-subscribe@flink.apache.org)"
             Digest: "[订阅](mailto:community-digest-subscribe@flink.apache.org)"
