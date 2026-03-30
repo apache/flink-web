@@ -1,11 +1,11 @@
 ---
 title:  "Apache Flink CDC 3.6.0 Release Announcement"
-date: "2026-03-29T08:00:00.000Z"
+date: "2026-03-30T08:00:00.000Z"
 authors:
 - yanquan:
   name: "Yanquan Lv"
 aliases:
-- /news/2026/03/29/release-cdc-3.6.0.html
+- /news/2026/03/30/release-cdc-3.6.0.html
 ---
 
 The Apache Flink Community is excited to announce the release of Flink CDC 3.6.0!
