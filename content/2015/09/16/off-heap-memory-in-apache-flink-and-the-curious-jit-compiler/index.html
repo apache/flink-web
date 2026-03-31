@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2015/09/16/off-heap-memory-in-apache-flink-and-the-curious-jit-compiler/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, &ldquo;off-heap&rdquo; has become almost something like a magic word to solve these problems.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Off-heap Memory in Apache Flink and the curious JIT compiler" />
+<meta property="og:description" content="Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, &ldquo;off-heap&rdquo; has become almost something like a magic word to solve these problems." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2015/09/16/off-heap-memory-in-apache-flink-and-the-curious-jit-compiler/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2015-09-16T08:00:00+00:00" />
+<meta property="article:modified_time" content="2015-09-16T08:00:00+00:00" />
+<title>Off-heap Memory in Apache Flink and the curious JIT compiler | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, “off-heap” has become almost something like a magic word to solve these problems.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2015/09/16/off-heap-memory-in-apache-flink-and-the-curious-jit-compiler/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Off-heap Memory in Apache Flink and the curious JIT compiler">
-  <meta property="og:description" content="Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, “off-heap” has become almost something like a magic word to solve these problems.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2015-09-16T08:00:00+00:00">
-    <meta property="article:modified_time" content="2015-09-16T08:00:00+00:00">
-
-
-  <meta itemprop="name" content="Off-heap Memory in Apache Flink and the curious JIT compiler">
-  <meta itemprop="description" content="Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, “off-heap” has become almost something like a magic word to solve these problems.">
-  <meta itemprop="datePublished" content="2015-09-16T08:00:00+00:00">
-  <meta itemprop="dateModified" content="2015-09-16T08:00:00+00:00">
-  <meta itemprop="wordCount" content="2765">
-
-<title>Off-heap Memory in Apache Flink and the curious JIT compiler | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2015/09/16/off-heap-memory-in-apache-flink-and-the-curious-jit-compiler/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -536,12 +515,18 @@ https://github.com/alex-shpak/hugo-book
 
     <p><p>Running data-intensive code in the JVM and making it well-behaved is tricky. Systems that put billions of data objects naively onto the JVM heap face unpredictable OutOfMemoryErrors and Garbage Collection stalls. Of course, you still want to to keep your data in memory as much as possible, for speed and responsiveness of the processing applications. In that context, &ldquo;off-heap&rdquo; has become almost something like a magic word to solve these problems.</p>
 <p>In this blog post, we will look at how Flink exploits off-heap memory. The feature is part of the upcoming release, but you can try it out with the latest nightly builds. We will also give a few interesting insights into the behavior for Java&rsquo;s JIT compiler for highly optimized methods and loops.</p>
-<h2 id="recap-memory-management-in-flink">Recap: Memory Management in Flink<a class="anchor" href="#recap-memory-management-in-flink">#</a></h2>
+<h2 id="recap-memory-management-in-flink">
+  Recap: Memory Management in Flink
+  <a class="anchor" href="#recap-memory-management-in-flink">#</a>
+</h2>
 <p>To understand Flink’s approach to off-heap memory, we need to recap Flink’s approach to custom managed memory. We have written an <a href="/news/2015/05/11/Juggling-with-Bits-and-Bytes.html">earlier blog post about how Flink manages JVM memory itself</a></p>
 <p>As a summary, the core part is that Flink implements its algorithms not against Java objects, arrays, or lists, but actually against a data structure similar to <code>java.nio.ByteBuffer</code>. Flink uses its own specialized version, called <a href="https://github.com/apache/flink/blob/release-0.9.1-rc1/flink-core/src/main/java/org/apache/flink/core/memory/MemorySegment.java"><code>MemorySegment</code></a> on which algorithms put and get at specific positions ints, longs, byte arrays, etc, and compare and copy memory. The memory segments are held and distributed by a central component (called <code>MemoryManager</code>) from which algorithms request segments according to their calculated memory budgets.</p>
 <p>Don&rsquo;t believe that this can be fast? Have a look at the <a href="/news/2015/05/11/Juggling-with-Bits-and-Bytes.html">benchmarks in the earlier blogpost</a>, which show that it is actually often much faster than working on objects, due to better control over data layout (cache efficiency, data size), and reducing the pressure on Java&rsquo;s Garbage Collector.</p>
 <p>This form of memory management has been in Flink for a long time. Anecdotally, the first public demo of Flink&rsquo;s predecessor project <em>Stratosphere</em>, at the VLDB conference in 2010, was running its programs with custom managed memory (although I believe few attendees were aware of that).</p>
-<h2 id="why-actually-bother-with-off-heap-memory">Why actually bother with off-heap memory?<a class="anchor" href="#why-actually-bother-with-off-heap-memory">#</a></h2>
+<h2 id="why-actually-bother-with-off-heap-memory">
+  Why actually bother with off-heap memory?
+  <a class="anchor" href="#why-actually-bother-with-off-heap-memory">#</a>
+</h2>
 <p>Given that Flink has a sophisticated level of managing on-heap memory, why do we even bother with off-heap memory? It is true that <em>&ldquo;out of memory&rdquo;</em> has been much less of a problem for Flink because of its heap memory management techniques. Nonetheless, there are a few good reasons to offer the possibility to move Flink&rsquo;s managed memory out of the JVM heap:</p>
 <ul>
 <li>
@@ -566,10 +551,16 @@ https://github.com/alex-shpak/hugo-book
 <p>Some operations are actually a bit faster on heap memory (or the JIT compiler understands them better).</p>
 </li>
 </ul>
-<h2 id="the-off-heap-memory-implementation">The off-heap Memory Implementation<a class="anchor" href="#the-off-heap-memory-implementation">#</a></h2>
+<h2 id="the-off-heap-memory-implementation">
+  The off-heap Memory Implementation
+  <a class="anchor" href="#the-off-heap-memory-implementation">#</a>
+</h2>
 <p>Given that all memory intensive internal algorithms are already implemented against the <code>MemorySegment</code>, our implementation to switch to off-heap memory is actually trivial. You can compare it to replacing all <code>ByteBuffer.allocate(numBytes)</code> calls with <code>ByteBuffer.allocateDirect(numBytes)</code>. In Flink&rsquo;s case it meant that we made the <code>MemorySegment</code> abstract and added the <code>HeapMemorySegment</code> and <code>OffHeapMemorySegment</code> subclasses. The <code>OffHeapMemorySegment</code> takes the off-heap memory pointer from a <code>java.nio.DirectByteBuffer</code> and implements its specialized access methods using <code>sun.misc.Unsafe</code>. We also made a few adjustments to the startup scripts and the deployment code to make sure that the JVM is permitted enough off-heap memory (direct memory, <em>-XX:MaxDirectMemorySize</em>).</p>
 <p>In practice we had to go one step further, to make the implementation perform well. While the <code>ByteBuffer</code> is used in I/O code paths to compose headers and move bulk memory into place, the MemorySegment is part of the innermost loops of many algorithms (sorting, hash tables, &hellip;). That means that the access methods have to be as fast as possible.</p>
-<h2 id="understanding-the-jit-and-tuning-the-implementation">Understanding the JIT and tuning the implementation<a class="anchor" href="#understanding-the-jit-and-tuning-the-implementation">#</a></h2>
+<h2 id="understanding-the-jit-and-tuning-the-implementation">
+  Understanding the JIT and tuning the implementation
+  <a class="anchor" href="#understanding-the-jit-and-tuning-the-implementation">#</a>
+</h2>
 <p>The <code>MemorySegment</code> was (before our change) a standalone class, it was <em>final</em> (had no subclasses). Via <em>Class Hierarchy Analysis (CHA)</em>, the JIT compiler was able to determine that all of the accessor method calls go to one specific implementation. That way, all method calls can be perfectly de-virtualized and inlined, which is essential to performance, and the basis for all further optimizations (like vectorization of the calling loop).</p>
 <p>With two different memory segments loaded at the same time, the JIT compiler cannot perform the same level of optimization any more, which results in a noticeable difference in performance: A slowdown of about 2.7 x in the following example:</p>
 <pre tabindex="0"><code>Writing 100000 x 32768 bytes to 32768 bytes segment:
@@ -577,14 +568,22 @@ https://github.com/alex-shpak/hugo-book
 HeapMemorySegment    (standalone) : 1,441 msecs
 OffHeapMemorySegment (standalone) : 1,628 msecs
 HeapMemorySegment    (subclass)   : 3,841 msecs
-OffHeapMemorySegment (subclass)   : 3,847 msecs</code></pre><p>To get back to the original performance, we explored two approaches:</p>
-<h3 id="approach-1-make-sure-that-only-one-memory-segment-implementation-is-ever-loaded">Approach 1: Make sure that only one memory segment implementation is ever loaded.<a class="anchor" href="#approach-1-make-sure-that-only-one-memory-segment-implementation-is-ever-loaded">#</a></h3>
+OffHeapMemorySegment (subclass)   : 3,847 msecs
+</code></pre><p>To get back to the original performance, we explored two approaches:</p>
+<h3 id="approach-1-make-sure-that-only-one-memory-segment-implementation-is-ever-loaded">
+  Approach 1: Make sure that only one memory segment implementation is ever loaded.
+  <a class="anchor" href="#approach-1-make-sure-that-only-one-memory-segment-implementation-is-ever-loaded">#</a>
+</h3>
 <p>We re-structured the code a bit to make sure that all places that produce long-lived and short-lived memory segments instantiate the same MemorySegment subclass (Heap- or Off-Heap segment). Using factories rather than directly instantiating the memory segment classes, this was straightforward.</p>
 <p>Experiments (see appendix) showed that the JIT compiler properly detects this (via hierarchy analysis) and that it can perform the same level of aggressive optimization as before, when there was only one <code>MemorySegment</code> class.</p>
-<h3 id="approach-2-write-one-segment-that-handles-both-heap-and-off-heap-memory">Approach 2: Write one segment that handles both heap and off-heap memory<a class="anchor" href="#approach-2-write-one-segment-that-handles-both-heap-and-off-heap-memory">#</a></h3>
+<h3 id="approach-2-write-one-segment-that-handles-both-heap-and-off-heap-memory">
+  Approach 2: Write one segment that handles both heap and off-heap memory
+  <a class="anchor" href="#approach-2-write-one-segment-that-handles-both-heap-and-off-heap-memory">#</a>
+</h3>
 <p>We created a class <code>HybridMemorySegment</code> which handles transparently both heap- and off-heap memory. It can be initialized either with a byte array (heap memory), or with a pointer to a memory region outside the heap (off-heap memory).</p>
 <p>Fortunately, there is a nice trick to do this without introducing code branches and specialized handling of the two different memory types. The trick is based on the way that the <code>sun.misc.Unsafe</code> methods interpret object references. To illustrate this, we take the method that gets a long integer from a memory position:</p>
-<pre tabindex="0"><code>sun.misc.Unsafe.getLong(Object reference, long offset)</code></pre><p>The method accepts an object reference, takes its memory address, and add the offset to obtain a pointer. It then fetches the eight bytes at the address pointed to and interprets them as a long integer. Since the method accepts <em>null</em> as the reference (and interprets it a <em>zero</em>) one can write a method that fetches a long integer seamlessly from heap and off-heap memory as follows:</p>
+<pre tabindex="0"><code>sun.misc.Unsafe.getLong(Object reference, long offset)
+</code></pre><p>The method accepts an object reference, takes its memory address, and add the offset to obtain a pointer. It then fetches the eight bytes at the address pointed to and interprets them as a long integer. Since the method accepts <em>null</em> as the reference (and interprets it a <em>zero</em>) one can write a method that fetches a long integer seamlessly from heap and off-heap memory as follows:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">HybridMemorySegment</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">heapMemory</span><span class="p">;</span><span class="w">  </span><span class="c1">// non-null in heap case, null in off-heap case</span><span class="w">
@@ -608,10 +607,14 @@ OffHeapMemorySegment (subclass)   : 3,847 msecs</code></pre><p>To get back to th
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="na">heapMemory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="na">address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offheapPointer</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p>To check whether both cases (heap and off-heap) really result in the same code paths (no hidden branches inside the <code>Unsafe.getLong(Object, long)</code> method) one can check out the C++ source code of <code>sun.misc.Unsafe</code>, available here: <a href="http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/prims/unsafe.cpp">http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/prims/unsafe.cpp</a></p>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>To check whether both cases (heap and off-heap) really result in the same code paths (no hidden branches inside the <code>Unsafe.getLong(Object, long)</code> method) one can check out the C++ source code of <code>sun.misc.Unsafe</code>, available here: <a href="http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/prims/unsafe.cpp">http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/prims/unsafe.cpp</a></p>
 <p>Of particular interest is the macro in line 155, which is the base of all GET methods. Tracing the function calls (many are no-ops), one can see that both variants of Unsafe’s <code>getLong()</code> result in the same code:
 Either <code>0 + absolutePointer</code> or <code>objectRefAddress + offset</code>.</p>
-<h2 id="summary">Summary<a class="anchor" href="#summary">#</a></h2>
+<h2 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h2>
 <p>We ended up choosing a combination of both techniques:</p>
 <ul>
 <li>
@@ -638,7 +641,10 @@ Either <code>0 + absolutePointer</code> or <code>objectRefAddress + offset</code
 </li>
 </ul>
 <p>There is still a bit of mystery left, specifically why sometimes code is faster when it performs more checks (has more instructions and an additional branch). Even though the branch is perfectly predictable, this seems counter-intuitive. The only explanation that we could come up with is that the branch optimizations (such as optimistic elimination etc) result in code that does better register allocation (for whatever reason, maybe the intermediate instructions just fit the allocation algorithm better).</p>
-<h2 id="tldr">tl;dr<a class="anchor" href="#tldr">#</a></h2>
+<h2 id="tldr">
+  tl;dr
+  <a class="anchor" href="#tldr">#</a>
+</h2>
 <ul>
 <li>
 <p>Off-heap memory in Flink complements the already very fast on-heap memory management. It improves the scalability to very large heap sizes and reduces memory copies for network and disk I/O.</p>
@@ -654,7 +660,10 @@ Either <code>0 + absolutePointer</code> or <code>objectRefAddress + offset</code
 </li>
 </ul>
 <hr>
-<h2 id="appendix-detailed-micro-benchmarks">Appendix: Detailed Micro Benchmarks<a class="anchor" href="#appendix-detailed-micro-benchmarks">#</a></h2>
+<h2 id="appendix-detailed-micro-benchmarks">
+  Appendix: Detailed Micro Benchmarks
+  <a class="anchor" href="#appendix-detailed-micro-benchmarks">#</a>
+</h2>
 <p>These microbenchmarks test the performance of the different memory segment implementations on various operation.</p>
 <p>Each experiments tests the different implementations multiple times in different orders, to balance the advantage/disadvantage of the JIT compiler specializing towards certain code paths. All experiments were run 5x, discarding the fastest and slowest run, and then averaged. This compensated for delay before the JIT kicks in.</p>
 <p>My setup:</p>

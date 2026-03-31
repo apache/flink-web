@@ -13,59 +13,30 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
+Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
+Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System" />
+<meta property="og:description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
+Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
+Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-01-15T12:00:00+00:00" />
+<meta property="article:modified_time" content="2020-01-15T12:00:00+00:00" />
+<title>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
-Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
-Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.
-Dynamic data partitioning provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.
-Custom window management demonstrates how you can utilize the low level process function API, when the native window API is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System">
-  <meta property="og:description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
-Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
-Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.
-Dynamic data partitioning provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.
-Custom window management demonstrates how you can utilize the low level process function API, when the native window API is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2020-01-15T12:00:00+00:00">
-    <meta property="article:modified_time" content="2020-01-15T12:00:00+00:00">
-
-
-  <meta itemprop="name" content="Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System">
-  <meta itemprop="description" content="In this series of blog posts you will learn about three powerful Flink patterns for building streaming applications:
-Dynamic updates of application logic Dynamic data partitioning (shuffle), controlled at runtime Low latency alerting based on custom windowing logic (without using the window API) These patterns expand the possibilities of what is achievable with statically defined data flows and provide the building blocks to fulfill complex business requirements.
-Dynamic updates of application logic allow Flink jobs to change at runtime, without downtime from stopping and resubmitting the code.
-Dynamic data partitioning provides the ability to change how events are distributed and grouped by Flink at runtime. Such functionality often becomes a natural requirement when building jobs with dynamically reconfigurable application logic.
-Custom window management demonstrates how you can utilize the low level process function API, when the native window API is not exactly matching your requirements. Specifically, you will learn how to implement low latency alerting on windows and how to limit state growth with timers.">
-  <meta itemprop="datePublished" content="2020-01-15T12:00:00+00:00">
-  <meta itemprop="dateModified" content="2020-01-15T12:00:00+00:00">
-  <meta itemprop="wordCount" content="1929">
-
-<title>Advanced Flink Application Patterns Vol.1: Case Study of a Fraud Detection System | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -567,7 +538,10 @@ Custom window management demonstrates how you can utilize the low level process 
 We hope that this series will place these powerful approaches into your tool belt and enable you to take on new and exciting tasks.</p>
 <p>In the first blog post of the series we will look at the high-level architecture of the demo application, describe its components and their interactions. We will then deep dive into the implementation details of the first pattern in the series - <strong>dynamic data partitioning</strong>.</p>
 <p>You will be able to run the full Fraud Detection Demo application locally and look into the details of the implementation by using the accompanying GitHub repository.</p>
-<h3 id="fraud-detection-demo">Fraud Detection Demo<a class="anchor" href="#fraud-detection-demo">#</a></h3>
+<h3 id="fraud-detection-demo">
+  Fraud Detection Demo
+  <a class="anchor" href="#fraud-detection-demo">#</a>
+</h3>
 <p>The full source code for our fraud detection demo is open source and available online. To run it locally, check out the following repository and follow the steps in the README:</p>
 <p><a href="https://github.com/afedulov/fraud-detection-demo">https://github.com/afedulov/fraud-detection-demo</a></p>
 <p>You will see the demo is a self-contained application - it only requires <code>docker</code> and <code>docker-compose</code> to be built from sources and includes the following components:</p>
@@ -601,14 +575,18 @@ We hope that this series will place these powerful approaches into your tool bel
  <br/>
 <p>The Backend exposes a REST API to the Frontend for creating/deleting rules as well as issuing control commands for managing the demo execution. It then relays those Frontend actions to Flink by sending them via a &ldquo;Control&rdquo; Kafka topic. The Backend additionally includes a <em>Transactions Generator</em> component, which sends an emulated stream of money transfer events to Flink via a separate &ldquo;Transactions&rdquo; topic. Alerts generated by Flink are consumed by the Backend from &ldquo;Alerts&rdquo; topic and relayed to the UI via WebSockets.</p>
 <p>Now that you are familiar with the overall layout and the goal of our Fraud Detection engine, let&rsquo;s now go into the details of what is required to implement such a system.</p>
-<h3 id="dynamic-data-partitioning">Dynamic Data Partitioning<a class="anchor" href="#dynamic-data-partitioning">#</a></h3>
+<h3 id="dynamic-data-partitioning">
+  Dynamic Data Partitioning
+  <a class="anchor" href="#dynamic-data-partitioning">#</a>
+</h3>
 <p>The first pattern we will look into is Dynamic Data Partitioning.</p>
 <p>If you have used Flink&rsquo;s DataStream API in the past, you are undoubtedly familiar with the <strong>keyBy</strong> method. Keying a stream shuffles all the records such that elements with the same key are assigned to the same partition. This means all records with the same key are processed by the same physical instance of the next operator.</p>
 <p>In a typical streaming application, the choice of key is fixed, determined by some static field within the elements. For instance, when building a simple window-based aggregation of a stream of transactions, we might always group by the transactions account id.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="c1">// [...]</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="n">windowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="w"> </span><span class="n">windowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">.</span><span class="na">keyBy</span><span class="p">(</span><span class="n">Transaction</span><span class="p">::</span><span class="n">getAccountId</span><span class="p">)</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">.</span><span class="na">window</span><span class="p">(</span><span class="cm">/*window specification*/</span><span class="p">);</span></span></span></code></pre></div><p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">.</span><span class="na">window</span><span class="p">(</span><span class="cm">/*window specification*/</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>This approach is the main building block for achieving horizontal scalability in a wide range of use cases. However, in the case of an application striving to provide flexibility in business logic at runtime, this is not enough.
 To understand why this is the case, let us start with articulating a realistic sample rule definition for our fraud detection system in the form of a functional requirement:</p>
 <p><em>&ldquo;Whenever the <strong>sum</strong> of the accumulated <strong>payment amount</strong> from the same <strong>payer</strong> to the same <strong>beneficiary</strong> within the <strong>duration of a week</strong> is <strong>greater</strong> than <strong>1 000 000 $</strong> - fire an alert.&rdquo;</em></p>
 <p>In this formulation we can spot a number of parameters that we would like to be able to specify in a newly-submitted rule and possibly even later modify or tweak at runtime:</p>
@@ -630,14 +608,16 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span><span class="line"><span class="cl">  <span class="nt">&#34;limitOperatorType&#34;</span><span class="p">:</span> <span class="s2">&#34;GREATER&#34;</span><span class="p">,</span>
 </span></span><span class="line"><span class="cl">  <span class="nt">&#34;limit&#34;</span><span class="p">:</span> <span class="mi">1000000</span><span class="p">,</span>
 </span></span><span class="line"><span class="cl">  <span class="nt">&#34;windowMinutes&#34;</span><span class="p">:</span> <span class="mi">10080</span>
-</span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink&rsquo;s API is realised by a <code>keyBy()</code> function.</p>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>At this point, it is important to understand that <strong><code>groupingKeyNames</code></strong> determine the actual physical grouping of events - all Transactions with the same values of specified parameters (e.g. <em>payer #25 -&gt; beneficiary #12</em>) have to be aggregated in the same physical instance of the evaluating operator. Naturally, the process of distributing data in such a way in Flink&rsquo;s API is realised by a <code>keyBy()</code> function.</p>
 <p>Most examples in Flink&rsquo;s <code>keyBy()</code><a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-field-expressions">documentation</a> use a hard-coded <code>KeySelector</code>, which extracts specific fixed events&rsquo; fields. However, to support the desired flexibility, we have to extract them in a more dynamic fashion based on the specifications of the rules. For this, we will have to use one additional operator that prepares every event for dispatching to a correct aggregating instance.</p>
 <p>On a high level, our main processing pipeline looks like this:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alerts</span><span class="w"> </span><span class="o">=</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">transactions</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicKeyFunction</span><span class="p">())</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">keyBy</span><span class="p">(</span><span class="cm">/* some key selector */</span><span class="p">);</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="cm">/* actual calculations and alerting */</span><span class="p">)</span></span></span></code></pre></div><p>We have previously established that each rule defines a <strong><code>groupingKeyNames</code></strong> parameter that specifies which combination of fields will be used for the incoming events&rsquo; grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of <code>DynamicKeyFunction()</code>.</p>
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="cm">/* actual calculations and alerting */</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></div><p>We have previously established that each rule defines a <strong><code>groupingKeyNames</code></strong> parameter that specifies which combination of fields will be used for the incoming events&rsquo; grouping. Each rule might use an arbitrary combination of these fields. At the same time, every incoming event potentially needs to be evaluated against multiple rules. This implies that events might simultaneously need to be present at multiple parallel instances of evaluating operators that correspond to different rules and hence will need to be forked. Ensuring such events dispatching is the purpose of <code>DynamicKeyFunction()</code>.</p>
 <center>
 <img src="/img/blog/2019-11-19-demo-fraud-detection/shuffle_function_1.png" width="800px" alt="Figure 3: Forking events with Dynamic Key Function"/>
 <br/>
@@ -667,7 +647,8 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">...</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>&quot;{payerId=25;beneficiaryId=12}&quot;</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p><code>KeysExtractor.getKey()</code> uses reflection to extract the required values of <code>groupingKeyNames</code> fields from events and combines them as a single concatenated String key, e.g <code>&quot;{payerId=25;beneficiaryId=12}&quot;</code>. Flink will calculate the hash of this key and assign the processing of this particular combination to a specific server in the cluster. This will allow tracking all transactions between <em>payer #25</em> and <em>beneficiary #12</em> and evaluating defined rules within the desired time window.</p>
 <p>Notice that a wrapper class <code>Keyed</code> with the following signature was introduced as the output type of <code>DynamicKeyFunction</code>:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Keyed</span><span class="o">&lt;</span><span class="n">IN</span><span class="p">,</span><span class="w"> </span><span class="n">KEY</span><span class="p">,</span><span class="w"> </span><span class="n">ID</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="n">IN</span><span class="w"> </span><span class="n">wrapped</span><span class="p">;</span><span class="w">
@@ -678,14 +659,19 @@ To understand why this is the case, let us start with articulating a realistic s
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="kd">public</span><span class="w"> </span><span class="n">KEY</span><span class="w"> </span><span class="nf">getKey</span><span class="p">(){</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">key</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Fields of this POJO carry the following information: <code>wrapped</code> is the original transaction event, <code>key</code> is the result of using <code>KeysExtractor</code> and <code>id</code> is the ID of the Rule that caused the dispatch of the event (according to the rule-specific grouping logic).</p>
 <p>Events of this type will be the input to the <code>keyBy()</code> function in the main processing pipeline and allow the use of a simple lambda-expression as a <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/api_concepts.html#define-keys-using-key-selector-functions"><code>KeySelector</code></a> for the final step of implementing dynamic data shuffle.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alerts</span><span class="w"> </span><span class="o">=</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">transactions</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicKeyFunction</span><span class="p">())</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">keyBy</span><span class="p">((</span><span class="n">keyed</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">keyed</span><span class="p">.</span><span class="na">getKey</span><span class="p">());</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicAlertFunction</span><span class="p">())</span></span></span></code></pre></div><p>By applying <code>DynamicKeyFunction</code> we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules&rsquo; processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same <code>groupingKeyNames</code>, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.</p>
-<h3 id="summary">Summary:<a class="anchor" href="#summary">#</a></h3>
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">process</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DynamicAlertFunction</span><span class="p">())</span><span class="w">
+</span></span></span></code></pre></div><p>By applying <code>DynamicKeyFunction</code> we are implicitly copying events for performing parallel per-rule evaluation within a Flink cluster. By doing so, we achieve an important property - horizontal scalability of rules&rsquo; processing. Our system will be capable of handling more rules by adding more servers to the cluster, i.e. increasing the parallelism. This property is achieved at the cost of data duplication, which might become an issue depending on the specific set of parameters, such as incoming data rate, available network bandwidth, event payload size etc. In a real-life scenario, additional optimizations can be applied, such as combined evaluation of rules which have the same <code>groupingKeyNames</code>, or a filtering layer, which would strip events of all the fields that are not required for processing of a particular rule.</p>
+<h3 id="summary">
+  Summary:
+  <a class="anchor" href="#summary">#</a>
+</h3>
 <p>In this blog post, we have discussed the motivation behind supporting dynamic, runtime changes to a Flink application by looking at a sample use case - a Fraud Detection engine. We have described the overall architecture and interactions between its components as well as provided references for building and running a demo Fraud Detection application in a dockerized setup. We then showed the details of implementing a  <strong>dynamic data partitioning pattern</strong> as the first underlying building block to enable flexible runtime configurations.</p>
 <p>To remain focused on describing the core mechanics of the pattern, we kept the complexity of the DSL and the underlying rules engine to a minimum. Going forward, it is easy to imagine adding extensions such as allowing more sophisticated rule definitions, including filtering of certain events, logical rules chaining, and other more advanced functionality.</p>
 <p>In the second part of this series, we will describe how the rules make their way into the running Fraud Detection engine. Additionally, we will go over the implementation details of the main processing function of the pipeline - <em>DynamicAlertFunction()</em>.</p>

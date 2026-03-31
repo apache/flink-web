@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Note: This blog post is based on the talk &ldquo;Beam on Flink: How Does It Actually Work?&rdquo;.
+Apache Flink and Apache Beam are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Apache Beam: How Beam Runs on Top of Flink" />
+<meta property="og:description" content="Note: This blog post is based on the talk &ldquo;Beam on Flink: How Does It Actually Work?&rdquo;.
+Apache Flink and Apache Beam are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-02-22T12:00:00+00:00" />
+<meta property="article:modified_time" content="2020-02-22T12:00:00+00:00" />
+<title>Apache Beam: How Beam Runs on Top of Flink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Note: This blog post is based on the talk “Beam on Flink: How Does It Actually Work?”.
-Apache Flink and Apache Beam are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs. We also take a closer look at how Beam works with Flink to provide an idea of the technical aspects of running Beam pipelines with Flink. We hope you find some useful information on how and why the two frameworks can be utilized in combination. For more information, you can refer to the corresponding documentation on the Beam website or contact the community through the Beam mailing list.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Apache Beam: How Beam Runs on Top of Flink">
-  <meta property="og:description" content="Note: This blog post is based on the talk “Beam on Flink: How Does It Actually Work?”.
-Apache Flink and Apache Beam are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs. We also take a closer look at how Beam works with Flink to provide an idea of the technical aspects of running Beam pipelines with Flink. We hope you find some useful information on how and why the two frameworks can be utilized in combination. For more information, you can refer to the corresponding documentation on the Beam website or contact the community through the Beam mailing list.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2020-02-22T12:00:00+00:00">
-    <meta property="article:modified_time" content="2020-02-22T12:00:00+00:00">
-
-
-  <meta itemprop="name" content="Apache Beam: How Beam Runs on Top of Flink">
-  <meta itemprop="description" content="Note: This blog post is based on the talk “Beam on Flink: How Does It Actually Work?”.
-Apache Flink and Apache Beam are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs. We also take a closer look at how Beam works with Flink to provide an idea of the technical aspects of running Beam pipelines with Flink. We hope you find some useful information on how and why the two frameworks can be utilized in combination. For more information, you can refer to the corresponding documentation on the Beam website or contact the community through the Beam mailing list.">
-  <meta itemprop="datePublished" content="2020-02-22T12:00:00+00:00">
-  <meta itemprop="dateModified" content="2020-02-22T12:00:00+00:00">
-  <meta itemprop="wordCount" content="2537">
-
-<title>Apache Beam: How Beam Runs on Top of Flink | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2020/02/22/apache-beam-how-beam-runs-on-top-of-flink/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -549,14 +527,20 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 
     <p><p>Note: This blog post is based on the talk <a href="https://www.youtube.com/watch?v=hxHGLrshnCY">&ldquo;Beam on Flink: How Does It Actually Work?&rdquo;</a>.</p>
 <p><a href="https://flink.apache.org/">Apache Flink</a> and <a href="https://beam.apache.org/">Apache Beam</a> are open-source frameworks for parallel, distributed data processing at scale. Unlike Flink, Beam does not come with a full-blown execution engine of its own but plugs into other execution engines, such as Apache Flink, Apache Spark, or Google Cloud Dataflow. In this blog post we discuss the reasons to use Flink together with Beam for your batch and stream processing needs. We also take a closer look at how Beam works with Flink to provide an idea of the technical aspects of running Beam pipelines with Flink. We hope you find some useful information on how and why the two frameworks can be utilized in combination. For more information, you can refer to the corresponding <a href="https://beam.apache.org/documentation/runners/flink/">documentation</a> on the Beam website or contact the community through the <a href="https://beam.apache.org/community/contact-us/">Beam mailing list</a>.</p>
-<h1 id="what-is-apache-beam">What is Apache Beam<a class="anchor" href="#what-is-apache-beam">#</a></h1>
+<h1 id="what-is-apache-beam">
+  What is Apache Beam
+  <a class="anchor" href="#what-is-apache-beam">#</a>
+</h1>
 <p><a href="https://beam.apache.org/">Apache Beam</a> is an open-source, unified model for defining batch and streaming data-parallel processing pipelines. It is unified in the sense that you use a single API, in contrast to using a separate API for batch and streaming like it is the case in Flink. Beam was originally developed by Google which released it in 2014 as the Cloud Dataflow SDK. In 2016, it was donated to <a href="https://www.apache.org/">the Apache Software Foundation</a> with the name of Beam. It has been developed by the open-source community ever since. With Apache Beam, developers can write data processing jobs, also known as pipelines, in multiple languages, e.g. Java, Python, Go, SQL. A pipeline is then executed by one of Beam’s Runners. A Runner is responsible for translating Beam pipelines such that they can run on an execution engine. Every supported execution engine has a Runner. The following Runners are available: Apache Flink, Apache Spark, Apache Samza, Hazelcast Jet, Google Cloud Dataflow, and others.</p>
 <p>The execution model, as well as the API of Apache Beam, are similar to Flink&rsquo;s. Both frameworks are inspired by the <a href="https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf">MapReduce</a>, <a href="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/41378.pdf">MillWheel</a>, and <a href="https://research.google/pubs/pub43864/">Dataflow</a> papers. Like Flink, Beam is designed for parallel, distributed data processing. Both have similar transformations, support for windowing, event/processing time, watermarks, timers, triggers, and much more. However, Beam not being a full runtime focuses on providing the framework for building portable, multi-language batch and stream processing pipelines such that they can be run across several execution engines. The idea is that you write your pipeline once and feed it with either batch or streaming data. When you run it, you just pick one of the supported backends to execute. A large integration test suite in Beam called &ldquo;ValidatesRunner&rdquo; ensures that the results will be the same, regardless of which backend you choose for the execution.</p>
 <p>One of the most exciting developments in the Beam technology is the framework’s support for multiple programming languages including Java, Python, Go, Scala and SQL. Essentially, developers can write their applications in a programming language of their choice. Beam, with the help of the Runners, translates the program to one of the execution engines, as shown in the diagram below.</p>
 <center>
 <img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-beam-vision.png" width="600px" alt="The vision of Apache Beam"/>
 </center>
-<h1 id="reasons-to-use-beam-with-flink">Reasons to use Beam with Flink<a class="anchor" href="#reasons-to-use-beam-with-flink">#</a></h1>
+<h1 id="reasons-to-use-beam-with-flink">
+  Reasons to use Beam with Flink
+  <a class="anchor" href="#reasons-to-use-beam-with-flink">#</a>
+</h1>
 <p>Why would you want to use Beam with Flink instead of directly using Flink? Ultimately, Beam and Flink complement each other and provide additional value to the user. The main reasons for using Beam with Flink are the following:</p>
 <ul>
 <li>Beam provides a unified API for both batch and streaming scenarios.</li>
@@ -565,7 +549,10 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 <li>Beam programs run on your existing Flink infrastructure or infrastructure for other supported Runners, like Spark or Google Cloud Dataflow.</li>
 <li>You get additional features like side inputs and cross-language pipelines that are not supported natively in Flink but only supported when using Beam with Flink.</li>
 </ul>
-<h1 id="the-flink-runner-in-beam">The Flink Runner in Beam<a class="anchor" href="#the-flink-runner-in-beam">#</a></h1>
+<h1 id="the-flink-runner-in-beam">
+  The Flink Runner in Beam
+  <a class="anchor" href="#the-flink-runner-in-beam">#</a>
+</h1>
 <p>The Flink Runner in Beam translates Beam pipelines into Flink jobs. The translation can be parameterized using Beam&rsquo;s pipeline options which are parameters for settings like configuring the job name, parallelism, checkpointing, or metrics reporting.</p>
 <p>If you are familiar with a DataSet or a DataStream, you will have no problems understanding what a PCollection is. PCollection stands for parallel collection in Beam and is exactly what DataSet/DataStream would be in Flink. Due to Beam&rsquo;s unified API we only have one type of results of transformation: PCollection.</p>
 <p>Beam pipelines are composed of transforms. Transforms are like operators in Flink and come in two flavors: primitive and composite transforms. The beauty of all this is that Beam only comes with a small set of primitive transforms which are:</p>
@@ -577,7 +564,10 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 <li><code>Flatten</code> (like a union() operation in Flink)</li>
 </ul>
 <p>Composite transforms are built by combining the above primitive transforms. For example, <code>Combine = GroupByKey + ParDo</code>.</p>
-<h1 id="flink-runner-internals">Flink Runner Internals<a class="anchor" href="#flink-runner-internals">#</a></h1>
+<h1 id="flink-runner-internals">
+  Flink Runner Internals
+  <a class="anchor" href="#flink-runner-internals">#</a>
+</h1>
 <p>Although using the Flink Runner in Beam has no prerequisite to understanding its internals, we provide more details of how the Flink runner works in Beam to share knowledge of how the two frameworks can integrate and work together to provide state-of-the-art streaming data pipelines.</p>
 <p>The Flink Runner has two translation paths. Depending on whether we execute in batch or streaming mode, the Runner either translates into Flink&rsquo;s DataSet or into Flink&rsquo;s DataStream API. Since multi-language support has been added to Beam, another two translation paths have been added. To summarize the four modes:</p>
 <ol>
@@ -589,30 +579,57 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 <center>
 <img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-runner-translation-paths.png" width="300px" alt="The 4 translation paths in the Beam's Flink Runner"/>
 </center>
-<h2 id="the-classic-flink-runner-in-beam">The “Classic” Flink Runner in Beam<a class="anchor" href="#the-classic-flink-runner-in-beam">#</a></h2>
+<h2 id="the-classic-flink-runner-in-beam">
+  The “Classic” Flink Runner in Beam
+  <a class="anchor" href="#the-classic-flink-runner-in-beam">#</a>
+</h2>
 <p>The classic Flink Runner was the initial version of the Runner, hence the &ldquo;classic&rdquo; name. Beam pipelines are represented as a graph in Java which is composed of the aforementioned composite and primitive transforms. Beam provides translators which traverse the graph in topological order. Topological order means that we start from all the sources first as we iterate through the graph. Presented with a transform from the graph, the Flink Runner generates the API calls as you would normally when writing a Flink job.</p>
 <center>
 <img src="/img/blog/2020-02-22-beam-on-flink/classic-flink-runner-beam.png" width="600px" alt="The Classic Flink Runner in Beam"/>
 </center>
 <p>While Beam and Flink share very similar concepts, there are enough differences between the two frameworks that make Beam pipelines impossible to be translated 1:1 into a Flink program. In the following sections, we will present the key differences:</p>
-<h3 id="serializers-vs-coders">Serializers vs Coders<a class="anchor" href="#serializers-vs-coders">#</a></h3>
+<h3 id="serializers-vs-coders">
+  Serializers vs Coders
+  <a class="anchor" href="#serializers-vs-coders">#</a>
+</h3>
 <p>When data is transferred over the wire in Flink, it has to be turned into bytes. This is done with the help of serializers. Flink has a type system to instantiate the correct coder for a given type, e.g. <code>StringTypeSerializer</code> for a String. Apache Beam also has its own type system which is similar to Flink&rsquo;s but uses slightly different interfaces. Serializers are called Coders in Beam. In order to make a Beam Coder run in Flink, we have to make the two serializer types compatible. This is done by creating a special Flink type information that looks like the one in Flink but calls the appropriate Beam coder. That way, we can use Beam&rsquo;s coders although we are executing the Beam job with Flink. Flink operators expect a TypeInformation, e.g. <code>StringTypeInformation</code>, for which we use a <code>CoderTypeInformation</code> in Beam. The type information returns the serializer for which we return a <code>CoderTypeSerializer</code>, which calls the underlying Beam Coder.</p>
 <center>
 <img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-serializers-coders.png" width="300px" alt="Serializers vs Coders"/>
 </center>
-<h3 id="read">Read<a class="anchor" href="#read">#</a></h3>
+<h3 id="read">
+  Read
+  <a class="anchor" href="#read">#</a>
+</h3>
 <p>The <code>Read</code> transform provides a way to read data into your pipeline in Beam. The Read transform is supported by two wrappers in Beam, the <code>SourceInputFormat</code> for batch processing and the <code>UnboundedSourceWrapper</code> for stream processing.</p>
-<h3 id="pardo">ParDo<a class="anchor" href="#pardo">#</a></h3>
+<h3 id="pardo">
+  ParDo
+  <a class="anchor" href="#pardo">#</a>
+</h3>
 <p><code>ParDo</code> is the swiss army knife of Beam and can be compared to a <code>RichFlatMapFunction</code> in Flink with additional features such as <code>SideInputs</code>, <code>SideOutputs</code>, State and Timers. <code>ParDo</code> is essentially translated by the Flink runner using the <code>FlinkDoFnFunction</code> for batch processing or the <code>FlinkStatefulDoFnFunction</code>, while for streaming scenarios the translation is executed with the <code>DoFnOperator</code> that takes care of checkpointing and buffering of data during checkpoints, watermark emissions and maintenance of state and timers. This is all executed by Beam’s interface, called the <code>DoFnRunner</code>, that encapsulates Beam-specific execution logic, like retrieving state, executing state and timers, or reporting metrics.</p>
-<h3 id="side-inputs">Side Inputs<a class="anchor" href="#side-inputs">#</a></h3>
+<h3 id="side-inputs">
+  Side Inputs
+  <a class="anchor" href="#side-inputs">#</a>
+</h3>
 <p>In addition to the main input, ParDo transforms can have a number of side inputs. A side input can be a static set of data that you want to have available at all parallel instances. However, it is more flexible than that. You can have keyed and even windowed side input which updates based on the window size. This is a very powerful concept which does not exist in Flink but is added on top of Flink using Beam.</p>
-<h3 id="assignwindows">AssignWindows<a class="anchor" href="#assignwindows">#</a></h3>
+<h3 id="assignwindows">
+  AssignWindows
+  <a class="anchor" href="#assignwindows">#</a>
+</h3>
 <p>In Flink, windows are assigned by the <code>WindowOperator</code> when you use the <code>window()</code> in the API. In Beam, windows can be assigned at any point in time. Any element is implicitly part of a window. If no window is assigned explicitly, the element is part of the <code>GlobalWindow</code>. Window information is stored for each element in a wrapper called <code>WindowedValue</code>. The window information is only used once we issue a <code>GroupByKey</code>.</p>
-<h3 id="groupbykey">GroupByKey<a class="anchor" href="#groupbykey">#</a></h3>
+<h3 id="groupbykey">
+  GroupByKey
+  <a class="anchor" href="#groupbykey">#</a>
+</h3>
 <p>Most of the time it is useful to partition the data by a key. In Flink, this is done via the <code>keyBy()</code> API call. In Beam the <code>GroupByKey</code> transform can only be applied if the input is of the form <code>KV&lt;Key, Value&gt;</code>. Unlike Flink where the key can even be nested inside the data, Beam enforces the key to always be explicit. The <code>GroupByKey</code> transform then groups the data by key and by window which is similar to what <code>keyBy(..).window(..)</code> would give us in Flink. Beam has its own set of libraries to do that because Beam has its own set of window functions and triggers. Essentially, GroupByKey is very similar to what the WindowOperator does in Flink.</p>
-<h3 id="flatten">Flatten<a class="anchor" href="#flatten">#</a></h3>
+<h3 id="flatten">
+  Flatten
+  <a class="anchor" href="#flatten">#</a>
+</h3>
 <p>The Flatten operator takes multiple DataSet/DataStreams, called P[arallel]Collections in Beam, and combines them into one collection. This is equivalent to Flink&rsquo;s <code>union()</code> operation.</p>
-<h2 id="the-portable-flink-runner-in-beam">The “Portable” Flink Runner in Beam<a class="anchor" href="#the-portable-flink-runner-in-beam">#</a></h2>
+<h2 id="the-portable-flink-runner-in-beam">
+  The “Portable” Flink Runner in Beam
+  <a class="anchor" href="#the-portable-flink-runner-in-beam">#</a>
+</h2>
 <p>The portable Flink Runner in Beam is the evolution of the classic Runner. Classic Runners are tied to the JVM ecosystem, but the Beam community wanted to move past this and also execute Python, Go and other languages. This adds another dimension to Beam in terms of portability because, like previously mentioned, Beam already had portability across execution engines. It was necessary to change the translation logic of the Runner to be able to support language portability.</p>
 <p>There are two important building blocks for portable Runners:</p>
 <ol>
@@ -623,7 +640,10 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 <center>
 <img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability.png" width="600px" alt="Language Portability in Apache Beam"/>
 </center>
-<h2 id="how-are-beam-programs-translated-in-language-portability">How Are Beam Programs Translated In Language Portability?<a class="anchor" href="#how-are-beam-programs-translated-in-language-portability">#</a></h2>
+<h2 id="how-are-beam-programs-translated-in-language-portability">
+  How Are Beam Programs Translated In Language Portability?
+  <a class="anchor" href="#how-are-beam-programs-translated-in-language-portability">#</a>
+</h2>
 <p>Users write their Beam pipelines in one language, but they may get executed in an environment based on a completely different language. How does that work? To explain that, let&rsquo;s follow the lifecycle of a pipeline. Let&rsquo;s suppose we use the Python SDK to write the pipeline. Before submitting the pipeline via the Job API to Beam&rsquo;s JobServer, Beam would convert it to the Runner API, the language-agnostic format we described before. The JobServer is also a Beam component that handles the staging of the required dependencies during execution. The JobServer will then kick-off the translation which is similar to the classic Runner. However, an important change is the so-called <code>ExecutableStage</code> transform. It is essentially a ParDo transform that we already know but designed for holding language-dependent code. Beam tries to combine as many of these transforms into one &ldquo;executable stage&rdquo;. The result again is a Flink program which is then sent to the Flink cluster and executed there. The major difference compared to the classic Runner is that during execution we will start <em>environments</em> to execute the aforementioned <em>ExecutableStages</em>. The following environments are available:</p>
 <ul>
 <li>Docker-based (the default)</li>
@@ -636,7 +656,10 @@ Apache Flink and Apache Beam are open-source frameworks for parallel, distribute
 <img src="/img/blog/2020-02-22-beam-on-flink/flink-runner-beam-language-portability-architecture.png" width="600px" alt="Language Portability Architecture in beam"/>
 </center>
 <p>Environments can be present for many languages. This opens up an entirely new type of pipelines: cross-language pipelines. In cross-language pipelines we can combine transforms of two or more languages, e.g. a machine learning pipeline with the feature generation written in Java and the learning written in Python. All this can be run on top of Flink.</p>
-<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h2>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
 <p>Using Apache Beam with Apache Flink combines  (a.) the power of Flink with (b.) the flexibility of Beam. All it takes to run Beam is a Flink cluster, which you may already have. Apache Beam&rsquo;s fully-fledged Python API is probably the most compelling argument for using Beam with Flink, but the unified API which allows to &ldquo;write-once&rdquo; and &ldquo;execute-anywhere&rdquo; is also very appealing to Beam users. On top of this, features like side inputs and a rich connector ecosystem are also reasons why people like Beam.</p>
 <p>With the introduction of schemas, a new format for handling type information, Beam is heading in a similar direction as Flink with its type system which is essential for the Table API or SQL. Speaking of, the next Flink release will include a Python version of the Table API which is based on the language portability of Beam. Looking ahead, the Beam community plans to extend the support for interactive programs like notebooks. TFX, which is built with Beam, is a very powerful way to solve many problems around training and validating machine learning models.</p>
 <p>For many years, Beam and Flink have inspired and learned from each other. With the Python support being based on Beam in Flink, they only seem to come closer to each other. That&rsquo;s all the better for the community, and also users have more options and functionality to choose from.</p>

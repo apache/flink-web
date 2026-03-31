@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL" />
+<meta property="og:description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-05-14T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-05-14T12:00:00+00:00" />
+<title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of temporal data, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL">
-  <meta property="og:description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of temporal data, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2019-05-14T12:00:00+00:00">
-    <meta property="article:modified_time" content="2019-05-14T12:00:00+00:00">
-
-
-  <meta itemprop="name" content="Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL">
-  <meta itemprop="description" content="Figuring out how to manage and model temporal data for effective point-in-time analysis was a longstanding battle, dating as far back as the early 80’s, that culminated with the introduction of temporal tables in the SQL standard in 2011. Up to that point, users were doomed to implement this as part of the application logic, often hurting the length of the development lifecycle as well as the maintainability of the code. And, although there isn’t a single, commonly accepted definition of temporal data, the challenge it represents is one and the same: how do we validate or enrich data against dynamically changing, historical datasets?">
-  <meta itemprop="datePublished" content="2019-05-14T12:00:00+00:00">
-  <meta itemprop="dateModified" content="2019-05-14T12:00:00+00:00">
-  <meta itemprop="wordCount" content="1096">
-
-<title>Flux capacitor, huh? Temporal Tables and Joins in Streaming SQL | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2019/05/14/flux-capacitor-huh-temporal-tables-and-joins-in-streaming-sql/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -545,7 +524,10 @@ https://github.com/alex-shpak/hugo-book
 </center>
 <br>
 <p><strong>For example:</strong> given a stream with Taxi Fare events tied to the local currency of the ride location, we might want to convert the fare price to a common currency for further processing. As conversion rates excel at fluctuating over time, each Taxi Fare event would need to be matched to the rate that was valid at the time the event occurred in order to produce a reliable result.</p>
-<h2 id="modelling-temporal-data-with-flink">Modelling Temporal Data with Flink<a class="anchor" href="#modelling-temporal-data-with-flink">#</a></h2>
+<h2 id="modelling-temporal-data-with-flink">
+  Modelling Temporal Data with Flink
+  <a class="anchor" href="#modelling-temporal-data-with-flink">#</a>
+</h2>
 <p>In the 1.7 release, Flink has introduced the concept of <strong>temporal tables</strong> into its streaming SQL and Table API: parameterized views on append-only tables — or, any table that only allows records to be inserted, never updated or deleted — that are interpreted as a changelog and keep data closely tied to time context, so that it can be interpreted as valid only within a specific period of time. Transforming a stream into a temporal table requires:</p>
 <ul>
 <li>
@@ -558,41 +540,46 @@ https://github.com/alex-shpak/hugo-book
 <p>Going back to our example use case, a temporal table is just what we need to model the conversion rate data such as to make it useful for point-in-time querying. Temporal table functions are implemented as an extension of Flink’s generic <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/dev/table/udfs.html#table-functions">table function</a> class and can be defined in the same straightforward way to be used with the Table API or SQL parser.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.flink.table.functions.TemporalTableFunction</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="p">(...)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">(...)</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="c1">// Get the stream and table environments.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">StreamExecutionEnvironment</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StreamExecutionEnvironment</span><span class="p">.</span><span class="na">getExecutionEnvironment</span><span class="p">();</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">StreamTableEnvironment</span><span class="w"> </span><span class="n">tEnv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StreamTableEnvironment</span><span class="p">.</span><span class="na">getTableEnvironment</span><span class="p">(</span><span class="n">env</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// Get the stream and table environments.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">StreamExecutionEnvironment</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StreamExecutionEnvironment</span><span class="p">.</span><span class="na">getExecutionEnvironment</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">StreamTableEnvironment</span><span class="w"> </span><span class="n">tEnv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StreamTableEnvironment</span><span class="p">.</span><span class="na">getTableEnvironment</span><span class="p">(</span><span class="n">env</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="c1">// Provide a sample static data set of the rates history table.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">List</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="n">ratesHistoryData</span><span class="w"> </span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">ArrayList</span><span class="o">&lt;&gt;</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// Provide a sample static data set of the rates history table.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">List</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="n">ratesHistoryData</span><span class="w"> </span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">ArrayList</span><span class="o">&lt;&gt;</span><span class="p">();</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;USD&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">102L</span><span class="p">));</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;EUR&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">114L</span><span class="p">));</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;YEN&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">1L</span><span class="p">));</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;EUR&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">116L</span><span class="p">));</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;USD&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">105L</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;USD&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">102L</span><span class="p">));</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;EUR&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">114L</span><span class="p">));</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;YEN&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">1L</span><span class="p">));</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;EUR&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">116L</span><span class="p">));</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">ratesHistoryData</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">Tuple2</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&#34;USD&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">105L</span><span class="p">));</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="c1">// Create and register an example table using the sample data set.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">ratesHistoryStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="p">.</span><span class="na">fromCollection</span><span class="p">(</span><span class="n">ratesHistoryData</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// Create and register an example table using the sample data set.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">ratesHistoryStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="p">.</span><span class="na">fromCollection</span><span class="p">(</span><span class="n">ratesHistoryData</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">Table</span><span class="w"> </span><span class="n">ratesHistory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tEnv</span><span class="p">.</span><span class="na">fromDataStream</span><span class="p">(</span><span class="n">ratesHistoryStream</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;r_currency, r_rate, r_proctime.proctime&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">Table</span><span class="w"> </span><span class="n">ratesHistory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tEnv</span><span class="p">.</span><span class="na">fromDataStream</span><span class="p">(</span><span class="n">ratesHistoryStream</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;r_currency, r_rate, r_proctime.proctime&#34;</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="p">.</span><span class="na">registerTable</span><span class="p">(</span><span class="s">&#34;RatesHistory&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">ratesHistory</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">tEnv</span><span class="p">.</span><span class="na">registerTable</span><span class="p">(</span><span class="s">&#34;RatesHistory&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">ratesHistory</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="c1">// Create and register the temporal table function &#34;rates&#34;.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// Define &#34;r_proctime&#34; as the versioning field and &#34;r_currency&#34; as the primary key.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">TemporalTableFunction</span><span class="w"> </span><span class="n">rates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ratesHistory</span><span class="p">.</span><span class="na">createTemporalTableFunction</span><span class="p">(</span><span class="s">&#34;r_proctime&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;r_currency&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// Create and register the temporal table function &#34;rates&#34;.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// Define &#34;r_proctime&#34; as the versioning field and &#34;r_currency&#34; as the primary key.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">TemporalTableFunction</span><span class="w"> </span><span class="n">rates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ratesHistory</span><span class="p">.</span><span class="na">createTemporalTableFunction</span><span class="p">(</span><span class="s">&#34;r_proctime&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;r_currency&#34;</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="n">tEnv</span><span class="p">.</span><span class="na">registerFunction</span><span class="p">(</span><span class="s">&#34;Rates&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">rates</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">tEnv</span><span class="p">.</span><span class="na">registerFunction</span><span class="p">(</span><span class="s">&#34;Rates&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">rates</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="p">(...)</span></span></span></code></pre></div><p>What does this <strong>Rates</strong> function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">Rates</span><span class="p">(</span><span class="s1">&#39;11:00&#39;</span><span class="p">);</span></span></span></code></pre></div><center>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">(...)</span><span class="w">
+</span></span></span></code></pre></div><p>What does this <strong>Rates</strong> function do, in practice? Imagine we would like to check what the conversion rates looked like at a given time — say, 11:00. We could simply do something like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">Rates</span><span class="p">(</span><span class="s1">&#39;11:00&#39;</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><center>
 <img src="/img/blog/2019-05-13-temporal-tables/TemporalTables2.png" width="650px" alt="Point-in-time Querying"/>
 </center>
 <br>
 <p>Even though Flink does not yet support querying temporal table functions with a constant time attribute parameter, these functions can be used to cover a much more interesting scenario: temporal table joins.</p>
-<h2 id="streaming-joins-using-temporal-tables">Streaming Joins using Temporal Tables<a class="anchor" href="#streaming-joins-using-temporal-tables">#</a></h2>
+<h2 id="streaming-joins-using-temporal-tables">
+  Streaming Joins using Temporal Tables
+  <a class="anchor" href="#streaming-joins-using-temporal-tables">#</a>
+</h2>
 <p>Temporal tables reach their full potential when used in combination — erm, joined — with streaming data, for instance to power applications that must continuously whitelist against a reference dataset that changes over time for auditing or regulatory compliance. While efficient joins have long been an enduring challenge for query processors due to computational cost and resource consumption, joins over streaming data carry some additional challenges:</p>
 <ul>
 <li>The <strong>unbounded</strong> nature of streams means that inputs are continuously evaluated and intermediate join results can consume memory resources indefinitely. Flink gracefully manages its memory consumption out-of-the-box (even for heavier cases where joins require spilling to disk) and supports time-windowed joins to bound the amount of data that needs to be kept around as state;</li>
@@ -613,7 +600,10 @@ https://github.com/alex-shpak/hugo-book
 <li>Narrowing the <strong>scope</strong> of the join: only the time-matching version of <code>ratesHistory</code> is visible for a given <code>taxiFare.time</code>;</li>
 <li>Pruning <strong>unneeded records</strong> from state: for cases using event time, records between current time and the <a href="//nightlies.apache.org/flink/flink-docs-release-1.8/dev/event_time.html#event-time-and-watermarks">watermark</a> delay are persisted for both the probe and build side. These are discarded as soon as the watermark arrives and the results are emitted — allowing the join operation to move forward in time and the build table to “refresh” its version in state.</li>
 </ul>
-<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h2>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
 <p>All this means it is now possible to express continuous stream enrichment in relational and time-varying terms using Flink without dabbling into syntactic patchwork or compromising performance. In other words: stream time-travelling minus the flux capacitor. Extending this syntax to batch processing for enriching historic data with proper (event) time semantics is also part of the Flink roadmap!</p>
 <p>If you&rsquo;d like to get some <strong>hands-on practice in joining streams with Flink SQL</strong> (and Flink SQL in general), checkout this <a href="https://github.com/ververica/sql-training/wiki">free training for Flink SQL</a>. The training environment is based on Docker and set up in just a few minutes.</p>
 <p>Subscribe to the <a href="/community.html#mailing-lists">Apache Flink mailing lists</a> to stay up-to-date with the latest developments in this space.</p>

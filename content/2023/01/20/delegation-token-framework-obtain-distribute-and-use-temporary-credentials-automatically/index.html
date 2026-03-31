@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2023/01/20/delegation-token-framework-obtain-distribute-and-use-temporary-credentials-automatically/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes the Delegation Token Framework proposed in FLIP-272. This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication tokens to the TaskManagers.
+Introduction # Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or writing to an external system needed to authenticate on their own.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically" />
+<meta property="og:description" content="The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes the Delegation Token Framework proposed in FLIP-272. This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication tokens to the TaskManagers.
+Introduction # Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or writing to an external system needed to authenticate on their own." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2023/01/20/delegation-token-framework-obtain-distribute-and-use-temporary-credentials-automatically/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-20T08:00:00+00:00" />
+<meta property="article:modified_time" content="2023-01-20T08:00:00+00:00" />
+<title>Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes the Delegation Token Framework proposed in FLIP-272. This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication tokens to the TaskManagers.
-Introduction# Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or writing to an external system needed to authenticate on their own. In such a case several things can go wrong, including but not limited to:
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2023/01/20/delegation-token-framework-obtain-distribute-and-use-temporary-credentials-automatically/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically">
-  <meta property="og:description" content="The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes the Delegation Token Framework proposed in FLIP-272. This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication tokens to the TaskManagers.
-Introduction# Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or writing to an external system needed to authenticate on their own. In such a case several things can go wrong, including but not limited to:">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2023-01-20T08:00:00+00:00">
-    <meta property="article:modified_time" content="2023-01-20T08:00:00+00:00">
-
-
-  <meta itemprop="name" content="Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically">
-  <meta itemprop="description" content="The Apache Flink Community is pleased to announce that the upcoming minor version of Flink (1.17) includes the Delegation Token Framework proposed in FLIP-272. This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication tokens to the TaskManagers.
-Introduction# Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or writing to an external system needed to authenticate on their own. In such a case several things can go wrong, including but not limited to:">
-  <meta itemprop="datePublished" content="2023-01-20T08:00:00+00:00">
-  <meta itemprop="dateModified" content="2023-01-20T08:00:00+00:00">
-  <meta itemprop="wordCount" content="543">
-
-<title>Delegation Token Framework: Obtain, Distribute and Use Temporary Credentials Automatically | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2023/01/20/delegation-token-framework-obtain-distribute-and-use-temporary-credentials-automatically/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -549,7 +527,10 @@ Introduction# Authentication in distributed systems is not an easy task. Previou
 the Delegation Token Framework proposed in <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-272%3A&#43;Generalized&#43;delegation&#43;token&#43;support">FLIP-272</a>.
 This enables Flink to authenticate to external services at a central location (JobManager) and distribute authentication
 tokens to the TaskManagers.</p>
-<h2 id="introduction">Introduction<a class="anchor" href="#introduction">#</a></h2>
+<h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
 <p>Authentication in distributed systems is not an easy task. Previously all worker nodes (TaskManagers) reading from or
 writing to an external system needed to authenticate on their own. In such a case several things can go wrong, including but not limited to:</p>
 <ul>
@@ -582,20 +563,29 @@ At the moment the following external systems are supported:</p>
 <p>The design and implementation approach has already been proven in <a href="https://spark.apache.org/docs/latest/security.html#kerberos">Apache Spark</a>.
 Gabor is a Spark committer, he championed this feature in the Spark community. The most notable improvement we achieved compared to the
 current state in Spark is that the framework in Flink is already authentication protocol agnostic (and not bound to Kerberos).</p>
-<h2 id="documentation">Documentation<a class="anchor" href="#documentation">#</a></h2>
+<h2 id="documentation">
+  Documentation
+  <a class="anchor" href="#documentation">#</a>
+</h2>
 <p>For more details please refer to the following documentation:</p>
 <ul>
 <li><a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/security/security-delegation-token/">Delegation Tokens In General</a></li>
 <li><a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/security/security-kerberos/#using-delegation-tokens">How to use Kerberos delegation tokens</a></li>
 </ul>
-<h2 id="development-details">Development details<a class="anchor" href="#development-details">#</a></h2>
+<h2 id="development-details">
+  Development details
+  <a class="anchor" href="#development-details">#</a>
+</h2>
 <p>Major tickets where the framework has been added:</p>
 <ul>
 <li><a href="https://issues.apache.org/jira/browse/FLINK-21232">FLINK-21232</a> Kerberos delegation token framework</li>
 <li><a href="https://issues.apache.org/jira/browse/FLINK-29918">FLINK-29918</a> Generalized delegation token support</li>
 <li><a href="https://issues.apache.org/jira/browse/FLINK-30704">FLINK-30704</a> Add S3 delegation token support</li>
 </ul>
-<h2 id="example-implementation">Example implementation<a class="anchor" href="#example-implementation">#</a></h2>
+<h2 id="example-implementation">
+  Example implementation
+  <a class="anchor" href="#example-implementation">#</a>
+</h2>
 <p>Adding a new authentication protocol is relatively straight-forward:</p>
 <ul>
 <li>Check out the <a href="https://github.com/gaborgsomogyi/flink-test-java-delegation-token-provider">example implementation</a></li>
@@ -605,13 +595,19 @@ current state in Spark is that the framework in Flink is already authentication 
 <li>Compile the project and put it into the classpath (adding it inside a plugin also supported)</li>
 <li>Enjoy that Flink does all the heavy lifting behind the scenes :-)</li>
 </ul>
-<h2 id="example-implementation-testing">Example implementation testing<a class="anchor" href="#example-implementation-testing">#</a></h2>
+<h2 id="example-implementation-testing">
+  Example implementation testing
+  <a class="anchor" href="#example-implementation-testing">#</a>
+</h2>
 <p>The existing providers are tested with the <a href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/">Flink Kubernetes Operator</a>
 but one can use any other supported deployment model, because the framework is not bound to any of them.
 We choose the Kubernetes Operator so that we could provide a completely containerized and easily reproducible test environment.</p>
 <p>An example tutorial can be found <a href="https://gist.github.com/gaborgsomogyi/ac4f71ead8494da2f5c35265bcb1e885">here</a> on
 external system authentication.</p>
-<h2 id="summary">Summary<a class="anchor" href="#summary">#</a></h2>
+<h2 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h2>
 <p>The Delegation Token Framework is feature complete on the master branch and is becoming generally available on the release of
 Flink 1.17. The framework obtains authentication tokens at a central location and propagates them to all workers on a re-occurring basis.</p>
 <p>Any connector to an external system which supports authentication can be a potential user of this framework.

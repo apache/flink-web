@@ -13,59 +13,36 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Apache Flink 代码样式和质量指南 — 组件" />
+<meta property="og:description" content="Apache Flink 代码样式和质量指南 — 组件 # 序言 # Pull Requests &amp; Changes # 常用编码指南 # Java 语言指南 # Scala 语言指南 # 组件指南 # 格式指南 # 组件特定指南 # 关于特定组件更改的附加指南。
+配置更改 # 配置选项应该放在哪里？
+‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
+配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
+taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/" /><meta property="article:section" content="how-to-contribute" />
+
+
+<title>Apache Flink 代码样式和质量指南 — 组件 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="alternate" hreflang="en" href="https://flink.apache.org/how-to-contribute/code-style-and-quality-components/" title="Code Style and Quality Guide — Components Guide">
+
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/zh.search.min.682ddfeac37589365f91a8dad1e5eae5f4aa1ff80f04d5b598c1fb76e08f1c5f.js" integrity="sha256-aC3f6sN1iTZfkaja0eXq5fSqH/gPBNW1mMH7duCPHF8="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Apache Flink 代码样式和质量指南 — 组件# 序言# Pull Requests &amp; Changes# 常用编码指南# Java 语言指南# Scala 语言指南# 组件指南# 格式指南# 组件特定指南# 关于特定组件更改的附加指南。
-配置更改# 配置选项应该放在哪里？
-‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
-配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
-taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：
-不是 &#34;taskmanager.detailed.network.metrics&#34;
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Apache Flink 代码样式和质量指南 — 组件">
-  <meta property="og:description" content="Apache Flink 代码样式和质量指南 — 组件# 序言# Pull Requests &amp; Changes# 常用编码指南# Java 语言指南# Scala 语言指南# 组件指南# 格式指南# 组件特定指南# 关于特定组件更改的附加指南。
-配置更改# 配置选项应该放在哪里？
-‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
-配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
-taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：
-不是 &#34;taskmanager.detailed.network.metrics&#34;">
-  <meta property="og:locale" content="zh">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="how-to-contribute">
-
-
-  <meta itemprop="name" content="Apache Flink 代码样式和质量指南 — 组件">
-  <meta itemprop="description" content="Apache Flink 代码样式和质量指南 — 组件# 序言# Pull Requests &amp; Changes# 常用编码指南# Java 语言指南# Scala 语言指南# 组件指南# 格式指南# 组件特定指南# 关于特定组件更改的附加指南。
-配置更改# 配置选项应该放在哪里？
-‘flink-conf.yaml’: 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。 ‘ExecutionConfig’: 执行期间算子需要特定于单个 Flink 应用程序的参数，典型的例子是水印间隔，序列化参数，对象重用。 ExecutionEnvironment (in code): 所有特定于单个 Flink 应用程序的东西，仅在构建程序/数据流时需要，在算子执行期间不需要。 如何命名配置键：
-配置键名应该分层级。将配置视为嵌套对象（JSON 样式）
-taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, request-backoff: { initial: 100, max: 10000 }, memory: { fraction: 0.1, min: 64MB, max: 1GB, buffers-per-channel: 2, floating-buffers-per-gate: 16 } } } 因此生成的配置键应该：
-不是 &#34;taskmanager.detailed.network.metrics&#34;">
-  <meta itemprop="wordCount" content="234">
-
-<title>Apache Flink 代码样式和质量指南 — 组件 | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/zh/how-to-contribute/code-style-and-quality-components/">
-  <link rel="alternate" hreflang="en" href="https://flink.apache.org/how-to-contribute/code-style-and-quality-components/" title="Code Style and Quality Guide — Components Guide">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/zh.search.min.d0104f5a068733f098bb616acba24ddeca207ce767f4fea36ad1290a850c32aa.js" integrity="sha256-0BBPWgaHM/CYu2Fqy6JN3sogfOdn9P6jatEpCoUMMqo=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -521,17 +498,47 @@ taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, reques
       <main class="flex">
         <section class="container book-page">
           
-  <article class="markdown"><h1 id="apache-flink-代码样式和质量指南--组件">Apache Flink 代码样式和质量指南 — 组件<a class="anchor" href="#apache-flink-%e4%bb%a3%e7%a0%81%e6%a0%b7%e5%bc%8f%e5%92%8c%e8%b4%a8%e9%87%8f%e6%8c%87%e5%8d%97--%e7%bb%84%e4%bb%b6">#</a></h1>
-<h4 id="序言"><a href="/zh/how-to-contribute/code-style-and-quality-preamble/">序言</a><a class="anchor" href="#%e5%ba%8f%e8%a8%80">#</a></h4>
-<h4 id="pull-requests--changes"><a href="/zh/how-to-contribute/code-style-and-quality-pull-requests/">Pull Requests &amp; Changes</a><a class="anchor" href="#pull-requests--changes">#</a></h4>
-<h4 id="常用编码指南"><a href="/zh/how-to-contribute/code-style-and-quality-common/">常用编码指南</a><a class="anchor" href="#%e5%b8%b8%e7%94%a8%e7%bc%96%e7%a0%81%e6%8c%87%e5%8d%97">#</a></h4>
-<h4 id="java-语言指南"><a href="/zh/how-to-contribute/code-style-and-quality-java/">Java 语言指南</a><a class="anchor" href="#java-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97">#</a></h4>
-<h4 id="scala-语言指南"><a href="/zh/how-to-contribute/code-style-and-quality-scala/">Scala 语言指南</a><a class="anchor" href="#scala-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97">#</a></h4>
-<h4 id="组件指南"><a href="/zh/how-to-contribute/code-style-and-quality-components/">组件指南</a><a class="anchor" href="#%e7%bb%84%e4%bb%b6%e6%8c%87%e5%8d%97">#</a></h4>
-<h4 id="格式指南"><a href="/zh/how-to-contribute/code-style-and-quality-formatting/">格式指南</a><a class="anchor" href="#%e6%a0%bc%e5%bc%8f%e6%8c%87%e5%8d%97">#</a></h4>
-<h2 id="组件特定指南">组件特定指南<a class="anchor" href="#%e7%bb%84%e4%bb%b6%e7%89%b9%e5%ae%9a%e6%8c%87%e5%8d%97">#</a></h2>
+  <article class="markdown"><h1 id="apache-flink-代码样式和质量指南--组件">
+  Apache Flink 代码样式和质量指南 — 组件
+  <a class="anchor" href="#apache-flink-%e4%bb%a3%e7%a0%81%e6%a0%b7%e5%bc%8f%e5%92%8c%e8%b4%a8%e9%87%8f%e6%8c%87%e5%8d%97--%e7%bb%84%e4%bb%b6">#</a>
+</h1>
+<h4 id="序言hahahugoshortcode65s0hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-preamble/">序言</a>
+  <a class="anchor" href="#%e5%ba%8f%e8%a8%80hahahugoshortcode65s0hbhb">#</a>
+</h4>
+<h4 id="pull-requests--changeshahahugoshortcode65s1hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-pull-requests/">Pull Requests &amp; Changes</a>
+  <a class="anchor" href="#pull-requests--changeshahahugoshortcode65s1hbhb">#</a>
+</h4>
+<h4 id="常用编码指南hahahugoshortcode65s2hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-common/">常用编码指南</a>
+  <a class="anchor" href="#%e5%b8%b8%e7%94%a8%e7%bc%96%e7%a0%81%e6%8c%87%e5%8d%97hahahugoshortcode65s2hbhb">#</a>
+</h4>
+<h4 id="java-语言指南hahahugoshortcode65s3hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-java/">Java 语言指南</a>
+  <a class="anchor" href="#java-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode65s3hbhb">#</a>
+</h4>
+<h4 id="scala-语言指南hahahugoshortcode65s4hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-scala/">Scala 语言指南</a>
+  <a class="anchor" href="#scala-%e8%af%ad%e8%a8%80%e6%8c%87%e5%8d%97hahahugoshortcode65s4hbhb">#</a>
+</h4>
+<h4 id="组件指南hahahugoshortcode65s5hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-components/">组件指南</a>
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e6%8c%87%e5%8d%97hahahugoshortcode65s5hbhb">#</a>
+</h4>
+<h4 id="格式指南hahahugoshortcode65s6hbhb">
+  <a href="/zh/how-to-contribute/code-style-and-quality-formatting/">格式指南</a>
+  <a class="anchor" href="#%e6%a0%bc%e5%bc%8f%e6%8c%87%e5%8d%97hahahugoshortcode65s6hbhb">#</a>
+</h4>
+<h2 id="组件特定指南">
+  组件特定指南
+  <a class="anchor" href="#%e7%bb%84%e4%bb%b6%e7%89%b9%e5%ae%9a%e6%8c%87%e5%8d%97">#</a>
+</h2>
 <p><em>关于特定组件更改的附加指南。</em></p>
-<h3 id="配置更改">配置更改<a class="anchor" href="#%e9%85%8d%e7%bd%ae%e6%9b%b4%e6%94%b9">#</a></h3>
+<h3 id="配置更改">
+  配置更改
+  <a class="anchor" href="#%e9%85%8d%e7%bd%ae%e6%9b%b4%e6%94%b9">#</a>
+</h3>
 <p>配置选项应该放在哪里？</p>
 <ul>
 <li><span style="text-decoration:underline;">‘flink-conf.yaml’:</span> 所有属于可能要跨作业标准的执行行为的配置。可以将其想像成 Ops 的工作人员或为其他团队提供流处理平台的工作人员设置的参数。</li>
@@ -558,23 +565,36 @@ taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, reques
       floating-buffers-per-gate: 16
     }
   }
-}</code></pre></li>
+}
+</code></pre></li>
 <li>
 <p>因此生成的配置键应该：</p>
 <p><strong>不是</strong> <code>&quot;taskmanager.detailed.network.metrics&quot;</code></p>
 <p><strong>而是</strong> <code>&quot;taskmanager.network.detailed-metrics&quot;</code></p>
 </li>
 </ul>
-<h3 id="连接器">连接器<a class="anchor" href="#%e8%bf%9e%e6%8e%a5%e5%99%a8">#</a></h3>
+<h3 id="连接器">
+  连接器
+  <a class="anchor" href="#%e8%bf%9e%e6%8e%a5%e5%99%a8">#</a>
+</h3>
 <p>连接器历来很难实现，需要处理多线程、并发和检查点等许多方面。</p>
 <p>作为 <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-27%3A&#43;Refactor&#43;Source&#43;Interface">FLIP-27</a> 的一部分，我们正在努力使数据源（source）的实现更简单。新的数据源应该不必处理并发/线程和检查点的任何方面。</p>
 <p>预计在不久的将来，会有类似针对数据汇（sink）的 FLIP。</p>
-<h3 id="示例">示例<a class="anchor" href="#%e7%a4%ba%e4%be%8b">#</a></h3>
+<h3 id="示例">
+  示例
+  <a class="anchor" href="#%e7%a4%ba%e4%be%8b">#</a>
+</h3>
 <p>示例应该是自包含的，不需要运行 Flink 以外的系统。除了显示如何使用具体的连接器的示例，比如 Kafka 连接器。数据源/数据汇可以使用 <code>StreamExecutionEnvironment.socketTextStream</code>，这个不应该在生产中使用，但对于研究示例如何运行是相当方便的，以及基于文件的数据源/数据源。（对于流，Flink 提供了连续的文件数据源读取数据） 示例也不应该是纯粹的玩具示例，而是在现实世界的代码和纯粹的抽象示例之间取得平衡。WordCount 示例到现在已经很久了，但它是一个很好的功能突出并可以做有用事情的简单代码示例。</p>
 <p>示例中应该有不少的注释。他们可以在类级 Javadoc 中描述示例的总体思路，并且描述正在发生什么和整个代码里使用了什么功能。还应描述预期的输入数据和输出数据。</p>
 <p>示例应该包括参数解析，以便你可以运行一个示例（使用 <code>bin/flink run path/to/myExample.jar --param1 … --param2</code> 运行程序）。</p>
-<h3 id="表和-sql-api">表和 SQL API<a class="anchor" href="#%e8%a1%a8%e5%92%8c-sql-api">#</a></h3>
-<h4 id="语义">语义<a class="anchor" href="#%e8%af%ad%e4%b9%89">#</a></h4>
+<h3 id="表和-sql-api">
+  表和 SQL API
+  <a class="anchor" href="#%e8%a1%a8%e5%92%8c-sql-api">#</a>
+</h3>
+<h4 id="语义">
+  语义
+  <a class="anchor" href="#%e8%af%ad%e4%b9%89">#</a>
+</h4>
 <p><strong>SQL 标准应该是事实的主要来源。</strong></p>
 <ul>
 <li>语法、语义和功能应该和 SQL 保持一致！</li>
@@ -592,7 +612,10 @@ taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, reques
 <li>Table API 是一种嵌入式域特定语言，用于遵循关系模型的分析程序。 在语法和名称方面不需要严格遵循 SQL 标准，但如果这有助于使其感觉更直观，那么可以更接近编程语言的方式/命名函数和功能。</li>
 <li>Table API 可能有一些非 SQL 功能（例如 map()、flatMap() 等），但还是应该“感觉像 SQL”。如果可能，函数和算子应该有相等的语义和命名。</li>
 </ul>
-<h4 id="常见错误">常见错误<a class="anchor" href="#%e5%b8%b8%e8%a7%81%e9%94%99%e8%af%af">#</a></h4>
+<h4 id="常见错误">
+  常见错误
+  <a class="anchor" href="#%e5%b8%b8%e8%a7%81%e9%94%99%e8%af%af">#</a>
+</h4>
 <ul>
 <li>添加功能时支持 SQL 的类型系统。
 <ul>
@@ -602,7 +625,10 @@ taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, reques
 </ul>
 </li>
 </ul>
-<h4 id="测试">测试<a class="anchor" href="#%e6%b5%8b%e8%af%95">#</a></h4>
+<h4 id="测试">
+  测试
+  <a class="anchor" href="#%e6%b5%8b%e8%af%95">#</a>
+</h4>
 <p>测试为空性</p>
 <ul>
 <li>几乎每个操作，SQL 都原生支持 <code>NULL</code>，并具有 3 值布尔逻辑。</li>
@@ -614,14 +640,20 @@ taskmanager: { jvm-exit-on-oom: true, network: { detailed-metrics: false, reques
 <li>避免对 planner 测试或 API 调用的变更进行集成测试。</li>
 <li>相反，使用单元测试来验证 planner 产生的优化计划。或者直接测试算子的运行时行为。</li>
 </ul>
-<h4 id="兼容性">兼容性<a class="anchor" href="#%e5%85%bc%e5%ae%b9%e6%80%a7">#</a></h4>
+<h4 id="兼容性">
+  兼容性
+  <a class="anchor" href="#%e5%85%bc%e5%ae%b9%e6%80%a7">#</a>
+</h4>
 <p>不要在次要版本中引入物理计划更改！</p>
 <ul>
 <li>流式 SQL 中状态的向后兼容性依赖于物理执行计划保持稳定的事实。否则，生成的 Operator Names/IDs 将发生变化，并且无法匹配和恢复状态。</li>
 <li>导致流传输管道的优化物理计划改变的每个 bug 修复均会破坏兼容性。</li>
 <li>因此，导致不同优化计划的此类更改目前仅可以合并到大版本中。</li>
 </ul>
-<h4 id="scala--java-互操作性遗留代码部分">Scala / Java 互操作性（遗留代码部分）<a class="anchor" href="#scala--java-%e4%ba%92%e6%93%8d%e4%bd%9c%e6%80%a7%e9%81%97%e7%95%99%e4%bb%a3%e7%a0%81%e9%83%a8%e5%88%86">#</a></h4>
+<h4 id="scala--java-互操作性遗留代码部分">
+  Scala / Java 互操作性（遗留代码部分）
+  <a class="anchor" href="#scala--java-%e4%ba%92%e6%93%8d%e4%bd%9c%e6%80%a7%e9%81%97%e7%95%99%e4%bb%a3%e7%a0%81%e9%83%a8%e5%88%86">#</a>
+</h4>
 <p>在设计接口时要牢记 Java。</p>
 <ul>
 <li>考虑一个类将来是否需要与 Java 类交互。</li>

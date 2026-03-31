@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2022/05/06/improvements-to-flink-operations-snapshots-ownership-and-savepoint-formats/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Flink has become a well established data streaming engine and a mature project requires some shifting of priorities from thinking purely about new features towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address some known friction points, which includes improvements to the snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Improvements to Flink operations: Snapshots Ownership and Savepoint Formats" />
+<meta property="og:description" content="Flink has become a well established data streaming engine and a mature project requires some shifting of priorities from thinking purely about new features towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address some known friction points, which includes improvements to the snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/05/06/improvements-to-flink-operations-snapshots-ownership-and-savepoint-formats/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-05-06T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-05-06T00:00:00+00:00" />
+<title>Improvements to Flink operations: Snapshots Ownership and Savepoint Formats | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Flink has become a well established data streaming engine and a mature project requires some shifting of priorities from thinking purely about new features towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address some known friction points, which includes improvements to the snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing. Snapshots include savepoints and checkpoints.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2022/05/06/improvements-to-flink-operations-snapshots-ownership-and-savepoint-formats/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Improvements to Flink operations: Snapshots Ownership and Savepoint Formats">
-  <meta property="og:description" content="Flink has become a well established data streaming engine and a mature project requires some shifting of priorities from thinking purely about new features towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address some known friction points, which includes improvements to the snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing. Snapshots include savepoints and checkpoints.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2022-05-06T00:00:00+00:00">
-    <meta property="article:modified_time" content="2022-05-06T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Improvements to Flink operations: Snapshots Ownership and Savepoint Formats">
-  <meta itemprop="description" content="Flink has become a well established data streaming engine and a mature project requires some shifting of priorities from thinking purely about new features towards improving stability and operational simplicity. In the last couple of releases, the Flink community has tried to address some known friction points, which includes improvements to the snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing. Snapshots include savepoints and checkpoints.">
-  <meta itemprop="datePublished" content="2022-05-06T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2022-05-06T00:00:00+00:00">
-  <meta itemprop="wordCount" content="1727">
-
-<title>Improvements to Flink operations: Snapshots Ownership and Savepoint Formats | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2022/05/06/improvements-to-flink-operations-snapshots-ownership-and-savepoint-formats/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -548,7 +527,10 @@ towards improving stability and operational simplicity. In the last couple of re
 some known friction points, which includes improvements to the
 snapshotting process. Snapshotting takes a global, consistent image of the state of a Flink job and is integral to fault-tolerance and exacty-once processing. Snapshots include savepoints and checkpoints.</p>
 <p>This post will outline the journey of improving snapshotting in past releases and the upcoming improvements in Flink 1.15, which includes making it possible to take savepoints in the native state backend specific format as well as clarifying snapshots ownership.</p>
-<h1 id="past-improvements-to-the-snapshotting-process">Past improvements to the snapshotting process<a class="anchor" href="#past-improvements-to-the-snapshotting-process">#</a></h1>
+<h1 id="past-improvements-to-the-snapshotting-process">
+  Past improvements to the snapshotting process
+  <a class="anchor" href="#past-improvements-to-the-snapshotting-process">#</a>
+</h1>
 <p>Flink 1.13 was the first release where we announced <a href="//nightlies.apache.org/flink/flink-docs-release-1.15/docs/concepts/stateful-stream-processing/#unaligned-checkpointing">unaligned checkpoints</a> to be production-ready. We
 encouraged people to use them if their jobs are backpressured to a point where it causes issues for
 checkpoints.  We also <a href="/news/2021/05/03/release-1.13.0.html#switching-state-backend-with-savepoints">unified the binary format of savepoints</a> across all
@@ -558,7 +540,10 @@ to unaligned checkpoints, we introduced a feature called <a href="/news/2021/09/
 around the concept of automatically adjusting the amount of in-flight data that needs to be aligned
 while snapshotting. We also fixed another long-standing problem and made it
 possible to <a href="/news/2021/09/29/release-1.14.0.html#checkpointing-and-bounded-streams">continue checkpointing even if there are finished tasks</a> in a JobGraph.</p>
-<h1 id="new-improvements-to-the-snapshotting-process">New improvements to the snapshotting process<a class="anchor" href="#new-improvements-to-the-snapshotting-process">#</a></h1>
+<h1 id="new-improvements-to-the-snapshotting-process">
+  New improvements to the snapshotting process
+  <a class="anchor" href="#new-improvements-to-the-snapshotting-process">#</a>
+</h1>
 <p>You can expect more improvements in Flink 1.15! We continue to be invested in making it easy
 to operate Flink clusters and have tackled the following problems. :)</p>
 <p>Savepoints can be expensive
@@ -574,18 +559,25 @@ which makes it tough to clean those files up. To solve this issue, we added expl
 modes (CLAIM, NO_CLAIM, and LEGACY) which clearly define whether Flink should take
 care of cleaning up the snapshots or whether it should remain the user&rsquo;s responsibility.
 .</p>
-<h2 id="the-new-restore-modes">The new restore modes<a class="anchor" href="#the-new-restore-modes">#</a></h2>
+<h2 id="the-new-restore-modes">
+  The new restore modes
+  <a class="anchor" href="#the-new-restore-modes">#</a>
+</h2>
 <p>The <code>Restore Mode</code> determines who takes ownership of the files that make up savepoints or
 externalized checkpoints after they are restored. Snapshots, which are either checkpoints or savepoints
 in this context, can be owned either by a user or Flink itself. If a snapshot is owned by a user,
 Flink will not delete its files and will not depend on the existence
 of such files since it might be deleted outside of Flink&rsquo;s control.</p>
 <p>The restore modes are <code>CLAIM</code>, <code>NO_CLAIM</code>, and <code>LEGACY</code> (for backwards compatibility). You can pass the restore mode like this:</p>
-<pre tabindex="0"><code>$ bin/flink run -s :savepointPath -restoreMode :mode -n [:runArgs]</code></pre><p>While each restore mode serves a specific purpose, we believe the default <em>NO_CLAIM</em> mode is a good
+<pre tabindex="0"><code>$ bin/flink run -s :savepointPath -restoreMode :mode -n [:runArgs]
+</code></pre><p>While each restore mode serves a specific purpose, we believe the default <em>NO_CLAIM</em> mode is a good
 tradeoff in most situations, as it provides clear ownership with a small price for the first
 checkpoint after the restore.</p>
 <p>Let&rsquo;s dig further into each of the modes.</p>
-<h3 id="legacy-mode">LEGACY mode<a class="anchor" href="#legacy-mode">#</a></h3>
+<h3 id="legacy-mode">
+  LEGACY mode
+  <a class="anchor" href="#legacy-mode">#</a>
+</h3>
 <p>The legacy mode is how Flink dealt with snapshots until version 1.15. In this mode, Flink will never delete the initial
 checkpoint. Unfortunately, at the same time, it is not clear if a user can ever delete it as well.
 The problem here is that Flink might immediately build an incremental checkpoint on top of the
@@ -594,7 +586,10 @@ ownership is not well defined in this mode.</p>
 <div style="text-align: center">
   <img src="/img/blog/2022-05-06-restore-modes/restore-mode-legacy.svg" alt="LEGACY restore mode" width="70%">
 </div>
-<h3 id="no_claim-default-mode">NO_CLAIM (default) mode<a class="anchor" href="#no_claim-default-mode">#</a></h3>
+<h3 id="no_claim-default-mode">
+  NO_CLAIM (default) mode
+  <a class="anchor" href="#no_claim-default-mode">#</a>
+</h3>
 <p>To fix the issue of files that no one can reliably claim ownership of, we introduced the <code>NO_CLAIM</code>
 mode as the new default. In this mode, Flink will not assume ownership of the snapshot and will leave the files in
 the user&rsquo;s control and never delete any of the files.  You can start multiple jobs from the
@@ -610,7 +605,10 @@ failure - try to recover from the initial snapshot.</p>
 <div style="text-align: center">
   <img src="/img/blog/2022-05-06-restore-modes/restore-mode-no_claim.svg" alt="NO_CLAIM restore mode" width="70%" >
 </div>
-<h3 id="claim-mode">CLAIM mode<a class="anchor" href="#claim-mode">#</a></h3>
+<h3 id="claim-mode">
+  CLAIM mode
+  <a class="anchor" href="#claim-mode">#</a>
+</h3>
 <p>If you do not want to sacrifice any performance while taking the first checkpoint, we suggest
 looking into the <code>CLAIM</code> mode. In this mode, Flink claims ownership of the snapshot
 and essentially treats it like a checkpoint: it controls the lifecycle and might delete it if it is
@@ -619,7 +617,10 @@ two jobs from the same snapshot. Flink keeps around a configured number of check
 <div style="text-align: center">
   <img src="/img/blog/2022-05-06-restore-modes/restore-mode-claim.svg" alt="CLAIM restore mode" width="70%">
 </div>
-<h2 id="savepoint-format">Savepoint format<a class="anchor" href="#savepoint-format">#</a></h2>
+<h2 id="savepoint-format">
+  Savepoint format
+  <a class="anchor" href="#savepoint-format">#</a>
+</h2>
 <p>You can now trigger savepoints in the native format of state backends.
 This has been introduced to match two characteristics, one of both savepoints and
 checkpoints:</p>
@@ -645,7 +646,11 @@ called incremental.</p>
 $ bin/flink savepoint --type [native/canonical] :jobId [:targetDirectory]
 
 # stop the job with a savepoint
-$ bin/flink stop --type [native/canonical] --savepointPath [:targetDirectory] :jobId</code></pre><h3 id="capabilities-and-limitations">Capabilities and limitations<a class="anchor" href="#capabilities-and-limitations">#</a></h3>
+$ bin/flink stop --type [native/canonical] --savepointPath [:targetDirectory] :jobId
+</code></pre><h3 id="capabilities-and-limitations">
+  Capabilities and limitations
+  <a class="anchor" href="#capabilities-and-limitations">#</a>
+</h3>
 <p>Unfortunately it is not possible to provide the same guarantees for all types of snapshots
 (canonical or native savepoints and aligned or unaligned checkpoints). The main difference between
 checkpoints and savepoints is that savepoints are still triggered and owned by users. Flink does not
@@ -661,87 +666,87 @@ savepoints and checkpoints.</p>
 <li>x - Flink doesn&rsquo;t support this type of snapshot</li>
 </ul>
 <table>
-  <thead>
-      <tr>
-          <th style="text-align: left">Operation</th>
-          <th style="text-align: left">Canonical Savepoint</th>
-          <th style="text-align: left">Native Savepoint</th>
-          <th style="text-align: left">Aligned Checkpoint</th>
-          <th style="text-align: left">Unaligned Checkpoint</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: left">State backend change</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-          <td style="text-align: left">x</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">State Processor API(writing)</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-          <td style="text-align: left">x</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">State Processor API(reading)</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Self-contained and relocatable</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Schema evolution</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Arbitrary job upgrade</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Non-arbitrary job upgrade</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Flink minor version upgrade</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">x</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Flink bug/patch version upgrade</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Rescaling</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-          <td style="text-align: left">✓</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th style="text-align:left">Operation</th>
+<th style="text-align:left">Canonical Savepoint</th>
+<th style="text-align:left">Native Savepoint</th>
+<th style="text-align:left">Aligned Checkpoint</th>
+<th style="text-align:left">Unaligned Checkpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">State backend change</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+<td style="text-align:left">x</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">State Processor API(writing)</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+<td style="text-align:left">x</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">State Processor API(reading)</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">Self-contained and relocatable</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">Schema evolution</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+</tr>
+<tr>
+<td style="text-align:left">Arbitrary job upgrade</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">Non-arbitrary job upgrade</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">Flink minor version upgrade</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">x</td>
+</tr>
+<tr>
+<td style="text-align:left">Flink bug/patch version upgrade</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+</tr>
+<tr>
+<td style="text-align:left">Rescaling</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+<td style="text-align:left">✓</td>
+</tr>
+</tbody>
 </table>
 <ul>
 <li>State backend change - you can restore from the snapshot with a different state.backend than the
@@ -766,7 +771,10 @@ of Flink (1.14.x → 1.14.y).</li>
 <li>Rescaling - Restoring the snapshot with a different parallelism than was used during the snapshot
 creation.</li>
 </ul>
-<h1 id="summary">Summary<a class="anchor" href="#summary">#</a></h1>
+<h1 id="summary">
+  Summary
+  <a class="anchor" href="#summary">#</a>
+</h1>
 <p>We hope the changes we introduced over the last releases make it easier to operate Flink in respect
 to snapshotting. We are eager to hear from you if any of the new features have helped you solve problems you&rsquo;ve faced in the past.
 At the same time, if you still struggle with an issue or you had to work around some obstacles, please let

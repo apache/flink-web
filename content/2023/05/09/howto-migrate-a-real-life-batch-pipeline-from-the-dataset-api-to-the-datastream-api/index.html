@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2023/05/09/howto-migrate-a-real-life-batch-pipeline-from-the-dataset-api-to-the-datastream-api/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API) . This blog article illustrates the migration of a real-life batch DataSet pipeline to a batch DataStream pipeline. All the code presented in this article is available in the tpcds-benchmark-flink repo. The use case shown here is extracted from a broader work comparing Flink performances of different APIs by implementing TPCDS queries using these APIs.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API" />
+<meta property="og:description" content="Introduction # The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API) . This blog article illustrates the migration of a real-life batch DataSet pipeline to a batch DataStream pipeline. All the code presented in this article is available in the tpcds-benchmark-flink repo. The use case shown here is extracted from a broader work comparing Flink performances of different APIs by implementing TPCDS queries using these APIs." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2023/05/09/howto-migrate-a-real-life-batch-pipeline-from-the-dataset-api-to-the-datastream-api/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-05-09T08:00:00+00:00" />
+<meta property="article:modified_time" content="2023-05-09T08:00:00+00:00" />
+<title>Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Introduction# The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API) . This blog article illustrates the migration of a real-life batch DataSet pipeline to a batch DataStream pipeline. All the code presented in this article is available in the tpcds-benchmark-flink repo. The use case shown here is extracted from a broader work comparing Flink performances of different APIs by implementing TPCDS queries using these APIs.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2023/05/09/howto-migrate-a-real-life-batch-pipeline-from-the-dataset-api-to-the-datastream-api/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API">
-  <meta property="og:description" content="Introduction# The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API) . This blog article illustrates the migration of a real-life batch DataSet pipeline to a batch DataStream pipeline. All the code presented in this article is available in the tpcds-benchmark-flink repo. The use case shown here is extracted from a broader work comparing Flink performances of different APIs by implementing TPCDS queries using these APIs.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2023-05-09T08:00:00+00:00">
-    <meta property="article:modified_time" content="2023-05-09T08:00:00+00:00">
-
-
-  <meta itemprop="name" content="Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API">
-  <meta itemprop="description" content="Introduction# The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API) . This blog article illustrates the migration of a real-life batch DataSet pipeline to a batch DataStream pipeline. All the code presented in this article is available in the tpcds-benchmark-flink repo. The use case shown here is extracted from a broader work comparing Flink performances of different APIs by implementing TPCDS queries using these APIs.">
-  <meta itemprop="datePublished" content="2023-05-09T08:00:00+00:00">
-  <meta itemprop="dateModified" content="2023-05-09T08:00:00+00:00">
-  <meta itemprop="wordCount" content="1163">
-
-<title>Howto migrate a real-life batch pipeline from the DataSet API to the DataStream API | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2023/05/09/howto-migrate-a-real-life-batch-pipeline-from-the-dataset-api-to-the-datastream-api/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -539,7 +518,10 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-    <p><h2 id="introduction">Introduction<a class="anchor" href="#introduction">#</a></h2>
+    <p><h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
 <p>The Flink community has been deprecating the DataSet API since version 1.12 as part of the work on
 <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=158866741">FLIP-131: Consolidate the user-facing Dataflow SDKs/APIs (and deprecate the DataSet API)</a>
 .
@@ -550,22 +532,34 @@ the <a href="https://github.com/echauchot/tpcds-benchmark-flink">tpcds-benchmark
 The use case shown here is extracted from a broader work comparing Flink performances of different
 APIs
 by implementing <a href="https://www.tpc.org/tpcds/">TPCDS</a> queries using these APIs.</p>
-<h2 id="what-is-tpcds">What is TPCDS?<a class="anchor" href="#what-is-tpcds">#</a></h2>
+<h2 id="what-is-tpcds">
+  What is TPCDS?
+  <a class="anchor" href="#what-is-tpcds">#</a>
+</h2>
 <p>TPC-DS is a decision support benchmark that models several generally applicable aspects of a
 decision support system. The purpose of TPCDS benchmarks is to provide relevant, objective
 performance data of Big Data engines to industry users.</p>
-<h2 id="chosen-tpcds-query">Chosen TPCDS query<a class="anchor" href="#chosen-tpcds-query">#</a></h2>
+<h2 id="chosen-tpcds-query">
+  Chosen TPCDS query
+  <a class="anchor" href="#chosen-tpcds-query">#</a>
+</h2>
 <p>The chosen query for this article is <strong>Query3</strong>  because it contains all the more common analytics
 operators (filter, join, aggregation, group by, order by, limit). It represents an analytic query on
 store sales. Its SQL code is presented here:</p>
 <p><code>SELECT dt.d_year, item.i_brand_id brand_id, item.i_brand brand,SUM(ss_ext_sales_price) sum_agg FROM  date_dim dt, store_sales, item WHERE dt.d_date_sk = store_sales.ss_sold_date_sk AND store_sales.ss_item_sk = item.i_item_sk AND item.i_manufact_id = 128 AND dt.d_moy=11 GROUP BY dt.d_year, item.i_brand, item.i_brand_id ORDER BY dt.d_year, sum_agg desc, brand_id LIMIT 100</code></p>
-<h2 id="the-initial-dataset-pipeline">The initial DataSet pipeline<a class="anchor" href="#the-initial-dataset-pipeline">#</a></h2>
+<h2 id="the-initial-dataset-pipeline">
+  The initial DataSet pipeline
+  <a class="anchor" href="#the-initial-dataset-pipeline">#</a>
+</h2>
 <p>The pipeline we are migrating
 is <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDataset.java">this</a>
 batch pipeline that implements the above query using the DataSet API
 and <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/types/Row.html">Row</a>
 as dataset element type.</p>
-<h2 id="migrating-the-dataset-pipeline-to-a-datastream-pipeline">Migrating the DataSet pipeline to a DataStream pipeline<a class="anchor" href="#migrating-the-dataset-pipeline-to-a-datastream-pipeline">#</a></h2>
+<h2 id="migrating-the-dataset-pipeline-to-a-datastream-pipeline">
+  Migrating the DataSet pipeline to a DataStream pipeline
+  <a class="anchor" href="#migrating-the-dataset-pipeline-to-a-datastream-pipeline">#</a>
+</h2>
 <p>Instead of going through all of the code which is
 available <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java">here</a>
 we will rather focus on some key areas of the migration. The code is based on the latest release
@@ -576,7 +570,10 @@ execution environment, it is also needed to migrate some operations. Indeed, the
 semantics are the ones of a streaming pipeline. The arriving data is thus considered infinite. So,
 compared to the DataSet API which operates on finite data, there are adaptations to be made on some
 operations.</p>
-<h3 id="setting-the-execution-environment"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L90-L96">Setting the execution environment</a><a class="anchor" href="#setting-the-execution-environment">#</a></h3>
+<h3 id="setting-the-execution-environmenthttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval90-l96">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L90-L96">Setting the execution environment</a>
+  <a class="anchor" href="#setting-the-execution-environmenthttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval90-l96">#</a>
+</h3>
 <p>We start by moving
 from <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/java/ExecutionEnvironment.html">ExecutionEnvironment</a>
 to <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/environment/StreamExecutionEnvironment.html">StreamExecutionEnvironment</a>
@@ -587,7 +584,10 @@ executed one after another. In streaming mode all tasks need to be running all t
 are sent to downstream tasks as soon as they are available.</p>
 <p>Here we keep the default streaming mode that gives good performance on this pipeline and that would
 allow to run the same pipeline with no change on an unbounded source.</p>
-<h3 id="using-the-streaming-sources-and-datasets">Using the streaming sources and datasets<a class="anchor" href="#using-the-streaming-sources-and-datasets">#</a></h3>
+<h3 id="using-the-streaming-sources-and-datasets">
+  Using the streaming sources and datasets
+  <a class="anchor" href="#using-the-streaming-sources-and-datasets">#</a>
+</h3>
 <p><strong>Sources</strong>: <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/java/operators/DataSource.html">DataSource<T></a>
 becomes <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/datastream/DataStreamSource.html">DataStreamSource<T></a>
 after the call to <em>env.createInput()</em>.</p>
@@ -595,7 +595,10 @@ after the call to <em>env.createInput()</em>.</p>
 are
 now <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/datastream/DataStream.html">DataStream<T></a>
 and subclasses.</p>
-<h3 id="migrating-the-join-operation"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L129-L135">Migrating the join operation</a><a class="anchor" href="#migrating-the-join-operation">#</a></h3>
+<h3 id="migrating-the-join-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval129-l135">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L129-L135">Migrating the join operation</a>
+  <a class="anchor" href="#migrating-the-join-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval129-l135">#</a>
+</h3>
 <p>The DataStream join operator does not yet support aggregations in batch mode (
 see <a href="https://issues.apache.org/jira/browse/FLINK-22587">FLINK-22587</a> for details). Basically, the
 problem is with the trigger of the
@@ -610,7 +613,10 @@ a bounded source, at some point the watermark will advance to +INFINITY (Long.MA
 thus cross the end of the time window and consequently fire the trigger and output the records.</p>
 <p>Now that we have a working triggering, we need to call a standard join with the  <em>Row::join</em>
 function.</p>
-<h3 id="migrating-the-group-by-and-reduce-sum-operations"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L145-L169">Migrating the group by and reduce (sum) operations</a><a class="anchor" href="#migrating-the-group-by-and-reduce-sum-operations">#</a></h3>
+<h3 id="migrating-the-group-by-and-reduce-sum-operationshttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval145-l169">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L145-L169">Migrating the group by and reduce (sum) operations</a>
+  <a class="anchor" href="#migrating-the-group-by-and-reduce-sum-operationshttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval145-l169">#</a>
+</h3>
 <p>DataStream API has no
 more <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/java/DataSet.html#groupBy-org.apache.flink.api.java.functions.KeySelector-">groupBy()</a>
 method, we now use
@@ -625,7 +631,10 @@ Collection. To make the sum we store in the reduced row the partially aggregated
 we also need to distinguish if we received an already reduced row (in that case, we read the
 partially aggregated sum) or a fresh row (in that case we just read the corresponding price field).
 Also, please note that, as in the join case, we need to specify windowing for the aggregation.</p>
-<h3 id="migrating-the-order-by-operation"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L171-L211">Migrating the order by operation</a><a class="anchor" href="#migrating-the-order-by-operation">#</a></h3>
+<h3 id="migrating-the-order-by-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval171-l211">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L171-L211">Migrating the order by operation</a>
+  <a class="anchor" href="#migrating-the-order-by-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval171-l211">#</a>
+</h3>
 <p>The sort of the datastream is done by applying
 a <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/functions/KeyedProcessFunction.html">KeyedProcessFunction</a>
 .</p>
@@ -642,12 +651,18 @@ callback.</p>
 there
 is no group by key because Flink state is designed per-key. Thus, we key by a fake static key so
 that there is a single state.</p>
-<h3 id="migrating-the-limit-operation"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L213-L223">Migrating the limit operation</a><a class="anchor" href="#migrating-the-limit-operation">#</a></h3>
+<h3 id="migrating-the-limit-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval213-l223">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L213-L223">Migrating the limit operation</a>
+  <a class="anchor" href="#migrating-the-limit-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval213-l223">#</a>
+</h3>
 <p>As all the elements of the DataStream were keyed by the same &ldquo;0&rdquo; key, they are kept in the same &quot;
 group&quot;. So we can implement the SQL LIMIT with
 a <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/streaming/api/functions/ProcessFunction.html">ProcessFunction</a>
 with a counter that will output only the first 100 elements.</p>
-<h3 id="migrating-the-sink-operation"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L225-L236">Migrating the sink operation</a><a class="anchor" href="#migrating-the-sink-operation">#</a></h3>
+<h3 id="migrating-the-sink-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval225-l236">
+  <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L225-L236">Migrating the sink operation</a>
+  <a class="anchor" href="#migrating-the-sink-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval225-l236">#</a>
+</h3>
 <p>As with sources, there were big changes in sinks with recent versions of Flink. We now use
 the <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/connector/sink2/Sink.html">Sink interface</a>
 that requires
@@ -657,7 +672,10 @@ that <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/jav
 method writes bytes
 when <a href="https://nightlies.apache.org/flink/flink-docs-release-1.16/api/java/org/apache/flink/api/java/io/TextOutputFormat.TextFormatter.html#format-IN-">TextOutputFormat.TextFormatter#format()</a>
 wrote Strings.</p>
-<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h2>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
 <p>As you saw for the migration of the join operation, the new unified DataStream API has some
 limitations left in batch mode. In addition, the order by and limit resulting code is quite manual
 and requires the help of the Flink state API for the migration. For all these reasons, the Flink
@@ -704,13 +722,13 @@ the <a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7
         <li><a href="#the-initial-dataset-pipeline">The initial DataSet pipeline</a></li>
         <li><a href="#migrating-the-dataset-pipeline-to-a-datastream-pipeline">Migrating the DataSet pipeline to a DataStream pipeline</a>
           <ul>
-            <li><a href="#setting-the-execution-environment">Setting the execution environment</a></li>
+            <li><a href="#setting-the-execution-environmenthttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval90-l96"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L90-L96">Setting the execution environment</a></a></li>
             <li><a href="#using-the-streaming-sources-and-datasets">Using the streaming sources and datasets</a></li>
-            <li><a href="#migrating-the-join-operation">Migrating the join operation</a></li>
-            <li><a href="#migrating-the-group-by-and-reduce-sum-operations">Migrating the group by and reduce (sum) operations</a></li>
-            <li><a href="#migrating-the-order-by-operation">Migrating the order by operation</a></li>
-            <li><a href="#migrating-the-limit-operation">Migrating the limit operation</a></li>
-            <li><a href="#migrating-the-sink-operation">Migrating the sink operation</a></li>
+            <li><a href="#migrating-the-join-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3fsrcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval129-l135"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/4273a3bc45d6e4fbdd5fa531fe48f85b8d0a9d3f/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L129-L135">Migrating the join operation</a></a></li>
+            <li><a href="#migrating-the-group-by-and-reduce-sum-operationshttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval145-l169"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L145-L169">Migrating the group by and reduce (sum) operations</a></a></li>
+            <li><a href="#migrating-the-order-by-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval171-l211"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L171-L211">Migrating the order by operation</a></a></li>
+            <li><a href="#migrating-the-limit-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval213-l223"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L213-L223">Migrating the limit operation</a></a></li>
+            <li><a href="#migrating-the-sink-operationhttpsgithubcomechauchottpcds-benchmark-flinkblob9589c7c74e7152badee8400d775b4af7a998e487srcmainjavaorgexampletpcdsflinkquery3viaflinkrowdatastreamjaval225-l236"><a href="https://github.com/echauchot/tpcds-benchmark-flink/blob/9589c7c74e7152badee8400d775b4af7a998e487/src/main/java/org/example/tpcds/flink/Query3ViaFlinkRowDatastream.java#L225-L236">Migrating the sink operation</a></a></li>
           </ul>
         </li>
         <li><a href="#conclusion">Conclusion</a></li>

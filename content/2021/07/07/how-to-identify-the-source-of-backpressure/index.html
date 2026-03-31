@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2021/07/07/how-to-identify-the-source-of-backpressure/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Backpressure monitoring in the web UI
+The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first&hellip;">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="How to identify the source of backpressure?" />
+<meta property="og:description" content="Backpressure monitoring in the web UI
+The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first&hellip;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2021/07/07/how-to-identify-the-source-of-backpressure/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-07-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-07-07T00:00:00+00:00" />
+<title>How to identify the source of backpressure? | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Backpressure monitoring in the web UI
-The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first…
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2021/07/07/how-to-identify-the-source-of-backpressure/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="How to identify the source of backpressure?">
-  <meta property="og:description" content="Backpressure monitoring in the web UI
-The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first…">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2021-07-07T00:00:00+00:00">
-    <meta property="article:modified_time" content="2021-07-07T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="How to identify the source of backpressure?">
-  <meta itemprop="description" content="Backpressure monitoring in the web UI
-The backpressure topic was tackled from different angles over the last couple of years. However, when it comes to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of these changes and go into more detail about how to track down the source of backpressure, but first…">
-  <meta itemprop="datePublished" content="2021-07-07T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2021-07-07T00:00:00+00:00">
-  <meta itemprop="wordCount" content="1685">
-
-<title>How to identify the source of backpressure? | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2021/07/07/how-to-identify-the-source-of-backpressure/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -550,7 +528,10 @@ The backpressure topic was tackled from different angles over the last couple of
 to identifying and analyzing sources of backpressure, things have changed quite a bit in the recent Flink releases
 (especially with new additions to metrics and the web UI in Flink 1.13). This post will try to clarify some of
 these changes and go into more detail about how to track down the source of backpressure, but first&hellip;</p>
-<h2 id="what-is-backpressure">What is backpressure?<a class="anchor" href="#what-is-backpressure">#</a></h2>
+<h2 id="what-is-backpressure">
+  What is backpressure?
+  <a class="anchor" href="#what-is-backpressure">#</a>
+</h2>
 <p>This has been explained very well in an old, but still accurate, <a href="https://www.ververica.com/blog/how-flink-handles-backpressure">post by Ufuk Celebi</a>.
 I highly recommend reading it if you are not familiar with this concept. For a much deeper and low-level understanding of
 the topic and how Flink’s network stack works, there is a more <a href="https://alibabacloud.com/blog/analysis-of-network-flow-control-and-back-pressure-flink-advanced-tutorials_596632">advanced explanation available here</a>.</p>
@@ -568,7 +549,10 @@ was the basis of the previously recommended way on how to detect and analyze bac
 of years back by Nico Kruber</a>.
 As I mentioned in the beginning, Flink now offers much better tools to do the same job, but before we get to that,
 there are two questions worth asking.</p>
-<h3 id="why-should-i-care-about-backpressure">Why should I care about backpressure?<a class="anchor" href="#why-should-i-care-about-backpressure">#</a></h3>
+<h3 id="why-should-i-care-about-backpressure">
+  Why should I care about backpressure?
+  <a class="anchor" href="#why-should-i-care-about-backpressure">#</a>
+</h3>
 <p>Backpressure is an indicator that your machines or operators are overloaded. The buildup of backpressure
 directly affects the end-to-end latency of the system, as records are waiting longer in the queues before
 being processed. Secondly, aligned checkpointing takes longer with backpressure, while unaligned checkpoints
@@ -577,12 +561,18 @@ If you are struggling with checkpoint barriers propagation times, taking care of
 likely help to solve the problem. Lastly, you might just want to optimize your job in order to reduce
 the costs of running the job.</p>
 <p>In order to address the problem for all cases, one needs to be aware of it, then locate and analyze it.</p>
-<h3 id="why-shouldnt-i-care-about-backpressure">Why shouldn’t I care about backpressure?<a class="anchor" href="#why-shouldnt-i-care-about-backpressure">#</a></h3>
+<h3 id="why-shouldnt-i-care-about-backpressure">
+  Why shouldn’t I care about backpressure?
+  <a class="anchor" href="#why-shouldnt-i-care-about-backpressure">#</a>
+</h3>
 <p>Frankly, you do not  always have to care about the presence of backpressure. Almost by definition, lack
 of backpressure means that your cluster is at least ever so slightly underutilized and over-provisioned.
 If you want to minimize idling resources, you probably can not avoid incurring some backpressure. This
 is especially true for batch processing.</p>
-<h2 id="how-to-detect-and-track-down-the-source-of-backpressure">How to detect and track down the source of backpressure?<a class="anchor" href="#how-to-detect-and-track-down-the-source-of-backpressure">#</a></h2>
+<h2 id="how-to-detect-and-track-down-the-source-of-backpressure">
+  How to detect and track down the source of backpressure?
+  <a class="anchor" href="#how-to-detect-and-track-down-the-source-of-backpressure">#</a>
+</h2>
 <p>One way to detect backpressure is to use <a href="//nightlies.apache.org/flink/flink-docs-release-1.13/docs/ops/metrics/#system-metrics">metrics</a>,
 however, in Flink 1.13 it’s no longer necessary to dig so deep. In most cases, it should be enough to just
 look at the job graph in the Web UI.</p>
@@ -605,7 +595,10 @@ this is especially handy if there is a data skew and not all subtasks are equall
 <p>In the above example, we can clearly see which subtasks are idling, which are backpressured, and that
 none of them are busy. And frankly, in a nutshell, that should be enough to quickly understand what is
 happening with your Job :) However, there are a couple of more details worth explaining.</p>
-<h3 id="what-are-those-numbers">What are those numbers?<a class="anchor" href="#what-are-those-numbers">#</a></h3>
+<h3 id="what-are-those-numbers">
+  What are those numbers?
+  <a class="anchor" href="#what-are-those-numbers">#</a>
+</h3>
 <p>If you are curious how it works underneath, we can go a little deeper. At the base of this new mechanism
 we have three <a href="//nightlies.apache.org/flink/flink-docs-release-1.13/docs/ops/metrics/#io">new metrics</a>
 that are exposed and calculated by each subtask:</p>
@@ -641,7 +634,10 @@ as the value for busyTimeMsPerSecond. For more information on the topic of Data 
 subtasks of a given task and why the aggregated maximal values of busy and backpressured may not add up to 100%.
 One subtask can be backpressured at 60%, while another can be busy at 60%.  This can result in a task that
 is both backpressured and busy at 60%.</p>
-<h3 id="varying-load">Varying load<a class="anchor" href="#varying-load">#</a></h3>
+<h3 id="varying-load">
+  Varying load
+  <a class="anchor" href="#varying-load">#</a>
+</h3>
 <p>There is one more thing. Do you remember that those metrics are measured and averaged over a couple of seconds?
 Keep this in mind when analyzing jobs or tasks with varying load, such as (sub)tasks containing a <code>WindowOperator</code>
 that is firing periodically. Both the subtask with a constant load of 50% and the subtask that alternates every
@@ -663,7 +659,10 @@ However, as soon as it starts to fire its windows (once every 10 seconds), the d
 gets backpressured. As those busy/backpressured/idle metrics are averaging time over a couple of seconds,
 this subtlety is not immediately visible and has to be read between the lines. On top of that, the web UI
 is updating its state only once every 10 seconds, which makes spotting more frequent changes a bit more difficult.</p>
-<h2 id="what-can-i-do-with-backpressure">What can I do with backpressure?<a class="anchor" href="#what-can-i-do-with-backpressure">#</a></h2>
+<h2 id="what-can-i-do-with-backpressure">
+  What can I do with backpressure?
+  <a class="anchor" href="#what-can-i-do-with-backpressure">#</a>
+</h2>
 <p>In general this is a complex topic that is worthy of a dedicated blog post. It was, to a certain extent,
 addressed in <a href="https://flink.apache.org/2019/07/23/flink-network-stack-2.html#:~:text=this%20is%20unnecessary.-,What%20to%20do%20with%20Backpressure%3F,-Assuming%20that%20you">previous blog posts</a>.
 In short, there are two high-level ways of dealing with backpressure. Either add more resources (more machines,

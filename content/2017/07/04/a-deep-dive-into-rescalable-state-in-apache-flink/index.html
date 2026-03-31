@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2017/07/04/a-deep-dive-into-rescalable-state-in-apache-flink/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. An Intro to Stateful Stream Processing # At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.
+In contrast, operators in stateless stream processing only consider their current inputs, without further context and knowledge about the past.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="A Deep Dive into Rescalable State in Apache Flink" />
+<meta property="og:description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. An Intro to Stateful Stream Processing # At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.
+In contrast, operators in stateless stream processing only consider their current inputs, without further context and knowledge about the past." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2017/07/04/a-deep-dive-into-rescalable-state-in-apache-flink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2017-07-04T09:00:00+00:00" />
+<meta property="article:modified_time" content="2017-07-04T09:00:00+00:00" />
+<title>A Deep Dive into Rescalable State in Apache Flink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. An Intro to Stateful Stream Processing# At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.
-In contrast, operators in stateless stream processing only consider their current inputs, without further context and knowledge about the past. A simple example to illustrate this difference: let us consider a source stream that emits events with schema e = {event_id:int, event_value:int}. Our goal is, for each event, to extract and output the event_value. We can easily achieve this with a simple source-map-sink pipeline, where the map function extracts the event_value from the event and emits it downstream to an outputting sink. This is an instance of stateless stream processing.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2017/07/04/a-deep-dive-into-rescalable-state-in-apache-flink/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="A Deep Dive into Rescalable State in Apache Flink">
-  <meta property="og:description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. An Intro to Stateful Stream Processing# At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.
-In contrast, operators in stateless stream processing only consider their current inputs, without further context and knowledge about the past. A simple example to illustrate this difference: let us consider a source stream that emits events with schema e = {event_id:int, event_value:int}. Our goal is, for each event, to extract and output the event_value. We can easily achieve this with a simple source-map-sink pipeline, where the map function extracts the event_value from the event and emits it downstream to an outputting sink. This is an instance of stateless stream processing.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2017-07-04T09:00:00+00:00">
-    <meta property="article:modified_time" content="2017-07-04T09:00:00+00:00">
-
-
-  <meta itemprop="name" content="A Deep Dive into Rescalable State in Apache Flink">
-  <meta itemprop="description" content="Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink. An Intro to Stateful Stream Processing# At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.
-In contrast, operators in stateless stream processing only consider their current inputs, without further context and knowledge about the past. A simple example to illustrate this difference: let us consider a source stream that emits events with schema e = {event_id:int, event_value:int}. Our goal is, for each event, to extract and output the event_value. We can easily achieve this with a simple source-map-sink pipeline, where the map function extracts the event_value from the event and emits it downstream to an outputting sink. This is an instance of stateless stream processing.">
-  <meta itemprop="datePublished" content="2017-07-04T09:00:00+00:00">
-  <meta itemprop="dateModified" content="2017-07-04T09:00:00+00:00">
-  <meta itemprop="wordCount" content="2365">
-
-<title>A Deep Dive into Rescalable State in Apache Flink | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2017/07/04/a-deep-dive-into-rescalable-state-in-apache-flink/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -540,19 +518,28 @@ In contrast, operators in stateless stream processing only consider their curren
     <p><p><em>Apache Flink 1.2.0, released in February 2017, introduced support for rescalable state. This post provides a detailed overview of stateful stream processing and rescalable state in Flink.</em>
 <br>
 <br></p>
-<h2 id="an-intro-to-stateful-stream-processing">An Intro to Stateful Stream Processing<a class="anchor" href="#an-intro-to-stateful-stream-processing">#</a></h2>
+<h2 id="an-intro-to-stateful-stream-processing">
+  An Intro to Stateful Stream Processing
+  <a class="anchor" href="#an-intro-to-stateful-stream-processing">#</a>
+</h2>
 <p>At a high level, we can consider state in stream processing as memory in operators that remembers information about past input and can be used to influence the processing of future input.</p>
 <p>In contrast, operators in <em>stateless</em> stream processing only consider their current inputs, without further context and knowledge about the past. A simple example to illustrate this difference: let us consider a source stream that emits events with schema <code>e = {event_id:int, event_value:int}</code>. Our goal is, for each event, to extract and output the <code>event_value</code>. We can easily achieve this with a simple source-map-sink pipeline, where the map function extracts the <code>event_value</code> from the event and emits it downstream to an outputting sink. This is an instance of stateless stream processing.</p>
 <p>But what if we want to modify our job to output the <code>event_value</code> only if it is larger than the value from the previous event? In this case, our map function obviously needs some way to remember the <code>event_value</code> from a past event — and so this is an instance of stateful stream processing.</p>
 <p>This example should demonstrate that state is a fundamental, enabling concept in stream processing that is required for a majority of interesting use cases.</p>
-<h2 id="state-in-apache-flink">State in Apache Flink<a class="anchor" href="#state-in-apache-flink">#</a></h2>
+<h2 id="state-in-apache-flink">
+  State in Apache Flink
+  <a class="anchor" href="#state-in-apache-flink">#</a>
+</h2>
 <p>Apache Flink is a massively parallel distributed system that allows stateful stream processing at large scale. For scalability, a Flink job is logically decomposed into a graph of operators, and the execution of each operator is physically decomposed into multiple parallel operator instances. Conceptually, each parallel operator instance in Flink is an independent task that can be scheduled on its own machine in a network-connected cluster of shared-nothing machines.</p>
 <p>For high throughput and low latency in this setting, network communications among tasks must be minimized. In Flink, network communication for stream processing only happens along the logical edges in the job’s operator graph (vertically), so that the stream data can be transferred from upstream to downstream operators.</p>
 <p>However, there is no communication between the parallel instances of an operator (horizontally). To avoid such network communication, data locality is a key principle in Flink and strongly affects how state is stored and accessed.</p>
 <p>For the sake of data locality, all state data in Flink is always bound to the task that runs the corresponding parallel operator instance and is co-located on the same machine that runs the task.</p>
 <p>Through this design, all state data for a task is local, and no network communication between tasks is required for state access. Avoiding this kind of traffic is crucial for the scalability of a massively parallel distributed system like Flink.</p>
 <p>For Flink’s stateful stream processing, we differentiate between two different types of state: operator state and keyed state. Operator state is scoped per parallel instance of an operator (sub-task), and keyed state can be thought of as <a href="//nightlies.apache.org/flink/flink-docs-release-1.3/dev/stream/state.html#keyed-state">“operator state that has been partitioned, or sharded, with exactly one state-partition per key”</a>. We could have easily implemented our previous example as operator state: all events that are routed through the operator instance can influence its value.</p>
-<h2 id="rescaling-stateful-stream-processing-jobs">Rescaling Stateful Stream Processing Jobs<a class="anchor" href="#rescaling-stateful-stream-processing-jobs">#</a></h2>
+<h2 id="rescaling-stateful-stream-processing-jobs">
+  Rescaling Stateful Stream Processing Jobs
+  <a class="anchor" href="#rescaling-stateful-stream-processing-jobs">#</a>
+</h2>
 <p>Changing the parallelism (that is, changing the number of parallel subtasks that perform work for an operator) in stateless streaming is very easy. It requires only starting or stopping parallel instances of stateless operators and dis-/connecting them to/from their upstream and downstream operators as shown in <strong>Figure 1A</strong>.</p>
 <p>On the other hand, changing the parallelism of stateful operators is much more involved because we must also (i) redistribute the previous operator state in a (ii) consistent, (iii) meaningful way. Remember that in Flink’s shared-nothing architecture, all state is local to the task that runs the owning parallel operator instance, and there is no communication between parallel operator instances at job runtime.</p>
 <p>However, there is already one mechanism in Flink that allows the exchange of operator state between tasks, in a consistent way, with exactly-once guarantees — Flink’s checkpointing!</p>
@@ -567,7 +554,10 @@ In contrast, operators in stateless stream processing only consider their curren
 <p>We can piggyback rescaling of stateful jobs on checkpointing, as shown in <strong>Figure 1B</strong>. First, a checkpoint is triggered and sent to a distributed storage system. Next, the job is restarted with a changed parallelism and can access a consistent snapshot of all previous state from the distributed storage. While this solves (i) redistribution of a (ii) consistent state across machines there is still one problem: without a clear 1:1 relationship between previous state and new parallel operator instances, how can we assign the state in a (iii) meaningful way?</p>
 <p>We could again assign the state from previous <code>map_1</code> and <code>map_2</code> to the new <code>map_1</code> and <code>map_2</code>. But this would leave <code>map_3</code> with empty state. Depending on the type of state and concrete semantics of the job, this naive approach could lead to anything from inefficiency to incorrect results.</p>
 <p>In the following section, we’ll explain how we solved the problem of efficient, meaningful state reassignment in Flink. Each of Flink state’s two flavours, operator state and keyed state, requires a different approach to state assignment.</p>
-<h2 id="reassigning-operator-state-when-rescaling">Reassigning Operator State When Rescaling<a class="anchor" href="#reassigning-operator-state-when-rescaling">#</a></h2>
+<h2 id="reassigning-operator-state-when-rescaling">
+  Reassigning Operator State When Rescaling
+  <a class="anchor" href="#reassigning-operator-state-when-rescaling">#</a>
+</h2>
 <p>First, we’ll discuss how state reassignment in rescaling works for operator state. A common real-world use-case of operator state in Flink is to maintain the current offsets for Kafka partitions in Kafka sources. Each Kafka source instance would maintain <code>&lt;PartitionID, Offset&gt;</code> pairs – one pair for each Kafka partition that the source is reading–as operator state. How would we redistribute this operator state in case of rescaling? Ideally, we would like to reassign all <code>&lt;PartitionID, Offset&gt;</code> pairs from the checkpoint in round robin across all parallel operator instances after the rescaling.</p>
 <p>As a user, we are aware of the “meaning” of Kafka partition offsets, and we know that we can treat them as independent, redistributable units of state. The problem of how we can we share this domain-specific knowledge with Flink remains.</p>
 <p><strong>Figure 2A</strong> illustrates the previous interface for checkpointing operator state in Flink. On snapshot, each operator instance returned an object that represented its complete state. In the case of a Kafka source, this object was a list of partition offsets.</p>
@@ -612,7 +602,11 @@ In contrast, operators in stateless stream processing only consider their curren
 </span></span></span><span class="line"><span class="cl"><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="c1">// ...</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><h2 id="reassigning-keyed-state-when-rescaling">Reassigning Keyed State When Rescaling<a class="anchor" href="#reassigning-keyed-state-when-rescaling">#</a></h2>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h2 id="reassigning-keyed-state-when-rescaling">
+  Reassigning Keyed State When Rescaling
+  <a class="anchor" href="#reassigning-keyed-state-when-rescaling">#</a>
+</h2>
 <p>The second flavour of state in Flink is keyed state. In contrast to operator state, keyed state is scoped by key, where the key is extracted from each stream event.</p>
 <p>To illustrate how keyed state differs from operator state, let’s use the following example. Assume we have a stream of events, where each event has the schema <code>{customer_id:int, value:int}</code>. We have already learned that we can use operator state to compute and emit the running sum of values for all customers.</p>
 <p>Now assume we want to slightly modify our goal and compute a running sum of values for each individual <code>customer_id</code>. This is a use case from keyed state, as one aggregated state must be maintained for each unique key in the stream.</p>
@@ -630,7 +624,10 @@ In contrast, operators in stateless stream processing only consider their curren
 <center>
 <img src="/img/blog/key-groups.svg" style="width:70%;margin:10px">
 </center><br>
-<h2 id="wrapping-up">Wrapping Up<a class="anchor" href="#wrapping-up">#</a></h2>
+<h2 id="wrapping-up">
+  Wrapping Up
+  <a class="anchor" href="#wrapping-up">#</a>
+</h2>
 <p>Thanks for staying with us, and we hope you now have a clear idea of how rescalable state works in Apache Flink and how to make use of rescaling in real-world scenarios.</p>
 <p>Flink 1.3.0, which was released earlier this month, adds more tooling for state management and fault tolerance in Flink, including incremental checkpoints. And the community is exploring features such as…</p>
 <p>• State replication<br>

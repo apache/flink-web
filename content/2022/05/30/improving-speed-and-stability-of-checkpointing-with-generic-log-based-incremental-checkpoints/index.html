@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2022/05/30/improving-speed-and-stability-of-checkpointing-with-generic-log-based-incremental-checkpoints/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Improving speed and stability of checkpointing with generic log-based incremental checkpoints" />
+<meta property="og:description" content="Introduction # One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately)." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/05/30/improving-speed-and-stability-of-checkpointing-with-generic-log-based-incremental-checkpoints/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-05-30T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-05-30T00:00:00+00:00" />
+<title>Improving speed and stability of checkpointing with generic log-based incremental checkpoints | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Introduction# One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2022/05/30/improving-speed-and-stability-of-checkpointing-with-generic-log-based-incremental-checkpoints/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Improving speed and stability of checkpointing with generic log-based incremental checkpoints">
-  <meta property="og:description" content="Introduction# One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2022-05-30T00:00:00+00:00">
-    <meta property="article:modified_time" content="2022-05-30T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Improving speed and stability of checkpointing with generic log-based incremental checkpoints">
-  <meta itemprop="description" content="Introduction# One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).">
-  <meta itemprop="datePublished" content="2022-05-30T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2022-05-30T00:00:00+00:00">
-  <meta itemprop="wordCount" content="2333">
-
-<title>Improving speed and stability of checkpointing with generic log-based incremental checkpoints | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2022/05/30/improving-speed-and-stability-of-checkpointing-with-generic-log-based-incremental-checkpoints/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -540,7 +519,10 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-    <p><h1 id="introduction">Introduction<a class="anchor" href="#introduction">#</a></h1>
+    <p><h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
 <p>One of the most important characteristics of stream processing systems is end-to-end latency, i.e. the time it takes for the results of processing an input record to reach the outputs. In the case of Flink, end-to-end latency mostly depends on the checkpointing mechanism, because processing results should only become visible after the state of the stream is persisted to non-volatile storage (this is assuming exactly-once mode; in other modes, results can be published immediately).</p>
 <p>Furthermore, сheckpoint duration also defines the reasonable interval with which checkpoints are made. A shorter interval provides the following advantages:</p>
 <ul>
@@ -555,14 +537,20 @@ https://github.com/alex-shpak/hugo-book
 </ol>
 <p>Recent improvements such as <a href="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1.html">Unaligned checkpoints</a> and <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-183%3A&#43;Dynamic&#43;buffer&#43;size&#43;adjustment"> Buffer debloating </a> try to address (1), especially in the presence of back-pressure. Previously, <a href="https://flink.apache.org/features/2018/01/30/incremental-checkpointing.html"> Incremental checkpoints </a> were introduced to reduce the size of a snapshot, thereby reducing the time required to store it (2).</p>
 <p>However, there are still some cases when this duration is high</p>
-<h3 id="every-checkpoint-is-delayed-by-at-least-one-task-with-high-parallelism">Every checkpoint is delayed by at least one task with high parallelism<a class="anchor" href="#every-checkpoint-is-delayed-by-at-least-one-task-with-high-parallelism">#</a></h3>
+<h3 id="every-checkpoint-is-delayed-by-at-least-one-task-with-high-parallelism">
+  Every checkpoint is delayed by at least one task with high parallelism
+  <a class="anchor" href="#every-checkpoint-is-delayed-by-at-least-one-task-with-high-parallelism">#</a>
+</h3>
 <center>
 <img src="/img/blog/2022-05-30-changelog-state-backend/failing-task.png"/>
 <br/>
 </center>
 <br/>
 <p>With the existing incremental checkpoint implementation of the RocksDB state backend, every subtask needs to periodically perform some form of compaction. That compaction results in new, relatively big files, which in turn increase the upload time (2). The probability of at least one node performing such compaction and thus slowing down the whole checkpoint grows proportionally to the number of nodes. In large deployments, almost every checkpoint becomes delayed by some node.</p>
-<h3 id="unnecessary-delay-before-uploading-state-snapshot">Unnecessary delay before uploading state snapshot<a class="anchor" href="#unnecessary-delay-before-uploading-state-snapshot">#</a></h3>
+<h3 id="unnecessary-delay-before-uploading-state-snapshot">
+  Unnecessary delay before uploading state snapshot
+  <a class="anchor" href="#unnecessary-delay-before-uploading-state-snapshot">#</a>
+</h3>
 <center>
 <img src="/img/blog/2022-05-30-changelog-state-backend/checkpoint-timing.png"/>
 <br/>
@@ -570,7 +558,10 @@ https://github.com/alex-shpak/hugo-book
 <br/>
 <p>State backends don&rsquo;t start any snapshotting work until the task receives at least one checkpoint barrier, increasing the effective checkpoint duration. This is suboptimal if the upload time is comparable to the checkpoint interval; instead, a snapshot could be uploaded continuously throughout the interval.</p>
 <p>This work discusses the mechanism introduced in Flink 1.15 to address the above cases by continuously persisting state changes on non-volatile storage while performing materialization in the background. The basic idea is described in the following section, and then important implementation details are highlighted. Subsequent sections discuss benchmarking results, limitations, and future work.</p>
-<h1 id="high-level-overview">High-level Overview<a class="anchor" href="#high-level-overview">#</a></h1>
+<h1 id="high-level-overview">
+  High-level Overview
+  <a class="anchor" href="#high-level-overview">#</a>
+</h1>
 <p>The core idea is to introduce a state changelog (a log that records state changes); this changelog allows operators to persist state changes in a very fine-grained manner, as described below:</p>
 <ul>
 <li>Stateful operators write the state changes to the state changelog, in addition to applying them to the state tables in RocksDB or the in-mem Hashtable.</li>
@@ -604,18 +595,39 @@ https://github.com/alex-shpak/hugo-book
 <li>Increased time to replay state changes during the recovery process</li>
 </ol>
 <p>The last one, may or may not be compensated by more frequent checkpoints. More frequent checkpoints mean less re-processing is needed after recovery.</p>
-<h1 id="system-architecture">System architecture<a class="anchor" href="#system-architecture">#</a></h1>
-<h2 id="changelog-storage-dstl">Changelog storage (DSTL)<a class="anchor" href="#changelog-storage-dstl">#</a></h2>
+<h1 id="system-architecture">
+  System architecture
+  <a class="anchor" href="#system-architecture">#</a>
+</h1>
+<h2 id="changelog-storage-dstl">
+  Changelog storage (DSTL)
+  <a class="anchor" href="#changelog-storage-dstl">#</a>
+</h2>
 <p>The component that is responsible for actually storing state changes has the following requirements.</p>
-<h3 id="durability">Durability<a class="anchor" href="#durability">#</a></h3>
+<h3 id="durability">
+  Durability
+  <a class="anchor" href="#durability">#</a>
+</h3>
 <p>Changelog constitutes a part of a checkpoint, and therefore the same durability guarantees as for checkpoints must be provided. However, the duration for which the changelog is stored is expected to be short (until the changes are materialized).</p>
-<h3 id="workload">Workload<a class="anchor" href="#workload">#</a></h3>
+<h3 id="workload">
+  Workload
+  <a class="anchor" href="#workload">#</a>
+</h3>
 <p>The workload is write-heavy: changelog is written continuously, and it is only read in case of failure. Once written, data can not be modified.</p>
-<h3 id="latency">Latency<a class="anchor" href="#latency">#</a></h3>
+<h3 id="latency">
+  Latency
+  <a class="anchor" href="#latency">#</a>
+</h3>
 <p>We target checkpoint duration of 1s in the Flink 1.15 MVP for 99% of checkpoints. Therefore, an individual write request must complete within that duration or less (if parallelism is 100, then 99.99% of write requests must complete within 1s).</p>
-<h3 id="consistency">Consistency<a class="anchor" href="#consistency">#</a></h3>
+<h3 id="consistency">
+  Consistency
+  <a class="anchor" href="#consistency">#</a>
+</h3>
 <p>Once a change is persisted (and acknowledged to JM), it must be available for replay to enable recovery (this can be achieved by using a single machine, quorum, or synchronous replication).</p>
-<h3 id="concurrency">Concurrency<a class="anchor" href="#concurrency">#</a></h3>
+<h3 id="concurrency">
+  Concurrency
+  <a class="anchor" href="#concurrency">#</a>
+</h3>
 <p>Each task writes to its own changelog, which prevents concurrency issues across multiple tasks. However, when a task is restarted, it needs to write to the same log, which may cause concurrency issues. This is addressed by:</p>
 <ol>
 <li>Using unique log segment identifiers while writing</li>
@@ -645,16 +657,31 @@ RocksDB on the other hand is still used for querying the state. Furthermore, its
 </center>
 <br/>
 <p>There are a few more issues worth highlighting here:</p>
-<h2 id="state-cleanup">State cleanup<a class="anchor" href="#state-cleanup">#</a></h2>
+<h2 id="state-cleanup">
+  State cleanup
+  <a class="anchor" href="#state-cleanup">#</a>
+</h2>
 <p>State changelog needs to be truncated once the corresponding changes are materialized. It becomes more complicated with re-scaling and sharing the underlying files across multiple operators. However, Flink already provides a mechanism called <code>SharedStateRegistry</code> similar to file system reference counting. Log fragments can be viewed as shared state objects, and therefore can be tracked by this <code>SharedStateRegistry</code> (please see <a href="https://www.ververica.com/blog/managing-large-state-apache-flink-incremental-checkpointing-overview"> this </a> article for more information on how <code>SharedStateRegistry</code> was used previously).</p>
-<h2 id="dfs-specific-issues">DFS-specific issues<a class="anchor" href="#dfs-specific-issues">#</a></h2>
-<h3 id="small-files-problem">Small files problem<a class="anchor" href="#small-files-problem">#</a></h3>
+<h2 id="dfs-specific-issues">
+  DFS-specific issues
+  <a class="anchor" href="#dfs-specific-issues">#</a>
+</h2>
+<h3 id="small-files-problem">
+  Small files problem
+  <a class="anchor" href="#small-files-problem">#</a>
+</h3>
 <p>One issue with using DFS is that much more and likely smaller files are created for each checkpoint. And with the increased checkpoint frequency, there are more checkpoints.
 To mitigate this, state changes related to the same job on a TM are grouped into a single file.</p>
-<h3 id="high-tail-latency">High tail latency<a class="anchor" href="#high-tail-latency">#</a></h3>
+<h3 id="high-tail-latency">
+  High tail latency
+  <a class="anchor" href="#high-tail-latency">#</a>
+</h3>
 <p>DFS are known for high tail latencies, although this has been improving in recent years.
 To address the high-tail-latency problem, write requests are retried when they fail to complete within a timeout, which is 1 second by default (but can be configured manually).</p>
-<h1 id="benchmark-results">Benchmark results<a class="anchor" href="#benchmark-results">#</a></h1>
+<h1 id="benchmark-results">
+  Benchmark results
+  <a class="anchor" href="#benchmark-results">#</a>
+</h1>
 <p>The improvement of checkpoint stability and speed after enabling Changelog highly depends on the factors below:</p>
 <ul>
 <li>The difference between the changelog diff size and the full state size (or incremental state size, if comparing changelog to incremental checkpoints).</li>
@@ -674,7 +701,10 @@ To address the high-tail-latency problem, write requests are retried when they f
 <li>State Table materialization interval: 3m</li>
 <li>Input rate: 50K events per second</li>
 </ul>
-<h2 id="valuestate-workload">ValueState workload<a class="anchor" href="#valuestate-workload">#</a></h2>
+<h2 id="valuestate-workload">
+  ValueState workload
+  <a class="anchor" href="#valuestate-workload">#</a>
+</h2>
 <p>A workload updating mostly the new keys each time would benefit the most.</p>
 <table border="1">
   <thead>
@@ -758,7 +788,10 @@ To address the high-tail-latency problem, write requests are retried when they f
 <p>* Checkpointed Data Size is the size of data persisted after receiving the necessary number of checkpoint barriers, during a so-called synchronous and then asynchronous checkpoint phases. Most of the data is persisted pre-emptively (i.e. after the previous checkpoint and before the current one), and that’s why this size is much lower when the Changelog is enabled.
 <br>
 * Full checkpoint size is the total size of all the files comprising the checkpoint, including any files reused from the previous checkpoints. Compared to a normal checkpoint, the one with a changelog is less compact, keeping all the historical values since the last materialization, and therefore consumes much more space</p>
-<h2 id="window-workload">Window workload<a class="anchor" href="#window-workload">#</a></h2>
+<h2 id="window-workload">
+  Window workload
+  <a class="anchor" href="#window-workload">#</a>
+</h2>
 <p>This workload used Processing Time Sliding Window. As can be seen below, checkpoints are still faster, resulting in 3 times shorter durations; but storage amplification is much higher in this case (45 times more space consumed):</p>
 <p>Checkpoint Statistics for Window Workload with Changelog Enabled / Changelog Disabled</p>
 <table border="1">
@@ -803,7 +836,10 @@ To address the high-tail-latency problem, write requests are retried when they f
 <li>As mentioned above, if the underlying state backend (i.e. RocksDB) is able to accumulate multiple state updates for the same key without flushing, the snapshot will be smaller in size than the changelog. In this particular case of sliding window, the updates to its contents are eventually followed by purging that window. If those updates and purge happen during the same checkpoint, then it&rsquo;s quite likely that the window is not included in the snapshot.
 This also implies that the faster the window is purged, the smaller the size of the snapshot is.</li>
 </ol>
-<h1 id="conclusion-and-future-work">Conclusion and future work<a class="anchor" href="#conclusion-and-future-work">#</a></h1>
+<h1 id="conclusion-and-future-work">
+  Conclusion and future work
+  <a class="anchor" href="#conclusion-and-future-work">#</a>
+</h1>
 <p>Generic log-based incremental checkpoints is released as MVP version in Flink 1.15. This version demonstrates that solutions based on modern DFS can provide good enough latency. Furthermore, checkpointing time and stability are improved significantly by using the Changelog. However, some trade-offs must be made before using it (in particular, space amplification).
 <br>
 In the next releases, we plan to enable more use cases for Changelog, e.g., by reducing recovery time via local recovery and improving compatibility.</p>
@@ -815,9 +851,15 @@ state.backend.changelog.storage: filesystem
 dstl.dfs.base-path: &lt;location similar to state.checkpoints.dir&gt;
 </code></pre>
 <p>Please see the full documentation <a href="https://nightlies.apache.org/flink/flink-docs-master/docs/ops/state/state_backends/#enabling-changelog">here</a>.</p>
-<h1 id="acknowledgments">Acknowledgments<a class="anchor" href="#acknowledgments">#</a></h1>
+<h1 id="acknowledgments">
+  Acknowledgments
+  <a class="anchor" href="#acknowledgments">#</a>
+</h1>
 <p>We thank Stephan Ewen for the initial idea of the project, and many other engineers including Piotr Nowojski, Yu Li and Yun Tang for design discussions and code reviews.</p>
-<h1 id="references">References<a class="anchor" href="#references">#</a></h1>
+<h1 id="references">
+  References
+  <a class="anchor" href="#references">#</a>
+</h1>
 <ul>
 <li>
 <p><a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-158%3A&#43;Generalized&#43;incremental&#43;checkpoints"> FLIP-158 </a></p>

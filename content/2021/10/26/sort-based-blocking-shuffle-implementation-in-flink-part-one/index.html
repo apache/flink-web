@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2021/10/26/sort-based-blocking-shuffle-implementation-in-flink-part-one/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
+How data gets passed around between operators # Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Sort-Based Blocking Shuffle Implementation in Flink - Part One" />
+<meta property="og:description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
+How data gets passed around between operators # Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2021/10/26/sort-based-blocking-shuffle-implementation-in-flink-part-one/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-10-26T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-10-26T00:00:00+00:00" />
+<title>Sort-Based Blocking Shuffle Implementation in Flink - Part One | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
-How data gets passed around between operators# Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it. Blocking shuffle means that intermediate results from operator A are not sent immediately to operator B until operator A has completely finished.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2021/10/26/sort-based-blocking-shuffle-implementation-in-flink-part-one/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Sort-Based Blocking Shuffle Implementation in Flink - Part One">
-  <meta property="og:description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
-How data gets passed around between operators# Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it. Blocking shuffle means that intermediate results from operator A are not sent immediately to operator B until operator A has completely finished.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2021-10-26T00:00:00+00:00">
-    <meta property="article:modified_time" content="2021-10-26T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Sort-Based Blocking Shuffle Implementation in Flink - Part One">
-  <meta itemprop="description" content="Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.
-How data gets passed around between operators# Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it. Blocking shuffle means that intermediate results from operator A are not sent immediately to operator B until operator A has completely finished.">
-  <meta itemprop="datePublished" content="2021-10-26T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2021-10-26T00:00:00+00:00">
-  <meta itemprop="wordCount" content="1260">
-
-<title>Sort-Based Blocking Shuffle Implementation in Flink - Part One | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2021/10/26/sort-based-blocking-shuffle-implementation-in-flink-part-one/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -544,7 +522,10 @@ How data gets passed around between operators# Data shuffling is an important st
 
 
     <p><p>Part one of this blog post will explain the motivation behind introducing sort-based blocking shuffle, present benchmark results, and provide guidelines on how to use this new feature.</p>
-<h1 id="how-data-gets-passed-around-between-operators">How data gets passed around between operators<a class="anchor" href="#how-data-gets-passed-around-between-operators">#</a></h1>
+<h1 id="how-data-gets-passed-around-between-operators">
+  How data gets passed around between operators
+  <a class="anchor" href="#how-data-gets-passed-around-between-operators">#</a>
+</h1>
 <p>Data shuffling is an important stage in batch processing applications and describes how data is sent from one operator to the next. In this phase, output data of the upstream operator will spill over to persistent storages like disk, then the downstream operator will read the corresponding data and process it. Blocking shuffle means that intermediate results from operator A are not sent immediately to operator B until operator A has completely finished.</p>
 <p>The hash-based and sort-based blocking shuffle are two main blocking shuffle implementations widely adopted by existing distributed data processing frameworks:</p>
 <ol>
@@ -552,7 +533,10 @@ How data gets passed around between operators# Data shuffling is an important st
 <li><strong>Sort-Based Approach:</strong> The core idea behind the sort-based approach is to write all the produced data together first and then leverage sorting to cluster data belonging to different data partitions or even keys.</li>
 </ol>
 <p>The sort-based blocking shuffle was introduced in Flink 1.12 and further optimized and made production-ready in 1.13 for both stability and performance. We hope you enjoy the improvements and any feedback is highly appreciated.</p>
-<h1 id="motivation-behind-the-sort-based-implementation">Motivation behind the sort-based implementation<a class="anchor" href="#motivation-behind-the-sort-based-implementation">#</a></h1>
+<h1 id="motivation-behind-the-sort-based-implementation">
+  Motivation behind the sort-based implementation
+  <a class="anchor" href="#motivation-behind-the-sort-based-implementation">#</a>
+</h1>
 <p>The hash-based blocking shuffle has been supported in Flink for a long time. However, compared to the sort-based approach, it can have several weaknesses:</p>
 <ol>
 <li><strong>Stability:</strong> For batch jobs with high parallelism (tens of thousands of subtasks), the hash-based approach opens many files concurrently while writing or reading data, which can give high pressure to the file system (i.e. maintenance of too many file metas, exhaustion of inodes or file descriptors). We have encountered many stability issues when running large-scale batch jobs via the hash-based blocking shuffle.</li>
@@ -560,7 +544,10 @@ How data gets passed around between operators# Data shuffling is an important st
 </ol>
 <p>By introducing the sort-based blocking shuffle implementation, fewer data files will be created and opened, and more sequential reads are done. As a result, better stability and performance can be achieved.</p>
 <p>Moreover, the sort-based implementation can save network buffers for large-scale batch jobs. For the hash-based implementation, the network buffers needed for each output result partition are proportional to the consumers’ parallelism. For the sort-based implementation, the network memory consumption can be decoupled from the parallelism, which means that a fixed size of network memory can satisfy requests for all result partitions, though more network memory may lead to better performance.</p>
-<h1 id="benchmark-results-on-stability-and-performance">Benchmark results on stability and performance<a class="anchor" href="#benchmark-results-on-stability-and-performance">#</a></h1>
+<h1 id="benchmark-results-on-stability-and-performance">
+  Benchmark results on stability and performance
+  <a class="anchor" href="#benchmark-results-on-stability-and-performance">#</a>
+</h1>
 <p>Aside from the problem of consuming too many file descriptors and inodes mentioned in the above section, the hash-based blocking shuffle also has a known issue of creating too many files which blocks the TaskExecutor’s main thread (<a href="https://issues.apache.org/jira/browse/FLINK-21201">FLINK-21201</a>). In addition, some large-scale jobs like q78 and q80 of the tpc-ds benchmark failed to run on the hash-based blocking shuffle in our tests because of the “connection reset by peer” exception which is similar to the issue reported in <a href="https://issues.apache.org/jira/browse/FLINK-19925">FLINK-19925</a> (reading shuffle data by Netty threads can influence network stability).</p>
 <p>We ran the tpc-ds test suit (10T scale with 1050 max parallelism) for both the hash-based and the sort-based blocking shuffle. The results show that the sort-based shuffle can achieve 2-6 times more performance gain compared to the hash-based one on spinning disks. If we exclude the computation time, up to 10 times performance gain can be achieved for some jobs. Here are some performance results of our tests:</p>
 <center>
@@ -711,7 +698,10 @@ The throughput per disk of the new sort-based implementation can reach up to 160
   </tbody>
 </table>
 </center>
-<h1 id="how-to-use-this-new-feature">How to use this new feature<a class="anchor" href="#how-to-use-this-new-feature">#</a></h1>
+<h1 id="how-to-use-this-new-feature">
+  How to use this new feature
+  <a class="anchor" href="#how-to-use-this-new-feature">#</a>
+</h1>
 <p>The sort-based blocking shuffle is introduced mainly for large-scale batch jobs but it also works well for batch jobs with low parallelism.</p>
 <p>The sort-based blocking shuffle is not enabled by default. You can enable it by setting the <a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/deployment/config/#taskmanager-network-sort-shuffle-min-parallelism">taskmanager.network.sort-shuffle.min-parallelism</a> config option to a smaller value. This means that for parallelism smaller than this threshold, the hash-based blocking shuffle will be used, otherwise, the sort-based blocking shuffle will be used (it has no influence on streaming applications). Setting this option to 1 will disable the hash-based blocking shuffle.</p>
 <p>For spinning disks and large-scale batch jobs, you should use the sort-based blocking shuffle. For low parallelism (several hundred processes or fewer) on solid state drives, both implementations should be fine.</p>
@@ -729,7 +719,10 @@ The throughput per disk of the new sort-based implementation can reach up to 160
 </ol>
 <p>For more information about blocking shuffle in Flink, please refer to the <a href="//nightlies.apache.org/flink/flink-docs-release-1.14/docs/ops/batch/blocking_shuffle/">official documentation</a>.</p>
 <p><strong>Note:</strong> From the optimization mechanism in <a href="/2021/10/26/sort-shuffle-part2">part two</a>, we can see that the IO scheduling relies on the concurrent data read requests of the downstream consumer tasks for more sequential reads. As a result, if the downstream consumer task is running one by one (for example, because of limited resources), the advantage brought by IO scheduling disappears, which can influence performance. We may further optimize this scenario in future versions.</p>
-<h1 id="whats-next">What&rsquo;s next?<a class="anchor" href="#whats-next">#</a></h1>
+<h1 id="whats-next">
+  What&rsquo;s next?
+  <a class="anchor" href="#whats-next">#</a>
+</h1>
 <p>For details on the design and implementation of this feature, please refer to the <a href="/2021/10/26/sort-shuffle-part2">second part</a> of this blog!</p>
 </p>
 </article>

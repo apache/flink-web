@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="A Rundown of Batch Execution Mode in the DataStream API" />
+<meta property="og:description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-03-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-03-11T00:00:00+00:00" />
+<title>A Rundown of Batch Execution Mode in the DataStream API | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="A Rundown of Batch Execution Mode in the DataStream API">
-  <meta property="og:description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2021-03-11T00:00:00+00:00">
-    <meta property="article:modified_time" content="2021-03-11T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="A Rundown of Batch Execution Mode in the DataStream API">
-  <meta itemprop="description" content="Flink has been following the mantra that Batch is a Special Case of Streaming since the very early days. As the project evolved to address specific uses cases, different core APIs ended up being implemented for batch (DataSet API) and streaming execution (DataStream API), but the higher-level Table API/SQL was subsequently designed following this mantra of unification. With Flink 1.12, the community worked on bringing a similarly unified behaviour to the DataStream API, and took the first steps towards enabling efficient batch execution in the DataStream API.">
-  <meta itemprop="datePublished" content="2021-03-11T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2021-03-11T00:00:00+00:00">
-  <meta itemprop="wordCount" content="2192">
-
-<title>A Rundown of Batch Execution Mode in the DataStream API | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2021/03/11/a-rundown-of-batch-execution-mode-in-the-datastream-api/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -559,7 +538,10 @@ https://github.com/alex-shpak/hugo-book
 <li>An <em>unbounded</em> Stream Processing Application that is executed in a <em>streaming</em> mode. This is the combination that has been the primary use case for the DataStream API in Flink.</li>
 </ol>
 <p>It&rsquo;s also possible to have a <em>bounded</em> Stream Processing Application that is executed in <em>streaming</em> mode, but this combination is less significant and likely to be used e.g. in a test environment or in other rare corner cases.</p>
-<h2 id="which-api-and-execution-mode-should-i-use">Which API and execution mode should I use?<a class="anchor" href="#which-api-and-execution-mode-should-i-use">#</a></h2>
+<h2 id="which-api-and-execution-mode-should-i-use">
+  Which API and execution mode should I use?
+  <a class="anchor" href="#which-api-and-execution-mode-should-i-use">#</a>
+</h2>
 <p>Before going into the choice of execution mode, try looking at your use case from a different angle: do you need to process structured data? Does your data have a schema of some sort? The Table API/SQL will most likely be the right choice. In fact, the majority of <em>batch</em> use cases should be expressed with the <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/table/">Table API/SQL</a>! Finite, bounded data can most often be organized, described with a schema and put into a catalog. This is where the SQL API shines, giving you a rich set of functions and operators out-of-the box with low-level optimizations and broad connector support, all supported by standard SQL. And it works for <em>streaming</em> use cases, as well!</p>
 <p>However, if you need explicit control over the execution graph, you want to manually control the state of your operations, or you need to be able to upgrade Flink (which applies to <em>unbounded</em> applications), the <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/datastream_api.html">DataStream API</a> is the right choice.
 If the DataStream API sounds like the best fit for your use cases, the next decision is what execution mode to run your program in.</p>
@@ -570,7 +552,10 @@ If the DataStream API sounds like the best fit for your use cases, the next deci
 <li>The way streaming applications are scheduled and react upon failure have significant performance implications that can be optimized when dealing with <em>bounded</em> data. We recommend reading through the blogposts on <a href="https://flink.apache.org/2020/12/15/pipelined-region-sheduling.html">pipelined region scheduling</a> and <a href="https://flink.apache.org/news/2021/01/11/batch-fine-grained-fault-tolerance.html">fine-grained fault tolerance</a> to better understand these performance implications.</li>
 <li>It can simplify the operational overhead of setting up and maintaining your pipelines. For example, there is no need to configure checkpointing, which otherwise requires things like choosing a state backend or setting up distributed storage for checkpoints.</li>
 </ol>
-<h2 id="how-to-use-the-batch-execution">How to use the <em>batch</em> execution<a class="anchor" href="#how-to-use-the-batch-execution">#</a></h2>
+<h2 id="how-to-use-the-_batch_-execution">
+  How to use the <em>batch</em> execution
+  <a class="anchor" href="#how-to-use-the-_batch_-execution">#</a>
+</h2>
 <p>Once you have a good understanding of which execution mode is better suited to your use case, you can configure it via the <code>execution.runtime-mode</code> setting. There are three possible values:</p>
 <ul>
 <li><code>STREAMING</code>: The classic DataStream execution mode (default)</li>
@@ -578,10 +563,15 @@ If the DataStream API sounds like the best fit for your use cases, the next deci
 <li><code>AUTOMATIC</code>: Let the system decide based on the boundedness of the sources</li>
 </ul>
 <p>This can be configured via command line parameters of <code>bin/flink run ...</code> when submitting a job:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar</span></span></code></pre></div><p>, or programmatically when creating/configuring the <code>StreamExecutionEnvironment</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</span></span></code></pre></div><p>, or programmatically when creating/configuring the <code>StreamExecutionEnvironment</code></p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">StreamExecutionEnvironment</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">StreamExecutionEnvironment</span><span class="p">.</span><span class="na">getExecutionEnvironment</span><span class="p">();</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">env</span><span class="p">.</span><span class="na">setRuntimeMode</span><span class="p">(</span><span class="n">RuntimeExecutionMode</span><span class="p">.</span><span class="na">BATCH</span><span class="p">);</span></span></span></code></pre></div><p>We recommend passing the execution mode when submitting the job, in order to keep your code configuration-free and potentially be able to execute the same application in different execution modes.</p>
-<h3 id="hello-batch-mode">Hello <em>batch</em> mode<a class="anchor" href="#hello-batch-mode">#</a></h3>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">env</span><span class="p">.</span><span class="na">setRuntimeMode</span><span class="p">(</span><span class="n">RuntimeExecutionMode</span><span class="p">.</span><span class="na">BATCH</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>We recommend passing the execution mode when submitting the job, in order to keep your code configuration-free and potentially be able to execute the same application in different execution modes.</p>
+<h3 id="hello-_batch_-mode">
+  Hello <em>batch</em> mode
+  <a class="anchor" href="#hello-_batch_-mode">#</a>
+</h3>
 <p>Now that you know how to set the execution mode, let&rsquo;s try to write a simple word count program and see how it behaves depending on the chosen mode. The program is a variation of a standard word count, where we count number of orders placed
 in a given currency. We derive the number in 1-day windows. We read the input data from a new <a href="//nightlies.apache.org/flink/flink-docs-release-1.12/api/java/org/apache/flink/connector/file/src/FileSource.html">unified file source</a> and then apply a <a href="//nightlies.apache.org/flink/flink-docs-release-1.12/dev/stream/operators/windows.html#windows">window aggregation</a>. Notice that we will be checking the side output for late arriving data, which can illustrate how watermarks behave differently in the two execution modes.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">WindowWordCount</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -629,8 +619,10 @@ in a given currency. We derive the number in 1-day windows. We read the input da
 </span></span></span><span class="line"><span class="cl"><span class="w">			</span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">		</span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p>If we simply execute the above program with:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run examples/streaming/WindowWordCount.jar</span></span></code></pre></div><p>it will be executed in a <em>streaming</em> mode by default. Because of that, it will use the given watermarking strategy and produce windows based on it. In real-time scenarios, it might happen that records do not adhere to watermarks and
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>If we simply execute the above program with:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run examples/streaming/WindowWordCount.jar
+</span></span></code></pre></div><p>it will be executed in a <em>streaming</em> mode by default. Because of that, it will use the given watermarking strategy and produce windows based on it. In real-time scenarios, it might happen that records do not adhere to watermarks and
 some records might actually be considered late, so you&rsquo;ll get results like:</p>
 <pre tabindex="0"><code>...
 [1431681, 130936, F, 135996.21, NOK, 2020-04-11 07:53:02.674, 2-HIGH, Clerk#000000922, 0, quests. slyly regular platelets cajole ironic deposits: blithely even depos]
@@ -650,8 +642,10 @@ Number of late records: 1514
 (CHF,371,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (NOK,370,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
-...</code></pre><p>However, if you execute the exact same code using the <em>batch</em> execution mode:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar</span></span></code></pre></div><p>you&rsquo;ll see that there won&rsquo;t be any late records.</p>
+...
+</code></pre><p>However, if you execute the exact same code using the <em>batch</em> execution mode:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ bin/flink run -Dexecution.runtime-mode<span class="o">=</span>BATCH examples/streaming/WordCount.jar
+</span></span></code></pre></div><p>you&rsquo;ll see that there won&rsquo;t be any late records.</p>
 <pre tabindex="0"><code>Number of late records: 0
 (GBP,374,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (HKD,401,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
@@ -660,11 +654,15 @@ Number of late records: 1514
 (JPY,411,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (CHF,371,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
 (NOK,370,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
-(RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)</code></pre><p>Also, if you compare the execution timelines of both runs, you&rsquo;ll see that the jobs were scheduled differently. In the case of <em>batch</em> execution, the two stages were executed one after the other:</p>
+(RUB,365,2020-03-31T00:00:00Z,2020-04-01T00:00:00Z)
+</code></pre><p>Also, if you compare the execution timelines of both runs, you&rsquo;ll see that the jobs were scheduled differently. In the case of <em>batch</em> execution, the two stages were executed one after the other:</p>
 <p><a href="/img/blog/2021-03-11-batch-execution-mode/batch-execution.png"><img src="/img/blog/2021-03-11-batch-execution-mode/batch-execution.png" alt="" /></a></p>
 <p>whereas for <em>streaming</em> both stages started at the same time.</p>
 <p><a href="/img/blog/2021-03-11-batch-execution-mode/stream-execution.png"><img src="/img/blog/2021-03-11-batch-execution-mode/stream-execution.png" alt="" /></a></p>
-<h3 id="example-two-input-operators">Example: Two input operators<a class="anchor" href="#example-two-input-operators">#</a></h3>
+<h3 id="example-two-input-operators">
+  Example: Two input operators
+  <a class="anchor" href="#example-two-input-operators">#</a>
+</h3>
 <p>Operators that process data from multiple inputs can be executed in both execution modes as well. Let&rsquo;s see how we may implement a join of two data sets on a common key. (Disclaimer: Make sure to think first if you <a href="#which-api-and-execution-mode-should-i-use">should use the Table API/SQL</a> for your join!). We will enrich a stream of orders with information about the customer and we will make it run either of the two modes.</p>
 <p>For this particular use case, the DataStream API provides a <code>DataStream#join</code> method that requires a window in which the join must happen; since we&rsquo;ll process the data in bulk, we can use a <code>GlobalWindow</code> (that would otherwise not be very useful on its own in an <em>unbounded</em> case due to state size concerns):</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="w">
@@ -675,8 +673,8 @@ Number of late records: 1514
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="s">&#34;Text file&#34;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">Path</span><span class="w"> </span><span class="n">customersPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&#34;customers&#34;</span><span class="p">));</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">Path</span><span class="w"> </span><span class="n">customersPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&#34;customers&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStreamSource</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">env</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">fromSource</span><span class="p">(</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">FileSource</span><span class="p">.</span><span class="na">forRecordStreamFormat</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">TsvFormat</span><span class="p">(),</span><span class="w"> </span><span class="n">customersPath</span><span class="p">).</span><span class="na">build</span><span class="p">(),</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">WatermarkStrategy</span><span class="p">.</span><span class="o">&lt;</span><span class="n">String</span><span class="o">[]&gt;</span><span class="n">noWatermarks</span><span class="p">()</span><span class="w">
@@ -684,12 +682,16 @@ Number of late records: 1514
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="s">&#34;Text file&#34;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">dataStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="na">join</span><span class="p">(</span><span class="n">customers</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataStream</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">dataStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="na">join</span><span class="p">(</span><span class="n">customers</span><span class="p">)</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">where</span><span class="p">(</span><span class="n">order</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">order</span><span class="o">[</span><span class="n">1</span><span class="o">]</span><span class="p">).</span><span class="na">equalTo</span><span class="p">(</span><span class="n">customer</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">customer</span><span class="o">[</span><span class="n">0</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="c1">// join on customer id</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">window</span><span class="p">(</span><span class="n">GlobalWindows</span><span class="p">.</span><span class="na">create</span><span class="p">())</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">trigger</span><span class="p">(</span><span class="n">ContinuousProcessingTimeTrigger</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="n">Time</span><span class="p">.</span><span class="na">seconds</span><span class="p">(</span><span class="n">5</span><span class="p">)))</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">apply</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">ProjectFunction</span><span class="p">());</span></span></span></code></pre></div><p>You might notice the <code>ContinuousProcessingTimeTrigger</code>. It is there for the application to produce results in a <em>streaming</em> mode. In a <em>streaming</em> application the <code>GlobalWindow</code> never finishes so we need to add a processing time trigger to emit results from time to time. We believe triggers are a way to control when to emit results, but are not part of the logic what to emit. Therefore we think it is safe to ignore those in case of <em>batch</em> mode and that&rsquo;s what we do. In <em>batch</em> mode you will just get one final result for the join.</p>
-<h2 id="looking-into-the-future">Looking into the future<a class="anchor" href="#looking-into-the-future">#</a></h2>
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">.</span><span class="na">apply</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">ProjectFunction</span><span class="p">());</span><span class="w">
+</span></span></span></code></pre></div><p>You might notice the <code>ContinuousProcessingTimeTrigger</code>. It is there for the application to produce results in a <em>streaming</em> mode. In a <em>streaming</em> application the <code>GlobalWindow</code> never finishes so we need to add a processing time trigger to emit results from time to time. We believe triggers are a way to control when to emit results, but are not part of the logic what to emit. Therefore we think it is safe to ignore those in case of <em>batch</em> mode and that&rsquo;s what we do. In <em>batch</em> mode you will just get one final result for the join.</p>
+<h2 id="looking-into-the-future">
+  Looking into the future
+  <a class="anchor" href="#looking-into-the-future">#</a>
+</h2>
 <p>Support for efficient <em>batch</em> execution in the DataStream API was introduced in Flink 1.12 as a first step towards achieving a truly unified runtime for both batch and stream processing. This is not the end of the story yet! The community is still working on some optimizations and exploring more use cases that can be enabled with this new mode.</p>
 <p>One of the first efforts we want to finalize is providing world-class support for transactional sinks in both execution modes, for <em>bounded</em> and <em>unbounded</em> streams. An experimental API for <a href="https://cwiki.apache.org/confluence/x/KEJ4CQ">transactional sinks</a> was already introduced in Flink 1.12, so we&rsquo;re working on stabilizing it and would be happy to hear feedback about its current state!</p>
 <p>We are also thinking how the two modes can be brought closer together and benefit from each other. A common pattern that we hear from users is bootstrapping state of a streaming job from a batch one. There are two somewhat different approaches we are considering here:</p>
@@ -734,9 +736,9 @@ Number of late records: 1514
     <li>
       <ul>
         <li><a href="#which-api-and-execution-mode-should-i-use">Which API and execution mode should I use?</a></li>
-        <li><a href="#how-to-use-the-batch-execution">How to use the <em>batch</em> execution</a>
+        <li><a href="#how-to-use-the-_batch_-execution">How to use the <em>batch</em> execution</a>
           <ul>
-            <li><a href="#hello-batch-mode">Hello <em>batch</em> mode</a></li>
+            <li><a href="#hello-_batch_-mode">Hello <em>batch</em> mode</a></li>
             <li><a href="#example-two-input-operators">Example: Two input operators</a></li>
           </ul>
         </li>

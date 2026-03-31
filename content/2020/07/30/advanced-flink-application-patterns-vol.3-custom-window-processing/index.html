@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Advanced Flink Application Patterns Vol.3: Custom Window Processing" />
+<meta property="og:description" content="Introduction # In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &quot;Swiss knife&quot; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-07-30T12:00:00+00:00" />
+<meta property="article:modified_time" content="2020-07-30T12:00:00+00:00" />
+<title>Advanced Flink Application Patterns Vol.3: Custom Window Processing | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Introduction# In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &#34;Swiss knife&#34; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements. Our discussion will continue in the context of the Fraud Detection engine. We will also demonstrate how you can implement your own custom replacement for time windows for cases where the out-of-the-box windowing available from the DataStream API does not satisfy your requirements. In particular, we will look at the trade-offs that you can make when designing a solution which requires low-latency reactions to individual events.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Advanced Flink Application Patterns Vol.3: Custom Window Processing">
-  <meta property="og:description" content="Introduction# In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &#34;Swiss knife&#34; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements. Our discussion will continue in the context of the Fraud Detection engine. We will also demonstrate how you can implement your own custom replacement for time windows for cases where the out-of-the-box windowing available from the DataStream API does not satisfy your requirements. In particular, we will look at the trade-offs that you can make when designing a solution which requires low-latency reactions to individual events.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2020-07-30T12:00:00+00:00">
-    <meta property="article:modified_time" content="2020-07-30T12:00:00+00:00">
-
-
-  <meta itemprop="name" content="Advanced Flink Application Patterns Vol.3: Custom Window Processing">
-  <meta itemprop="description" content="Introduction# In the previous articles of the series, we described how you can achieve flexible stream partitioning based on dynamically-updated configurations (a set of fraud-detection rules) and how you can utilize Flink&#39;s Broadcast mechanism to distribute processing configuration at runtime among the relevant operators. Following up directly where we left the discussion of the end-to-end solution last time, in this article we will describe how you can use the &#34;Swiss knife&#34; of Flink - the Process Function to create an implementation that is tailor-made to match your streaming business logic requirements. Our discussion will continue in the context of the Fraud Detection engine. We will also demonstrate how you can implement your own custom replacement for time windows for cases where the out-of-the-box windowing available from the DataStream API does not satisfy your requirements. In particular, we will look at the trade-offs that you can make when designing a solution which requires low-latency reactions to individual events.">
-  <meta itemprop="datePublished" content="2020-07-30T12:00:00+00:00">
-  <meta itemprop="dateModified" content="2020-07-30T12:00:00+00:00">
-  <meta itemprop="wordCount" content="3444">
-
-<title>Advanced Flink Application Patterns Vol.3: Custom Window Processing | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -548,7 +527,10 @@ https://github.com/alex-shpak/hugo-book
 .tg .tg-topcenter{text-align:center;vertical-align:top}
 .tg .tg-center{text-align:center;vertical-align:center}
 </style>
-<h2 id="introduction">Introduction<a class="anchor" href="#introduction">#</a></h2>
+<h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
 <p>In the previous articles of the series, we described how you can achieve
 flexible stream partitioning based on dynamically-updated configurations
 (a set of fraud-detection rules) and how you can utilize Flink's
@@ -571,8 +553,14 @@ independently, but it is recommended that you review the material in
 <a href="/news/2020/03/24/demo-fraud-detection-2.html">part two</a> of the series as well as checkout the <a href="https://github.com/afedulov/fraud-detection-demo">code
 base</a> in order to make
 it easier to follow along.</p>
-<h2 id="processfunction-as-a-window">ProcessFunction as a &ldquo;Window&rdquo;<a class="anchor" href="#processfunction-as-a-window">#</a></h2>
-<h3 id="low-latency">Low Latency<a class="anchor" href="#low-latency">#</a></h3>
+<h2 id="processfunction-as-a-window">
+  ProcessFunction as a &ldquo;Window&rdquo;
+  <a class="anchor" href="#processfunction-as-a-window">#</a>
+</h2>
+<h3 id="low-latency">
+  Low Latency
+  <a class="anchor" href="#low-latency">#</a>
+</h3>
 <p>Let&rsquo;s start with a reminder of the type of fraud detection rule that we
 would like to support:</p>
 <p><em>&ldquo;Whenever the <strong>sum</strong> of  <strong>payments</strong> from the same <strong>payer</strong> to the
@@ -646,7 +634,8 @@ building block in Flink's API. It has a simple contract:</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onTimer</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">timestamp</span><span class="p">,</span><span class="w"> </span><span class="n">OnTimerContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">OutputType</span><span class="o">&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="n">Configuration</span><span class="w"> </span><span class="n">parameters</span><span class="p">){}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><ul>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ul>
 <li>
 <p><code>processElement()</code> receives input events one by one. You can react to
 each input by producing one or more output events to the next
@@ -674,8 +663,14 @@ message processing and delivery guarantees, makes it possible to build
 resilient event-driven applications with almost arbitrarily
 sophisticated business logic. This includes creation and processing of
 custom windows with state.</p>
-<h3 id="implementation">Implementation<a class="anchor" href="#implementation">#</a></h3>
-<h4 id="state-and-clean-up">State and Clean-up<a class="anchor" href="#state-and-clean-up">#</a></h4>
+<h3 id="implementation">
+  Implementation
+  <a class="anchor" href="#implementation">#</a>
+</h3>
+<h4 id="state-and-clean-up">
+  State and Clean-up
+  <a class="anchor" href="#state-and-clean-up">#</a>
+</h4>
 <p>In order to be able to process time windows, we need to keep track of
 data belonging to the window inside of our program. To ensure that this
 data is fault-tolerant and can survive failures in a distributed system,
@@ -699,7 +694,8 @@ timestamps as the <code>MapState</code> keys.</p>
 <p>In a general case, we have to take into account the fact that there
 might be different events with exactly the same timestamp, therefore
 instead of individual Transaction per key(timestamp) we will store sets.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="p">,</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">windowState</span><span class="p">;</span></span></span></code></pre></div><div class="alert alert-info" markdown="1">
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">MapState</span><span class="o">&lt;</span><span class="n">Long</span><span class="p">,</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">windowState</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Side Note </span>
 when any Flink-managed state is used inside a
 `KeyedProcessFunction`, the data returned by the `state.value()` call is
@@ -736,12 +732,12 @@ the broadcast state under the special reserved <code>WIDEST_RULE_KEY</code>. Thi
 information will later be used during the state clean-up procedure, as
 described later in this section.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Override</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">processBroadcastElement</span><span class="p">(</span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="p">,</span><span class="w"> </span><span class="n">Context</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">processBroadcastElement</span><span class="p">(</span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="p">,</span><span class="w"> </span><span class="n">Context</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">){</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">...</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">updateWidestWindowRule</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span><span class="w"> </span><span class="n">broadcastState</span><span class="p">);</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">updateWidestWindowRule</span><span class="p">(</span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="p">,</span><span class="w"> </span><span class="n">BroadcastState</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span><span class="w"> </span><span class="n">Rule</span><span class="o">&gt;</span><span class="w"> </span><span class="n">broadcastState</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">updateWidestWindowRule</span><span class="p">(</span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="p">,</span><span class="w"> </span><span class="n">BroadcastState</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span><span class="w"> </span><span class="n">Rule</span><span class="o">&gt;</span><span class="w"> </span><span class="n">broadcastState</span><span class="p">){</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">Rule</span><span class="w"> </span><span class="n">widestWindowRule</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">broadcastState</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">WIDEST_RULE_KEY</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">widestWindowRule</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -752,7 +748,8 @@ described later in this section.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">widestWindowRule</span><span class="p">.</span><span class="na">getWindowMillis</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">rule</span><span class="p">.</span><span class="na">getWindowMillis</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">broadcastState</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">WIDEST_RULE_KEY</span><span class="p">,</span><span class="w"> </span><span class="n">rule</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><p>Let&rsquo;s now look at the implementation of the main method,
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Let&rsquo;s now look at the implementation of the main method,
 <code>processElement()</code>, in some detail.</p>
 <p>In the <a href="/news/2020/01/15/demo-fraud-detection.html#dynamic-data-partitioning">previous blog post</a>, we described how <code>DynamicKeyFunction</code> allowed
 us to perform dynamic data partitioning based on the <code>groupingKeyNames</code>
@@ -813,7 +810,8 @@ outline of the implementation:</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// Register timers to ensure state cleanup</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="n">cleanupTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">currentEventTime</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">1000</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">1000</span><span class="p">;</span><span class="w">                                  </span><span class="c1">// &lt;--- (6)</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">ctx</span><span class="p">.</span><span class="na">timerService</span><span class="p">().</span><span class="na">registerEventTimeTimer</span><span class="p">(</span><span class="n">cleanupTime</span><span class="p">);</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span></span></span></code></pre></div><br/>
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><br/>
 Here are the details of the steps:  
 1)  We first add each new event to our window state:
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">static</span><span class="w"> </span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">addToStateValuesSet</span><span class="p">(</span><span class="n">MapState</span><span class="o">&lt;</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">V</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">mapState</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w">
@@ -827,7 +825,8 @@ Here are the details of the steps:
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">mapState</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">valuesSet</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">valuesSet</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><ol start="2">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ol start="2">
 <li>
 <p>Next, we retrieve the previously-broadcasted rule, according to
 which the incoming transaction needs to be evaluated.</p>
@@ -847,9 +846,9 @@ section, a <em>sum</em>.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">private</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">isStateValueInWindow</span><span class="p">(</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Long</span><span class="w"> </span><span class="n">stateEventTime</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">windowStartForEvent</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">currentEventTime</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">stateEventTime</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">windowStartForEvent</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">stateEventTime</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">currentEventTime</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">aggregateValuesInState</span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">aggregateValuesInState</span><span class="p">(</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Long</span><span class="w"> </span><span class="n">stateEventTime</span><span class="p">,</span><span class="w"> </span><span class="n">SimpleAccumulator</span><span class="o">&lt;</span><span class="n">BigDecimal</span><span class="o">&gt;</span><span class="w"> </span><span class="n">aggregator</span><span class="p">,</span><span class="w"> </span><span class="n">Rule</span><span class="w"> </span><span class="n">rule</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">Set</span><span class="o">&lt;</span><span class="n">Transaction</span><span class="o">&gt;</span><span class="w"> </span><span class="n">inWindow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">windowState</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">stateEventTime</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">Transaction</span><span class="w"> </span><span class="n">event</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">inWindow</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -857,7 +856,8 @@ section, a <em>sum</em>.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">FieldsExtractor</span><span class="p">.</span><span class="na">getBigDecimalByName</span><span class="p">(</span><span class="n">rule</span><span class="p">.</span><span class="na">getAggregateFieldName</span><span class="p">(),</span><span class="w"> </span><span class="n">event</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">aggregator</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">aggregatedValue</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><ol start="5">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ol start="5">
 <li>
 <p>Having an aggregate value, we can compare it to the threshold value
 that is specified in the rule definition and fire an alert, if
@@ -894,7 +894,7 @@ the state which is out of scope of this widest window.</p>
 <br/>
 <p>This is how the clean-up procedure can be implemented:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Override</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onTimer</span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timestamp</span><span class="p">,</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">OnTimerContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onTimer</span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timestamp</span><span class="p">,</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">OnTimerContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Collector</span><span class="o">&lt;</span><span class="n">Alert</span><span class="o">&gt;</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">Rule</span><span class="w"> </span><span class="n">widestWindowRule</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="na">getBroadcastState</span><span class="p">(</span><span class="n">Descriptors</span><span class="p">.</span><span class="na">rulesDescriptor</span><span class="p">).</span><span class="na">get</span><span class="p">(</span><span class="n">WIDEST_RULE_KEY</span><span class="p">);</span><span class="w">
@@ -905,9 +905,9 @@ the state which is out of scope of this widest window.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">cleanupEventTimeWindow</span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">window</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">timestamp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">window</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="c1">// Remove events that are older than (timestamp - widestWindowSpan)ms</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">cleanupEventTimeThreshold</span><span class="p">.</span><span class="na">ifPresent</span><span class="p">(</span><span class="k">this</span><span class="p">::</span><span class="n">evictOutOfScopeElementsFromWindow</span><span class="p">);</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">evictOutOfScopeElementsFromWindow</span><span class="p">(</span><span class="n">Long</span><span class="w"> </span><span class="n">threshold</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">evictOutOfScopeElementsFromWindow</span><span class="p">(</span><span class="n">Long</span><span class="w"> </span><span class="n">threshold</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Iterator</span><span class="o">&lt;</span><span class="n">Long</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">windowState</span><span class="p">.</span><span class="na">keys</span><span class="p">().</span><span class="na">iterator</span><span class="p">();</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">keys</span><span class="p">.</span><span class="na">hasNext</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -919,7 +919,8 @@ the state which is out of scope of this widest window.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RuntimeException</span><span class="p">(</span><span class="n">ex</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><div class="alert alert-info" markdown="1">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><div class="alert alert-info" markdown="1">
 <span class="label label-info" style="display: inline-block"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>  Note</span>
 You might be wondering why we did not use `ListState` , as we are always
 iterating over all of the values of the window state? This is actually
@@ -935,7 +936,10 @@ transaction arrives. It therefore fulfills the main requirement that we
 have targeted - low delay for potentially issuing an alert. For the
 complete implementation, please have a look at
 <a href="https://github.com/afedulov/fraud-detection-demo">the project on github</a>.</p>
-<h2 id="improvements-and-optimizations">Improvements and Optimizations<a class="anchor" href="#improvements-and-optimizations">#</a></h2>
+<h2 id="improvements-and-optimizations">
+  Improvements and Optimizations
+  <a class="anchor" href="#improvements-and-optimizations">#</a>
+</h2>
 <p>What are the pros and cons of the described approach?</p>
 <p><strong>Pros:</strong></p>
 <ul>
@@ -965,7 +969,10 @@ Window API</p>
 </ul>
 <p>Let&rsquo;s now look at the latter two drawbacks and see if we can address
 them.</p>
-<h4 id="late-events">Late events:<a class="anchor" href="#late-events">#</a></h4>
+<h4 id="late-events">
+  Late events:
+  <a class="anchor" href="#late-events">#</a>
+</h4>
 <p>Processing late events poses a certain question - is it still meaningful
 to re-evaluate the window in case of a late event arrival? In case this
 is required, you would need to extend the widest window used for the
@@ -984,7 +991,10 @@ case, we could keep track of the most recent timestamp that we have
 observed so far, and for events that do not monotonically increase this
 value, only add them to the state and skip the aggregate calculation and
 the alert triggering logic.</p>
-<h4 id="redundant-re-computations-and-state-size">Redundant Re-computations and State Size:<a class="anchor" href="#redundant-re-computations-and-state-size">#</a></h4>
+<h4 id="redundant-re-computations-and-state-size">
+  Redundant Re-computations and State Size:
+  <a class="anchor" href="#redundant-re-computations-and-state-size">#</a>
+</h4>
 <p>In our described implementation we keep individual transactions in state
 and go over them to calculate the aggregate again and again on every new
 event. This is obviously not optimal in terms of wasting computational
@@ -1026,7 +1036,10 @@ transaction.</p>
 <i><small>Figure 8: Pre-aggregation</small></i>
 </center>
 <br/>
-<h4 id="state-data-and-serializers">State Data and Serializers<a class="anchor" href="#state-data-and-serializers">#</a></h4>
+<h4 id="state-data-and-serializers">
+  State Data and Serializers
+  <a class="anchor" href="#state-data-and-serializers">#</a>
+</h4>
 <p>Another question that we can ask ourselves in order to further optimize
 the implementation is how probable is it to get different events with
 exactly the same timestamp. In the described implementation, we
@@ -1083,7 +1096,10 @@ configurations of active rules.</p>
 <p>While this adjustment could potentially produce significant improvements
 for objects of large size, it should not be your first pick as it can
 easily turn into a premature optimization.</p>
-<h2 id="summary">Summary:<a class="anchor" href="#summary">#</a></h2>
+<h2 id="summary">
+  Summary:
+  <a class="anchor" href="#summary">#</a>
+</h2>
 <p>This article concludes the description of the implementation of the
 fraud detection engine that we started in <a href="/news/2020/01/15/demo-fraud-detection.html">part one</a>. In this blog
 post we demonstrated how <code>ProcessFunction</code> can be utilized to

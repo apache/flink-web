@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2021/01/11/exploring-fine-grained-recovery-of-bounded-data-sets-on-flink/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
+Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Exploring fine-grained recovery of bounded data sets on Flink" />
+<meta property="og:description" content="Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
+Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2021/01/11/exploring-fine-grained-recovery-of-bounded-data-sets-on-flink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-01-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-01-11T00:00:00+00:00" />
+<title>Exploring fine-grained recovery of bounded data sets on Flink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
-Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2021/01/11/exploring-fine-grained-recovery-of-bounded-data-sets-on-flink/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Exploring fine-grained recovery of bounded data sets on Flink">
-  <meta property="og:description" content="Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
-Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2021-01-11T00:00:00+00:00">
-    <meta property="article:modified_time" content="2021-01-11T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Exploring fine-grained recovery of bounded data sets on Flink">
-  <meta itemprop="description" content="Apache Flink is a very versatile tool for all kinds of data processing workloads. It can process incoming data within a few milliseconds or crunch through petabytes of bounded datasets (also known as batch processing).
-Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.">
-  <meta itemprop="datePublished" content="2021-01-11T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2021-01-11T00:00:00+00:00">
-  <meta itemprop="wordCount" content="1504">
-
-<title>Exploring fine-grained recovery of bounded data sets on Flink | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2021/01/11/exploring-fine-grained-recovery-of-bounded-data-sets-on-flink/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -546,7 +524,10 @@ Processing efficiency is not the only parameter users of data processing systems
 <p>Processing efficiency is not the only parameter users of data processing systems care about. In the real world, system outages due to hardware or software failure are expected to happen all the time. For unbounded (or streaming) workloads, Flink is using periodic checkpoints to allow for reliable and correct recovery. In case of bounded data sets, having a reliable recovery mechanism is mission critical — as users do not want to potentially lose many hours of intermediate processing results.</p>
 <p>Apache Flink 1.9 introduced <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-1&#43;%3A&#43;Fine&#43;Grained&#43;Recovery&#43;from&#43;Task&#43;Failures">fine-grained recovery</a> into its internal workload scheduler. The Flink APIs that are made for bounded workloads benefit from this change by individually recovering failed operators, re-using results from the previous processing step.</p>
 <p>In this blog post, we are going to give an overview over these changes, and we will experimentally validate their effectiveness.</p>
-<h2 id="how-does-fine-grained-recovery-work"><strong>How does fine-grained recovery work?</strong><a class="anchor" href="#how-does-fine-grained-recovery-work">#</a></h2>
+<h2 id="how-does-fine-grained-recovery-work">
+  <strong>How does fine-grained recovery work?</strong>
+  <a class="anchor" href="#how-does-fine-grained-recovery-work">#</a>
+</h2>
 <p>For streaming jobs (and in <a href="//nightlies.apache.org/flink/flink-docs-master/api/java/org/apache/flink/api/common/ExecutionMode.html">pipelined mode</a> for batch jobs), Flink is using a coarse-grained restart-strategy: upon failure, the entire job is restarted (but streaming jobs have an entirely different fault-tolerance model, using <a href="//nightlies.apache.org/flink/flink-docs-release-1.12/concepts/stateful-stream-processing.html#checkpointing">checkpointing</a>)</p>
 <p>For batch jobs, we can use a more sophisticated recovery strategy, by using cached intermediate results, thus only restarting parts of the pipeline.</p>
 <p>Let’s look at the topology below: Some connections are pipelined (between A1 and B1, as well as A2 and B2) &ndash; data is immediately streamed from operator A1 to B1.</p>
@@ -558,9 +539,15 @@ Processing efficiency is not the only parameter users of data processing systems
 <div>
   <img src="/img/blog/batch-fine-grained-fault-tolerance/recov.png" width="640px"/>
 </div>
-<h2 id="experimenting-with-fine-grained-recovery"><strong>Experimenting with fine-grained recovery</strong><a class="anchor" href="#experimenting-with-fine-grained-recovery">#</a></h2>
+<h2 id="experimenting-with-fine-grained-recovery">
+  <strong>Experimenting with fine-grained recovery</strong>
+  <a class="anchor" href="#experimenting-with-fine-grained-recovery">#</a>
+</h2>
 <p>To validate the implementation, we’ve conducted a small experiment. The following sections will describe the setup, the experiment and the results.</p>
-<h3 id="setup"><strong>Setup</strong><a class="anchor" href="#setup">#</a></h3>
+<h3 id="setup">
+  <strong>Setup</strong>
+  <a class="anchor" href="#setup">#</a>
+</h3>
 <p><strong>Hardware</strong>: The experiment was performed on an idle MacBook Pro 2016 (16 GB of memory, SSD storage).</p>
 <p><strong>Test Job</strong>: We used a <a href="https://github.com/rmetzger/flip1-bench/blob/master/flip1-bench-jobs/src/main/java/com/ververica/TPCHQuery3.java">modified version</a> (for instrumentation only) of the <a href="https://github.com/apache/flink/blob/master/flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/relational/TPCHQuery3.java">TPC-H Query 3</a> example that is part of the Flink batch (DataSet API) examples, running on Flink 1.12</p>
 <p>This is the topology of the query:</p>
@@ -579,7 +566,10 @@ Processing efficiency is not the only parameter users of data processing systems
 </ul>
 <p>The failures are controlled by a central &ldquo;<a href="https://github.com/rmetzger/flip1-bench/blob/master/flip1-bench-jobs/src/main/java/com/ververica/utilz/KillerServer.java">failure coordinator</a>&rdquo; which decides when to kill which operator.</p>
 <p>Failures are artificially triggered based on a configured mean failure frequency. The failures follow an <a href="https://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>, which is suitable for simulating continuous and independent failures at a configured average rate.</p>
-<h3 id="the-experiment"><strong>The Experiment</strong><a class="anchor" href="#the-experiment">#</a></h3>
+<h3 id="the-experiment">
+  <strong>The Experiment</strong>
+  <a class="anchor" href="#the-experiment">#</a>
+</h3>
 <p>We were running the job with two parameters which we varied in the benchmark:</p>
 <ul>
 <li>
@@ -592,7 +582,10 @@ Processing efficiency is not the only parameter users of data processing systems
 </li>
 </ul>
 <p>Each configuration combination was executed at least 3 times. We report the average execution time. This is necessary due to the probabilistic behavior of the induced failures.</p>
-<h3 id="the-results"><strong>The Results</strong><a class="anchor" href="#the-results">#</a></h3>
+<h3 id="the-results">
+  <strong>The Results</strong>
+  <a class="anchor" href="#the-results">#</a>
+</h3>
 <p>The chart below shows the execution time in seconds for each batch and pipelined execution with different failure frequencies.</p>
 <div>
   <img src="/img/blog/batch-fine-grained-fault-tolerance/result.png" width="640px"/>
@@ -603,7 +596,10 @@ Processing efficiency is not the only parameter users of data processing systems
 <li><strong>Execution time with frequent failures</strong>: The results “in the middle”, with failure frequencies of 6, 5, 4, 3 and 2 minutes show that the pipelined mode execution gets unfeasible at some point: If failures happen on average every 3 minutes, the average execution time reaches more than 60 minutes, for failures every 2 minutes the time spikes to more than 120 minutes. The pipelined job is unable to finish the execution, only if we happen to find a window where no failure is induced for 15 minutes, the pipelined job manages to produce the final result. For more frequent failures, the pipelined mode did not manage to finish at all.</li>
 <li><strong>How many failures can the batch mode sustain?</strong> The last numbers, with failure frequencies between 60 and 20 seconds are probably a bit unrealistic for real world scenarios. But we wanted to investigate how frequent failures can become for the batch mode to become unfeasible. With failures induced every 30 seconds, the average execution time is 30 minutes. In other words, even if you have two failures per minute, your execution time only doubles in this case. The batch mode is much more predictable and well behaved when it comes to execution times.</li>
 </ol>
-<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h2>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
 <p>Based on these results, it makes a lot of sense to use the batch execution mode for batch workloads, as the resource consumption and overall execution times are substantially lower compared to the pipelined execution mode.</p>
 <p>In general, we recommend conducting your own performance experiments on your own hardware and with your own workloads, as results might vary from what we’ve presented here. Despite the findings here, the pipelined mode probably has some performance advantages in environments with rare failures and slower I/O (for example when using spinning disks, or network attached disks). On the other hand, CPU intensive workloads might benefit from the batch mode even in slow I/O environments.</p>
 <p>We should also note that the caching (and subsequent reprocessing on failure) only works if the cached results are still present &ndash; this is currently only the case, if the TaskManager survives a failure. However, this is an unrealistic assumption as many failures would cause the TaskManager process to die. To mitigate this limitation, data processing frameworks employ external shuffle services that persist the cached results independent of the data processing framework. Since Flink 1.9, there is support for a <a href="https://cwiki.apache.org/confluence/display/FLINK/FLIP-31%3A&#43;Pluggable&#43;Shuffle&#43;Service">pluggable shuffle service</a>, and there are tickets for adding implementations for YARN (<a href="https://issues.apache.org/jira/browse/FLINK-13247">FLINK-13247</a>) and Kubernetes (<a href="https://issues.apache.org/jira/browse/FLINK-13246">FLINK-13246</a>). Once these implementations are added, TaskManagers can recover cached results even if the process or machine got killed.</p>

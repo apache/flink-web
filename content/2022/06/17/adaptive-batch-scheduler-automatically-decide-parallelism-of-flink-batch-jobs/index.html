@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
+To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs" />
+<meta property="og:description" content="Introduction # Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
+To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-06-17T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-06-17T00:00:00+00:00" />
+<title>Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Introduction# Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
-To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs">
-  <meta property="og:description" content="Introduction# Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
-To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2022-06-17T00:00:00+00:00">
-    <meta property="article:modified_time" content="2022-06-17T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs">
-  <meta itemprop="description" content="Introduction# Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.
-To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.">
-  <meta itemprop="datePublished" content="2022-06-17T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2022-06-17T00:00:00+00:00">
-  <meta itemprop="wordCount" content="2117">
-
-<title>Adaptive Batch Scheduler: Automatically Decide Parallelism of Flink Batch Jobs | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2022/06/17/adaptive-batch-scheduler-automatically-decide-parallelism-of-flink-batch-jobs/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -543,7 +521,10 @@ To decide a proper parallelism, one needs to know how much data each operator ne
 
 
 
-    <p><h1 id="introduction">Introduction<a class="anchor" href="#introduction">#</a></h1>
+    <p><h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
 <p>Deciding proper parallelisms of operators is not an easy work for many users. For batch jobs, a small parallelism may result in long execution time and big failover regression. While an unnecessary large parallelism may result in resource waste and more overhead cost in task deployment and network shuffling.</p>
 <p>To decide a proper parallelism, one needs to know how much data each operator needs to process. However, It can be hard to predict data volume to be processed by a job because it can be different everyday. And it can be harder or even impossible (due to complex operators or UDFs) to predict data volume to be processed by each operator.</p>
 <p>To solve this problem, we introduced the adaptive batch scheduler in Flink 1.15. The adaptive batch scheduler can automatically decide parallelism of an operator according to the size of its consumed datasets. Here are the benefits the adaptive batch scheduler can bring:</p>
@@ -552,20 +533,29 @@ To decide a proper parallelism, one needs to know how much data each operator ne
 <li>Parallelism tuning is fine grained considering different operators. This is particularly beneficial for SQL jobs which can only be set with a global parallelism previously.</li>
 <li>Parallelism tuning can better fit consumed datasets which have a varying volume size every day.</li>
 </ol>
-<h1 id="get-started">Get Started<a class="anchor" href="#get-started">#</a></h1>
+<h1 id="get-started">
+  Get Started
+  <a class="anchor" href="#get-started">#</a>
+</h1>
 <p>To automatically decide parallelism of operators, you need to:</p>
 <ol>
 <li>Configure to use adaptive batch scheduler.</li>
 <li>Set the parallelism of operators to -1.</li>
 </ol>
-<h2 id="configure-to-use-adaptive-batch-scheduler">Configure to use adaptive batch scheduler<a class="anchor" href="#configure-to-use-adaptive-batch-scheduler">#</a></h2>
+<h2 id="configure-to-use-adaptive-batch-scheduler">
+  Configure to use adaptive batch scheduler
+  <a class="anchor" href="#configure-to-use-adaptive-batch-scheduler">#</a>
+</h2>
 <p>To use adaptive batch scheduler, you need to set configurations as below:</p>
 <ul>
 <li>Set <code>jobmanager.scheduler: AdaptiveBatch</code>.</li>
 <li>Leave the <a href="//nightlies.apache.org/flink/flink-docs-release-1.15/docs/deployment/config/#execution-batch-shuffle-mode">execution.batch-shuffle-mode</a> unset or explicitly set it to <code>ALL-EXCHANGES-BLOCKING</code> (default value). Currently, the adaptive batch scheduler only supports batch jobs whose shuffle mode is <code>ALL-EXCHANGES-BLOCKING</code>.</li>
 </ul>
 <p>In addition, there are several related configuration options to control the upper bounds and lower bounds of tuned parallelisms, to specify expected data volume to process by each operator, and to specify the default parallelism of sources. More details can be found in the <a href="//nightlies.apache.org/flink/flink-docs-release-1.15/docs/deployment/elastic_scaling/#configure-to-use-adaptive-batch-scheduler">feature documentation page</a>.</p>
-<h2 id="set-the-parallelism-of-operators-to--1">Set the parallelism of operators to -1<a class="anchor" href="#set-the-parallelism-of-operators-to--1">#</a></h2>
+<h2 id="set-the-parallelism-of-operators-to--1">
+  Set the parallelism of operators to -1
+  <a class="anchor" href="#set-the-parallelism-of-operators-to--1">#</a>
+</h2>
 <p>The adaptive batch scheduler only automatically decides parallelism of operators whose parallelism is not set (which means the parallelism is -1). To leave parallelism unset, you should configure as follows:</p>
 <ul>
 <li>Set <code>parallelism.default: -1</code> for all jobs.</li>
@@ -573,7 +563,10 @@ To decide a proper parallelism, one needs to know how much data each operator ne
 <li>Don&rsquo;t call <code>setParallelism()</code> for operators in DataStream/DataSet jobs.</li>
 <li>Don&rsquo;t call <code>setParallelism()</code> on <code>StreamExecutionEnvironment/ExecutionEnvironment</code> in DataStream/DataSet jobs.</li>
 </ul>
-<h1 id="implementation-details">Implementation Details<a class="anchor" href="#implementation-details">#</a></h1>
+<h1 id="implementation-details">
+  Implementation Details
+  <a class="anchor" href="#implementation-details">#</a>
+</h1>
 <p>In this section, we will elaborate the details of the implementation. Before that, we need to briefly introduce some concepts involved:</p>
 <ul>
 <li><a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobVertex.java">JobVertex</a> and <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java">JobGraph</a>: A job vertex is an operator chain formed by chaining several operators together for better performance. The job graph is a data flow consisting of job vertices.</li>
@@ -594,9 +587,15 @@ To decide a proper parallelism, one needs to know how much data each operator ne
 Fig. 1 - The overall structure of automatically deciding parallelism
 </center>
 <br/>
-<h2 id="collect-sizes-of-consumed-datasets">Collect sizes of consumed datasets<a class="anchor" href="#collect-sizes-of-consumed-datasets">#</a></h2>
+<h2 id="collect-sizes-of-consumed-datasets">
+  Collect sizes of consumed datasets
+  <a class="anchor" href="#collect-sizes-of-consumed-datasets">#</a>
+</h2>
 <p>The adaptive batch scheduler decides the parallelism of vertices by the size of input results, so the scheduler needs to know the sizes of result partitions produced by tasks. We introduced a numBytesProduced counter to record the size of each produced result partition, the accumulated result of the counter will be sent to the scheduler when tasks finish.</p>
-<h2 id="decide-proper-parallelisms-of-job-vertices">Decide proper parallelisms of job vertices<a class="anchor" href="#decide-proper-parallelisms-of-job-vertices">#</a></h2>
+<h2 id="decide-proper-parallelisms-of-job-vertices">
+  Decide proper parallelisms of job vertices
+  <a class="anchor" href="#decide-proper-parallelisms-of-job-vertices">#</a>
+</h2>
 <p>We introduced a new component <a href="https://github.com/apache/flink/blob/release-1.15/flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/VertexParallelismDecider.java">VertexParallelismDecider</a> to compute proper parallelisms of job vertices according to the sizes of their consumed results. The computation algorithm is as follows:</p>
 <p>Suppose</p>
 <ul>
@@ -616,17 +615,29 @@ Fig. 1 - The overall structure of automatically deciding parallelism
 <li><a href="#normalize-the-parallelism-to-the-closest-power-of-2">Normalize the parallelism to the closest power of 2</a></li>
 </ul>
 <p>However, the above formula cannot be used to decide the parallelism of the source vertices, because the source vertices have no input. To solve it, we introduced the configuration option <code>jobmanager.adaptive-batch-scheduler.default-source-parallelism</code> to allow users to manually configure the parallelism of source vertices. Note that not all data sources need this option, because some data sources can automatically infer parallelism (For example, HiveTableSource, see <a href="https://github.com/apache/flink/blob/release-1.15/flink-connectors/flink-connector-hive/src/main/java/org/apache/flink/connectors/hive/HiveParallelismInference.java">HiveParallelismInference</a> for more detail). For these sources, it is recommended to decide parallelism by themselves.</p>
-<h3 id="limit-the-maximum-ratio-of-broadcast-bytes">Limit the maximum ratio of broadcast bytes<a class="anchor" href="#limit-the-maximum-ratio-of-broadcast-bytes">#</a></h3>
+<h3 id="limit-the-maximum-ratio-of-broadcast-bytes">
+  Limit the maximum ratio of broadcast bytes
+  <a class="anchor" href="#limit-the-maximum-ratio-of-broadcast-bytes">#</a>
+</h3>
 <p>As you can see, we limit the maximum ratio of broadcast bytes that affects the parallelism calculation to <em><strong>maxBroadcastRatio</strong></em>. That is, the non-broadcast bytes processed by each task is at least <em><strong>(1-maxBroadcastRatio) * V</strong></em>. If not so，when the total broadcast bytes is close to <em><strong>V</strong></em>, even if the total non-broadcast bytes is very small, it may cause a large parallelism, which is unnecessary and may lead to resource waste and large task deployment overhead.</p>
 <p>Generally, the broadcast dataset is usually relatively small against the other co-processed datasets, so we set the maximum ratio to 0.5 by default. The value is hard coded in the first version, and we may make it configurable later.</p>
-<h3 id="normalize-the-parallelism-to-the-closest-power-of-2">Normalize the parallelism to the closest power of 2<a class="anchor" href="#normalize-the-parallelism-to-the-closest-power-of-2">#</a></h3>
+<h3 id="normalize-the-parallelism-to-the-closest-power-of-2">
+  Normalize the parallelism to the closest power of 2
+  <a class="anchor" href="#normalize-the-parallelism-to-the-closest-power-of-2">#</a>
+</h3>
 <p>The normalize is to avoid introducing data skew. To better understand this section, we suggest you read the <a href="#flexible-subpartition-mapping">Flexible subpartition mapping</a> section first.</p>
 <p>Taking Fig. 4 (b) as example, A1/A2 produces 4 subpartitions, and the decided parallelism of B is 3. In this case, B1 will consume 1 subpartition, B2 will consume 1 subpartition, and B3 will consume 2 subpartitions. We assume that subpartitions have the same amount of data, which means B3 will consume twice the data of other tasks, data skew is introduced due to the subpartition mapping.</p>
 <p>To solve this problem, we need to make the subpartitions evenly consumed by downstream tasks, which means the number of subpartitions should be a multiple of the number of downstream tasks. For simplicity, we require the user-specified max parallelism to be 2<sup>N</sup>, and then adjust the calculated parallelism to a closest 2<sup>M</sup> (M &lt;= N), so that we can guarantee that subpartitions will be evenly consumed by downstream tasks.</p>
 <p>Note that this is a temporary solution, the ultimate solution would be the <a href="#auto-rebalancing-of-workloads">Auto-rebalancing of workloads</a>, which may come soon.</p>
-<h2 id="build-up-execution-graph-dynamically">Build up execution graph dynamically<a class="anchor" href="#build-up-execution-graph-dynamically">#</a></h2>
+<h2 id="build-up-execution-graph-dynamically">
+  Build up execution graph dynamically
+  <a class="anchor" href="#build-up-execution-graph-dynamically">#</a>
+</h2>
 <p>Before the adaptive batch scheduler was introduced to Flink, the execution graph was fully built in a static way before starting scheduling. To allow parallelisms of job vertices to be decided lazily, the execution graph must be able to be built up dynamically.</p>
-<h3 id="create-execution-vertices-and-execution-edges-lazily">Create execution vertices and execution edges lazily<a class="anchor" href="#create-execution-vertices-and-execution-edges-lazily">#</a></h3>
+<h3 id="create-execution-vertices-and-execution-edges-lazily">
+  Create execution vertices and execution edges lazily
+  <a class="anchor" href="#create-execution-vertices-and-execution-edges-lazily">#</a>
+</h3>
 <p>A dynamic execution graph means that a Flink job starts with an empty execution topology, and then gradually attaches vertices during job execution, as shown in Fig. 2.</p>
 <p>The execution topology consists of execution vertices and execution edges. The execution vertices will be created and attached to the execution topology only when:</p>
 <ul>
@@ -641,7 +652,10 @@ Fig. 1 - The overall structure of automatically deciding parallelism
 Fig. 2 - Build up execution graph dynamically
 </center>
 <br/>
-<h3 id="flexible-subpartition-mapping">Flexible subpartition mapping<a class="anchor" href="#flexible-subpartition-mapping">#</a></h3>
+<h3 id="flexible-subpartition-mapping">
+  Flexible subpartition mapping
+  <a class="anchor" href="#flexible-subpartition-mapping">#</a>
+</h3>
 <p>Before the adaptive batch scheduler was introduced to Flink, when deploying a task, Flink needed to know the parallelism of its consumer job vertex. This is because consumer vertex parallelism is used to decide the number of subpartitions produced by each upstream task. The reason behind that is, for one result partition, different subpartitions serve different consumer execution vertices. More specifically, one consumer execution vertex only consumes data from subpartition with the same index.</p>
 <p>Taking Fig. 3 as example, parallelism of the consumer B is 2, so the result partition produced by A1/A2 should contain 2 subpartitions, the subpartition with index 0 serves B1, and the subpartition with index 1 serves B2.</p>
 <center>
@@ -664,7 +678,10 @@ Fig. 3 - How subpartitions serve consumer execution vertices with static executi
 Fig. 4 - How subpartitions serve consumer execution vertices with dynamic graph
 </center>
 <br/>
-<h2 id="update-and-schedule-the-dynamic-execution-graph">Update and schedule the dynamic execution graph<a class="anchor" href="#update-and-schedule-the-dynamic-execution-graph">#</a></h2>
+<h2 id="update-and-schedule-the-dynamic-execution-graph">
+  Update and schedule the dynamic execution graph
+  <a class="anchor" href="#update-and-schedule-the-dynamic-execution-graph">#</a>
+</h2>
 <p>The adaptive batch scheduler scheduling is similar to the default scheduler, the only difference is that an empty dynamic execution graph will be generated initially and vertices will be attached later. Before handling any scheduling event, the scheduler will try deciding the parallelisms of job vertices, and then initialize them to generate execution vertices, connecting execution edges, and update the execution graph.</p>
 <p>The scheduler will try to decide the parallelism of all job vertices before handling each scheduling event, and the parallelism decision will be made for each job vertex in topological order:</p>
 <ul>
@@ -676,8 +693,14 @@ Fig. 4 - How subpartitions serve consumer execution vertices with dynamic graph
 <li>The parallelism of the job vertex has been decided and the job vertex has not been initialized yet.</li>
 <li>All upstream job vertices have been initialized.</li>
 </ul>
-<h1 id="future-improvement">Future improvement<a class="anchor" href="#future-improvement">#</a></h1>
-<h2 id="auto-rebalancing-of-workloads">Auto-rebalancing of workloads<a class="anchor" href="#auto-rebalancing-of-workloads">#</a></h2>
+<h1 id="future-improvement">
+  Future improvement
+  <a class="anchor" href="#future-improvement">#</a>
+</h1>
+<h2 id="auto-rebalancing-of-workloads">
+  Auto-rebalancing of workloads
+  <a class="anchor" href="#auto-rebalancing-of-workloads">#</a>
+</h2>
 <p>When running batch jobs, data skew may occur (a task needs to process much larger data than other tasks), which leads to long-tail tasks and further slows down the finish of jobs. Users usually hope that the system can automatically solve this problem.
 One typical data skew case is that some subpartitions have a significantly larger amount of data than others. This case can be solved by finer grained subpartitions and auto-rebalancing of workload. The work of the adaptive batch scheduler can be considered as the first step towards it, because the requirements of auto-rebalancing are similar to adaptive batch scheduler, they both need the support of dynamic graphs and the collection of result partitions size.
 Based on the implementation of adaptive batch scheduler, we can solve the above problem by increasing max parallelism (for finer grained subpartitions) and simply changing the subpartition range division algorithm (for auto-rebalancing). In the current design, the subpartition range is divided according to the number of subpartitions, we can change it to divide according to the amount of data in subpartitions, so that the amount of data within each subpartition range can be approximately the same. In this way, workloads of downstream tasks can be balanced.</p>

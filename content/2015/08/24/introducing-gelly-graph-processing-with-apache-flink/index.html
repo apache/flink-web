@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2015/08/24/introducing-gelly-graph-processing-with-apache-flink/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This blog post introduces Gelly, Apache Flink&rsquo;s graph-processing API and library. Flink&rsquo;s native support for iterations makes it a suitable platform for large-scale graph analytics. By leveraging delta iterations, Gelly is able to map various graph processing models such as vertex-centric or gather-sum-apply to Flink dataflows.
+Gelly allows Flink users to perform end-to-end data analysis in a single system. Gelly can be seamlessly used with Flink&rsquo;s DataSet API, which means that pre-processing, graph creation, analysis, and post-processing can be done in the same application.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Introducing Gelly: Graph Processing with Apache Flink" />
+<meta property="og:description" content="This blog post introduces Gelly, Apache Flink&rsquo;s graph-processing API and library. Flink&rsquo;s native support for iterations makes it a suitable platform for large-scale graph analytics. By leveraging delta iterations, Gelly is able to map various graph processing models such as vertex-centric or gather-sum-apply to Flink dataflows.
+Gelly allows Flink users to perform end-to-end data analysis in a single system. Gelly can be seamlessly used with Flink&rsquo;s DataSet API, which means that pre-processing, graph creation, analysis, and post-processing can be done in the same application." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2015/08/24/introducing-gelly-graph-processing-with-apache-flink/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2015-08-24T00:00:00+00:00" />
+<meta property="article:modified_time" content="2015-08-24T00:00:00+00:00" />
+<title>Introducing Gelly: Graph Processing with Apache Flink | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="This blog post introduces Gelly, Apache Flink’s graph-processing API and library. Flink’s native support for iterations makes it a suitable platform for large-scale graph analytics. By leveraging delta iterations, Gelly is able to map various graph processing models such as vertex-centric or gather-sum-apply to Flink dataflows.
-Gelly allows Flink users to perform end-to-end data analysis in a single system. Gelly can be seamlessly used with Flink’s DataSet API, which means that pre-processing, graph creation, analysis, and post-processing can be done in the same application. At the end of this post, we will go through a step-by-step example in order to demonstrate that loading, transformation, filtering, graph creation, and analysis can be performed in a single Flink program.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2015/08/24/introducing-gelly-graph-processing-with-apache-flink/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Introducing Gelly: Graph Processing with Apache Flink">
-  <meta property="og:description" content="This blog post introduces Gelly, Apache Flink’s graph-processing API and library. Flink’s native support for iterations makes it a suitable platform for large-scale graph analytics. By leveraging delta iterations, Gelly is able to map various graph processing models such as vertex-centric or gather-sum-apply to Flink dataflows.
-Gelly allows Flink users to perform end-to-end data analysis in a single system. Gelly can be seamlessly used with Flink’s DataSet API, which means that pre-processing, graph creation, analysis, and post-processing can be done in the same application. At the end of this post, we will go through a step-by-step example in order to demonstrate that loading, transformation, filtering, graph creation, and analysis can be performed in a single Flink program.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2015-08-24T00:00:00+00:00">
-    <meta property="article:modified_time" content="2015-08-24T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="Introducing Gelly: Graph Processing with Apache Flink">
-  <meta itemprop="description" content="This blog post introduces Gelly, Apache Flink’s graph-processing API and library. Flink’s native support for iterations makes it a suitable platform for large-scale graph analytics. By leveraging delta iterations, Gelly is able to map various graph processing models such as vertex-centric or gather-sum-apply to Flink dataflows.
-Gelly allows Flink users to perform end-to-end data analysis in a single system. Gelly can be seamlessly used with Flink’s DataSet API, which means that pre-processing, graph creation, analysis, and post-processing can be done in the same application. At the end of this post, we will go through a step-by-step example in order to demonstrate that loading, transformation, filtering, graph creation, and analysis can be performed in a single Flink program.">
-  <meta itemprop="datePublished" content="2015-08-24T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2015-08-24T00:00:00+00:00">
-  <meta itemprop="wordCount" content="2765">
-
-<title>Introducing Gelly: Graph Processing with Apache Flink | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2015/08/24/introducing-gelly-graph-processing-with-apache-flink/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -558,7 +536,10 @@ can be performed in a single Flink program.</p>
 <li><a href="#ongoing-and-future-work">Ongoing and Future Work</a></li>
 </ol>
 <p><a href="#top"></a></p>
-<h2 id="what-is-gelly">What is Gelly?<a class="anchor" href="#what-is-gelly">#</a></h2>
+<h2 id="what-is-gelly">
+  What is Gelly?
+  <a class="anchor" href="#what-is-gelly">#</a>
+</h2>
 <p>Gelly is a Graph API for Flink. It is currently supported in both Java and Scala.
 The Scala methods are implemented as wrappers on top of the basic Java operations.
 The API contains a set of utility functions for graph analysis, supports iterative graph
@@ -567,7 +548,10 @@ processing and introduces a library of graph algorithms.</p>
 <img src="/img/blog/flink-stack.png" style="width:90%;margin:15px">
 </center>
 <p><a href="#top">Back to top</a></p>
-<h2 id="graph-representation-and-creation">Graph Representation and Creation<a class="anchor" href="#graph-representation-and-creation">#</a></h2>
+<h2 id="graph-representation-and-creation">
+  Graph Representation and Creation
+  <a class="anchor" href="#graph-representation-and-creation">#</a>
+</h2>
 <p>In Gelly, a graph is represented by a DataSet of vertices and a DataSet of edges.
 A vertex is defined by its unique ID and a value, whereas an edge is defined by its source ID,
 target ID, and value. A vertex or edge for which a value is not specified will simply have the
@@ -581,23 +565,36 @@ value type set to <code>NullValue</code>.</p>
 <p>In all three cases, if the vertices are not provided,
 Gelly will automatically produce the vertex IDs from the edge source and target IDs.</p>
 <p><a href="#top">Back to top</a></p>
-<h2 id="transformations-and-utilities">Transformations and Utilities<a class="anchor" href="#transformations-and-utilities">#</a></h2>
+<h2 id="transformations-and-utilities">
+  Transformations and Utilities
+  <a class="anchor" href="#transformations-and-utilities">#</a>
+</h2>
 <p>These are methods of the Graph class and include common graph metrics, transformations
 and mutations as well as neighborhood aggregations.</p>
-<h4 id="common-graph-metrics">Common Graph Metrics<a class="anchor" href="#common-graph-metrics">#</a></h4>
+<h4 id="common-graph-metrics">
+  Common Graph Metrics
+  <a class="anchor" href="#common-graph-metrics">#</a>
+</h4>
 <p>These methods can be used to retrieve several graph metrics and properties, such as the number
 of vertices, edges and the node degrees.</p>
-<h4 id="transformations">Transformations<a class="anchor" href="#transformations">#</a></h4>
+<h4 id="transformations">
+  Transformations
+  <a class="anchor" href="#transformations">#</a>
+</h4>
 <p>The transformation methods enable several Graph operations, using high-level functions similar to
 the ones provided by the batch processing API. These transformations can be applied one after the
 other, yielding a new Graph after each step, in a fashion similar to operators on DataSets:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">inputGraph</span><span class="p">.</span><span class="na">getUndirected</span><span class="p">().</span><span class="na">mapEdges</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">CustomEdgeMapper</span><span class="p">());</span></span></span></code></pre></div><p>Transformations can be applied on:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">inputGraph</span><span class="p">.</span><span class="na">getUndirected</span><span class="p">().</span><span class="na">mapEdges</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">CustomEdgeMapper</span><span class="p">());</span><span class="w">
+</span></span></span></code></pre></div><p>Transformations can be applied on:</p>
 <ol>
 <li><strong>Vertices</strong>: <code>mapVertices</code>, <code>joinWithVertices</code>, <code>filterOnVertices</code>, <code>addVertex</code>, &hellip;</li>
 <li><strong>Edges</strong>: <code>mapEdges</code>, <code>filterOnEdges</code>, <code>removeEdge</code>, &hellip;</li>
 <li><strong>Triplets</strong> (source vertex, target vertex, edge): <code>getTriplets</code></li>
 </ol>
-<h4 id="neighborhood-aggregations">Neighborhood Aggregations<a class="anchor" href="#neighborhood-aggregations">#</a></h4>
+<h4 id="neighborhood-aggregations">
+  Neighborhood Aggregations
+  <a class="anchor" href="#neighborhood-aggregations">#</a>
+</h4>
 <p>Neighborhood methods allow vertices to perform an aggregation on their first-hop neighborhood.
 This provides a vertex-centric view, where each vertex can access its neighboring edges and neighbor values.</p>
 <p><code>reduceOnEdges()</code> provides access to the neighboring edges of a vertex,
@@ -616,12 +613,16 @@ one or more values per vertex, the more general  <code>groupReduceOnEdges()</cod
 </center>
 <p>Assume you would want to compute the sum of the values of all incoming neighbors for each vertex.
 We will call the <code>reduceOnNeighbors()</code> aggregation method since the sum is an associative and commutative operation and the neighbors’ values are needed:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">graph</span><span class="p">.</span><span class="na">reduceOnNeighbors</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SumValues</span><span class="p">(),</span><span class="w"> </span><span class="n">EdgeDirection</span><span class="p">.</span><span class="na">IN</span><span class="p">);</span></span></span></code></pre></div><p>The vertex with id 1 is the only node that has no incoming edges. The result is therefore:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">graph</span><span class="p">.</span><span class="na">reduceOnNeighbors</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SumValues</span><span class="p">(),</span><span class="w"> </span><span class="n">EdgeDirection</span><span class="p">.</span><span class="na">IN</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>The vertex with id 1 is the only node that has no incoming edges. The result is therefore:</p>
 <center>
 <img src="/img/blog/reduce-on-neighbors.png" style="width:90%;margin:15px">
 </center>
 <p><a href="#top">Back to top</a></p>
-<h2 id="iterative-graph-processing">Iterative Graph Processing<a class="anchor" href="#iterative-graph-processing">#</a></h2>
+<h2 id="iterative-graph-processing">
+  Iterative Graph Processing
+  <a class="anchor" href="#iterative-graph-processing">#</a>
+</h2>
 <p>During the past few years, many different programming models for distributed graph processing
 have been introduced: <a href="http://delivery.acm.org/10.1145/2490000/2484843/a22-salihoglu.pdf?ip=141.23.53.206&amp;id=2484843&amp;acc=ACTIVE%20SERVICE&amp;key=2BA2C432AB83DA15.0F42380CB8DD3307.4D4702B0C3E38B35.4D4702B0C3E38B35&amp;CFID=706313474&amp;CFTOKEN=60107876&amp;__acm__=1440408958_b131e035942130653e5782409b5c0cde">vertex-centric</a>,
 <a href="http://researcher.ibm.com/researcher/files/us-ytian/giraph&#43;&#43;.pdf">partition-centric</a>, <a href="http://www.eecs.harvard.edu/cs261/notes/gonzalez-2012.htm">gather-apply-scatter</a>,
@@ -635,7 +636,10 @@ implemented using the gather-sum(accumulate)-apply model. We are also considerin
 for the partition-centric computation model, using Fink’s <code>mapPartition()</code> operator.
 This model exposes the partition structure to the user and allows local graph structure exploitation
 inside a partition to avoid unnecessary communication.</p>
-<h4 id="vertex-centric">Vertex-centric<a class="anchor" href="#vertex-centric">#</a></h4>
+<h4 id="vertex-centric">
+  Vertex-centric
+  <a class="anchor" href="#vertex-centric">#</a>
+</h4>
 <p>Gelly wraps Flink’s <a href="//nightlies.apache.org/flink/flink-docs-release-0.8/spargel_guide.html">Spargel APi</a> to
 support the vertex-centric, Pregel-like programming model. Gelly’s <code>runVertexCentricIteration</code> method accepts two user-defined functions:</p>
 <ol>
@@ -680,7 +684,10 @@ used to update the Solution Set and create the Workset input for the next iterat
 <center>
 <img src="/img/blog/vertex-centric-plan.png" style="width:40%;margin:15px">
 </center>
-<h4 id="gather-sum-apply">Gather-Sum-Apply<a class="anchor" href="#gather-sum-apply">#</a></h4>
+<h4 id="gather-sum-apply">
+  Gather-Sum-Apply
+  <a class="anchor" href="#gather-sum-apply">#</a>
+</h4>
 <p>Gelly supports a variation of the popular Gather-Sum-Apply-Scatter  computation model,
 introduced by PowerGraph. In GSA, a vertex pulls information from its neighbors as opposed to the
 vertex-centric approach where the updates are pushed from the incoming neighbors.
@@ -713,7 +720,10 @@ serves as input for the next iteration.</p>
 <img src="/img/blog/GSA-plan.png" style="width:40%;margin:15px">
 </center>
 <p><a href="#top">Back to top</a></p>
-<h2 id="library-of-graph-algorithms">Library of Graph Algorithms<a class="anchor" href="#library-of-graph-algorithms">#</a></h2>
+<h2 id="library-of-graph-algorithms">
+  Library of Graph Algorithms
+  <a class="anchor" href="#library-of-graph-algorithms">#</a>
+</h2>
 <p>We are building a library of graph algorithms in Gelly, to easily analyze large-scale graphs.
 These algorithms extend the <code>GraphAlgorithm</code> interface and can be simply executed on
 the input graph by calling a <code>run()</code> method.</p>
@@ -732,7 +742,10 @@ the input graph by calling a <code>run()</code> method.</p>
 Among them, one can find graph weighting schemes, like Jaccard Similarity and Euclidean Distance Weighting,
 as well as computation of common graph metrics.</p>
 <p><a href="#top">Back to top</a></p>
-<h2 id="use-case-music-profiles">Use-Case: Music Profiles<a class="anchor" href="#use-case-music-profiles">#</a></h2>
+<h2 id="use-case-music-profiles">
+  Use-Case: Music Profiles
+  <a class="anchor" href="#use-case-music-profiles">#</a>
+</h2>
 <p>In the following section, we go through a use-case scenario that combines the Flink DataSet API
 with Gelly in order to process users’ music preferences to suggest additions to their playlist.</p>
 <p>First, we read a user’s music profile which is in the form of user-id, song-id and the number of
@@ -746,16 +759,19 @@ dependency. The full example code base can be found <a href="https://github.com/
 can be found <a href="http://labrosa.ee.columbia.edu/millionsong/tasteprofile">here</a>. This data set contains <strong>48,373,586</strong> real user-id, song-id and
 play-count triplets.</p>
 <p><strong>Note:</strong> The code snippets in this post try to reduce verbosity by skipping type parameters of generic functions. Please have a look at <a href="https://github.com/apache/flink/blob/master/flink-staging/flink-gelly/src/main/java/org/apache/flink/graph/example/MusicProfiles.java">the full example</a> for the correct and complete code.</p>
-<h4 id="filtering-out-bad-records">Filtering out Bad Records<a class="anchor" href="#filtering-out-bad-records">#</a></h4>
+<h4 id="filtering-out-bad-records">
+  Filtering out Bad Records
+  <a class="anchor" href="#filtering-out-bad-records">#</a>
+</h4>
 <p>After reading the <code>(user-id, song-id, play-count)</code> triplets from a CSV file and after parsing a
 text file in order to retrieve the list of songs that a user would not want to include in a
 playlist, we use a coGroup function to filter out the mismatches.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// read the user-song-play triplets.</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">triplets</span><span class="w"> </span><span class="o">=</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">triplets</span><span class="w"> </span><span class="o">=</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">getUserSongTripletsData</span><span class="p">(</span><span class="n">env</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// read the mismatches dataset and extract the songIDs</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">validTriplets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">triplets</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// read the mismatches dataset and extract the songIDs</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple3</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">validTriplets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">triplets</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">coGroup</span><span class="p">(</span><span class="n">mismatches</span><span class="p">).</span><span class="na">where</span><span class="p">(</span><span class="n">1</span><span class="p">).</span><span class="na">equalTo</span><span class="p">(</span><span class="n">0</span><span class="p">)</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">with</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">CoGroupFunction</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kt">void</span><span class="w"> </span><span class="nf">coGroup</span><span class="p">(</span><span class="n">Iterable</span><span class="w"> </span><span class="n">triplets</span><span class="p">,</span><span class="w"> </span><span class="n">Iterable</span><span class="w"> </span><span class="n">invalidSongs</span><span class="p">,</span><span class="w"> </span><span class="n">Collector</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -765,10 +781,14 @@ playlist, we use a coGroup function to filter out the mismatches.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">                            </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span></span></span></code></pre></div><p>The coGroup simply takes the triplets whose song-id (second field) matches the song-id from the
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>The coGroup simply takes the triplets whose song-id (second field) matches the song-id from the
 mismatches list (first field) and if the iterator was empty for a certain triplet, meaning that
 there were no mismatches found, the triplet associated with that song is collected.</p>
-<h4 id="compute-the-top-songs-per-user">Compute the Top Songs per User<a class="anchor" href="#compute-the-top-songs-per-user">#</a></h4>
+<h4 id="compute-the-top-songs-per-user">
+  Compute the Top Songs per User
+  <a class="anchor" href="#compute-the-top-songs-per-user">#</a>
+</h4>
 <p>As a next step, we would like to see which songs a user played more often. To this end, we
 build a user-song weighted, bipartite graph in which edge source vertices are users, edge target
 vertices are songs and where the weight represents the number of times the user listened to that
@@ -777,17 +797,18 @@ certain song.</p>
 <img src="/img/blog/user-song-graph.png" style="width:90%;margin:15px">
 </center>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// create a user -&gt; song weighted bipartite graph where the edge weights</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// correspond to play counts</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">Graph</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">NullValue</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userSongGraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Graph</span><span class="p">.</span><span class="na">fromTupleDataSet</span><span class="p">(</span><span class="n">validTriplets</span><span class="p">,</span><span class="w"> </span><span class="n">env</span><span class="p">);</span></span></span></code></pre></div><p>Consult the <a href="//nightlies.apache.org/flink/flink-docs-master/dev/libs/gelly/">Gelly guide</a> for guidelines
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// correspond to play counts</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">Graph</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">NullValue</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userSongGraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Graph</span><span class="p">.</span><span class="na">fromTupleDataSet</span><span class="p">(</span><span class="n">validTriplets</span><span class="p">,</span><span class="w"> </span><span class="n">env</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>Consult the <a href="//nightlies.apache.org/flink/flink-docs-master/dev/libs/gelly/">Gelly guide</a> for guidelines
 on how to create a graph from a given DataSet of edges or from a collection.</p>
 <p>To retrieve the top songs per user, we call the groupReduceOnEdges function as it perform an
 aggregation over the first hop neighborhood taking just the edges into consideration. We will
 basically iterate through the edge value and collect the target (song) of the maximum weight edge.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">//get the top track (most listened to) for each user</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&gt;</span><span class="w"> </span><span class="n">usersWithTopTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userSongGraph</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&gt;</span><span class="w"> </span><span class="n">usersWithTopTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userSongGraph</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">groupReduceOnEdges</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">GetTopSongPerUser</span><span class="p">(),</span><span class="w"> </span><span class="n">EdgeDirection</span><span class="p">.</span><span class="na">OUT</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">GetTopSongPerUser</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">EdgesFunctionWithVertexValue</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">class</span> <span class="nc">GetTopSongPerUser</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">EdgesFunctionWithVertexValue</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">iterateEdges</span><span class="p">(</span><span class="n">Vertex</span><span class="w"> </span><span class="n">vertex</span><span class="p">,</span><span class="w"> </span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span><span class="w"> </span><span class="n">edges</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">maxPlaycount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">topSong</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;&#34;</span><span class="p">;</span><span class="w">
@@ -800,7 +821,11 @@ basically iterate through the edge value and collect the target (song) of the ma
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Tuple2</span><span class="p">(</span><span class="n">vertex</span><span class="p">.</span><span class="na">getId</span><span class="p">(),</span><span class="w"> </span><span class="n">topSong</span><span class="p">);</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><h4 id="creating-a-user-user-similarity-graph">Creating a User-User Similarity Graph<a class="anchor" href="#creating-a-user-user-similarity-graph">#</a></h4>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h4 id="creating-a-user-user-similarity-graph">
+  Creating a User-User Similarity Graph
+  <a class="anchor" href="#creating-a-user-user-similarity-graph">#</a>
+</h4>
 <p>Clustering users based on common interests, in this case, common top songs, could prove to be
 very useful for advertisements or for recommending new musical compilations. In a user-user graph,
 two users who listen to the same song will simply be linked together through an edge as depicted
@@ -817,8 +842,8 @@ common interest (right-hand side of the image).</p>
 Considering that we now have the DataSet of edges which present interest, creating a graph is as
 straightforward as a call to the <code>Graph.fromDataSet()</code> method.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// create a user-user similarity graph:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// two users that listen to the same song are connected</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span><span class="w"> </span><span class="n">similarUsers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userSongGraph</span><span class="p">.</span><span class="na">getEdges</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// two users that listen to the same song are connected</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&gt;</span><span class="w"> </span><span class="n">similarUsers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userSongGraph</span><span class="p">.</span><span class="na">getEdges</span><span class="p">()</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// filter out user-song edges that are below the playcount threshold</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">filter</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">FilterFunction</span><span class="o">&lt;</span><span class="n">Edge</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">            	</span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">Edge</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">edge</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -841,7 +866,8 @@ straightforward as a call to the <code>Graph.fromDataSet()</code> method.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">})</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">distinct</span><span class="p">();</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">Graph</span><span class="w"> </span><span class="n">similarUsersGraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Graph</span><span class="p">.</span><span class="na">fromDataSet</span><span class="p">(</span><span class="n">similarUsers</span><span class="p">).</span><span class="na">getUndirected</span><span class="p">();</span></span></span></code></pre></div><p>After having created a user-user graph, it would make sense to detect the various communities
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">Graph</span><span class="w"> </span><span class="n">similarUsersGraph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Graph</span><span class="p">.</span><span class="na">fromDataSet</span><span class="p">(</span><span class="n">similarUsers</span><span class="p">).</span><span class="na">getUndirected</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p>After having created a user-user graph, it would make sense to detect the various communities
 formed. To do so, we first initialize each vertex with a numeric label using the
 <code>joinWithVertices()</code> function that takes a data set of Tuple2 as a parameter and joins
 the id of a vertex with the first element of the tuple, afterwards applying a map function.
@@ -849,8 +875,8 @@ Finally, we call the <code>run()</code> method with the LabelPropagation library
 as a parameter. In the end, the vertices will be updated to contain the most frequent label
 among their neighbors.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">// detect user communities using label propagation</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// initialize each vertex with a unique numeric label</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">idsWithInitialLabels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DataSetUtils</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// initialize each vertex with a unique numeric label</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">idsWithInitialLabels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DataSetUtils</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">zipWithUniqueId</span><span class="p">(</span><span class="n">similarUsersGraph</span><span class="p">.</span><span class="na">getVertexIds</span><span class="p">())</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">MapFunction</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">Long</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="o">&gt;&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="nd">@Override</span><span class="w">
@@ -859,16 +885,20 @@ among their neighbors.</p>
 </span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">});</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="c1">// update the vertex values and run the label propagation algorithm</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Vertex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">verticesWithCommunity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">similarUsersGraph</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">// update the vertex values and run the label propagation algorithm</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Vertex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">verticesWithCommunity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">similarUsersGraph</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">joinWithVertices</span><span class="p">(</span><span class="n">idsWithlLabels</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">MapFunction</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">public</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="nf">map</span><span class="p">(</span><span class="n">Tuple2</span><span class="w"> </span><span class="n">idWithLabel</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="n">idWithLabel</span><span class="p">.</span><span class="na">f1</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">})</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">run</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">LabelPropagation</span><span class="p">(</span><span class="n">numIterations</span><span class="p">))</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">getVertices</span><span class="p">();</span></span></span></code></pre></div><p><a href="#top">Back to top</a></p>
-<h2 id="ongoing-and-future-work">Ongoing and Future Work<a class="anchor" href="#ongoing-and-future-work">#</a></h2>
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">.</span><span class="na">getVertices</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></div><p><a href="#top">Back to top</a></p>
+<h2 id="ongoing-and-future-work">
+  Ongoing and Future Work
+  <a class="anchor" href="#ongoing-and-future-work">#</a>
+</h2>
 <p>Currently, Gelly matches the basic functionalities provided by most state-of-the-art graph
 processing systems. Our vision is to turn Gelly into more than “yet another library for running
 PageRank-like algorithms” by supporting generic iterations, implementing graph partitioning,
@@ -879,7 +909,10 @@ as well as a Graph API built on Flink Streaming.</p>
 tools, graph database systems and sampling techniques.</p>
 <p>Curious? Read more about our plans for Gelly in the <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink&#43;Gelly">roadmap</a>.</p>
 <p><a href="#top">Back to top</a></p>
-<h2 id="links">Links<a class="anchor" href="#links">#</a></h2>
+<h2 id="links">
+  Links
+  <a class="anchor" href="#links">#</a>
+</h2>
 <p><a href="//nightlies.apache.org/flink/flink-docs-master/dev/libs/gelly/">Gelly Documentation</a></p>
 </p>
 </article>

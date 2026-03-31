@@ -13,50 +13,28 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
+Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure" />
+<meta property="og:description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
+Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2020-10-15T03:00:00+00:00" />
+<meta property="article:modified_time" content="2020-10-15T03:00:00+00:00" />
+<title>From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
-Despite all these great properties, Flink’s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application. When the application backpressures, the processing of checkpoints is backpressured as well (Appendix 1 recaps what is backpressure and why it can be a good thing). In such cases, checkpoints may take longer to complete or even time out completely.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure">
-  <meta property="og:description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
-Despite all these great properties, Flink’s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application. When the application backpressures, the processing of checkpoints is backpressured as well (Appendix 1 recaps what is backpressure and why it can be a good thing). In such cases, checkpoints may take longer to complete or even time out completely.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2020-10-15T03:00:00+00:00">
-    <meta property="article:modified_time" content="2020-10-15T03:00:00+00:00">
-
-
-  <meta itemprop="name" content="From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure">
-  <meta itemprop="description" content="Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both very small and extremely large scenarios and provides support for many operational features like stateful upgrades with state evolution or roll-backs and time-travel.
-Despite all these great properties, Flink’s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application. When the application backpressures, the processing of checkpoints is backpressured as well (Appendix 1 recaps what is backpressure and why it can be a good thing). In such cases, checkpoints may take longer to complete or even time out completely.">
-  <meta itemprop="datePublished" content="2020-10-15T03:00:00+00:00">
-  <meta itemprop="dateModified" content="2020-10-15T03:00:00+00:00">
-  <meta itemprop="wordCount" content="1835">
-
-<title>From Aligned to Unaligned Checkpoints - Part 1: Checkpoints, Alignment, and Backpressure | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2020/10/15/from-aligned-to-unaligned-checkpoints-part-1-checkpoints-alignment-and-backpressure/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -546,7 +524,10 @@ Despite all these great properties, Flink’s checkpointing method has an Achill
     <p><p>Apache Flink’s checkpoint-based fault tolerance mechanism is one of its defining features. Because of that design, Flink unifies batch and stream processing, can easily scale to both <a href="https://hal.inria.fr/hal-02463206/document">very small</a> and <a href="https://102.alibaba.com/detail?id=35">extremely large</a> scenarios and provides support for many operational features like stateful upgrades with <a href="//nightlies.apache.org/flink/flink-docs-stable/dev/stream/state/schema_evolution.html">state evolution</a> or <a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/savepoints.html">roll-backs and time-travel</a>.</p>
 <p>Despite all these great properties, Flink&rsquo;s checkpointing method has an Achilles Heel: the speed of a completed checkpoint is determined by the speed at which data flows through the application. When the application backpressures, the processing of checkpoints is backpressured as well (<a href="#appendix-1---on-backpressure">Appendix 1</a> recaps what is backpressure and why it can be a good thing). In such cases, checkpoints may take longer to complete or even time out completely.</p>
 <p>In Flink 1.11, the community introduced a first version of a new feature called &ldquo;<a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/checkpoints.html#unaligned-checkpoints">unaligned checkpoints</a>&rdquo; that aims at solving this issue, while Flink 1.12 plans to further expand its functionality. In this two-series blog post, we discuss how Flink’s checkpointing mechanism has been modified to support unaligned checkpoints, how unaligned checkpoints work, and how this new mode impacts Flink users. In the first of the two posts, we start with a recap of the original checkpointing process in Flink, its core properties and issues under backpressure.</p>
-<h1 id="state-in-streaming-applications">State in Streaming Applications<a class="anchor" href="#state-in-streaming-applications">#</a></h1>
+<h1 id="state-in-streaming-applications">
+  State in Streaming Applications
+  <a class="anchor" href="#state-in-streaming-applications">#</a>
+</h1>
 <p>Simply put, state is the information that you need to remember across events. Even the most trivial streaming applications are typically stateful because of their need to “remember” the exact position they are processing data from, for example in the form of a Kafka Partition Offset or a File Offset.
 In addition, many applications hold state internally as a way to support their internal operations, such as windows, aggregations, joins, or state machines.</p>
 <p>For the remainder of this article, we&rsquo;ll use the following example showing a streaming application consisting of <strong>four operators</strong>, each one holding some state.</p>
@@ -555,7 +536,10 @@ In addition, many applications hold state internally as a way to support their i
 	<img vspace="8" style="width:75%" src="/img/blog/2020-10-15-from-aligned-to-unaligned-checkpoints-part-1/from-aligned-to-unaligned-checkpoints-part-1-1.png" />
 	</center>
 </span>
-<h2 id="state-persistence-through-checkpoints">State Persistence through Checkpoints<a class="anchor" href="#state-persistence-through-checkpoints">#</a></h2>
+<h2 id="state-persistence-through-checkpoints">
+  State Persistence through Checkpoints
+  <a class="anchor" href="#state-persistence-through-checkpoints">#</a>
+</h2>
 <p>Streaming applications are long-lived. They inevitably experience hardware and software failures but should, ideally, look from the outside as if no failure ever happened. Since applications are long-lived — and can potentially accumulate very large state —, recomputing partial results after failures can take quite some time, and so a way to persist and recover this (potentially very large) application state is necessary.</p>
 <p>Flink relies on its <strong>state checkpointing and recovery mechanism</strong> to implement such behavior, as shown in the figure below. Periodic checkpoints store a snapshot of the application’s state on some Checkpoint Storage (commonly an Object Store or Distributed File System, like S3, HDFS, GCS, Azure Blob Storage, etc.). When a failure is detected, the affected parts of the application are reset to the state of the latest checkpoint (either by a local reset or by loading the state from the checkpoint storage).</p>
 <div style="line-height:40%;">
@@ -579,7 +563,10 @@ In addition, many applications hold state internally as a way to support their i
 <p><strong>Checkpoints decouple the “stream transport” from the persistence mechanism</strong>: “Stream transport” refers to how data is being exchanged between operators (e.g. during a shuffle). This decoupling is key to Flink’s batch &lt;-&gt; streaming unification in one system, because it allows Flink to implement a data transport that can take the shape of both a low-latency streaming exchange or a decoupled batch data exchange.</p>
 </li>
 </ul>
-<h1 id="the-checkpointing-mechanism">The Checkpointing Mechanism<a class="anchor" href="#the-checkpointing-mechanism">#</a></h1>
+<h1 id="the-checkpointing-mechanism">
+  The Checkpointing Mechanism
+  <a class="anchor" href="#the-checkpointing-mechanism">#</a>
+</h1>
 <p>The fundamental challenge solved by the checkpointing algorithm (details in <a href="https://pdfs.semanticscholar.org/6fa0/917417d3c213b0e130ae01b7b440b1868dde.pdf">this paper</a>) is drawing a snapshot out of the ever-changing state of a streaming application without suspending the continuous processing of events. Because there are always events in-flight (on the network, in I/O buffers, etc.), up- and downstream operators can be processing events from different times: the sink may write data from 11:04, while the source already ingests events from 11:06. Ideally, all snapshotted data should belong to the same point-in-time, as if the input was paused and we waited until all in-flight data was drained (i.e. the pipeline becoming idle) before taking the snapshot.</p>
 <p>To achieve that, Flink injects <em>checkpoint barriers</em> into the streams at the sources, which travel through the entire topology and eventually reach the sinks. These barriers divide the stream into a <em>pre-checkpoint epoch</em> (all events that are persisted in state or emitted into sinks) and a <em>post-checkpoint epoch</em> (events not reflected in the state, to be re-processed when resuming from the checkpoint).</p>
 <p>The following figure shows what happens when a barrier reaches an operator.</p>
@@ -591,7 +578,10 @@ In addition, many applications hold state internally as a way to support their i
 <p>Operators need to make sure that they take the checkpoint exactly when all pre-checkpoint events are processed and no post-checkpoint events have yet been processed. When the first barrier reaches the head of the input buffer queue and is consumed by the operator, the operator starts the so-called <em>alignment phase</em>. During that phase, the operator will not consume any data from the channels where it already received a barrier, until it has received a barrier from all input channels.</p>
 <p>Once all barriers are received, the operator snapshots its state, forwards the barrier to the output, and ends the alignment phase, which unblocks all inputs. An operator state snapshot is written into the checkpoint storage, typically asynchronously while data processing continues. Once all operators have successfully written their state snapshot to the checkpoint storage, the checkpoint is successfully completed and can be used for recovery.</p>
 <p>One important thing to note here is that the barriers flow with the events, strictly in line. In a healthy setup without backpressure, barriers flow and align in milliseconds. The checkpoint duration is dominated by the time it takes to write the state snapshots to the checkpoint storage, which becomes faster with <a href="//nightlies.apache.org/flink/flink-docs-stable/ops/state/large_state_tuning.html#incremental-checkpoints">incremental checkpoints</a>. If the events flow slowly under backpressure, so will the barriers. That means that barriers can take long to travel from sources to sinks resulting in the alignment phase to take even longer to complete.</p>
-<h2 id="recovery">Recovery<a class="anchor" href="#recovery">#</a></h2>
+<h2 id="recovery">
+  Recovery
+  <a class="anchor" href="#recovery">#</a>
+</h2>
 <p>When operators restart from a checkpoint (automatically during recovery or manually during deployment from a savepoint), the operators first restore their state from the checkpoint storage before resuming the event stream processing.</p>
 <span>
 	<center>
@@ -599,14 +589,23 @@ In addition, many applications hold state internally as a way to support their i
 	</center>
 </span>
 <p>Since sources are bound to the offsets persisted in the checkpoint, recovery time is often calculated as the sum of the time of the recovery process — outlined in the previous figure — and any additional time needed to process any remaining data up to the point right before the system failure. When an application experiences backpressure, recovery time can also include the total time from the very start of the recovery process until backpressure is fully eliminated.</p>
-<h2 id="consistency-guarantees">Consistency Guarantees<a class="anchor" href="#consistency-guarantees">#</a></h2>
+<h2 id="consistency-guarantees">
+  Consistency Guarantees
+  <a class="anchor" href="#consistency-guarantees">#</a>
+</h2>
 <p>The alignment phase is only necessary for checkpoints with <strong>exactly-once</strong> processing semantics, which is the default setting in Flink. If an application runs with <strong>at-least-once</strong> processing semantics, checkpoints will not block any channels with barriers during alignment, which has an additional cost from the duplication of the then-not-blocked events when recovering the operator.</p>
 <p>This is not to be confused with having at-least-once semantics only in the sinks — something that many Flink users choose over transactional sinks — because many sink operations are idempotent or converge to the same result (like inputs/outputs to key/value stores). Having at-least-once semantics in an intermediate operator state is often not idempotent (for example a simple count aggregation) and hence using exactly-once checkpoints is advisable for the majority of Flink users.</p>
-<h1 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h1>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
 <p>This blog post recaps how Flink’s fault tolerance mechanism (based on aligned checkpoints) works, and why checkpointing is a fitting mechanism for a fault-tolerant stream processor. The checkpointing mechanism has been optimized over time to make checkpoints faster and cheaper (with both asynchronous and incremental checkpoints) and faster-to-recover (local caching), but the basic concepts (barriers, alignment, operator state snapshots) are still the same as in the original version.</p>
 <p>The next part will dig into a major break with the original mechanism that avoids the alignment phase — the recently-introduced &ldquo;unaligned checkpoints&rdquo;. Stay tuned for the second part, which explains how unaligned checkpoints work and how they guarantee consistent checkpointing times under backpressure.</p>
 <hr>
-<h2 id="appendix-1---on-backpressure">Appendix 1 - On Backpressure<a class="anchor" href="#appendix-1---on-backpressure">#</a></h2>
+<h2 id="appendix-1---on-backpressure">
+  Appendix 1 - On Backpressure
+  <a class="anchor" href="#appendix-1---on-backpressure">#</a>
+</h2>
 <p>Backpressure refers to the behavior where a slow receiver (e.g. of data/requests) makes the senders slow down in order to not overwhelm the receiver, something that can result in possibly dropping some of the processed data or requests. This is a crucial and very much desirable behavior for systems where completeness/correctness is important. Backpressure is implicitly implemented in many of the most basic building blocks of distributed communication, such as TCP Flow Control, bounded (blocking) I/O queues, poll-based consumers, etc.</p>
 <p>Apache Flink implements backpressure across the entire data flow graph. A sink that (temporarily) cannot keep up with the data rate will result in the source connectors slowing down and pulling data out of the source systems more slowly. We believe that this is a good and desirable behavior, because backpressure is not only necessary in order to avoid overwhelming the memory of a receiver (thread), but can also prevent different stages of the streaming application from drifting apart too far.</p>
 <p>Consider the example below:</p>

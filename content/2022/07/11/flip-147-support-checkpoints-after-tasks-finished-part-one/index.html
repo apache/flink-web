@@ -13,50 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Motivation # Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="FLIP-147: Support Checkpoints After Tasks Finished - Part One" />
+<meta property="og:description" content="Motivation # Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-07-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-07-11T00:00:00+00:00" />
+<title>FLIP-147: Support Checkpoints After Tasks Finished - Part One | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Motivation# Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba.
-Flink provides two execution modes under the unified programming API: the streaming mode and the batch mode. The streaming mode processes records incrementally based on the states, thus it supports both bounded and unbounded sources. The batch mode works with bounded sources and usually has a better performance for bounded jobs because it executes all the tasks in topological order and avoids random state access by pre-sorting the input records. Although batch mode is often the preferred mode to process bounded jobs, streaming mode is also required for various reasons. For example, users may want to deal with records containing retraction or exploit the property that data is roughly sorted by event times in streaming mode (like the case in Kappa&#43; Architecture). Moreover, users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="FLIP-147: Support Checkpoints After Tasks Finished - Part One">
-  <meta property="og:description" content="Motivation# Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba.
-Flink provides two execution modes under the unified programming API: the streaming mode and the batch mode. The streaming mode processes records incrementally based on the states, thus it supports both bounded and unbounded sources. The batch mode works with bounded sources and usually has a better performance for bounded jobs because it executes all the tasks in topological order and avoids random state access by pre-sorting the input records. Although batch mode is often the preferred mode to process bounded jobs, streaming mode is also required for various reasons. For example, users may want to deal with records containing retraction or exploit the property that data is roughly sorted by event times in streaming mode (like the case in Kappa&#43; Architecture). Moreover, users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2022-07-11T00:00:00+00:00">
-    <meta property="article:modified_time" content="2022-07-11T00:00:00+00:00">
-
-
-  <meta itemprop="name" content="FLIP-147: Support Checkpoints After Tasks Finished - Part One">
-  <meta itemprop="description" content="Motivation# Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions, Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases. Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing, operating, and maintaining consistency between streaming and batch backfilling jobs, like the case for Alibaba.
-Flink provides two execution modes under the unified programming API: the streaming mode and the batch mode. The streaming mode processes records incrementally based on the states, thus it supports both bounded and unbounded sources. The batch mode works with bounded sources and usually has a better performance for bounded jobs because it executes all the tasks in topological order and avoids random state access by pre-sorting the input records. Although batch mode is often the preferred mode to process bounded jobs, streaming mode is also required for various reasons. For example, users may want to deal with records containing retraction or exploit the property that data is roughly sorted by event times in streaming mode (like the case in Kappa&#43; Architecture). Moreover, users often have mixed jobs involving both unbounded streams and bounded side-inputs, which also require streaming execution mode.">
-  <meta itemprop="datePublished" content="2022-07-11T00:00:00+00:00">
-  <meta itemprop="dateModified" content="2022-07-11T00:00:00+00:00">
-  <meta itemprop="wordCount" content="1830">
-
-<title>FLIP-147: Support Checkpoints After Tasks Finished - Part One | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2022/07/11/flip-147-support-checkpoints-after-tasks-finished-part-one/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -546,7 +522,10 @@ Flink provides two execution modes under the unified programming API: the stream
 
 
 
-    <p><h1 id="motivation">Motivation<a class="anchor" href="#motivation">#</a></h1>
+    <p><h1 id="motivation">
+  Motivation
+  <a class="anchor" href="#motivation">#</a>
+</h1>
 <p>Flink is a distributed processing engine for both unbounded and bounded streams of data. In recent versions,
 Flink has unified the DataStream API and the Table / SQL API to support both streaming and batch cases.
 Since most users require both types of data processing pipelines, the unification helps reduce the complexity of developing,
@@ -589,7 +568,10 @@ mailing list.</p>
 </ol>
 <p>The remaining blog briefly describes the changes we made to achieve the above goals. In the next blog,
 we’ll share more details on how they are implemented.</p>
-<h1 id="support-checkpointing-with-finished-tasks">Support Checkpointing with Finished Tasks<a class="anchor" href="#support-checkpointing-with-finished-tasks">#</a></h1>
+<h1 id="support-checkpointing-with-finished-tasks">
+  Support Checkpointing with Finished Tasks
+  <a class="anchor" href="#support-checkpointing-with-finished-tasks">#</a>
+</h1>
 <p>The core idea of supporting checkpoints with finished tasks is to mark the finished operators in checkpoints and skip
 executing these operators after recovery. As illustrated in Figure 2, a checkpoint is composed of the states of all
 the operators. If all the subtasks of an operator have finished, we could mark it as fully finished and skip the
@@ -612,7 +594,10 @@ the operator would be marked as fully finished.</p>
 finished tasks, we disallowed adding new operators as precedents of the fully finished ones, since it would make the fully
 finished operators have running precedents after restarting, which conflicts with the design that tasks finished
 in topological order.</p>
-<h1 id="revise-the-process-of-finishing">Revise the Process of Finishing<a class="anchor" href="#revise-the-process-of-finishing">#</a></h1>
+<h1 id="revise-the-process-of-finishing">
+  Revise the Process of Finishing
+  <a class="anchor" href="#revise-the-process-of-finishing">#</a>
+</h1>
 <p>Based on the ability to take checkpoints with finished tasks, we could then solve the issue that two-phase-commit
 operators could not commit all the data when running in streaming mode. As the background, Flink jobs
 have two ways to finish:</p>
@@ -677,7 +662,10 @@ cases of normal finishing and failover. However, this was not clear from their n
 only be called when sources are finished or when the <code>-–drain</code> parameter is specified.</li>
 <li><code>close()</code> is used to do cleanup and release all the held resources.</li>
 </ul>
-<h1 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h1>
+<h1 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h1>
 <p>By supporting the checkpoints after tasks finished and revising the process of finishing, we can support checkpoints for jobs with
 both bounded and unbounded sources, and ensure the bounded job gets all output records committed before it finishes. The motivation
 behind this change is to ensure data consistency, results completeness, and failure recovery if there are bounded sources in the pipeline.

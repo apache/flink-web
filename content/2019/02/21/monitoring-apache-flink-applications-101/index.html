@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2019/02/21/monitoring-apache-flink-applications-101/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This blog post provides an introduction to Apache Flink’s built-in monitoring and metrics system, that allows developers to effectively monitor their Flink jobs. Oftentimes, the task of picking the relevant metrics to monitor a Flink application can be overwhelming for a DevOps team that is just starting with stream processing and Apache Flink. Having worked with many organizations that deploy Flink at scale, I would like to share my experience and some best practice with the community.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Monitoring Apache Flink Applications 101" />
+<meta property="og:description" content="This blog post provides an introduction to Apache Flink’s built-in monitoring and metrics system, that allows developers to effectively monitor their Flink jobs. Oftentimes, the task of picking the relevant metrics to monitor a Flink application can be overwhelming for a DevOps team that is just starting with stream processing and Apache Flink. Having worked with many organizations that deploy Flink at scale, I would like to share my experience and some best practice with the community." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2019/02/21/monitoring-apache-flink-applications-101/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2019-02-21T12:00:00+00:00" />
+<meta property="article:modified_time" content="2019-02-21T12:00:00+00:00" />
+<title>Monitoring Apache Flink Applications 101 | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" This blog post provides an introduction to Apache Flink’s built-in monitoring and metrics system, that allows developers to effectively monitor their Flink jobs. Oftentimes, the task of picking the relevant metrics to monitor a Flink application can be overwhelming for a DevOps team that is just starting with stream processing and Apache Flink. Having worked with many organizations that deploy Flink at scale, I would like to share my experience and some best practice with the community.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2019/02/21/monitoring-apache-flink-applications-101/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Monitoring Apache Flink Applications 101">
-  <meta property="og:description" content="This blog post provides an introduction to Apache Flink’s built-in monitoring and metrics system, that allows developers to effectively monitor their Flink jobs. Oftentimes, the task of picking the relevant metrics to monitor a Flink application can be overwhelming for a DevOps team that is just starting with stream processing and Apache Flink. Having worked with many organizations that deploy Flink at scale, I would like to share my experience and some best practice with the community.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2019-02-21T12:00:00+00:00">
-    <meta property="article:modified_time" content="2019-02-21T12:00:00+00:00">
-
-
-  <meta itemprop="name" content="Monitoring Apache Flink Applications 101">
-  <meta itemprop="description" content="This blog post provides an introduction to Apache Flink’s built-in monitoring and metrics system, that allows developers to effectively monitor their Flink jobs. Oftentimes, the task of picking the relevant metrics to monitor a Flink application can be overwhelming for a DevOps team that is just starting with stream processing and Apache Flink. Having worked with many organizations that deploy Flink at scale, I would like to share my experience and some best practice with the community.">
-  <meta itemprop="datePublished" content="2019-02-21T12:00:00+00:00">
-  <meta itemprop="dateModified" content="2019-02-21T12:00:00+00:00">
-  <meta itemprop="wordCount" content="2445">
-
-<title>Monitoring Apache Flink Applications 101 | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2019/02/21/monitoring-apache-flink-applications-101/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -562,11 +541,17 @@ troubleshooting and performance tuning. Nowadays, with the complexity of modern
 enterprise applications and the speed of delivery increasing, an engineering
 team must understand and have a complete overview of its applications’ status at
 any given point in time.</p>
-<h2 id="flinks-metrics-system">Flink’s Metrics System<a class="anchor" href="#flinks-metrics-system">#</a></h2>
+<h2 id="flinks-metrics-system">
+  Flink’s Metrics System
+  <a class="anchor" href="#flinks-metrics-system">#</a>
+</h2>
 <p>The foundation for monitoring Flink jobs is its <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html">metrics
 system</a>
 which consists of two components; <code>Metrics</code> and <code>MetricsReporters</code>.</p>
-<h3 id="metrics">Metrics<a class="anchor" href="#metrics">#</a></h3>
+<h3 id="metrics">
+  Metrics
+  <a class="anchor" href="#metrics">#</a>
+</h3>
 <p>Flink comes with a comprehensive set of built-in metrics such as:</p>
 <ul>
 <li>Used JVM Heap / NonHeap / Direct Memory (per Task-/JobManager)</li>
@@ -585,7 +570,10 @@ please check out <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/mo
 documentation</a>.
 In this blog post, we will focus on how to get the most out of Flink’s built-in
 metrics.</p>
-<h3 id="metricsreporters">MetricsReporters<a class="anchor" href="#metricsreporters">#</a></h3>
+<h3 id="metricsreporters">
+  MetricsReporters
+  <a class="anchor" href="#metricsreporters">#</a>
+</h3>
 <p>All metrics can be queried via Flink’s REST API. However, users can configure
 MetricsReporters to send the metrics to external systems. Apache Flink provides
 reporters to the most common monitoring tools out-of-the-box including JMX,
@@ -594,7 +582,10 @@ configure a reporter check out Flink’s <a href="//nightlies.apache.org/flink/f
 documentation</a>.</p>
 <p>In the remaining part of this blog post, we will go over some of the most
 important metrics to monitor your Apache Flink application.</p>
-<h2 id="monitoring-general-health">Monitoring General Health<a class="anchor" href="#monitoring-general-health">#</a></h2>
+<h2 id="monitoring-general-health">
+  Monitoring General Health
+  <a class="anchor" href="#monitoring-general-health">#</a>
+</h2>
 <p>The first thing you want to monitor is whether your job is actually in a <em>RUNNING</em>
 state. In addition, it pays off to monitor the number of restarts and the time
 since the last restart.</p>
@@ -605,35 +596,35 @@ barriers cannot overtake each other. Therefore, a successful checkpoint shows
 that no channel is fully congested.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>uptime</code></td>
-          <td>job</td>
-          <td>The time that the job has been running without interruption.</td>
-      </tr>
-      <tr>
-          <td><code>fullRestarts</code></td>
-          <td>job</td>
-          <td>The total number of full restarts since this job was submitted.</td>
-      </tr>
-      <tr>
-          <td><code>numberOfCompletedCheckpoints</code></td>
-          <td>job</td>
-          <td>The number of successfully completed checkpoints.</td>
-      </tr>
-      <tr>
-          <td><code>numberOfFailedCheckpoints</code></td>
-          <td>job</td>
-          <td>The number of failed checkpoints.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uptime</code></td>
+<td>job</td>
+<td>The time that the job has been running without interruption.</td>
+</tr>
+<tr>
+<td><code>fullRestarts</code></td>
+<td>job</td>
+<td>The total number of full restarts since this job was submitted.</td>
+</tr>
+<tr>
+<td><code>numberOfCompletedCheckpoints</code></td>
+<td>job</td>
+<td>The number of successfully completed checkpoints.</td>
+</tr>
+<tr>
+<td><code>numberOfFailedCheckpoints</code></td>
+<td>job</td>
+<td>The number of failed checkpoints.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panels</strong></p>
@@ -654,11 +645,17 @@ that no channel is fully congested.</p>
 <li><code>ΔfullRestarts</code> &gt; <code>threshold</code></li>
 <li><code>ΔnumberOfFailedCheckpoints</code> &gt; <code>threshold</code></li>
 </ul>
-<h2 id="monitoring-progress--throughput">Monitoring Progress &amp; Throughput<a class="anchor" href="#monitoring-progress--throughput">#</a></h2>
+<h2 id="monitoring-progress--throughput">
+  Monitoring Progress &amp; Throughput
+  <a class="anchor" href="#monitoring-progress--throughput">#</a>
+</h2>
 <p>Knowing that your application is RUNNING and checkpointing is working fine is good,
 but it does not tell you whether the application is actually making progress and
 keeping up with the upstream systems.</p>
-<h3 id="throughput">Throughput<a class="anchor" href="#throughput">#</a></h3>
+<h3 id="throughput">
+  Throughput
+  <a class="anchor" href="#throughput">#</a>
+</h3>
 <p>Flink provides multiple metrics to measure the throughput of our application.
 For each operator or task (remember: a task can contain multiple <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/dev/stream/operators/#task-chaining-and-resource-groups">chained
 tasks</a>
@@ -667,25 +664,25 @@ metrics, the rate of outgoing records per operator is often the most intuitive
 and easiest to reason about.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>numRecordsOutPerSecond</code></td>
-          <td>task</td>
-          <td>The number of records this operator/task sends per second.</td>
-      </tr>
-      <tr>
-          <td><code>numRecordsOutPerSecond</code></td>
-          <td>operator</td>
-          <td>The number of records this operator sends per second.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>numRecordsOutPerSecond</code></td>
+<td>task</td>
+<td>The number of records this operator/task sends per second.</td>
+</tr>
+<tr>
+<td><code>numRecordsOutPerSecond</code></td>
+<td>operator</td>
+<td>The number of records this operator sends per second.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panels</strong></p>
@@ -704,7 +701,10 @@ always have zero outgoing records because the metrics only count
 Flink-internal communication. There is a <a href="https://issues.apache.org/jira/browse/FLINK-7286">JIRA
 ticket</a> to change this
 behavior.</p>
-<h3 id="progress">Progress<a class="anchor" href="#progress">#</a></h3>
+<h3 id="progress">
+  Progress
+  <a class="anchor" href="#progress">#</a>
+</h3>
 <p>For applications, that use event time semantics, it is important that watermarks
 progress over time. A watermark of time <em>t</em> tells the framework, that it
 should not anymore expect to receive  events with a timestamp earlier than <em>t</em>,
@@ -725,20 +725,20 @@ ticket</a> provides further
 information and a work around for the latter.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>currentOutputWatermark</code></td>
-          <td>operator</td>
-          <td>The last watermark this operator has emitted.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>currentOutputWatermark</code></td>
+<td>operator</td>
+<td>The last watermark this operator has emitted.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panels</strong></p>
@@ -752,32 +752,35 @@ information and a work around for the latter.</p>
 <ul>
 <li><code>currentProcessingTime - currentOutputWatermark</code> &gt; <code>threshold</code></li>
 </ul>
-<h3 id="keeping-up">&ldquo;Keeping Up&rdquo;<a class="anchor" href="#keeping-up">#</a></h3>
+<h3 id="keeping-up">
+  &ldquo;Keeping Up&rdquo;
+  <a class="anchor" href="#keeping-up">#</a>
+</h3>
 <p>When consuming from a message queue, there is often a direct way to monitor if
 your application is keeping up. By using connector-specific metrics you can
 monitor how far behind the head of the message queue your current consumer group
 is. Flink forwards the underlying metrics from most sources.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>records-lag-max</code></td>
-          <td>user</td>
-          <td>applies to <code>FlinkKafkaConsumer</code>. The maximum lag in terms of the number of records for any partition in this window. An increasing value over time is your best indication that the consumer group is not keeping up with the producers.</td>
-      </tr>
-      <tr>
-          <td><code>millisBehindLatest</code></td>
-          <td>user</td>
-          <td>applies to <code>FlinkKinesisConsumer</code>. The number of milliseconds a consumer is behind the head of the stream. For any consumer and Kinesis shard, this indicates how far it is behind the current time.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>records-lag-max</code></td>
+<td>user</td>
+<td>applies to <code>FlinkKafkaConsumer</code>. The maximum lag in terms of the number of records for any partition in this window. An increasing value over time is your best indication that the consumer group is not keeping up with the producers.</td>
+</tr>
+<tr>
+<td><code>millisBehindLatest</code></td>
+<td>user</td>
+<td>applies to <code>FlinkKinesisConsumer</code>. The number of milliseconds a consumer is behind the head of the stream. For any consumer and Kinesis shard, this indicates how far it is behind the current time.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Possible Alerts</strong></p>
@@ -785,7 +788,10 @@ is. Flink forwards the underlying metrics from most sources.</p>
 <li><code>records-lag-max</code>  &gt; <code>threshold</code></li>
 <li><code>millisBehindLatest</code> &gt; <code>threshold</code></li>
 </ul>
-<h2 id="monitoring-latency">Monitoring Latency<a class="anchor" href="#monitoring-latency">#</a></h2>
+<h2 id="monitoring-latency">
+  Monitoring Latency
+  <a class="anchor" href="#monitoring-latency">#</a>
+</h2>
 <p>Generally speaking, latency is the delay between the creation of an event and
 the time at which results based on this event become visible. Once the event is
 created it is usually stored in a persistent message queue, before it is
@@ -825,25 +831,25 @@ significantly impact the performance of the cluster. It is recommended to only
 enable it to locate sources of latency during debugging.</p>
 <p><strong>Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>latency</code></td>
-          <td>operator</td>
-          <td>The latency from the source operator to this operator.</td>
-      </tr>
-      <tr>
-          <td><code>restartingTime</code></td>
-          <td>job</td>
-          <td>The time it took to restart the job, or how long the current restart has been in progress.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>latency</code></td>
+<td>operator</td>
+<td>The latency from the source operator to this operator.</td>
+</tr>
+<tr>
+<td><code>restartingTime</code></td>
+<td>job</td>
+<td>The time it took to restart the job, or how long the current restart has been in progress.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panel</strong></p>
@@ -853,14 +859,20 @@ enable it to locate sources of latency during debugging.</p>
 <i><small>Latency distribution between a source and a single sink subtask.</small></i>
 </center>
 <br/>
-<h2 id="jvm-metrics">JVM Metrics<a class="anchor" href="#jvm-metrics">#</a></h2>
+<h2 id="jvm-metrics">
+  JVM Metrics
+  <a class="anchor" href="#jvm-metrics">#</a>
+</h2>
 <p>So far we have only looked at Flink-specific metrics. As long as latency &amp;
 throughput of your application are in line with your expectations and it is
 checkpointing consistently, this is probably everything you need. On the other
 hand, if you job’s performance is starting to degrade among the firstmetrics you
 want to look at are memory consumption and CPU load of your Task- &amp; JobManager
 JVMs.</p>
-<h3 id="memory">Memory<a class="anchor" href="#memory">#</a></h3>
+<h3 id="memory">
+  Memory
+  <a class="anchor" href="#memory">#</a>
+</h3>
 <p>Flink reports the usage of Heap, NonHeap, Direct &amp; Mapped memory for JobManagers
 and TaskManagers.</p>
 <ul>
@@ -901,50 +913,50 @@ post</a>
 by Stefan Richter.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>Status.JVM.Memory.NonHeap.Committed</code></td>
-          <td>job-/taskmanager</td>
-          <td>The amount of non-heap memory guaranteed to be available to the JVM (in bytes).</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.Memory.Heap.Used</code></td>
-          <td>job-/taskmanager</td>
-          <td>The amount of heap memory currently used (in bytes).</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.Memory.Heap.Committed</code></td>
-          <td>job-/taskmanager</td>
-          <td>The amount of heap memory guaranteed to be available to the JVM (in bytes).</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.Memory.Direct.MemoryUsed</code></td>
-          <td>job-/taskmanager</td>
-          <td>The amount of memory used by the JVM for the direct buffer pool (in bytes).</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.Memory.Mapped.MemoryUsed</code></td>
-          <td>job-/taskmanager</td>
-          <td>The amount of memory used by the JVM for the mapped buffer pool (in bytes).</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.GarbageCollector.G1 Young Generation.Time</code></td>
-          <td>job-/taskmanager</td>
-          <td>The total time spent performing G1 Young Generation garbage collection.</td>
-      </tr>
-      <tr>
-          <td><code>Status.JVM.GarbageCollector.G1 Old Generation.Time</code></td>
-          <td>job-/taskmanager</td>
-          <td>The total time spent performing G1 Old Generation garbage collection.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Status.JVM.Memory.NonHeap.Committed</code></td>
+<td>job-/taskmanager</td>
+<td>The amount of non-heap memory guaranteed to be available to the JVM (in bytes).</td>
+</tr>
+<tr>
+<td><code>Status.JVM.Memory.Heap.Used</code></td>
+<td>job-/taskmanager</td>
+<td>The amount of heap memory currently used (in bytes).</td>
+</tr>
+<tr>
+<td><code>Status.JVM.Memory.Heap.Committed</code></td>
+<td>job-/taskmanager</td>
+<td>The amount of heap memory guaranteed to be available to the JVM (in bytes).</td>
+</tr>
+<tr>
+<td><code>Status.JVM.Memory.Direct.MemoryUsed</code></td>
+<td>job-/taskmanager</td>
+<td>The amount of memory used by the JVM for the direct buffer pool (in bytes).</td>
+</tr>
+<tr>
+<td><code>Status.JVM.Memory.Mapped.MemoryUsed</code></td>
+<td>job-/taskmanager</td>
+<td>The amount of memory used by the JVM for the mapped buffer pool (in bytes).</td>
+</tr>
+<tr>
+<td><code>Status.JVM.GarbageCollector.G1 Young Generation.Time</code></td>
+<td>job-/taskmanager</td>
+<td>The total time spent performing G1 Young Generation garbage collection.</td>
+</tr>
+<tr>
+<td><code>Status.JVM.GarbageCollector.G1 Old Generation.Time</code></td>
+<td>job-/taskmanager</td>
+<td>The total time spent performing G1 Old Generation garbage collection.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panel</strong></p>
@@ -964,7 +976,10 @@ by Stefan Richter.</p>
 <ul>
 <li><code>container memory limit</code> &lt; <code>container memory + safety margin</code></li>
 </ul>
-<h3 id="cpu">CPU<a class="anchor" href="#cpu">#</a></h3>
+<h3 id="cpu">
+  CPU
+  <a class="anchor" href="#cpu">#</a>
+</h3>
 <p>Besides memory, you should also monitor the CPU load of the TaskManagers. If
 your TaskManagers are constantly under very high load, you might be able to
 improve the overall performance by decreasing the number of task slots per
@@ -983,20 +998,20 @@ can be mitigated by pre-aggregating before the shuffle or keying on a more
 evenly distributed key.</p>
 <p><strong>Key Metrics</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>Metric</th>
-          <th>Scope</th>
-          <th>Description</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>Status.JVM.CPU.Load</code></td>
-          <td>job-/taskmanager</td>
-          <td>The recent CPU usage of the JVM.</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Status.JVM.CPU.Load</code></td>
+<td>job-/taskmanager</td>
+<td>The recent CPU usage of the JVM.</td>
+</tr>
+</tbody>
 </table>
 <br/>
 <p><strong>Example Dashboard Panel</strong></p>
@@ -1006,7 +1021,10 @@ evenly distributed key.</p>
 <i><small>TaskManager & JobManager CPU load.</small></i>
 </center>
 <br/>
-<h2 id="system-resources">System Resources<a class="anchor" href="#system-resources">#</a></h2>
+<h2 id="system-resources">
+  System Resources
+  <a class="anchor" href="#system-resources">#</a>
+</h2>
 <p>In addition to the JVM metrics above, it is also possible to use Flink’s metrics
 system to gather insights about system resources, i.e. memory, CPU &amp;
 network-related metrics for the whole machine as opposed to the Flink processes
@@ -1015,7 +1033,10 @@ dependencies on the classpath. Please check out the
 <a href="//nightlies.apache.org/flink/flink-docs-release-1.7/monitoring/metrics.html#system-resources">Flink system resource metrics documentation</a> for
 additional guidance and details. System resource monitoring in Flink can be very
 helpful in setups without existing host monitoring capabilities.</p>
-<h2 id="conclusion">Conclusion<a class="anchor" href="#conclusion">#</a></h2>
+<h2 id="conclusion">
+  Conclusion
+  <a class="anchor" href="#conclusion">#</a>
+</h2>
 <p>This post tries to shed some light on Flink’s metrics and monitoring system. You
 can utilise it as a starting point when you first think about how to
 successfully monitor your Flink application. I highly recommend to start

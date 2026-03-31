@@ -13,47 +13,26 @@
 <script src="/js/flink.js"></script>
 <link rel="canonical" href="https://flink.apache.org/2015/05/11/juggling-with-bits-and-bytes/">
 
-  <!--
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="How Apache Flink operates on binary data # Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Juggling with Bits and Bytes" />
+<meta property="og:description" content="How Apache Flink operates on binary data # Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2015/05/11/juggling-with-bits-and-bytes/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2015-05-11T10:00:00+00:00" />
+<meta property="article:modified_time" content="2015-05-11T10:00:00+00:00" />
+<title>Juggling with Bits and Bytes | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.0432255a1fe6dbf8350750d02840a8bdf277691246f374d2b485439a10a8f1b4.js" integrity="sha256-BDIlWh/m2/g1B1DQKECovfJ3aRJG83TStIVDmhCo8bQ="></script>
+<!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
 -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="How Apache Flink operates on binary data# Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.
-">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2e3440">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://flink.apache.org/2015/05/11/juggling-with-bits-and-bytes/">
-  <meta property="og:site_name" content="Apache Flink">
-  <meta property="og:title" content="Juggling with Bits and Bytes">
-  <meta property="og:description" content="How Apache Flink operates on binary data# Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.">
-  <meta property="og:locale" content="en_us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2015-05-11T10:00:00+00:00">
-    <meta property="article:modified_time" content="2015-05-11T10:00:00+00:00">
-
-
-  <meta itemprop="name" content="Juggling with Bits and Bytes">
-  <meta itemprop="description" content="How Apache Flink operates on binary data# Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.">
-  <meta itemprop="datePublished" content="2015-05-11T10:00:00+00:00">
-  <meta itemprop="dateModified" content="2015-05-11T10:00:00+00:00">
-  <meta itemprop="wordCount" content="3380">
-
-<title>Juggling with Bits and Bytes | Apache Flink</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://flink.apache.org/2015/05/11/juggling-with-bits-and-bytes/">
-<link rel="stylesheet" href="/book.min.460d948ed82051975a6af51101149dafea98eb11a9e62aa0313098085de194b5.css" integrity="sha256-Rg2UjtggUZdaavURARSdr&#43;qY6xGp5iqgMTCYCF3hlLU=" crossorigin="anonymous">
-
-
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.d5a9f72edd2f420fe0de9083ee6a9cecfe18d02151adffa432a98c381daa326c.js" integrity="sha256-1an3Lt0vQg/g3pCD7mqc7P4Y0CFRrf&#43;kMqmMOB2qMmw=" crossorigin="anonymous"></script>
-
-
-
-  <meta name="generator" content="Hugo 0.159.0">
+  <meta name="generator" content="Hugo 0.124.1">
 
     
     <script>
@@ -534,13 +513,22 @@ https://github.com/alex-shpak/hugo-book
 
 
 
-    <p><h2 id="how-apache-flink-operates-on-binary-data">How Apache Flink operates on binary data<a class="anchor" href="#how-apache-flink-operates-on-binary-data">#</a></h2>
+    <p><h2 id="how-apache-flink-operates-on-binary-data">
+  How Apache Flink operates on binary data
+  <a class="anchor" href="#how-apache-flink-operates-on-binary-data">#</a>
+</h2>
 <p>Nowadays, a lot of open-source systems for analyzing large data sets are implemented in Java or other JVM-based programming languages. The most well-known example is Apache Hadoop, but also newer frameworks such as Apache Spark, Apache Drill, and also Apache Flink run on JVMs. A common challenge that JVM-based data analysis engines face is to store large amounts of data in memory - both for caching and for efficient processing such as sorting and joining of data. Managing the JVM memory well makes the difference between a system that is hard to configure and has unpredictable reliability and performance and a system that behaves robustly with few configuration knobs.</p>
 <p>In this blog post we discuss how Apache Flink manages memory, talk about its custom data de/serialization stack, and show how it operates on binary data.</p>
-<h2 id="data-objects-lets-put-them-on-the-heap">Data Objects? Let’s put them on the heap!<a class="anchor" href="#data-objects-lets-put-them-on-the-heap">#</a></h2>
+<h2 id="data-objects-lets-put-them-on-the-heap">
+  Data Objects? Let’s put them on the heap!
+  <a class="anchor" href="#data-objects-lets-put-them-on-the-heap">#</a>
+</h2>
 <p>The most straight-forward approach to process lots of data in a JVM is to put it as objects on the heap and operate on these objects. Caching a data set as objects would be as simple as maintaining a list containing an object for each record. An in-memory sort would simply sort the list of objects.
 However, this approach has a few notable drawbacks. First of all it is not trivial to watch and control heap memory usage when a lot of objects are created and invalidated constantly. Memory overallocation instantly kills the JVM with an <code>OutOfMemoryError</code>. Another aspect is garbage collection on multi-GB JVMs which are flooded with new objects. The overhead of garbage collection in such environments can easily reach 50% and more. Finally, Java objects come with a certain space overhead depending on the JVM and platform. For data sets with many small objects this can significantly reduce the effectively usable amount of memory. Given proficient system design and careful, use-case specific system parameter tuning, heap memory usage can be more or less controlled and <code>OutOfMemoryErrors</code> avoided. However, such setups are rather fragile especially if data characteristics or the execution environment change.</p>
-<h2 id="what-is-flink-doing-about-that">What is Flink doing about that?<a class="anchor" href="#what-is-flink-doing-about-that">#</a></h2>
+<h2 id="what-is-flink-doing-about-that">
+  What is Flink doing about that?
+  <a class="anchor" href="#what-is-flink-doing-about-that">#</a>
+</h2>
 <p>Apache Flink has its roots at a research project which aimed to combine the best technologies of MapReduce-based systems and parallel database systems. Coming from this background, Flink has always had its own way of processing data in-memory. Instead of putting lots of objects on the heap, Flink serializes objects into a fixed number of pre-allocated memory segments. Its DBMS-style sort and join algorithms operate as much as possible on this binary data to keep the de/serialization overhead at a minimum. If more data needs to be processed than can be kept in memory, Flink’s operators partially spill data to disk. In fact, a lot of Flink’s internal implementations look more like C/C++ rather than common Java. The following figure gives a high-level overview of how Flink stores data serialized in memory segments and spills to disk if necessary.</p>
 <center>
 <img src="/img/blog/memory-mgmt.png" style="width:90%;margin:15px">
@@ -554,14 +542,20 @@ However, this approach has a few notable drawbacks. First of all it is not trivi
 </ol>
 <p>These properties of active memory management are very desirable in a data processing systems for large-scale data analytics but have a significant price tag attached. Active memory management and operating on binary data is not trivial to implement, i.e., using <code>java.util.HashMap</code> is much easier than implementing a spillable hash-table backed by byte arrays and a custom serialization stack. Of course Apache Flink is not the only JVM-based data processing system that operates on serialized binary data. Projects such as <a href="http://drill.apache.org/">Apache Drill</a>, <a href="http://ignite.incubator.apache.org/">Apache Ignite (incubating)</a> or <a href="http://projectgeode.org/">Apache Geode (incubating)</a> apply similar techniques and it was recently announced that also <a href="http://spark.apache.org/">Apache Spark</a> will evolve into this direction with <a href="https://databricks.com/blog/2015/04/28/project-tungsten-bringing-spark-closer-to-bare-metal.html">Project Tungsten</a>.</p>
 <p>In the following we discuss in detail how Flink allocates memory, de/serializes objects, and operates on binary data. We will also show some performance numbers comparing processing objects on the heap and operating on binary data.</p>
-<h2 id="how-does-flink-allocate-memory">How does Flink allocate memory?<a class="anchor" href="#how-does-flink-allocate-memory">#</a></h2>
+<h2 id="how-does-flink-allocate-memory">
+  How does Flink allocate memory?
+  <a class="anchor" href="#how-does-flink-allocate-memory">#</a>
+</h2>
 <p>A Flink worker, called TaskManager, is composed of several internal components such as an actor system for coordination with the Flink master, an IOManager that takes care of spilling data to disk and reading it back, and a MemoryManager that coordinates memory usage. In the context of this blog post, the MemoryManager is of most interest.</p>
 <p>The MemoryManager takes care of allocating, accounting, and distributing MemorySegments to data processing operators such as sort and join operators. A <a href="https://github.com/apache/flink/blob/release-0.9.0-milestone-1/flink-core/src/main/java/org/apache/flink/core/memory/MemorySegment.java">MemorySegment</a> is Flink’s distribution unit of memory and is backed by a regular Java byte array (size is 32 KB by default). A MemorySegment provides very efficient write and read access to its backed byte array using Java’s unsafe methods. You can think of a MemorySegment as a custom-tailored version of Java’s NIO ByteBuffer. In order to operate on multiple MemorySegments like on a larger chunk of consecutive memory, Flink uses logical views that implement Java’s <code>java.io.DataOutput</code> and <code>java.io.DataInput</code> interfaces.</p>
 <p>MemorySegments are allocated once at TaskManager start-up time and are destroyed when the TaskManager is shut down. Hence, they are reused and not garbage-collected over the whole lifetime of a TaskManager. After all internal data structures of a TaskManager have been initialized and all core services have been started, the MemoryManager starts creating MemorySegments. By default 70% of the JVM heap that is available after service initialization is allocated by the MemoryManager. It is also possible to configure an absolute amount of managed memory. The remaining JVM heap is used for objects that are instantiated during task processing, including objects created by user-defined functions. The following figure shows the memory distribution in the TaskManager JVM after startup.</p>
 <center>
 <img src="/img/blog/memory-alloc.png" style="width:60%;margin:15px">
 </center>
-<h2 id="how-does-flink-serialize-objects">How does Flink serialize objects?<a class="anchor" href="#how-does-flink-serialize-objects">#</a></h2>
+<h2 id="how-does-flink-serialize-objects">
+  How does Flink serialize objects?
+  <a class="anchor" href="#how-does-flink-serialize-objects">#</a>
+</h2>
 <p>The Java ecosystem offers several libraries to convert objects into a binary representation and back. Common alternatives are standard Java serialization, <a href="https://github.com/EsotericSoftware/kryo">Kryo</a>, <a href="http://avro.apache.org/">Apache Avro</a>, <a href="http://thrift.apache.org/">Apache Thrift</a>, or Google’s <a href="https://github.com/google/protobuf">Protobuf</a>. Flink includes its own custom serialization framework in order to control the binary representation of data. This is important because operating on binary data such as comparing or even manipulating binary data requires exact knowledge of the serialization layout. Further, configuring the serialization layout with respect to operations that are performed on binary data can yield a significant performance boost. Flink’s serialization stack also leverages the fact, that the type of the objects which are going through de/serialization are exactly known before a program is executed.</p>
 <p>Flink programs can process data represented as arbitrary Java or Scala objects. Before a program is optimized, the data types at each processing step of the program’s data flow need to be identified. For Java programs, Flink features a reflection-based type extraction component to analyze the return types of user-defined functions. Scala programs are analyzed with help of the Scala compiler. Flink represents each data type with a <a href="https://github.com/apache/flink/blob/release-0.9.0-milestone-1/flink-core/src/main/java/org/apache/flink/api/common/typeinfo/TypeInformation.java">TypeInformation</a>. Flink has TypeInformations for several kinds of data types, including:</p>
 <ul>
@@ -578,11 +572,15 @@ However, this approach has a few notable drawbacks. First of all it is not trivi
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Person</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">id</span><span class="p">;</span><span class="w">
 </span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="p">}</span></span></span></code></pre></div><center>
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><center>
 <img src="/img/blog/data-serialization.png" style="width:80%;margin:15px">
 </center>
 <p>Flink’s type system can be easily extended by providing custom TypeInformations, Serializers, and Comparators to improve the performance of serializing and comparing custom data types.</p>
-<h2 id="how-does-flink-operate-on-binary-data">How does Flink operate on binary data?<a class="anchor" href="#how-does-flink-operate-on-binary-data">#</a></h2>
+<h2 id="how-does-flink-operate-on-binary-data">
+  How does Flink operate on binary data?
+  <a class="anchor" href="#how-does-flink-operate-on-binary-data">#</a>
+</h2>
 <p>Similar to many other data processing APIs (including SQL), Flink’s APIs provide transformations to group, sort, and join data sets. These transformations operate on potentially very large data sets. Relational database systems feature very efficient algorithms for these purposes since several decades including external merge-sort, merge-join, and hybrid hash-join. Flink builds on this technology, but generalizes it to handle arbitrary objects using its custom serialization and comparison stack. In the following, we show how Flink operates with binary data by the example of Flink’s in-memory sort algorithm.</p>
 <p>Flink assigns a memory budget to its data processing operators. Upon initialization, a sort algorithm requests its memory budget from the MemoryManager and receives a corresponding set of MemorySegments. The set of MemorySegments becomes the memory pool of a so-called sort buffer which collects the data that is be sorted. The following figure illustrates how data objects are serialized into the sort buffer.</p>
 <center>
@@ -598,7 +596,10 @@ The following figure shows how two objects are compared.</p>
 <img src="/img/blog/sorting-binary-data-3.png" style="width:80%;margin:15px">
 </center>
 <p>The sorted data is returned by sequentially reading the pointer region of the sort buffer, skipping the sort keys and following the sorted pointers to the actual data. This data is either deserialized and returned as objects or the binary representation is copied and written to disk in case of an external merge-sort (see this <a href="http://flink.apache.org/news/2015/03/13/peeking-into-Apache-Flinks-Engine-Room.html">blog post on joins in Flink</a>).</p>
-<h2 id="show-me-numbers">Show me numbers!<a class="anchor" href="#show-me-numbers">#</a></h2>
+<h2 id="show-me-numbers">
+  Show me numbers!
+  <a class="anchor" href="#show-me-numbers">#</a>
+</h2>
 <p>So, what does operating on binary data mean for performance? We’ll run a benchmark that sorts 10 million <code>Tuple2&lt;Integer, String&gt;</code> objects to find out. The values of the Integer field are sampled from a uniform distribution. The String field values have a length of 12 characters and are sampled from a long-tail distribution. The input data is provided by an iterator that returns a mutable object, i.e., the same tuple object instance is returned with different field values. Flink uses this technique when reading data from memory, network, or disk to avoid unnecessary object instantiations. The benchmarks are run in a JVM with 900 MB heap size which is approximately the required amount of memory to store and sort 10 million tuple objects on the heap without dying of an <code>OutOfMemoryError</code>. We sort the tuples on the Integer field and on the String field using three sorting methods:</p>
 <ol>
 <li><strong>Object-on-heap.</strong> The tuples are stored in a regular <code>java.util.ArrayList</code> with initial capacity set to 10 million entries and sorted using Java’s regular collection sort.</li>
@@ -656,10 +657,16 @@ The following figure shows how two objects are compared.</p>
 </table>
 <br>
 <p>To summarize, the experiments verify the previously stated benefits of operating on binary data.</p>
-<h2 id="were-not-done-yet">We’re not done yet!<a class="anchor" href="#were-not-done-yet">#</a></h2>
+<h2 id="were-not-done-yet">
+  We’re not done yet!
+  <a class="anchor" href="#were-not-done-yet">#</a>
+</h2>
 <p>Apache Flink features quite a bit of advanced techniques to safely and efficiently process huge amounts of data with limited memory resources. However, there are a few points that could make Flink even more efficient. The Flink community is working on moving the managed memory to off-heap memory. This will allow for smaller JVMs, lower garbage collection overhead, and also easier system configuration. With Flink’s Table API, the semantics of all operations such as aggregations and projections are known (in contrast to black-box user-defined functions). Hence we can generate code for Table API operations that directly operates on binary data. Further improvements include serialization layouts which are tailored towards the operations that are applied on the binary data and code generation for serializers and comparators.</p>
 <p>The groundwork (and a lot more) for operating on binary data is done but there is still some room for making Flink even better and faster. If you are crazy about performance and like to juggle with lot of bits and bytes, join the Flink community!</p>
-<h2 id="tldr-give-me-three-things-to-remember">TL;DR; Give me three things to remember!<a class="anchor" href="#tldr-give-me-three-things-to-remember">#</a></h2>
+<h2 id="tldr-give-me-three-things-to-remember">
+  TL;DR; Give me three things to remember!
+  <a class="anchor" href="#tldr-give-me-three-things-to-remember">#</a>
+</h2>
 <ul>
 <li>Flink’s active memory management avoids nasty <code>OutOfMemoryErrors</code> that kill your JVMs and reduces garbage collection overhead.</li>
 <li>Flink features a highly efficient data de/serialization stack that facilitates operations on binary data and makes more data fit into memory.</li>
