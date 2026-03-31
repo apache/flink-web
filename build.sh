@@ -17,10 +17,28 @@
 # limitations under the License.
 ################################################################################
 
+REQUIRED_HUGO_VERSION="0.124.1"
+
 if ! command -v hugo &> /dev/null
 then
 	echo "Hugo must be installed to run the docs locally"
 	echo "Please see docs/README.md for more details"
+	exit 1
+fi
+
+HUGO_VERSION_OUTPUT=$(hugo version)
+HUGO_VERSION=$(echo "${HUGO_VERSION_OUTPUT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'  | head -1)
+if [[ "${HUGO_VERSION}" != "${REQUIRED_HUGO_VERSION}" ]]
+then
+	echo "Hugo version ${REQUIRED_HUGO_VERSION} is required, but found ${HUGO_VERSION}"
+	echo "Please install Hugo extended v${REQUIRED_HUGO_VERSION}"
+	exit 1
+fi
+
+if ! echo "${HUGO_VERSION_OUTPUT}" | grep -qi 'extended'
+then
+	echo "Hugo extended edition is required, but a non-extended version was found"
+	echo "Please install Hugo extended v${REQUIRED_HUGO_VERSION}"
 	exit 1
 fi
 
