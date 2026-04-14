@@ -118,6 +118,7 @@ March saw a documentation push across several areas:
 
 ### FLIP (accepted)
 
+Flink Improvement Proposals or FLIPs are the mechanism by which the community propose new features and initiatives. 
 
 * **[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink Documentation.** (Piotr Nowojski) - A major reorganisation to improve discoverability and reduce duplication across the Flink docs. Updated March 24, 2026.
 * **[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): Improvements to SinkUpsertMaterializer and Changelog Disorder.** - Addresses correctness issues in upsert materialisation under out-of-order changelog events.
