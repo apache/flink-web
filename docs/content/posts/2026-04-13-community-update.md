@@ -9,7 +9,8 @@ aliases:
 - /news/2026/04/13/community-update.html
 ---
 
-This is the monthly Flink Community update for April 2026. We scour the latest updates from the Flink community so you don't have to! We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before providing the usual almanac-style listing of technical updates, user-facing updates, and governance and community.
+This is the monthly Flink Community update for April 2026. We scour the latest updates from the Flink community so you don't have to! 
+We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before providing the usual almanac-style listing of technical updates, user-facing updates, and governance and community.
 <!--more-->
 
 <!-- TOC -->
@@ -42,19 +43,33 @@ Previous Blog: [Flink community update March 2026](https://flink.apache.org/2026
 
 ### Apache Flink 2.3 Release Draws Nearer
 
-Four months after the release of Flink 2.2 (December 4th 2025), we are hotly anticipating the release of Flink 2.3. The code freeze for Apache Flink 2.3 was invoked on April 14th and at time of writing we anticipate the version to be launched toward the end of April 2026. The release will be subject to its own launch notices and blog, which we will not repeat here. Needless to say we're excited as the release scope includes important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 Filesink connector. We are also proposing a re-structure to the Flink documentation to make it easier to navigate for new and existing users. You can see the full release scope here: [https://cwiki.apache.org/confluence/display/FLINK/2.3+Release](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release)
+Four months after the release of Flink 2.2 (December 4th 2025), we are hotly anticipating the release of Flink 2.3. 
+The code freeze for Apache Flink 2.3 was invoked on April 14th and at time of writing we anticipate the version to be launched toward the end of April 2026. 
+The release will be subject to its own launch notices and blog, which we will not repeat here. Needless to say we're excited as the release scope includes important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 Filesink connector. 
+We are also proposing a re-structure to the Flink documentation to make it easier to navigate for new and existing users. 
+You can see the full release scope here: [https://cwiki.apache.org/confluence/display/FLINK/2.3+Release](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release)
 
 ### Flink CDC 3.6.0 Release
 
-Flink CDC is used to capture and stream real-time changes from databases (inserts, updates, and deletes) as they happen. If you missed it, you can read the [launch announcement](https://flink.apache.org/2026/03/30/apache-flink-cdc-3.6.0-release-announcement/). Version 3.6.0 extends Flink version support to 1.20.x and 2.2.x, upgrades JDK version to 11, introduces new Oracle Source and Apache Hudi Sink Pipeline connectors and adds Lenient mode schema evolution support for Fluss Pipeline connector. It also introduces PostgreSQL Schema Evolution support, enhances Schema Evolution capabilities for better multi-table synchronization scenarios and table name mapping flexibility, and strengthens the Transform framework with VARIANT type and JSON parsing support.
+Flink CDC is used to capture and stream real-time changes from databases (inserts, updates, and deletes) as they happen. 
+If you missed it, you can read the [launch announcement](https://flink.apache.org/2026/03/30/apache-flink-cdc-3.6.0-release-announcement/). 
+Version 3.6.0 extends Flink version support to 1.20.x and 2.2.x, upgrades JDK version to 11, introduces new Oracle Source and Apache Hudi Sink Pipeline connectors and adds Lenient mode schema evolution support for Fluss Pipeline connector. 
+It also introduces PostgreSQL Schema Evolution support, enhances Schema Evolution capabilities for better multi-table synchronization scenarios and table name mapping flexibility, and strengthens the Transform framework with VARIANT type and JSON parsing support.
 
 ### Flink Documentation Re-structure
 
-We want to re-structure Flink documentation to aid discoverability and reduce duplication (see [FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation)). Reflecting the broadening use of SQL we plan to create a dedicated Flink SQL section separate from Table API. We will move shared concepts (Relational Streaming concepts like Dynamic Tables, Time Attributes) to the top-level Concepts section and also move shared architecture documentation (Source/Sink APIs) to the Connectors section. Additionally, Python documentation will now be integrated within the Table API and DataStream API sections where applicable, with the rest moved to the Python API docs (PyDocs).
+We want to re-structure Flink documentation to aid discoverability and reduce duplication (see [FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation)). 
+Reflecting the broadening use of SQL we plan to create a dedicated Flink SQL section separate from Table API. 
+We will move shared concepts (Relational Streaming concepts like Dynamic Tables, Time Attributes) to the top-level Concepts section and also move shared architecture documentation (Source/Sink APIs) to the Connectors section. 
+Additionally, Python documentation will now be integrated within the Table API and DataStream API sections where applicable, with the rest moved to the Python API docs (PyDocs).
 
 ### Flink Native S3 FileSystem Connector
 
-Amazon S3 is a popular sink and source destination for Apache Flink users. Currently, Apache Flink provides two primary mechanisms for interacting with S3 (`flink-s3-fs-hadoop` and `flink-s3-fs-presto`), both of which are adapters wrapping external projects. To improve performance and maintainability we propose the creation of `flink-s3-fs-native` ([FLIP-555](https://cwiki.apache.org/confluence/display/FLINK/FLIP-555%3A+Flink+Native+S3+FileSystem)), a clean-slate implementation built directly on the AWS SDK for Java v2. We will remove the Hadoop dependency, making the connector a self-contained module depending only on the modular AWS SDK v2. The connector will support both state access (FileSystem) and transactional sinks (RecoverableWriter), simplifying the user experience. Additionally, the connector leverages the non-blocking I/O capabilities of Netty and the AWS Common Runtime (CRT) to maximise throughput.
+Amazon S3 is a popular sink and source destination for Apache Flink users. 
+Currently, Apache Flink provides two primary mechanisms for interacting with S3 (`flink-s3-fs-hadoop` and `flink-s3-fs-presto`), both of which are adapters wrapping external projects. 
+To improve performance and maintainability we propose the creation of `flink-s3-fs-native` ([FLIP-555](https://cwiki.apache.org/confluence/display/FLINK/FLIP-555%3A+Flink+Native+S3+FileSystem)), a clean-slate implementation built directly on the AWS SDK for Java v2. 
+We will remove the Hadoop dependency, making the connector a self-contained module depending only on the modular AWS SDK v2. 
+The connector will support both state access (FileSystem) and transactional sinks (RecoverableWriter), simplifying the user experience. Additionally, the connector leverages the non-blocking I/O capabilities of Netty and the AWS Common Runtime (CRT) to maximise throughput.
 
 ## Developer/Technical Updates
 
