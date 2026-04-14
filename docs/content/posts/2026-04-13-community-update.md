@@ -15,45 +15,27 @@ We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before 
 
 <!-- TOC -->
   * [Hot Topics](#hot-topics)
-    * [Apache Flink 2.3 Release Draws Nearer](#apache-flink-23-release-draws-nearer)
-    * [Flink CDC 3.6.0 Release](#flink-cdc-360-release)
-    * [Flink Documentation Re-structure](#flink-documentation-re-structure)
-    * [Flink Native S3 FileSystem Connector](#flink-native-s3-filesystem-connector)
   * [Developer/Technical Updates](#developertechnical-updates)
-    * [Table API & SQL](#table-api--sql)
-    * [Runtime & Execution](#runtime--execution)
-    * [Checkpointing & State](#checkpointing--state)
-    * [Metrics & Observability](#metrics--observability)
-    * [Python & Multi-language Support](#python--multi-language-support)
   * [User-Facing Updates](#user-facing-updates)
-    * [Apache Flink CDC 3.6.0 Release](#apache-flink-cdc-360-release-1)
-    * [Apache Flink Agents 0.2.1 Release](#apache-flink-agents-021-release)
-    * [Documentation](#documentation)
   * [Governance and Community](#governance-and-community)
-    * [FLIP Activity](#flip-activity)
-      * [Accepted - being implemented](#accepted---being-implemented)
-      * [Being discussed](#being-discussed)
-    * [Apache Flink Dev List activity](#apache-flink-dev-list-activity)
-  * [For more information](#for-more-information)
 <!-- TOC -->
 
-Previous Blog: [Flink community update March 2026](https://flink.apache.org/2026/03/01/flink-community-update-for-march-2026/)
 
 ## Hot Topics
 
 ### Apache Flink 2.3 Release Draws Nearer
 
-Four months after the release of Flink 2.2 (December 4th 2025), we are hotly anticipating the release of Flink 2.3. 
+Four months after the [release of Flink 2.2](https://flink.apache.org/2025/12/04/apache-flink-2.2.0-advancing-real-time-data--ai-and-empowering-stream-processing-for-the-ai-era/) (December 4th 2025), we are hotly anticipating the release of Flink 2.3. 
 The code freeze for Apache Flink 2.3 was invoked on April 14th and at time of writing we anticipate the version to be launched toward the end of April 2026. 
-The release will be subject to its own launch notices and blog, which we will not repeat here. Needless to say we're excited as the release scope includes important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 Filesink connector. 
+Some of the main features in this release will include important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 Filesink connector. 
+Stay tuned to this blog for the release announcement with full details.
 We are also proposing a re-structure to the Flink documentation to make it easier to navigate for new and existing users. 
-You can see the full release scope here: [https://cwiki.apache.org/confluence/display/FLINK/2.3+Release](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release)
+You can see the full release scope [here](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release).
 
 ### Flink CDC 3.6.0 Release
 
 Flink CDC is used to capture and stream real-time changes from databases (inserts, updates, and deletes) as they happen. 
-If you missed it, you can read the [launch announcement](https://flink.apache.org/2026/03/30/apache-flink-cdc-3.6.0-release-announcement/). 
-Version 3.6.0 extends Flink version support to 1.20.x and 2.2.x, upgrades JDK version to 11, introduces new Oracle Source and Apache Hudi Sink Pipeline connectors and adds Lenient mode schema evolution support for Fluss Pipeline connector. 
+[Version 3.6.0](https://flink.apache.org/2026/03/30/apache-flink-cdc-3.6.0-release-announcement/) extends Flink version support to 1.20.x and 2.2.x, upgrades JDK version to 11, introduces new Oracle Source and Apache Hudi Sink Pipeline connectors and adds Lenient mode schema evolution support for Fluss Pipeline connector. 
 It also introduces PostgreSQL Schema Evolution support, enhances Schema Evolution capabilities for better multi-table synchronization scenarios and table name mapping flexibility, and strengthens the Transform framework with VARIANT type and JSON parsing support.
 
 ### Flink Documentation Re-structure
@@ -134,44 +116,30 @@ March saw a documentation push across several areas:
 
 ## Governance and Community
 
-### FLIP Activity
+### FLIP (accepted)
 
-#### Accepted - being implemented
 
-**[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink Documentation.** (Piotr Nowojski)
-- A major reorganisation to improve discoverability and reduce duplication across the Flink docs. Updated March 24, 2026.
+* **[FLIP-561](https://cwiki.apache.org/confluence/display/FLINK/FLIP-561%3A+Restructure+Flink+documentation): Restructure Flink Documentation.** (Piotr Nowojski) - A major reorganisation to improve discoverability and reduce duplication across the Flink docs. Updated March 24, 2026.
+* **[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): Improvements to SinkUpsertMaterializer and Changelog Disorder.** - Addresses correctness issues in upsert materialisation under out-of-order changelog events.
+* **[FLIP-557](https://cwiki.apache.org/confluence/display/FLINK/FLIP-557%3A+Granular+Control+over+Data+Reprocessing+in+Materialized+Table+Evolution): Granular Control over Data Reprocessing in Materialized Table Evolution.** - Gives users finer control over which partitions are reprocessed when a materialized table definition changes.
+* **[FLIP-551](https://cwiki.apache.org/confluence/display/FLINK/FLIP-551%3A+Make+FRESHNESS+Optional+for+Materialized+Tables): Make FRESHNESS Optional for Materialized Tables.** (targeting Flink 2.2) - Reduces the boilerplate required when defining materialized tables where freshness guarantees are not needed.
 
-**[FLIP-558](https://cwiki.apache.org/confluence/display/FLINK/FLIP-558%3A+Improvements+to+SinkUpsertMaterializer+and+changelog+disorder): Improvements to SinkUpsertMaterializer and Changelog Disorder.**
-- Addresses correctness issues in upsert materialisation under out-of-order changelog events.
+### FLIPs (under discussion)
 
-**[FLIP-557](https://cwiki.apache.org/confluence/display/FLINK/FLIP-557%3A+Granular+Control+over+Data+Reprocessing+in+Materialized+Table+Evolution): Granular Control over Data Reprocessing in Materialized Table Evolution.**
-- Gives users finer control over which partitions are reprocessed when a materialized table definition changes.
+* **[FLIP-202](https://cwiki.apache.org/confluence/display/FLINK/FLIP-202): [DRAFT] Introduce ClickHouse Connector.** - Community discussion ongoing for an officially supported ClickHouse sink connector.
+* **[FLIP-332](https://cwiki.apache.org/confluence/display/FLINK/%5BWIP%5DFLIP-332%3A+Introduce+the+concept+of+state+self-sustained): [WIP] Introduce State Self-Sustained Concept.** - Explores state backends capable of managing their own lifecycle independently of checkpoints.
+* **[FLIP-267](https://cwiki.apache.org/confluence/display/FLINK/FLIP+267%3A+Iceberg+Connector): Iceberg Connector.** - Continuing effort to formalise the Iceberg integration as a first-class Flink connector.
 
-**[FLIP-551](https://cwiki.apache.org/confluence/display/FLINK/FLIP-551%3A+Make+FRESHNESS+Optional+for+Materialized+Tables): Make FRESHNESS Optional for Materialized Tables.** (targeting Flink 2.2)
-- Reduces the boilerplate required when defining materialized tables where freshness guarantees are not needed.
 
-#### Being discussed
+## Staying up to date
 
-**[FLIP-202](https://cwiki.apache.org/confluence/display/FLINK/FLIP-202): [DRAFT] Introduce ClickHouse Connector.**
-- Community discussion ongoing for an officially supported ClickHouse sink connector.
+There are several ways that you can keep up to date with what is happening in the Flink community.
+For a full list see [here](https://flink.apache.org/what-is-flink/community/).
 
-**[FLIP-332](https://cwiki.apache.org/confluence/display/FLINK/%5BWIP%5DFLIP-332%3A+Introduce+the+concept+of+state+self-sustained): [WIP] Introduce State Self-Sustained Concept.**
-- Explores state backends capable of managing their own lifecycle independently of checkpoints.
-
-**[FLIP-267](https://cwiki.apache.org/confluence/display/FLINK/FLIP+267%3A+Iceberg+Connector): Iceberg Connector.**
-- Continuing effort to formalise the Iceberg integration as a first-class Flink connector.
-
-### Apache Flink Dev List activity
-
-You can view the dev list archives [online](https://lists.apache.org/list.html?dev@flink.apache.org) or [subscribe](https://flink.apache.org/community.html#mailing-lists) to receive emails.
-
-## For more information
-
-Follow this blog to keep up to date with what is happening in the Flink community.
-
-If you have ideas for what you would like to see in these blogs or there is anything you think has been misrepresented, is wrong or missing, please let us know via the dev list (detail below) or [Slack](https://flink.apache.org/how-to-contribute/getting-help/#slack).
-
-If you would like to keep a closer eye on what's happening in the community, subscribe to one of the [Flink community mailing lists](https://flink.apache.org/community.html#mailing-lists) to get fine-grained weekly updates, upcoming event announcements and more.
+* Follow this blog.
+An [RSS feed](https://flink.apache.org/posts/index.xml) is available.
+* Subscribe to one of the [Flink community mailing lists](https://flink.apache.org/community.html#mailing-lists).
 Two popular mailing lists are:
-* the [dev list](https://lists.apache.org/list.html?dev@flink.apache.org) for development related discussions
-* the [user list](https://lists.apache.org/list.html?user@flink.apache.org) for user support and questions
+    * the [dev list](https://lists.apache.org/list.html?dev@flink.apache.org) for development related discussions
+    * the [user list](https://lists.apache.org/list.html?user@flink.apache.org) for user support and questions
+* Join the [Apache Flink Slack group](https://flink.apache.org/what-is-flink/community/#slack).
