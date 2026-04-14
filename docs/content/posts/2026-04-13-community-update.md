@@ -29,7 +29,7 @@ Four months after the [release of Flink 2.2](https://flink.apache.org/2025/12/04
 The code freeze for Apache Flink 2.3 was invoked on April 14th and at time of writing we anticipate the version to be launched toward the end of April 2026. 
 Some of the main features in this release will include important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 Filesink connector. 
 Stay tuned to this blog for the release announcement with full details.
-We are also proposing a re-structure to the Flink documentation to make it easier to navigate for new and existing users. 
+We will also re-structure to the Flink documentation to make it easier to navigate for new and existing users. 
 You can see the full release scope [here](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release).
 
 ### Flink CDC 3.6.0 Release
