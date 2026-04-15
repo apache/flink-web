@@ -104,16 +104,6 @@ Python users gained support for multiple compression formats in `python.files` (
   - Vulnerability fixes
   - Minor improvements
 
-### Documentation
-
-March saw a documentation push across several areas:
-* Materialized tables `CREATE`/`ALTER` operations [[#27846]](https://github.com/apache/flink/pull/27846)
-* SQL function consistency improvements [[#27842]](https://github.com/apache/flink/pull/27842)
-* BITMAP type coverage [[#27835]](https://github.com/apache/flink/pull/27835)
-* PostgreSQL CDC `schema.change.enabled` parameter [[FLINK-39294]](https://issues.apache.org/jira/browse/FLINK-39294)
-* MySQL 8.4+ support [[FLINK-39295]](https://issues.apache.org/jira/browse/FLINK-39295)
-* MySQL connector consistency fixes [[FLINK-39344]](https://issues.apache.org/jira/browse/FLINK-39344)
-
 ## Governance and Community
 
 ### FLIP (accepted)
