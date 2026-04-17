@@ -55,16 +55,6 @@ The connector will support both state access (FileSystem) and transactional sink
 
 ## Developer/Technical Updates
 
-### Table API & SQL
-
-Continued work on Materialized Tables including `START_MODE` clause parser support ([FLINK-39304](https://issues.apache.org/jira/browse/FLINK-39304)), interval reuse for `FRESHNESS` and `START MODE`, and `CREATE OR ALTER` now correctly respects existing table schemas ([FLINK-39284](https://issues.apache.org/jira/browse/FLINK-39284)). `TO_CHANGELOG` retract/upsert stream conversion was also added.
-
-BITMAP Type support was introduced end-to-end: the core data type ([[FLINK-38852]](https://issues.apache.org/jira/browse/FLINK-38852), [[FLINK-39185]](https://issues.apache.org/jira/browse/FLINK-39185)), scalar functions ([[FLINK-39186]](https://issues.apache.org/jira/browse/FLINK-39186)), aggregate functions ([[FLINK-39187]](https://issues.apache.org/jira/browse/FLINK-39187)), and documentation ([[FLINK-39188]](https://issues.apache.org/jira/browse/FLINK-39188), [[#27835]](https://github.com/apache/flink/pull/27835)).
-
-Join Operations saw cascaded delta join support merged ([FLINK-39233](https://issues.apache.org/jira/browse/FLINK-39233)), lookup join after delta join ([FLINK-39174](https://issues.apache.org/jira/browse/FLINK-39174)), and immutable column sink mode traits ([FLINK-39287](https://issues.apache.org/jira/browse/FLINK-39287)).
-
-Code generation and correctness work included: NDU analyzer improvements for non-deterministic function detection ([[FLINK-39313]](https://issues.apache.org/jira/browse/FLINK-39313), [[#27819]](https://github.com/apache/flink/pull/27819)), duplicate function instance elimination ([[FLINK-39094]](https://issues.apache.org/jira/browse/FLINK-39094)), filter optimisation for upsert key groups ([[FLINK-39314]](https://issues.apache.org/jira/browse/FLINK-39314)), a UDF lambda expression argument fix ([[#27787]](https://github.com/apache/flink/pull/27787)), and JSON field name code generation fixes backported across multiple releases ([[#27850]](https://github.com/apache/flink/pull/27850), [[#27851]](https://github.com/apache/flink/pull/27851), [[#27856]](https://github.com/apache/flink/pull/27856)).
-
 ### Runtime & Execution
 
 Adaptive scheduler and `ExecutionGraph` improvements will be part of Flink 2.3. Rescale history now records statistics ([[#27540]](https://github.com/apache/flink/pull/27540)) and rescale information ([[#27539]](https://github.com/apache/flink/pull/27539)). A configurable `ExecutionGraph` cache TTL was introduced ([[#27509]](https://github.com/apache/flink/pull/27509)), and the Flink Web UI was updated to surface rescale and configuration data for adaptive scheduler jobs ([[#27826]](https://github.com/apache/flink/pull/27826)).
@@ -82,6 +72,16 @@ gRPC batch export support was added to the metrics pipeline ([[#27692]](https://
 Python users gained support for multiple compression formats in `python.files` ([[#27780]](https://github.com/apache/flink/pull/27780)), expanding deployment flexibility for Python UDF bundles.
 
 ## User-Facing Updates
+
+### Table API & SQL
+
+Continued work on Materialized Tables including `START_MODE` clause parser support ([FLINK-39304](https://issues.apache.org/jira/browse/FLINK-39304)), interval reuse for `FRESHNESS` and `START MODE`, and `CREATE OR ALTER` now correctly respects existing table schemas ([FLINK-39284](https://issues.apache.org/jira/browse/FLINK-39284)). `TO_CHANGELOG` retract/upsert stream conversion was also added.
+
+BITMAP Type support was introduced end-to-end: the core data type ([[FLINK-38852]](https://issues.apache.org/jira/browse/FLINK-38852), [[FLINK-39185]](https://issues.apache.org/jira/browse/FLINK-39185)), scalar functions ([[FLINK-39186]](https://issues.apache.org/jira/browse/FLINK-39186)), aggregate functions ([[FLINK-39187]](https://issues.apache.org/jira/browse/FLINK-39187)), and documentation ([[FLINK-39188]](https://issues.apache.org/jira/browse/FLINK-39188), [[#27835]](https://github.com/apache/flink/pull/27835)).
+
+Join Operations saw cascaded delta join support merged ([FLINK-39233](https://issues.apache.org/jira/browse/FLINK-39233)), lookup join after delta join ([FLINK-39174](https://issues.apache.org/jira/browse/FLINK-39174)), and immutable column sink mode traits ([FLINK-39287](https://issues.apache.org/jira/browse/FLINK-39287)).
+
+Code generation and correctness work included: NDU analyzer improvements for non-deterministic function detection ([[FLINK-39313]](https://issues.apache.org/jira/browse/FLINK-39313), [[#27819]](https://github.com/apache/flink/pull/27819)), duplicate function instance elimination ([[FLINK-39094]](https://issues.apache.org/jira/browse/FLINK-39094)), filter optimisation for upsert key groups ([[FLINK-39314]](https://issues.apache.org/jira/browse/FLINK-39314)), a UDF lambda expression argument fix ([[#27787]](https://github.com/apache/flink/pull/27787)), and JSON field name code generation fixes backported across multiple releases ([[#27850]](https://github.com/apache/flink/pull/27850), [[#27851]](https://github.com/apache/flink/pull/27851), [[#27856]](https://github.com/apache/flink/pull/27856)).
 
 ### Apache Flink CDC 3.6.0 Release
 
