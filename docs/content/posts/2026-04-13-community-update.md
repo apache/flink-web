@@ -115,12 +115,6 @@ Flink Improvement Proposals or FLIPs are the mechanism by which the community pr
 * **[FLIP-557](https://cwiki.apache.org/confluence/display/FLINK/FLIP-557%3A+Granular+Control+over+Data+Reprocessing+in+Materialized+Table+Evolution): Granular Control over Data Reprocessing in Materialized Table Evolution.** - Gives users finer control over which partitions are reprocessed when a materialized table definition changes.
 * **[FLIP-551](https://cwiki.apache.org/confluence/display/FLINK/FLIP-551%3A+Make+FRESHNESS+Optional+for+Materialized+Tables): Make FRESHNESS Optional for Materialized Tables.** (targeting Flink 2.2) - Reduces the boilerplate required when defining materialized tables where freshness guarantees are not needed.
 
-### FLIPs (under discussion)
-
-* **[FLIP-202](https://cwiki.apache.org/confluence/display/FLINK/FLIP-202): [DRAFT] Introduce ClickHouse Connector.** - Community discussion ongoing for an officially supported ClickHouse sink connector.
-* **[FLIP-332](https://cwiki.apache.org/confluence/display/FLINK/%5BWIP%5DFLIP-332%3A+Introduce+the+concept+of+state+self-sustained): [WIP] Introduce State Self-Sustained Concept.** - Explores state backends capable of managing their own lifecycle independently of checkpoints.
-* **[FLIP-267](https://cwiki.apache.org/confluence/display/FLINK/FLIP+267%3A+Iceberg+Connector): Iceberg Connector.** - Continuing effort to formalise the Iceberg integration as a first-class Flink connector.
-
 
 ## Staying up to date
 
