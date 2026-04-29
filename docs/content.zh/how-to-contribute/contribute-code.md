@@ -235,4 +235,17 @@ Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/
 
 审核完成后，代码将由 Flink 的 committer 合并。Jira 工单将在合并之后关闭。
 
+## AI-assisted Contributions
+
+Contributions created or assisted by AI tools are welcome under the same review standards as human-written code. If you used AI tooling:
+
+- Disclose AI usage by checking the AI disclosure checkbox in the pull request template and adding a `Generated-by: <Tool Name and Version>` trailer to each commit, per the [ASF Generative Tooling Guidance](https://www.apache.org/legal/generative-tooling.html).
+- Make sure you understand the design, code, and tests well enough to explain and debug them during review. If a reviewer asks about an edge case or a subtle choice, you should be able to answer without rereading the diff.
+- Treat AI output as a draft. Run the tests, read the logic, and check the behaviour yourself before submitting; do not rely on the model's claim that something works.
+- Only submit a pull request when you would merge it yourself. Reviewers should spend their time on the change, not on polishing AI-generated scaffolding, unedited prose, tests that do not exercise the behaviour, or padded commit messages.
+
+Jira issues and pull requests that do not meet these expectations may be closed by committers. For Jira, this most often means bug reports without a concrete reproducer or feature proposals without a clear use case; for pull requests, the criteria above. If you are unsure whether your contribution is ready, ask on the [Dev mailing list]({{< relref "community" >}}#mailing-lists) before opening it.
+
+See [AGENTS.md](https://github.com/apache/flink/blob/master/AGENTS.md) in the main Flink repository for the full guidance, including module-level conventions for AI coding agents.
+
 
