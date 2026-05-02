@@ -19,7 +19,8 @@ We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before 
 
 
 <!-- TOC -->
-  * [Apache Flink 2.3 Release Draws Nearer](#apache-flink-23-release-draws-nearer)
+  * [Hot topics](#hot-topics)
+    * [Apache Flink 2.3 Release Draws Nearer](#apache-flink-23-release-draws-nearer)
     * [Table API & SQL](#table-api--sql)
     * [Runtime & Execution](#runtime--execution)
     * [Checkpointing & State](#checkpointing--state)
@@ -37,8 +38,9 @@ We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before 
   * [Staying up to date](#staying-up-to-date)
 <!-- TOC -->
 
+## Hot topics
 
-## Apache Flink 2.3 Release Draws Nearer
+### Apache Flink 2.3 Release Draws Nearer
 
 Four months after the [release of Flink 2.2](https://flink.apache.org/2025/12/04/apache-flink-2.2.0-advancing-real-time-data--ai-and-empowering-stream-processing-for-the-ai-era/) (December 4th 2025), we are hotly anticipating the release of Flink 2.3. 
 The code freeze for Apache Flink 2.3 is planned for April 14th and at time of writing we anticipate the version to be launched soon. 
@@ -46,6 +48,7 @@ Some of the main features in this release will include important updates to Mate
 Stay tuned to this blog for the release announcement with full details.
 We will also restructure the Flink documentation to make it easier to navigate for new and existing users.
 You can see the full release scope [here](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release).
+
 
 ### Table API & SQL
 
