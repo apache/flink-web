@@ -19,31 +19,33 @@ We'll dive into a few hot topics and FLIPs (Flink Improvement Proposals) before 
 
 
 <!-- TOC -->
-  * [Hot Topics](#hot-topics)
-  * [Developer/Technical Updates](#developertechnical-updates)
-  * [User-Facing Updates](#user-facing-updates)
+  * [Apache Flink 2.3 Release Draws Nearer](#apache-flink-23-release-draws-nearer)
+    * [Table API & SQL](#table-api--sql)
+    * [Runtime & Execution](#runtime--execution)
+    * [Checkpointing & State](#checkpointing--state)
+    * [Metrics & Observability](#metrics--observability)
+    * [Python & Multi-language Support](#python--multi-language-support)
+  * [New Releases](#new-releases)
+    * [Apache Flink CDC 3.6.0 Release](#apache-flink-cdc-360-release)
+    * [Apache Flink Agents 0.2.1 Release](#apache-flink-agents-021-release)
   * [Governance and Community](#governance-and-community)
+    * [Stateful Functions Sub-Project Being Sunsetted](#stateful-functions-sub-project-being-sunsetted)
+    * [FLIP (accepted)](#flip-accepted)
+    * [FLIPs Being Discussed](#flips-being-discussed)
+      * [Table/SQL evolution](#tablesql-evolution)
+      * [Operations and platform management](#operations-and-platform-management)
+  * [Staying up to date](#staying-up-to-date)
 <!-- TOC -->
 
-## Hot Topics
 
-### Apache Flink 2.3 Release Draws Nearer
+## Apache Flink 2.3 Release Draws Nearer
 
 Four months after the [release of Flink 2.2](https://flink.apache.org/2025/12/04/apache-flink-2.2.0-advancing-real-time-data--ai-and-empowering-stream-processing-for-the-ai-era/) (December 4th 2025), we are hotly anticipating the release of Flink 2.3. 
-The code freeze for Apache Flink 2.3 is planned for April 14th and at time of writing we anticipate the version to be launched toward the end of April 2026. 
+The code freeze for Apache Flink 2.3 is planned for April 14th and at time of writing we anticipate the version to be launched soon. 
 Some of the main features in this release will include important updates to Materialized Tables for Flink SQL, OTel gRPC exporter and watermark alignment for backlogged jobs in Runtime, and in Connectors, an update to the S3 FileSink connector. 
 Stay tuned to this blog for the release announcement with full details.
 We will also restructure the Flink documentation to make it easier to navigate for new and existing users.
 You can see the full release scope [here](https://cwiki.apache.org/confluence/display/FLINK/2.3+Release).
-
-### Flink CDC 3.6.0 Release
-
-Flink CDC is used to capture and stream real-time changes from databases (inserts, updates, and deletes) as they happen.
-[Version 3.6.0](https://flink.apache.org/2026/03/30/apache-flink-cdc-3.6.0-release-announcement/) extends Flink version support to 1.20.x and 2.2.x, upgrades JDK version to 11, introduces new [Oracle Source](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.6/docs/connectors/pipeline-connectors/oracle/) and [Apache Hudi Sink](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.6/docs/connectors/pipeline-connectors/hudi/) Pipeline connectors and adds Lenient mode schema evolution support for [Fluss Pipeline connector](https://nightlies.apache.org/flink/flink-cdc-docs-master/docs/connectors/pipeline-connectors/fluss/).
-It also introduces [PostgreSQL Schema Evolution](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.6/docs/connectors/pipeline-connectors/postgres/) support, enhancing Schema Evolution capabilities for better multi-table synchronization scenarios and table name mapping flexibility, and strengthening the Transform framework with VARIANT type and JSON parsing support.
-
-
-## Developer/Technical Updates
 
 ### Table API & SQL
 
@@ -71,7 +73,7 @@ gRPC batch export support was added to the metrics pipeline ([FLINK-39126](https
 
 Python users gained support for multiple compression formats in `python.files` ([FLINK-39260](https://issues.apache.org/jira/browse/FLINK-39260)), expanding deployment flexibility for Python UDF bundles.
 
-## User-Facing Updates
+## New Releases
 
 ### Apache Flink CDC 3.6.0 Release
 
