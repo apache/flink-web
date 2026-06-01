@@ -27,93 +27,76 @@ under the License.
 
 # Security
 
-## Security Updates
+## Apache Flink
 
-This section lists fixed vulnerabilities in Flink.
+Apache Flink is a distributed stream and batch processing framework that executes user-supplied code across a cluster of machines.
 
-<table class="table">
-	<thead>
-		<tr>
-			<th style="width: 20%">CVE ID</th>
-			<th style="width: 30%">Affected Flink versions</th>
-			<th style="width: 50%">Notes</th>
-		</tr>
-	</thead>
-	<tr>
-		<td>
-			<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-1960">CVE-2020-1960</a>
-		</td>
-		<td>
-			1.1.0 to 1.1.5, 1.2.0 to 1.2.1, 1.3.0 to 1.3.3, 1.4.0 to 1.4.2, 1.5.0 to 1.5.6, 1.6.0 to 1.6.4, 1.7.0 to 1.7.2, 1.8.0 to 1.8.3, 1.9.0 to 1.9.2, 1.10.0
-		</td>
-		<td>
-			Users are advised to upgrade to Flink 1.9.3 or 1.10.1 or later versions or remove the port parameter from the reporter configuration (see advisory for details).
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-17518">CVE-2020-17518</a>
-		</td>
-		<td>
-			1.5.1 to 1.11.2
-		</td>
-		<td>
-			<a href="https://github.com/apache/flink/commit/a5264a6f41524afe8ceadf1d8ddc8c80f323ebc4">Fixed in commit a5264a6f41524afe8ceadf1d8ddc8c80f323ebc4</a> <br>
-			Users are advised to upgrade to Flink 1.11.3 or 1.12.0 or later versions.
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-17519">CVE-2020-17519</a>
-		</td>
-		<td>
-			1.11.0, 1.11.1, 1.11.2
-		</td>
-		<td>
-			<a href="https://github.com/apache/flink/commit/b561010b0ee741543c3953306037f00d7a9f0801">Fixed in commit b561010b0ee741543c3953306037f00d7a9f0801</a> <br>
-			Users are advised to upgrade to Flink 1.11.3 or 1.12.0 or later versions.
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-41834">CVE-2023-41834</a>
-		</td>
-		<td>
-			Flink Stateful Functions 3.1.0, 3.1.1, 3.2.0
-		</td>
-		<td>
-			<a href="https://github.com/apache/flink-statefun/commit/b06c0a23a5a622d48efc8395699b2e4502bd92be">Fixed in commit b06c0a23a5a622d48efc8395699b2e4502bd92be</a> <br>
-			Users are advised to upgrade to Flink Stateful Functions 3.3.0 or later versions.
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<a href="https://www.cve.org/CVERecord?id=CVE-2026-35194">CVE-2026-35194</a>
-		</td>
-		<td>
-			1.15.0 through 1.20.x and 2.0.0 through 2.x
-		</td>
-		<td>
-			<a href="https://github.com/apache/flink/commit/64007b131d689158af90ca1c1b71b018129a85c5">Fixed in commit b06c0a23a5a622d48efc8395699b2e4502bd92be</a>, <a href="https://github.com/apache/flink/commit/e7c0d17074dc0dc9e102a072f11bf0de09ba01a5">e7c0d17074dc0dc9e102a072f11bf0de09ba01a5</a> and <a href="https://github.com/apache/flink/commit/9b2a11268dc8b4e6ea5a604dca0ea27f0fee3ed8">9b2a11268dc8b4e6ea5a604dca0ea27f0fee3ed8</a> <br>
-			Users are advised to upgrade to Flink 1.20.4, 2.0.2, 2.1.2 or 2.2.1.
-		</td>
-	</tr>
-</table>
+### Trust Boundary
 
+Flink's security model is built around one explicit trust boundary: **the cluster operator is trusted; the cluster network interfaces are not public**.
 
-## Frequently Asked Questions
+**Authenticated users who submit jobs are fully trusted.** Flink executes submitted code unconditionally. A job can spawn processes, open network connections, read and write local files, and perform any operation the operating system permits. This is intentional -- restricting what user code can do would prevent legitimate use cases. Flink is not a sandbox.
 
-### During a security analysis of Flink, I noticed that Flink allows for remote code execution, is this an issue?
+**Unauthenticated access to cluster interfaces is the threat Flink protects against.** The REST API, SQL Gateway, and BLOB server are the surfaces that must be secured from external attackers.
 
-Apache Flink is a framework for executing user-supplied code in clusters. Users can submit code to Flink processes, which will be executed unconditionally, without any attempts to limit what code can run. Starting other processes, establishing network connections or accessing and modifying local files is possible.
+### Security Boundary Reference
 
-Historically, we've received numerous remote code execution vulnerability reports, which we had to reject, as this is by design.
+The table below is intended for security researchers and enterprise security teams evaluating Flink:
 
-**We strongly discourage users to expose Flink processes to the public internet**. Within company networks or "cloud" accounts, we recommend restricting access to a Flink cluster via appropriate means.
+| Scenario | Security boundary | Notes |
+|---|---|---|
+| Unauthenticated access to the REST API | **In scope** | Vulnerability -- report it |
+| Path traversal or unauthorized file access via REST API | **In scope** | Vulnerability -- report it |
+| SQL injection or auth bypass via SQL Gateway | **In scope** | Vulnerability -- report it |
+| Credential or secret exposure in cluster interfaces | **In scope** | Vulnerability -- report it |
+| Code execution via unsafe deserialization of input data where no Flink-level control exists to prevent it | **In scope** | Vulnerability -- report it |
+| Remote Code Execution (RCE) via a submitted JAR, DataStream program, or UDF | **Out of scope** | By design -- these submitters run arbitrary code; does not apply to SQL Gateway submissions |
+| Spawning processes or opening connections from within a running job | **Out of scope** | By design |
+| Reading or writing files from within a running job | **Out of scope** | By design |
 
+### Deployment Requirements
 
-### I found a vulnerability in Flink, how do I report it?
+Flink clusters must not be exposed to the public internet. Access to all Flink network interfaces must be restricted to trusted principals via network-level controls (firewalls, security groups, VPN).
 
-Thanks a lot for looking into the security of Apache Flink! We appreciate reports improving the security of Flink. We accept vulnerability reports through the [Apache Security Team](https://www.apache.org/security/), via their private email address [security@apache.org](mailto:security@apache.org).
+SSL/TLS, REST API authentication, and SQL Gateway authentication are all **disabled by default**. A default Flink deployment is unauthenticated and unencrypted on its network interfaces. These need to be explicitly configured for any production or shared deployment.
 
-If you want to discuss a potential security issue privately with the Flink PMC, you can reach us also via [private@flink.apache.org](mailto:private@flink.apache.org).
+The REST API supports mutual TLS for client certificate authentication; anything beyond that, and all SQL Gateway authentication, needs to be provided by a proxy in front of Flink's network interfaces.
+
+Flink does not manage the security of external systems it connects to. Through its delegation token framework, Flink can obtain and renew short-lived tokens on the operator's behalf, but the underlying long-lived credentials remain an operator responsibility.
+
+## Flink Kubernetes Operator
+
+The [Flink Kubernetes Operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/) is the standard deployment mechanism for Flink on Kubernetes. Its security model extends the Flink model above -- both apply when the operator is in use.
+
+### Trust Boundary
+
+The Kubernetes RBAC layer replaces direct cluster access as the authentication mechanism. Any principal with permission to apply Flink custom resources (`FlinkDeployment`, `FlinkSessionJob`) is the equivalent of an authenticated Flink user -- they can submit arbitrary jobs with full execution trust. The operator's own service account is trusted by the Kubernetes control plane with cluster-scoped permissions.
+
+### Security Boundary Reference
+
+| Scenario | Security boundary | Notes |
+|---|---|---|
+| Using the operator API to access resources beyond the submitting principal's own permissions | **In scope** | Vulnerability -- report it |
+| Credential exposure via Flink custom resource spec or status fields | **In scope** | Vulnerability -- report it |
+| Webhook bypass allowing malformed or malicious resources to be applied | **In scope** | Vulnerability -- report it |
+| Information disclosure via operator logs or metrics | **In scope** | Vulnerability -- report it |
+| A principal with Flink custom resource apply permission submitting a malicious job | **Out of scope** | By design -- same trust model as authenticated job submission |
+| RBAC misconfiguration by the cluster administrator | **Out of scope** | Operator responsibility |
+
+### Deployment Requirements
+
+The operator runs with cluster-scoped RBAC by default -- apply least-privilege principles and restrict its service account to the minimum required permissions. The admission webhook requires TLS, which Kubernetes enforces. Credentials in Flink custom resource specifications flow through Kubernetes secrets and must be managed according to your organization's secret management policies. Restrict Flink custom resource apply permissions to trusted principals.
+
+## Known Vulnerabilities
+
+The Flink project does not maintain its own CVE list. For a complete and up-to-date record of known vulnerabilities, consult the authoritative external databases:
+
+- [OSV](https://osv.dev) -- package-aware, used by Dependabot, Snyk, and osv-scanner
+- [NVD](https://nvd.nist.gov) -- NIST's authoritative CVE database
+
+## Reporting a Vulnerability
+
+If you discover a vulnerability in Flink's own infrastructure, please report it privately through one of the following channels:
+
+- **Apache Security Team:** [security@apache.org](mailto:security@apache.org) -- preferred for CVE assignment and coordinated disclosure
+- **Flink PMC (private):** [private@flink.apache.org](mailto:private@flink.apache.org) -- for direct discussion with the Flink PMC
