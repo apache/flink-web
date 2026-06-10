@@ -91,8 +91,7 @@ The operator runs with cluster-scoped RBAC by default -- apply least-privilege p
 
 The Flink project does not maintain its own CVE list. For a complete and up-to-date record of known vulnerabilities, consult the authoritative external databases:
 
-- [OSV](https://osv.dev) -- package-aware, used by Dependabot, Snyk, and osv-scanner
-- [NVD](https://nvd.nist.gov) -- NIST's authoritative CVE database
+- [Apache Security](https://security.apache.org/projects/flink/) -- ASF-maintained, authoritative record for Apache Flink CVEs
 
 ## Reporting a Vulnerability
 
