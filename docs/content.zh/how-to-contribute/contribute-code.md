@@ -235,17 +235,17 @@ Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/
 
 审核完成后，代码将由 Flink 的 committer 合并。Jira 工单将在合并之后关闭。
 
-## AI-assisted Contributions
+## AI 辅助贡献 {#ai-assisted-contributions}
 
-Contributions created or assisted by AI tools are welcome under the same review standards as human-written code. If you used AI tooling:
+由 AI 工具创建或辅助完成的贡献与人工编写的代码适用相同的审核标准。如果你使用了 AI 工具：
 
-- Disclose AI usage by checking the AI disclosure checkbox in the pull request template and adding a `Generated-by: <Tool Name and Version>` trailer to each commit, per the [ASF Generative Tooling Guidance](https://www.apache.org/legal/generative-tooling.html).
-- Make sure you understand the design, code, and tests well enough to explain and debug them during review. If a reviewer asks about an edge case or a subtle choice, you should be able to answer without rereading the diff.
-- Treat AI output as a draft. Run the tests, read the logic, and check the behaviour yourself before submitting; do not rely on the model's claim that something works.
-- Only submit a pull request when you would merge it yourself. Reviewers should spend their time on the change, not on polishing AI-generated scaffolding, unedited prose, tests that do not exercise the behaviour, or padded commit messages.
+- 请在 pull request 模板中勾选 AI disclosure 复选框，并按照 [ASF 生成式工具使用指南](https://www.apache.org/legal/generative-tooling.html)，为每个提交添加 `Generated-by: <Tool Name and Version>` trailer，以披露 AI 使用情况。
+- 请确保你充分理解相关设计、代码和测试，能够在审核过程中解释并调试它们。如果 reviewer 问到某个边界情况或细微选择，你应该无需重新阅读 diff 也能回答。
+- 请将 AI 输出视为草稿。提交前请自行运行测试、阅读逻辑并检查行为；不要依赖模型声称某个改动可用。
+- 只有当你自己也愿意合并该 pull request 时，才提交它。Reviewer 的时间应该用于审核改动本身，而不是润色 AI 生成的脚手架、未经编辑的文字、未真正覆盖行为的测试，或填充式的提交信息。
 
-Jira issues and pull requests that do not meet these expectations may be closed by committers. For Jira, this most often means bug reports without a concrete reproducer or feature proposals without a clear use case; for pull requests, the criteria above. If you are unsure whether your contribution is ready, ask on the [Dev mailing list]({{< relref "community" >}}#mailing-lists) before opening it.
+不符合这些期望的 Jira issue 和 pull request 可能会被 committer 关闭。对于 Jira，这通常指没有具体复现方式的 bug 报告，或缺少明确用例的功能提案；对于 pull request，则适用以上标准。如果你不确定自己的贡献是否已经准备好，请在创建之前先到[开发者邮件列表]({{< relref "community" >}}#mailing-lists)咨询。
 
-See [AGENTS.md](https://github.com/apache/flink/blob/master/AGENTS.md) in the main Flink repository for the full guidance, including module-level conventions for AI coding agents.
+完整指南请参阅 Flink 主仓库中的 [AGENTS.md](https://github.com/apache/flink/blob/master/AGENTS.md)，其中包括面向 AI 编程代理的模块级约定。
 
 
