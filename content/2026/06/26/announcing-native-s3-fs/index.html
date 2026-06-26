@@ -1,0 +1,1009 @@
+
+<!DOCTYPE html>
+<html lang="en" dir=ZgotmplZ>
+
+<head>
+  
+
+
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+<script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css">
+<script src="/js/anchor.min.js"></script>
+<script src="/js/flink.js"></script>
+<link rel="canonical" href="https://flink.apache.org/2026/06/26/announcing-native-s3-fs/">
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Apache Flink relies on the underlying filesystem for much of its work: reading and writing application data, materializing streaming sinks, and storing checkpoints and savepoints for recovery. For years, S3 support in Flink meant choosing between two Hadoop-based plugins, each with its own trade-offs and configuration quirks. With Flink 2.3, there is a better option.
+Today we&rsquo;re introducing flink-s3-fs-native, a ground-up, Hadoop-free S3 filesystem built specifically for Flink. It ships as an experimental opt-in plugin in Flink 2.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Introducing Flink&#39;s Native S3 FileSystem: Built for Performance, Designed for Production" />
+<meta property="og:description" content="Apache Flink relies on the underlying filesystem for much of its work: reading and writing application data, materializing streaming sinks, and storing checkpoints and savepoints for recovery. For years, S3 support in Flink meant choosing between two Hadoop-based plugins, each with its own trade-offs and configuration quirks. With Flink 2.3, there is a better option.
+Today we&rsquo;re introducing flink-s3-fs-native, a ground-up, Hadoop-free S3 filesystem built specifically for Flink. It ships as an experimental opt-in plugin in Flink 2." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://flink.apache.org/2026/06/26/announcing-native-s3-fs/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-06-26T08:00:00+00:00" />
+<meta property="article:modified_time" content="2026-06-26T08:00:00+00:00" />
+<title>Introducing Flink&#39;s Native S3 FileSystem: Built for Performance, Designed for Production | Apache Flink</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.22eceb4d17baa9cdc0f57345edd6f215a40474022dfee39b63befb5fb3c596b5.css" integrity="sha256-IuzrTRe6qc3A9XNF7dbyFaQEdAIt/uObY777X7PFlrU=">
+<script defer src="/en.search.min.4db20d3abcb43a5d019f63a5ebb3016bf68f53799335a0ab220ef014f658f2a7.js" integrity="sha256-TbINOry0Ol0Bn2Ol67MBa/aPU3mTNaCrIg7wFPZY8qc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <meta name="generator" content="Hugo 0.124.1">
+
+    
+    <script>
+      var _paq = window._paq = window._paq || [];
+       
+       
+      _paq.push(['disableCookies']);
+       
+      _paq.push(["setDomains", ["*.flink.apache.org","*.nightlies.apache.org/flink"]]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.apache.org/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    
+</head>
+
+<body dir=ZgotmplZ>
+  
+
+
+<header>
+  <nav class="navbar navbar-expand-xl">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/img/logo/png/100/flink_squirrel_100_color.png" alt="Apache Flink" height="47" width="47" class="d-inline-block align-text-middle">
+        <span>Apache Flink</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa fa-bars navbar-toggler-icon"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav">
+          
+
+
+
+
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">About</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-architecture/">Architecture</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-applications/">Applications</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/flink-operations/">Operations</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/use-cases/">Use Cases</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/powered-by/">Powered By</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/roadmap/">Roadmap</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/community/">Community & Project Info</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/security/">Security</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/what-is-flink/special-thanks/">Special Thanks</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Getting Started</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/">With Flink<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/docs/try-flink-kubernetes-operator/quick-start/">With Flink Kubernetes Operator<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable/docs/get-started/introduction/">With Flink CDC<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/docs/get-started/overview/">With Flink Agents<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/docs/try-flink-ml/quick-start/">With Flink ML<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/overview/">Training Course<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/getting-started/project-setup.html">With Flink Stateful Functions<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-stable/">Flink 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-lts/">Flink 1.20 (LTS)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-docs-master/">Flink Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/">Kubernetes Operator 1.15 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main">Kubernetes Operator Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-stable">CDC 3.6 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-cdc-docs-master">CDC Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-latest/">Agents 0.3 (latest)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-agents-docs-main/">Agents Main (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-stable/">ML 2.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-ml-docs-master">ML Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-stable/">Stateful Functions 3.3 (stable)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="https://nightlies.apache.org/flink/flink-statefun-docs-master">Stateful Functions Master (snapshot)<i class="link fa fa-external-link title" aria-hidden="true"></i>
+    </a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">How to Contribute</a>
+      <ul class="dropdown-menu">
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/overview/">Overview</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-code/">Contribute Code</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/reviewing-prs/">Review Pull Requests</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/code-style-and-quality-preamble/">Code Style and Quality Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/contribute-documentation/">Contribute Documentation</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/documentation-style-guide/">Documentation Style Guide</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/improve-website/">Contribute to the Website</a>
+  
+
+          </li>
+        
+          <li>
+            
+  
+    <a class="dropdown-item" href="/how-to-contribute/getting-help/">Getting Help</a>
+  
+
+          </li>
+        
+      </ul>
+    </li>
+  
+
+    
+
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/posts/">Flink Blog</a>
+  
+
+    </li>
+  
+
+    
+      
+  
+    <li class="nav-item">
+      
+  
+    <a class="nav-link" href="/downloads/">Downloads</a>
+  
+
+    </li>
+  
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+        </ul>
+        <div class="book-search">
+          <div class="book-search-spinner hidden">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+          <form class="search-bar d-flex" onsubmit="return false;"su>
+            <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/">
+            <i class="fa fa-search search"></i>
+            <i class="fa fa-circle-o-notch fa-spin spinner"></i>
+          </form>
+          <div class="book-search-spinner hidden"></div>
+          <ul id="book-search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-clearfix"></div>
+</header>
+ 
+  
+      <main class="flex">
+        <section class="container book-page">
+          
+<article class="markdown">
+    <h1>
+        <a href="/2026/06/26/announcing-native-s3-fs/">Introducing Flink&#39;s Native S3 FileSystem: Built for Performance, Designed for Production</a>
+    </h1>
+    
+
+
+  June 26, 2026 -
+
+
+
+  Gabor Somogyi
+
+
+  Samrat Deb
+
+
+
+
+    <p><p>Apache Flink relies on the underlying filesystem for much of its work: reading and writing application data, materializing streaming sinks, and storing checkpoints and savepoints for recovery. For years, S3 support in Flink meant choosing between two Hadoop-based plugins, each with its own trade-offs and configuration quirks. With Flink 2.3, there is a better option.</p>
+<p>Today we&rsquo;re introducing <code>flink-s3-fs-native</code>, a ground-up, Hadoop-free S3 filesystem built specifically for Flink. It ships as an <a href="#availability-and-roadmap">experimental opt-in plugin</a> in Flink 2.3, is already running in production at scale at major technology companies, and delivers measurable, reproducible performance gains.</p>
+<p><strong>At a glance</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="#performance">~2x faster checkpoints</a></strong></td>
+<td>48.8 s average vs 90.1 s with the Presto plugin; up to 4.5x at small state sizes</td>
+</tr>
+<tr>
+<td><strong>Drop-in replacement</strong></td>
+<td>Swap the JAR, keep your existing <code>flink-conf.yaml</code>, restart your cluster</td>
+</tr>
+<tr>
+<td><strong>No Hadoop dependency</strong></td>
+<td>~13 MB JAR vs ~30–93 MB; no CVE triage on Hadoop transitive dependencies</td>
+</tr>
+<tr>
+<td><strong><a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html">AWS SDK v2</a></strong></td>
+<td>Async-first I/O; <a href="https://aws.amazon.com/blogs/developer/the-aws-sdk-for-java-1-x-is-in-maintenance-mode-effective-july-31-2024/">AWS SDK v1 reached end-of-support on December 31, 2025</a></td>
+</tr>
+<tr>
+<td><strong>One plugin for everything</strong></td>
+<td>Exactly-once sinks and fast checkpoints — no trade-offs, no compromises</td>
+</tr>
+</tbody>
+</table>
+<h2 id="two-plugins-one-filesystem-and-no-good-answer">
+  Two Plugins, One Filesystem, and No Good Answer
+  <a class="anchor" href="#two-plugins-one-filesystem-and-no-good-answer">#</a>
+</h2>
+<p>If you&rsquo;ve configured S3 for Flink before, you likely know that Flink ships two S3 filesystem plugins, and both register on the same <code>s3://</code> scheme. Only one can be active at a time. Choosing between them has been a source of confusion for years. Even once one has been chosen, its use still <a href="https://rmoff.net/2024/08/06/troubleshooting-flink-sql-s3-problems/">perplexes</a> many end-users because of the similarly-named but different configurations required.</p>
+<p>The <strong>Hadoop plugin</strong> wraps Hadoop&rsquo;s S3A client. It supports <code>RecoverableWriter</code>, which enables exactly-once sinks. Unfortunately it pulls in the full <code>hadoop-common</code> dependency tree and AWS SDK v1. Configuration uses Hadoop-native keys (<code>fs.s3a.*</code>) mirrored to Flink-style keys (<code>s3.*</code>) through a compatibility layer.</p>
+<p>The <strong>Presto plugin</strong> was historically recommended for checkpointing because of its faster read path. But it does not support <code>RecoverableWriter</code>, which means exactly-once file sinks don&rsquo;t work with it. It carries known <a href="https://github.com/prestodb/presto/issues/17416">bugs around directory deletion</a> that require Flink-side workarounds. It also depends on <code>hadoop-common</code> and AWS SDK v1 under the hood.</p>
+<p>Both share a common base layer that adapts a Hadoop <code>FileSystem</code> into a Flink <code>FileSystem</code>. This adaptation layer adds indirection, limits Flink-specific optimizations, and ties the implementation to Hadoop&rsquo;s configuration model and SDK lifecycle.</p>
+<p>As a result, you could have exactly-once sinks or a lighter read path, but not both. In addition, you are carrying Hadoop dependency challenges.</p>
+<p><strong>The native plugin removes the trade-off entirely.</strong></p>
+<hr>
+<h2 id="why-this-matters-beyond-engineering">
+  Why This Matters Beyond Engineering
+  <a class="anchor" href="#why-this-matters-beyond-engineering">#</a>
+</h2>
+<p>The decision to replace the S3 plugin is not just a performance choice. It has direct operational and financial consequences.</p>
+<p><strong>Security and compliance teams</strong> have long carried the burden of triaging CVEs in <code>hadoop-common</code>&rsquo;s transitive dependency tree. That tree is large, changes frequently, and generates a steady stream of vulnerability disclosures unrelated to S3 or Flink. Removing it sharply reduces that toil. Fewer dependencies mean fewer CVEs, fewer emergency patch cycles, and fewer security review gates for new deployments.</p>
+<p><strong>Platform and infrastructure teams</strong> running multi-tenant Flink clusters benefit from a clean, unified <code>s3.*</code> configuration namespace. The native plugin&rsquo;s configuration model is designed for Flink. No Hadoop-style key mirroring, no adapter translation layer, no debugging sessions caused by settings silently not propagating.</p>
+<p><strong>Risk and compliance teams</strong> should note that the AWS SDK for Java 1.x has been in <a href="https://aws.amazon.com/blogs/developer/the-aws-sdk-for-java-1-x-is-in-maintenance-mode-effective-july-31-2024/">maintenance mode since July 31, 2024</a> and reached <strong>end-of-support on December 31, 2025</strong>, after which it receives no further updates or releases. The foundation that both existing plugins depend on has therefore reached end-of-life, which means no new features and a winding-down stream of bug and security fixes. Continuing to operate on SDK v1 is an accumulating technical and compliance liability. The native plugin is built entirely on <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/home.html">AWS SDK v2</a>.</p>
+<p><strong>Operations teams</strong> benefit from faster checkpoints in two concrete ways:</p>
+<ul>
+<li>Shorter checkpoint windows mean less CPU time spent on state serialization and more capacity for actual data processing.</li>
+<li>Tighter recovery windows mean less data to replay after a failure. This directly improves recovery SLAs at scale.</li>
+</ul>
+<p>The benefit is not limited to operations teams. Any application using exactly-once semantics sees lower end-to-end latency when checkpoints complete faster, since record visibility downstream is gated on checkpoint completion.</p>
+<h2 id="one-stop-solution-native-s3-filesystem">
+  One Stop Solution: Native S3 Filesystem
+  <a class="anchor" href="#one-stop-solution-native-s3-filesystem">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>flink-s3-fs-hadoop</th>
+<th>flink-s3-fs-presto</th>
+<th>flink-s3-fs-native</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exactly-once FileSink</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>RecoverableWriter</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Checkpointing</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>AWS SDK v2</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>No Hadoop dependency</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>SSE-KMS encryption</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>SSE-KMS encryption context</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Non-blocking NIO async I/O</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>JAR size</td>
+<td>~30 MB</td>
+<td>~93 MB</td>
+<td>~13 MB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="feature-highlights">
+  Feature highlights
+  <a class="anchor" href="#feature-highlights">#</a>
+</h3>
+<p><strong>No Hadoop dependency tree.</strong> No <code>hadoop-common</code>, no <code>aws-java-sdk</code> v1, no class-shading conflicts. This also drops the transitive baggage that rides along with <code>hadoop-common</code> and is unrelated to S3 access — libraries such as Jackson, Guava, protobuf, Jetty, and the Kerberos/Zookeeper stack — each a recurring source of CVE triage and version conflicts. The native shaded JAR weighs ~13 MB, which is less than half the size of the Hadoop plugin (30 MB) and 7x lighter than the Presto plugin (93 MB).</p>
+<p><strong>Async-first I/O.</strong> Reads and writes use AWS SDK v2&rsquo;s <code>S3TransferManager</code>, backed by Netty NIO multiplexed connections that avoid the thread-per-request bottleneck of the existing plugins. Bulk state restore runs as batched concurrent transfers with connection-pool-aware concurrency control. This is the same mechanism that replaces the need for external tools like <code>s5cmd</code>.</p>
+<p><strong>Exactly-once recoverable writes.</strong> <code>NativeS3RecoverableWriter</code> uses S3 multipart uploads to provide exactly-once semantics for Flink&rsquo;s sink connectors and checkpoint metadata. Uploads are resumable on failure. The writer can recover an in-progress multipart upload and continue from the last committed part.</p>
+<p><strong>Per-bucket configuration.</strong> A single Flink cluster will be able to access multiple S3 buckets with distinct credentials, regions, endpoints, and encryption policies, configured via <code>s3.bucket.&lt;bucket-name&gt;.&lt;property&gt;</code>. This is planned for Flink 2.4.</p>
+<p><strong>Server-side encryption.</strong> All three S3 plugins support SSE-S3 and SSE-KMS. What the native plugin adds is <strong>encryption context</strong>: custom key-value metadata attached to KMS operations that enables fine-grained IAM policy conditions.</p>
+<p><strong>Entropy injection for checkpoint sharding.</strong> A configurable substring in checkpoint paths is replaced with random characters at write time, distributing checkpoint objects across S3&rsquo;s internal partitions and avoiding hot-key throttling at high checkpoint frequencies.</p>
+<p><strong>Production-grade lifecycle management.</strong> Every component follows an async close lifecycle with configurable timeouts.</p>
+<h2 id="performance">
+  Performance
+  <a class="anchor" href="#performance">#</a>
+</h2>
+<p>Benchmarks from production-scale testing show clear, measurable gains over the Presto plugin.</p>
+<h3 id="test-environment">
+  Test environment
+  <a class="anchor" href="#test-environment">#</a>
+</h3>
+<p>The benchmark ran on Amazon EKS (ap-south-1) with a Flink 2.1.1 cluster composed of 1 JobManager (2 GB memory, 1 core) and 2 TaskManagers (6 GB memory, 1.5 cores, 4 task slots each) for a total parallelism of 8. The workload targeted 20 GB of RocksDB state with full, non-incremental checkpoints every 60 seconds in EXACTLY_ONCE mode. The test ran for approximately 77 minutes. Configurations for both plugins were identical except for the plugin JAR itself. These results reflect this specific environment and workload; your own numbers will vary with object-size distribution, parallelism, region, and cluster sizing. The full workload configuration and methodology are documented in the <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=406620396">Native S3 Benchmark report</a> so you can reproduce the benchmark in your own environment.</p>
+<h3 id="summary-results">
+  Summary results
+  <a class="anchor" href="#summary-results">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>flink-s3-fs-presto</th>
+<th>flink-s3-fs-native</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Average throughput</td>
+<td>~92 MB/s</td>
+<td>~200 MB/s (2.17x)</td>
+</tr>
+<tr>
+<td>Average checkpoint duration</td>
+<td>90.1 s</td>
+<td>48.8 s (1.85x faster)</td>
+</tr>
+<tr>
+<td>P90 checkpoint duration</td>
+<td>155.0 s</td>
+<td>72.5 s (2.14x faster)</td>
+</tr>
+<tr>
+<td>P99 checkpoint duration</td>
+<td>165.3 s</td>
+<td>76.7 s (2.15x faster)</td>
+</tr>
+<tr>
+<td>Checkpoints completed (same window)</td>
+<td>40</td>
+<td>78 (1.95x more)</td>
+</tr>
+<tr>
+<td>Avg storage per checkpoint</td>
+<td>415 MB</td>
+<td>312 MB (25% smaller)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="throughput">
+  Throughput
+  <a class="anchor" href="#throughput">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>State size range</th>
+<th>flink-s3-fs-presto</th>
+<th>flink-s3-fs-native</th>
+<th>Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–2 GB</td>
+<td>79 MB/s</td>
+<td>362 MB/s</td>
+<td>4.58x</td>
+</tr>
+<tr>
+<td>2–4 GB</td>
+<td>85 MB/s</td>
+<td>285 MB/s</td>
+<td>3.35x</td>
+</tr>
+<tr>
+<td>4–6 GB</td>
+<td>84 MB/s</td>
+<td>173 MB/s</td>
+<td>2.06x</td>
+</tr>
+<tr>
+<td>6–8 GB</td>
+<td>86 MB/s</td>
+<td>165 MB/s</td>
+<td>1.92x</td>
+</tr>
+<tr>
+<td>8–10 GB</td>
+<td>91 MB/s</td>
+<td>180 MB/s</td>
+<td>1.98x</td>
+</tr>
+<tr>
+<td>10–12 GB</td>
+<td>93 MB/s</td>
+<td>193 MB/s</td>
+<td>2.08x</td>
+</tr>
+<tr>
+<td>12–14 GB</td>
+<td>93 MB/s</td>
+<td>198 MB/s</td>
+<td>2.13x</td>
+</tr>
+<tr>
+<td>14–16 GB</td>
+<td>94 MB/s</td>
+<td>203 MB/s</td>
+<td>2.16x</td>
+</tr>
+</tbody>
+</table>
+<p>The performance gains are consistent across all state sizes and remain above 2x as state grows.</p>
+<h3 id="what-faster-checkpoints-mean-for-your-operations">
+  What faster checkpoints mean for your operations
+  <a class="anchor" href="#what-faster-checkpoints-mean-for-your-operations">#</a>
+</h3>
+<ol>
+<li><strong>Lower CPU overhead.</strong> Shorter checkpoint windows reduce the CPU time spent on state serialization and S3 I/O, freeing capacity for actual data processing.</li>
+<li><strong>Higher checkpoint frequency.</strong> With faster uploads, you can checkpoint more often without impacting pipeline throughput. This directly reduces the volume of data that must be reprocessed after a failure.</li>
+<li><strong>Tighter recovery SLAs.</strong> The async bulk download path during state restore and the faster checkpoint write path are independent gains.</li>
+</ol>
+<p>Full benchmark methodology and raw data are published in the <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=406620396">Native S3 Benchmark report</a>.</p>
+<h2 id="smooth-migration-path">
+  Smooth Migration Path
+  <a class="anchor" href="#smooth-migration-path">#</a>
+</h2>
+<p>Whether you&rsquo;re on the Hadoop or Presto plugin, switching to <code>flink-s3-fs-native</code> requires <strong>no application code changes</strong>. Migration is a deployment-level operation:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 1. Remove your existing plugin</span>
+</span></span><span class="line"><span class="cl">rm -rf plugins/flink-s3-fs-hadoop/   <span class="c1"># or plugins/flink-s3-fs-presto/</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 2. Add the native plugin</span>
+</span></span><span class="line"><span class="cl">mkdir -p plugins/flink-s3-fs-native
+</span></span><span class="line"><span class="cl">cp opt/flink-s3-fs-native-*.jar plugins/flink-s3-fs-native/
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 3. Review flink-conf.yaml</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#    The native plugin uses clean s3.* keys.</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#    Hadoop-specific keys (fs.s3a.*, presto.s3.*) are no longer needed.</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 4. Restart your cluster</span>
+</span></span></code></pre></div><p>Existing checkpoints and savepoints on S3 remain fully readable. The native filesystem is read/write compatible with data written by either the Hadoop or Presto plugins.</p>
+<p><strong>Configuration simplification example:</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Before (Hadoop plugin)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">fs.s3a.access.key</span><span class="p">:</span><span class="w"> </span><span class="l">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">fs.s3a.secret.key</span><span class="p">:</span><span class="w"> </span><span class="l">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">fs.s3a.connection.maximum</span><span class="p">:</span><span class="w"> </span><span class="m">100</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># After (Native plugin) — same keys, cleaner namespace</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">s3.access-key</span><span class="p">:</span><span class="w"> </span><span class="l">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">s3.secret-key</span><span class="p">:</span><span class="w"> </span><span class="l">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">s3.connection.maximum</span><span class="p">:</span><span class="w"> </span><span class="m">100</span><span class="w">
+</span></span></span></code></pre></div><p><strong>A note on s5cmd.</strong> Users of <code>s5cmd</code> for bulk state downloads should be aware that the native plugin does not use <code>s5cmd</code>. Instead, it relies on <code>S3TransferManager</code>&rsquo;s async concurrent transfer engine, which demonstrated superior throughput in our benchmarks. No external binary dependency is required.</p>
+<p><strong>Run both plugins side by side.</strong> Packaging both a legacy plugin JAR and the native JAR in <code>plugins/</code> is fully supported and safe. When both register for the same scheme, a configurable <code>priority</code> selects which factory wins; by default the Hadoop plugin takes precedence, but you can override this to choose the native plugin instead. Flink will not crash, and there is no data loss risk from a misconfigured migration. Because the native filesystem is read/write compatible with data written by the Hadoop and Presto plugins in both directions, rolling back is as simple as flipping the priority back — making this a deliberate control for staged migration rather than just a safety net.</p>
+<p>For the full configuration reference, see the <a href="https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/filesystems/s3/">S3 FileSystem documentation</a>.</p>
+<h2 id="availability-and-roadmap">
+  Availability and Roadmap
+  <a class="anchor" href="#availability-and-roadmap">#</a>
+</h2>
+<p><strong>Flink 2.3</strong> : <code>flink-s3-fs-native</code> is available as an experimental opt-in plugin. Experimental means it is feature-complete and production-proven at major technology companies, but the community is actively collecting feedback and hardening edge cases before promoting it to the default. We encourage teams to deploy it in staging and production and share their experience. The existing <code>flink-s3-fs-hadoop</code> and <code>flink-s3-fs-presto</code> plugins are now effectively in maintenance mode: they continue to receive critical bug and security fixes, but no new feature development is planned for them.</p>
+<p><strong>Flink 2.4</strong> : Additional features and bug fixes are planned, including:</p>
+<ul>
+<li><strong>Per-bucket configuration</strong> : A single Flink cluster will be able to access multiple S3 buckets with distinct credentials, regions, endpoints, and encryption policies via <code>s3.bucket.&lt;bucket-name&gt;.&lt;property&gt;</code>, without custom credential injection hacks.</li>
+<li><strong>AWS CRT client support</strong> : Enabling the <code>S3CrtAsyncClient</code> for additional multipart and HTTP/2 optimizations. The benchmark results above were achieved <em>without</em> this; CRT support will push performance further.</li>
+<li><strong>Enhanced observability</strong> : S3 operation metrics (latency, retry counts, throughput) exposed through Flink&rsquo;s metric system, giving platform teams visibility into S3 I/O behavior.</li>
+<li><strong>Stream-based S3 read/write</strong> : Improving memory efficiency for large object operations.</li>
+</ul>
+<p><strong>Phase 2: Recommended default.</strong> Promotion to the recommended default is a community decision taken on the <a href="https://flink.apache.org/community.html">dev@ mailing list</a>. The signals we will look for are sustained adoption feedback from production users and no unresolved Blocker or Critical issues in JIRA against the native plugin across at least one full release cycle. Once that bar is met, the native plugin will become the recommended default for new Flink installations, and documentation, quickstarts, and tutorials will be updated accordingly.</p>
+<p><strong>Phase 3: Formal deprecation.</strong> Once the native plugin is the recommended default, the Hadoop and Presto plugins will be formally deprecated through the community process (a FLIP and <code>dev@</code> vote), with a defined support window before removal.</p>
+<h2 id="get-involved">
+  Get Involved
+  <a class="anchor" href="#get-involved">#</a>
+</h2>
+<p><code>flink-s3-fs-native</code> is part of Apache Flink and is developed in the open. The module lives at <code>flink-filesystems/flink-s3-fs-native</code> in the <a href="https://github.com/apache/flink">Flink repository</a>.</p>
+<p>The migration is safe and requires minimal deployment changes. If your team is already evaluating or running this in production, we want to hear from you. When posting to the mailing lists, please use the subject tag <strong><code>[flink-s3-fs-native]</code></strong> so maintainers can find and triage your feedback quickly. Your input directly shapes the path from experimental to default.</p>
+<ul>
+<li><strong>Mailing lists:</strong> subscribe to <code>user@flink.apache.org</code> (usage questions) or <code>dev@flink.apache.org</code> (development discussion) via <a href="https://flink.apache.org/community.html">flink.apache.org/community.html</a>, and tag posts with <strong><code>[flink-s3-fs-native]</code></strong></li>
+<li><strong>Bug reports and feature requests:</strong> <a href="https://issues.apache.org/jira/browse/FLINK">JIRA (FLINK project)</a></li>
+<li><strong>Contributions:</strong> Pull requests welcome via the <a href="https://github.com/apache/flink">Flink GitHub repository</a></li>
+</ul>
+</p>
+</article>
+
+          
+
+
+
+  
+    
+    <div class="edit-this-page">
+      <p>
+        <a href="https://cwiki.apache.org/confluence/display/FLINK/Flink+Translation+Specifications">Want to contribute translation?</a>
+      </p>
+      <p>
+        <a href="//github.com/apache/flink-web/edit/asf-site/docs/content/posts/2026-06-26-announcing-native-s3-fs.md">
+          Edit This Page<i class="fa fa-edit fa-fw"></i> 
+        </a>
+      </p>
+    </div>
+
+        </section>
+        
+          <aside class="book-toc">
+            
+
+
+<nav id="TableOfContents"><h3>On This Page <a href="javascript:void(0)" class="toc" onclick="collapseToc()"><i class="fa fa-times" aria-hidden="true"></i></a></h3>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#two-plugins-one-filesystem-and-no-good-answer">Two Plugins, One Filesystem, and No Good Answer</a></li>
+        <li><a href="#why-this-matters-beyond-engineering">Why This Matters Beyond Engineering</a></li>
+        <li><a href="#one-stop-solution-native-s3-filesystem">One Stop Solution: Native S3 Filesystem</a>
+          <ul>
+            <li><a href="#feature-highlights">Feature highlights</a></li>
+          </ul>
+        </li>
+        <li><a href="#performance">Performance</a>
+          <ul>
+            <li><a href="#test-environment">Test environment</a></li>
+            <li><a href="#summary-results">Summary results</a></li>
+            <li><a href="#throughput">Throughput</a></li>
+            <li><a href="#what-faster-checkpoints-mean-for-your-operations">What faster checkpoints mean for your operations</a></li>
+          </ul>
+        </li>
+        <li><a href="#smooth-migration-path">Smooth Migration Path</a></li>
+        <li><a href="#availability-and-roadmap">Availability and Roadmap</a></li>
+        <li><a href="#get-involved">Get Involved</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+          </aside>
+          <aside class="expand-toc hidden">
+            <a class="toc" onclick="expandToc()" href="javascript:void(0)">
+              <i class="fa fa-bars" aria-hidden="true"></i>
+            </a>
+          </aside>
+        
+      </main>
+
+      <footer>
+        
+
+
+<div class="separator"></div>
+<div class="panels">
+  <div class="wrapper">
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="https://flink-packages.org/">flink-packages.org</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/">Apache Software Foundation</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/licenses/">License</a>
+          </li>
+          
+          
+          
+            
+          
+            
+          
+          
+
+          
+            
+              
+            
+          
+            
+              
+                <li>
+                  <a  href="/zh/">
+                    <i class="fa fa-globe" aria-hidden="true"></i>&nbsp;中文版
+                  </a>
+                </li>
+              
+            
+          
+       </ul>
+      </div>
+      <div class="panel">
+        <ul>
+          <li>
+            <a href="/what-is-flink/security">Security</a-->
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/sponsorship.html">Donate</a>
+          </li>
+          <li>
+            <a href="https://www.apache.org/foundation/thanks.html">Thanks</a>
+          </li>
+       </ul>
+      </div>
+      <div class="panel icons">
+        <div>
+          <a href="/posts">
+            <div class="icon flink-blog-icon"></div>
+            <span>Flink blog</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://github.com/apache/flink">
+            <div class="icon flink-github-icon"></div>
+            <span>Github</span>
+          </a>
+        </div>
+        <div>
+          <a href="https://twitter.com/apacheflink">
+            <div class="icon flink-twitter-icon"></div>
+            <span>Twitter</span>
+          </a>
+        </div>
+      </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container disclaimer">
+  <p>The contents of this website are © 2024 Apache Software Foundation under the terms of the Apache License v2. Apache Flink, Flink, and the Flink logo are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries.</p>
+</div>
+
+
+
+      </footer>
+    
+  </body>
+</html>
+
+
+
+
+
+
