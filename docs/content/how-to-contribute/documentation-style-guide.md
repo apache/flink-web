@@ -113,7 +113,7 @@ the file and must be specified as a valid YAML set between triple-dashed lines.
 
 For every documentation file, the front matter should be immediately
 followed by the Apache License statement. For both language versions, this
-block must be stated in US English and copied in the exact same words as inthe following example.
+block must be stated in US English and copied in the exact same words as in the following example.
 
 
 ```
