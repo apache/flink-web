@@ -1,5 +1,5 @@
 ---
-title: What is Paimon(incubating) (formerly Flink Table Store)?
+title: What is Apache Paimon (formerly Flink Table Store)?
 bookCollapseSection: false
 bookHref: "https://paimon.apache.org/"
 ---
@@ -24,4 +24,4 @@ under the License.
 
 # What is Apache Paimon (formerly Flink Table Store)?
 
-The Flink Table Store had joined Apache Incubator as Apache Paimon(incubating). All information on the Apache Paimon(incubating) can be found on the [Paimon website.](https://paimon.apache.org/)
+Flink Table Store is now Apache Paimon, a separate top-level project at the Apache Software Foundation. All information about Apache Paimon can be found on the [Paimon website](https://paimon.apache.org/).
