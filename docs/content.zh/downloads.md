@@ -3,6 +3,9 @@ title: Downloads
 bookCollapseSection: false
 weight: 5
 menu_weight: 2
+aliases:
+- /zh/downloads.html
+- /zh/downloads/index.html
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one

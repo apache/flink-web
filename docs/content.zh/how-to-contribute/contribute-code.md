@@ -105,7 +105,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
     <div class="panel panel-default">
       <div class="panel-body">
         <h2><span class="number">2</span><a href="#implement">实现</a></h2>
-        <p>根据<a href="/zh/contributing/code-style-and-quality-preamble.html">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
+        <p>根据<a href="{{< relref "how-to-contribute/code-style-and-quality-preamble" >}}">代码样式和质量指南</a>，以及 Jira 工单中商定的方法去实现更改。</p> <br />
         <p><b>只有在达成共识时,才开始去实现(例如已经有工单分配给你了)</b></p>
       </div>
     </div>
@@ -203,7 +203,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 以下是在实现时要注意的一些要点：
 
 - [设置 Flink 的开发环境](https://cwiki.apache.org/confluence/display/FLINK/Setting+up+a+Flink+development+environment)
-- 遵循 Flink 的[代码风格和质量指南](/zh/contributing/code-style-and-quality-preamble.html)
+- 遵循 Flink 的[代码风格和质量指南]({{< relref "how-to-contribute/code-style-and-quality-preamble" >}})
 - 接受来自 Jira issue 或设计文档中的任何讨论和要求。
 - 不要将不相关的问题混合到一个贡献中。
 
@@ -227,7 +227,7 @@ Apache Flink 是一个通过志愿者贡献的代码来维护、改进和扩展�
 
 Flink 中的代码更改将通过 [GitHub pull request](https://help.github.com/en/articles/creating-a-pull-request) 进行审查和合并。
 
-这里有关于[如何审查 pull request](/zh/contributing/reviewing-prs.html) 的单独指南，包括我们的 pull request 审核流程。作为代码作者，在你准备 pull request 前，应该满足以上所有要求。
+这里有关于[如何审查 pull request]({{< relref "how-to-contribute/reviewing-prs" >}}) 的单独指南，包括我们的 pull request 审核流程。作为代码作者，在你准备 pull request 前，应该满足以上所有要求。
 
 <a name="merge"></a>
 
