@@ -1,7 +1,7 @@
 ---
 weight: 1
 title: With Flink
-bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/docs/try-flink/local_installation/"
+bookHref: "https://nightlies.apache.org/flink/flink-docs-stable/docs/getting-started/local_installation/"
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
