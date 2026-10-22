@@ -42,7 +42,7 @@ The execution of an application in Flink mainly involves three entities: the *Cl
 the *JobManager* and the *TaskManagers*. The Client is responsible for submitting the application to the 
 cluster, the JobManager is responsible for the necessary bookkeeping during execution, 
 and the TaskManagers are the ones doing the actual computation. For more details please 
-refer to [Flink's Architecture]({{< param DocsBaseUrl >}}flink-docs-stable/concepts/flink-architecture.html)
+refer to [Flink's Architecture]({{< param DocsBaseUrl >}}flink-docs-release-1.18/docs/concepts/flink-architecture/)
 documentation page. 
 
 ## Current Deployment Modes
