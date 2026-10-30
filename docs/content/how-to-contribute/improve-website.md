@@ -97,10 +97,4 @@ Details on how to set the credentials for the ASF git repository are [linked her
 
 ### Merging a pull request
 
-Contributions are expected to be done on the source files only (no modifications on the compiled files in the `content/` directory.). Before pushing a website change, please run the build script
-
-```
-./build.sh
-```
-
-add the changes to the `content/` directory as an additional commit and push the changes to the ASF base repository.
+Contributions are expected to be done on the source files only (no modifications on the compiled files in the `content/` directory.).

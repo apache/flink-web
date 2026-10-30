@@ -97,11 +97,4 @@ Flink 项目通过 [GitHub Mirror](https://github.com/apache/flink-web) 以提�
 
 ### 合并 pull request
 
-默认所有的修改仅在源文件上完成（对 `content/` 目录中自动生成的文件没有修改）。 在推送网站更改之前，请运行构建脚本。
-
-```
-./build.sh
-```
-
-将更改添加到 `content/` 目录作为附加提交，并将更改推送到 ASF 基本仓库。
-
+默认所有的修改仅在源文件上完成（对 `content/` 目录中自动生成的文件没有修改）。
