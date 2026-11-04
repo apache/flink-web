@@ -25,7 +25,7 @@ We highly recommend all users to upgrade to Flink CDC 3.1.1.
 * [FLINK-35323] Only the schema of the first hit table is recorded when the source-table of the transformer hits multiple tables
 * [FLINK-35415] CDC Fails to create sink with Flink 1.19
 * [FLINK-35430] ZoneId is not passed to DebeziumJsonSerializationSchema
-* [FLINK-35464] Flink CDC 3.1 breaks operator state compatiblity
+* [FLINK-35464] Flink CDC 3.1 breaks operator state compatibility
 * [FLINK-35540] flink-cdc-pipeline-connector-mysql lost table which database and table with the same name
 
 ### Documentation improvement
