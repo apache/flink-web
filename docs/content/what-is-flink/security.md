@@ -87,6 +87,12 @@ The Kubernetes RBAC layer replaces direct cluster access as the authentication m
 
 The operator runs with cluster-scoped RBAC by default -- apply least-privilege principles and restrict its service account to the minimum required permissions. The admission webhook requires TLS, which Kubernetes enforces. Credentials in Flink custom resource specifications flow through Kubernetes secrets and must be managed according to your organization's secret management policies. Restrict Flink custom resource apply permissions to trusted principals.
 
+## Apache Flink Agents
+
+Apache Flink Agents assumes that both the input data processed by agents and the model services they invoke are trusted.
+
+See the {{< docs_link file="flink-agents-docs-main/docs/operations/security/" name="Security & Threat Model" >}} for security boundaries, tool execution limitations, and application and operator responsibilities.
+
 ## Known Vulnerabilities
 
 The Flink project does not maintain its own CVE list. For a complete and up-to-date record of known vulnerabilities, consult the authoritative external databases:
