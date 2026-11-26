@@ -39,6 +39,8 @@ Flink's security model is built around one explicit trust boundary: **the cluste
 
 **Unauthenticated access to cluster interfaces is the threat Flink protects against.** The REST API, SQL Gateway, and BLOB server are the surfaces that must be secured from external attackers.
 
+**Checkpoint, savepoint and high-availability storage is trusted.** When a job starts or recovers, Flink reads checkpoint and savepoint data, high-availability metadata and local recovery files, and deserializes the Java objects and operator state they contain. Flink does not protect this data against modification. Write access to these locations is therefore equivalent to submitting a job.
+
 ### Security Boundary Reference
 
 The table below is intended for security researchers and enterprise security teams evaluating Flink:
@@ -53,6 +55,7 @@ The table below is intended for security researchers and enterprise security tea
 | Remote Code Execution (RCE) via a submitted JAR, DataStream program, or UDF | **Out of scope** | By design -- these submitters run arbitrary code; does not apply to SQL Gateway submissions |
 | Spawning processes or opening connections from within a running job | **Out of scope** | By design |
 | Reading or writing files from within a running job | **Out of scope** | By design |
+| Code execution or changed job behavior after modifying checkpoint, savepoint or high-availability storage | **Out of scope** | By design -- write access to this storage is equivalent to job submission |
 
 ### Deployment Requirements
 
@@ -61,6 +64,8 @@ Flink clusters must not be exposed to the public internet. Access to all Flink n
 SSL/TLS, REST API authentication, and SQL Gateway authentication are all **disabled by default**. A default Flink deployment is unauthenticated and unencrypted on its network interfaces. These need to be explicitly configured for any production or shared deployment.
 
 The REST API supports mutual TLS for client certificate authentication; anything beyond that, and all SQL Gateway authentication, needs to be provided by a proxy in front of Flink's network interfaces.
+
+Write access to checkpoint, savepoint and high-availability storage must be restricted to the Flink processes and the operators who manage them. This covers the locations set by `execution.checkpointing.dir`, `execution.checkpointing.savepoint-dir`, `high-availability.storageDir`, `execution.checkpointing.local-backup.dirs` and `process.taskmanager.working-dir`, and any savepoint a job is started from.
 
 Flink does not manage the security of external systems it connects to. Through its delegation token framework, Flink can obtain and renew short-lived tokens on the operator's behalf, but the underlying long-lived credentials remain an operator responsibility.
 
