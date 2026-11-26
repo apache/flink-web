@@ -37,7 +37,7 @@ Flink's security model is built around one explicit trust boundary: **the cluste
 
 **Authenticated users who submit jobs are fully trusted.** Flink executes submitted code unconditionally. A job can spawn processes, open network connections, read and write local files, and perform any operation the operating system permits. This is intentional -- restricting what user code can do would prevent legitimate use cases. Flink is not a sandbox.
 
-**Unauthenticated access to cluster interfaces is the threat Flink protects against.** The REST API, SQL Gateway, and BLOB server are the surfaces that must be secured from external attackers.
+**Unauthenticated access to cluster interfaces is the threat Flink protects against.** The REST API, SQL Gateway, BLOB server and, when enabled, the Queryable State proxy and server are the surfaces that must be secured from external attackers.
 
 ### Security Boundary Reference
 
@@ -61,6 +61,8 @@ Flink clusters must not be exposed to the public internet. Access to all Flink n
 SSL/TLS, REST API authentication, and SQL Gateway authentication are all **disabled by default**. A default Flink deployment is unauthenticated and unencrypted on its network interfaces. These need to be explicitly configured for any production or shared deployment.
 
 The REST API supports mutual TLS for client certificate authentication; anything beyond that, and all SQL Gateway authentication, needs to be provided by a proxy in front of Flink's network interfaces.
+
+Queryable State is deprecated and disabled by default (`queryable-state.enable`). Its proxy (`queryable-state.proxy.ports`, default 9069) and server (`queryable-state.server.ports`, default 9067) support neither authentication nor TLS. If you enable it, these ports must only be reachable from trusted clients.
 
 Flink does not manage the security of external systems it connects to. Through its delegation token framework, Flink can obtain and renew short-lived tokens on the operator's behalf, but the underlying long-lived credentials remain an operator responsibility.
 
